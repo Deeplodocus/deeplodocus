@@ -33,10 +33,11 @@ setup(
     entry_points={'console_scripts': [
         'deeplodocus = deeplodocus.core.management:execute_from_command_line',
     ]},
-    install_requires=['torch'],
+    install_requires=['torch >= 0.4.0',
+                      'numpy >= 1.14.3',
+                      'pyyaml'],
     extras_require={
-        "cv2": ["cv2 >= 3.4.1"],
-        "numpy": ["nmpy >= 1.14.3"],
+        "cv2": ["cv2 >= 3.4.1"]
     },
     zip_safe=False,
     classifiers=[

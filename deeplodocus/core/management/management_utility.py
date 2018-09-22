@@ -7,19 +7,20 @@ import sys
 
 #
 from deeplodocus.utils.notification import Notification, DEEP_INFO, DEEP_ERROR
+from deeplodocus.core.project.project_utility import ProjectUtility
+from deeplodocus import __version__
 
 class ManagementUtility(object):
 
 
     def __init__(self, argv=None):
 
-        self.commands = {"help" : "List the commands available", "version" : "Display the version of Deeplodocus installed", "startproject" : "Generate a deeplodocus to use Deeplodocus"}
+        self.commands = {"help" : "List the commands available",
+                         "version" : "Display the version of Deeplodocus installed",
+                         "startproject" : "Generate a deeplodocus to use Deeplodocus"}
 
         self.argv = argv or sys.argv[:]
-        self.prog_name = os.path.basename(self.argv[0])
-        if self.prog_name == '__main__.py':
-            self.prog_name = 'python -m django'
-        self.settings_exception = None
+
 
 
     def execute_from_command_line(self):
@@ -50,25 +51,20 @@ class ManagementUtility(object):
             Notification(DEEP_INFO, str(command) + " : " + str(description))
 
     def __version(self):
-        Notification(DEEP_ERROR, "Not Implemented")
+
+        version = str(__version__)
+        Notification(DEEP_INFO, "DEEPLODOCUS VERSION : " + str(version))
 
 
     def __startproject(self):
         """
         Authors : Alix Leroy,
-        Generate the deeplodocus to use deeplodocus
+        Generate the deeplodocus structure to use deeplodocus
         :return: None
         """
 
-        self.__generate_config()
-
-        self.__generate_main()
-
-        self.__generate_loss()
-
-        self.__generate_metric()
-
-        self.__generate_result()
+        p = ProjectUtility()
+        p.generate_structure()
 
 
 
