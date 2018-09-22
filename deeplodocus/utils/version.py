@@ -1,3 +1,9 @@
+#
+# FROM DJANGO PACKAGE
+#
+
+
+
 import datetime
 import functools
 import os
