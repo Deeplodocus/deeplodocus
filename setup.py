@@ -7,7 +7,7 @@ REQUIRED_PYTHON = (3, 5)
 
 
 # Dynamically calculate the version based on django.VERSION.
-version = "0.0.1-pre-alpha"
+version = __import__('deeplodocus').get_version()
 
 
 def read(fname):
@@ -33,7 +33,7 @@ setup(
     entry_points={'console_scripts': [
         'deeplodocus = deeplodocus.core.management:execute_from_command_line',
     ]},
-    install_requires=['pytorch >= 0.4.0'],
+    install_requires=['torch >= 0.4.0'],
     extras_require={
         "cv2": ["cv2 >= 3.4.1"],
         "numpy": ["nmpy >= 1.14.3"],
@@ -41,9 +41,6 @@ setup(
     zip_safe=False,
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
-        'Environment ::  Environment',
-        'Framework :: Deeplodocus',
-        'Intended Audience :: Deep Learning Researchers / Engineers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
