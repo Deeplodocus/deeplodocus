@@ -40,7 +40,7 @@ setup(
     },
     zip_safe=False,
     classifiers=[
-        'Development Status :: 0.0.1 - Pre-Alpha',
+        'Development Status :: 2 - Pre-Alpha',
         'Environment ::  Environment',
         'Framework :: Deeplodocus',
         'Intended Audience :: Deep Learning Researchers / Engineers',
