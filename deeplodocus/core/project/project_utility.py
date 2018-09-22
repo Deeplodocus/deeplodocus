@@ -1,7 +1,7 @@
 import os.path
 import os
 from distutils.dir_util import copy_tree
-from pathlib import Path
+#from pathlib import Path
 
 import __main__
 
@@ -34,12 +34,14 @@ class ProjectUtility(object):
     def generate_structure(self):
         """
         Authors : Alix Leroy,
-        Generate a Deep Project
+        Generate a Deep Project by copying the default folder to the desired location
         :return: None
         """
 
         deeplodocus_project_path = self.main_path + "/" + self.project_name
-        source_project_structre = str(Path(__file__).parent) + "/deeplodocus"
+        #source_project_structre = str(Path(__file__).parent) + "/deeplodocus"
+
+        source_project_structre = os.path.abspath(os.path.join(os.path.dirname(__file__), "..")) + "/deeplodocus"
 
         try:
             if not os.path.exists(deeplodocus_project_path):

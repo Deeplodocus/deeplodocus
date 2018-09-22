@@ -1,4 +1,5 @@
 from deeplodocus.utils.notification import Notification, DEEP_SUCCESS, DEEP_INFO
+from deeplodocus import __version__
 
 class Logo(object):
     """
@@ -13,6 +14,8 @@ class Logo(object):
         Initialize the logo class
         :param version: string of the version of deeeplodocus
         """
+
+        version = __version__
 
         self.__display(version)
 

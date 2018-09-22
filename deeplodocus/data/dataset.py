@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import os
-import sys
 import mimetypes
 
 from deeplodocus.utils.generic_utils import get_file_paths
