@@ -1,4 +1,3 @@
-from .utils.notification import Notification
 import os.path
 import time
 

@@ -33,11 +33,14 @@ setup(
     entry_points={'console_scripts': [
         'deeplodocus = deeplodocus.core.management:execute_from_command_line',
     ]},
-    install_requires=['torch >= 0.4.0',
-                      'numpy >= 1.14.3',
-                      'pyyaml'],
+    install_requires=['torch>=0.4.0',
+                      'numpy>=1.9.1',
+                      'pyyaml',
+                      'pandas>=0.23.0',
+                      'matplotlib>=2.2.2',
+                      'aiohttp>=3.4.1'],
     extras_require={
-        "cv2": ["cv2 >= 3.4.1"]
+        "cv2": ["opencv-python >= 3.4.1"]
     },
     zip_safe=False,
     classifiers=[
