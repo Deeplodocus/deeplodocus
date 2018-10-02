@@ -22,38 +22,45 @@ class ManagementUtility(object):
         self.argv = argv or sys.argv[:]
 
 
-
     def execute_from_command_line(self):
+        """
+        Authors : Alix Leroy,
+        execute the command entered in the terminal
+        :return: None
+        """
 
-        if self.argv[0] == "startproject":
+        if len(self.argv) > 1:
 
-            self.__startproject()
+            if str(self.argv[1]) == "startproject":
 
-
-        elif self.argv[0] == "version":
-            self.__version()
+                self.__startproject()
 
 
-        elif self.argv[0] == "help":
+            elif str(self.argv[1]) == "version":
+                self.__version()
 
-            self.__help()
+
+            elif str(self.argv[1]) == "help":
+
+                self.__help()
+
+            else:
+                Notification(DEEP_ERROR, "The following command does not exits : " + str(self.argv[1]),  write_logs=False)
 
         else:
-            Notification(DEEP_ERROR, "The following command does not exits : " + str(self.argv[0]))
-
-
+            self.__help()
 
 
     def __help(self):
 
 
         for command, description in self.commands.items():
-            Notification(DEEP_INFO, str(command) + " : " + str(description))
+            Notification(DEEP_INFO, str(command) + " : " + str(description), write_logs=False)
 
     def __version(self):
 
         version = str(__version__)
-        Notification(DEEP_INFO, "DEEPLODOCUS VERSION : " + str(version))
+        Notification(DEEP_INFO, "DEEPLODOCUS VERSION : " + str(version),  write_logs=False)
 
 
     def __startproject(self):
@@ -63,12 +70,13 @@ class ManagementUtility(object):
         :return: None
         """
 
-        p = ProjectUtility()
+        main_path = None
+        name = "deeplodocus_project"
+
+        if len(self.argv)>2:
+            name = self.argv[2]
+        if len(self.argv)>3:
+            main__path = self.argv[3]
+
+        p = ProjectUtility(project_name=name, main_path =main_path)
         p.generate_structure()
-
-
-
-
-m = ManagementUtility(["help"])
-
-m.execute_from_command_line()

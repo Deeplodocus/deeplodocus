@@ -1,14 +1,11 @@
 import os
 from setuptools import find_packages, setup
-
-
-REQUIRED_PYTHON = (3, 5)
-
+from deeplodocus import __version__
 
 
 # Dynamically calculate the version based on django.VERSION.
-version = __import__('deeplodocus').get_version()
-
+#version = __import__('deeplodocus').get_version()
+version = __version__
 
 def read(fname):
     with open(os.path.join(os.path.dirname(__file__), fname)) as f:
@@ -16,11 +13,10 @@ def read(fname):
 
 EXCLUDE_FROM_PACKAGES = ['deeplodocus.bin']
 
-
 setup(
     name='Deeplodocus',
     version=version,
-    python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
+    python_requires='>=3.5.3',
     url='https://www.deeplodocus.github.io/',
     author='Alix Leroy and Samuel Westlake',
     author_email='deeplodocus@gmail.com',
@@ -28,17 +24,17 @@ setup(
     long_description=read('README.rst'),
     license='MIT',
     packages=find_packages(exclude=EXCLUDE_FROM_PACKAGES),
-    include_package_data=True,
-    scripts=['deeplodocus/bin/deeplodocus.py'],
+    #include_package_data=True,
+    #scripts=['deeplodocus/bin/deeplodocus-admin.py'],
     entry_points={'console_scripts': [
         'deeplodocus = deeplodocus.core.management:execute_from_command_line',
     ]},
-    install_requires=['torch>=0.4.0',
-                      'numpy>=1.9.1',
-                      'pyyaml',
-                      'pandas>=0.23.0',
+    install_requires=['torch>=0.4.1',
+                      'numpy>=1.15.1',
+                      'pyyaml>=3.13',
+                      'pandas>=0.23.1',
                       'matplotlib>=2.2.2',
-                      'aiohttp>=3.4.1'],
+                      'aiohttp>=3.4.0'],
     extras_require={
         "cv2": ["opencv-python >= 3.4.1"]
     },
