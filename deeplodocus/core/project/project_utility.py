@@ -1,9 +1,6 @@
 import os.path
 import os
-from distutils.dir_util import copy_tree
-#from pathlib import Path
-
-import __main__
+from distutils.dir_util import copy_tree, remove_tree
 
 from deeplodocus.utils.notification import Notification, DEEP_FATAL
 
@@ -39,20 +36,39 @@ class ProjectUtility(object):
         """
 
         deeplodocus_project_path = self.main_path + "/" + self.project_name
-        #source_project_structre = str(Path(__file__).parent) + "/deeplodocus"
-
-        source_project_structre = os.path.abspath(os.path.join(os.path.dirname(__file__), "..")) + "/deeplodocus"
+        source_project_structre = os.path.abspath(os.path.dirname(__file__)) + "/deep_structure"
 
         try:
             if not os.path.exists(deeplodocus_project_path):
                 os.mkdir(deeplodocus_project_path)
         except:
-            Notification(DEEP_FATAL, "An error occured during the generation of the folders. Make sure the desired folder exists.")
+            Notification(DEEP_FATAL, "An error occured during the generation of the folders. Make sure the desired folder exists.", write_logs=False)
 
         try:
+            # Copy the whole structure of a Deeplodocus project
             copy_tree(source_project_structre, deeplodocus_project_path, update= 1)
         except:
-            Notification(DEEP_FATAL, "An error occurred during the copy of the files. Make sure the destination folder exists and check your Deeplodocus installation.")
+            Notification(DEEP_FATAL, "An error occurred during the copy of the files. Make sure the destination folder exists and check your Deeplodocus installation.", write_logs=False)
+
+        #self.__clean_structure()
+
+    def __clean_structure(self):
+        """
+        Authors : Alix Leroy,
+        Remove __init__.py files and __pycache__ folders
+        :return:
+        """
+        """
+        for root, dirs, files in os.walk(template_dir):
+
+            for filename in files:
+                if filename == "__init__.py":
+                    
+
+            for dirname in dirs[:]:
+                if dirname.startswith('.') or dirname == '__pycache__':
+                    remove_tree(dirname)
+        """
 
     def __generate_main_path(self):
         """
@@ -61,7 +77,7 @@ class ProjectUtility(object):
         :return: Main path
         """
 
-        path = os.path.dirname(__main__.__file__)
+        path = os.getcwd()
         return path
 
 
