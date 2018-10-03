@@ -1,3 +1,5 @@
+from
+
 
 # Import transformers
 from deeplodocus.data.transformer.one_of import OneOf
@@ -6,7 +8,9 @@ from deeplodocus.data.transformer.some_of import SomeOf
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.transformer.transformer import Transformer
-from deeplodocus.utils.notification import DEEP_CRITICAL
+from deeplodocus.utils.types import *
+
+
 
 class Transform(object):
 
@@ -41,11 +45,11 @@ class Transform(object):
         list_transformers = None
 
 
-        if entry_type == "inputs":
+        if entry_type == DEEP_TYPE_INPUT:
             list_transformers = self.list_input_transformers
-        elif entry_type == "labels":
+        elif entry_type == DEEP_TYPE_LABEL:
             list_transformers = self.list_label_transformers
-        elif entry_type == "additional_data":
+        elif entry_type == DEEP_TYPE_ADDITIONAL_DATA:
             list_transformers = self.list_additional_data_transformers
         else:
             Notification(DEEP_FATAL, "The following type of transformer does not exist : " + str (entry_type))
@@ -54,17 +58,22 @@ class Transform(object):
         # Check if the transformer points to another transformer
         pointer = list_transformers[entry_num].get_pointer()
 
+        # If we do not point to another transformer, transform directly the data
         if pointer is None:
         # Transform
             transformed_data = list_transformers[entry_num].transform(data, index, type_data)
 
+        # If we point to another transformer, load the transformer then transform the data
         else:
-            if pointer[0] == "inputs":
+            if pointer[0] == DEEP_TYPE_INPUT:
                 list_transformers = self.list_input_transformers
-            elif pointer[0] == "labels":
+
+            elif pointer[0] == DEEP_TYPE_LABEL:
                 list_transformers = self.list_label_transformers
-            elif pointer[0] == "additional_data":
+
+            elif pointer[0] == DEEP_TYPE_ADDITIONAL_DATA:
                 list_transformers = self.list_additional_data_transformers
+
             else:
                 Notification(DEEP_FATAL, "The following type of transformer does not exist : " + str (pointer[0]))
 

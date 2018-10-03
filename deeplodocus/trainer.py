@@ -1,4 +1,4 @@
-from .callback import Callback
+from deeplodocus.callback import Callback
 
 from torch.utils.data import  DataLoader
 
@@ -17,26 +17,20 @@ class Trainer(object):
         self.dataloader =  DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
 
 
-    def start(self, method):
+    def start(self):
         """
         :param method:
         :return:
         """
 
-        if method == "from_directory":
-            self.__train_from_directory()
 
-        elif method == "from_file":
-            self.__train_from_file(metrics, losses, optimizer, callbacks)
-
-        else:
-            raise ValueError("Unknown training method %s" % method)
+        self.__train()
 
 
         print("Training...")
 
 
-    def __train_from_file(self, first_training = True):
+    def __train(self, first_training = True):
 
 
         if first_training is True :

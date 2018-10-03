@@ -1,4 +1,5 @@
-from deeplodocus.utils.notification import Notification, DEEP_SUCCESS, DEEP_INFO
+from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.types import *
 from deeplodocus import __version__
 
 class Logo(object):
