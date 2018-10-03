@@ -29,8 +29,7 @@ setup(
     entry_points={'console_scripts': [
         'deeplodocus = deeplodocus.core.management:execute_from_command_line',
     ]},
-    install_requires=['torch>=0.4.1',
-                      'numpy>=1.15.1',
+    install_requires=['numpy>=1.15.1',
                       'pyyaml>=3.13',
                       'pandas>=0.23.1',
                       'matplotlib>=2.2.2',

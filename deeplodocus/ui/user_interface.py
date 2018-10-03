@@ -5,8 +5,9 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 
-from deeplodocus.utils.notification import Notification, DEEP_SUCCESS
+from deeplodocus.utils.notification import Notification
 from deeplodocus.ui.routes import Routes
+from deeplodocus.utils.types import *
 
 
 class UserInterface(object):

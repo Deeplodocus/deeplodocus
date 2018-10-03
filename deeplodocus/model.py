@@ -36,6 +36,7 @@ class Model(object):
         self.history = None
         self.evaluation = {}
         self.load_config()
+        self.training_dataset.set_len_data(config.number_instances)
         self.__on_start()
 
     def load_config(self, new_values=None):

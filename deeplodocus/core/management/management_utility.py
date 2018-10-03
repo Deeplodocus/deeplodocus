@@ -6,7 +6,8 @@ import sys
 
 
 #
-from deeplodocus.utils.notification import Notification, DEEP_INFO, DEEP_ERROR
+from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.types import *
 from deeplodocus.core.project.project_utility import ProjectUtility
 from deeplodocus import __version__
 
