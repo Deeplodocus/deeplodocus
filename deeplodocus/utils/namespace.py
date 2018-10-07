@@ -10,8 +10,7 @@ class Namespace(object):
 
     def __init__(self, *args):
         """
-        Initialises the Namespace and adds data from a dictionary, directory or yaml file as given.
-        :args: str or dict: path to yaml files or dictionary to be converted into the namespace dict
+        :param args: str or dict: yaml path or dictionary to be included in the namespace
         """
         for arg in args:
             if isinstance(arg, str):
