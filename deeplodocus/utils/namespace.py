@@ -8,21 +8,19 @@ import yaml
 
 class Namespace(object):
 
-    def __init__(self, dictionary=None, yaml_path=None):
+    def __init__(self, *args):
         """
-        Initialises the Namespace and adds data from a dictionary, directory or yaml file as given.
-        :param dictionary: dict: a dictionary of data to add,
-                                 where keys are converted into Namespaces.
-        :param yaml_path: str: str: path to a yaml file to add.
-        :param dictionary: dict:
-        :param yaml_path: str:
+        :param args: str or dict: yaml path or dictionary to be included in the namespace
         """
-        if yaml_path is not None:
-            for key, item in self.__yaml2namespace(yaml_path).get().items():
-                self.add({key: item})
-        if dictionary is not None:
-            for key, item in self.__dict2namespace(dictionary).get().items():
-                self.add({key: item})
+        for arg in args:
+            if isinstance(arg, str):
+                for key, item in self.__yaml2namespace(arg).get().items():
+                    self.add({key: item})
+            elif isinstance(arg, dict):
+                for key, item in self.__dict2namespace(arg).get().items():
+                    self.add({key: item})
+            else:
+                print("Warning: unused argument %s" % arg)
 
     def add(self, dictionary, sub_space=None):
         """
