@@ -5,7 +5,8 @@ import string
 import datetime
 
 
-from deeplodocus.utils.notification import Notification, DEEP_INFO, DEEP_SUCCESS, DEEP_FATAL
+from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.types import *
 
 class Augmenter(object):
 

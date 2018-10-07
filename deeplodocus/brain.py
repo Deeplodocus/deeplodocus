@@ -1,7 +1,8 @@
 import os.path
 import time
 
-from deeplodocus.utils.notification import Notification, DEEP_ERROR, DEEP_INPUT, DEEP_SUCCESS, DEEP_FATAL, DEEP_WARNING
+from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.types import *
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.end import End

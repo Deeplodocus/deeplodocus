@@ -2,11 +2,13 @@ import pandas as pd
 import numpy as np
 import os
 import mimetypes
+import time
 
 from deeplodocus.utils.generic_utils import get_file_paths
-from deeplodocus.utils.notification import Notification,  DEEP_FATAL, DEEP_SUCCESS, DEEP_ERROR, DEEP_INFO
+from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.types import *
 
-cv_library = "PIL"
+cv_library = "opencv"
 
 # IMPORT COMPUTER VISION LIBRARY
 if cv_library == "opencv":
@@ -26,14 +28,16 @@ else:
     Notification(DEEP_FATAL,  "The following image module is not implemented : %s" % cv_library)
 
 
+
+
 class DataSet(object):
 
-    def __init__(self, list_inputs, list_labels, list_additional_data, transform=None, cv_library="PIL", write_logs=True):
+    def __init__(self, list_inputs, list_labels, list_additional_data, use_raw_data = True, transform=None, cv_library="PIL", write_logs=True, name="Default"):
         """
         :param list_inputs: list of files/folder/list of files/folders
         :param list_labels: list of files/folder/list of files/folders
         :param list_additional_data: list of files/folder/list of files/folders
-        :param root_dir:
+        :param use_raw_data: Boolean : Whether we want to use the raw data or always apply a Transform on it
         :param transform:
         :param cv_library: The computer vision library we want to use
         """
@@ -46,46 +50,89 @@ class DataSet(object):
         self.write_logs = write_logs
         self.number_instances = self.__compute_number_instances()
         self.data = None
-        self.include_raw_data = True
+        self.use_raw_data = use_raw_data
+        self.len_data = None
+        self.name = name
         # Check that the given data are in a correct format before any training
         #self.__check_data()
 
     def __getitem__(self, index):
         """
-        :param index:
-        :return:
+        Authors : Alix Leroy,
+        Get the ith item (or its transformed corresponding one)
+        :param index: index of the item to load
+        :return: Loaded instance
         """
+
+        # If we ask for a not existing index we use the modulo and consider the data to have to be augmented
+        if index >= self.len_data:
+
+            index = index % self.len_data
+            augment = True
+
+        # If we ask for a raw data, augment it only if required by the user
+        else:
+            augment = not self.use_raw_data
+
         # Extract lists of raw data from the pandas DataFrame for the select index
+        # TODO : Find a cleaner / faster way to do it
         if not self.list_labels:
             if not self.list_additional_data:
                 inputs = self.data.iloc[index]
-                inputs = self.__load_data(inputs, index, "inputs")
+                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
                 return inputs
             else:
                 inputs, additional_data = self.data.iloc[index]
-                inputs = self.__load_data(inputs, index, "inputs")
-                additional_data = self.__load_data(additional_data, index, "additional_data")
+                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
+                additional_data = self.__load_data(data=additional_data, augment=augment, index=index, entry_type=DEEP_TYPE_ADDITIONAL_DATA)
                 return inputs, additional_data
         else:
             if not self.list_additional_data:
                 inputs, labels = self.data.iloc[index]
-                inputs = self.__load_data(inputs, index, "inputs")
-                labels = self.__load_data(labels, index, "labels")
+                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
+                labels = self.__load_data(data=labels, augment=augment, index=index, entry_type=DEEP_TYPE_LABEL)
                 return inputs, labels
             else:
                 inputs, labels, additional_data = self.data.iloc[index]
-                inputs = self.__load_data(inputs, index, "inputs")
-                labels = self.__load_data(labels, index, "labels")
-                additional_data = self.__load_data(additional_data, index, "additional_data")
+                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
+                labels = self.__load_data(data=labels, augment=augment, index=index, entry_type=DEEP_TYPE_LABEL)
+                additional_data = self.__load_data(data=additional_data, augment=augment, index=index,  entry_type=DEEP_TYPE_ADDITIONAL_DATA)
                 return inputs, labels, additional_data
 
     def __len__(self):
         """
         Authors : Alix Leroy,
-        Get the number of instances in one epoch (augmentation included)
-        :return:
+        Get the number of raw instances (online augmented instances included only if the number was previously given by the model)
+        :return: Number of raw instances
         """
-        return len(self.data)
+
+        # Avoids to recompute the len of the raw dataset
+        if self.len_data == None:
+            return len(self.data)
+        else:
+            return self.len_data
+
+    def __set_len_dataset(self, length_data):
+        """
+        Authors : Alix Leroy,
+        Set the length of the dataset
+        :param length: The desired length
+        :return: None
+        """
+
+        if length_data < len(self.data):
+            res = None
+            while res.lower() != "y" or res != "n":
+                res = Notification(DEEP_INPUT, "Dataset contains {0} instances, are you sure you want to only use {1} instances ? (Y/N) ".format(len(self.data), length_data))
+
+            if res.lower() == "y" :
+                self.len_data = length_data
+            else:
+                self.len_data = len(self.data)
+
+        else:
+            self.len_data = length_data
+
 
     def summary(self):
         """
@@ -94,16 +141,16 @@ class DataSet(object):
         :return: None
         """
 
-        Notification(DEEP_INFO, "SUMMARY OF THE DATASET : \n" + str(self.data), write_logs=self.write_logs)
+        Notification(DEEP_INFO, "Summary of the '" + str(self.name)+ "' dataset : \n" + str(self.data), write_logs=self.write_logs)
 
-    def set_include_raw_data(self, include):
+    def set_use_raw_data(self, use_raw_data):
         """
         Authors : Alix Leroy
-        Whether raw data should be included or only use transform
+        Whether raw data should be included or only use transformed data
         :param include: Boolean
-        :return:
+        :return: None
         """
-        self.include_raw_data = include
+        self.use_raw_data = use_raw_data
 
     def has_labels(self):
         """
@@ -141,6 +188,7 @@ class DataSet(object):
         inputs = self.__read_data(self.list_inputs)
         labels = self.__read_data(self.list_labels)
         additional_data = self.__read_data(self.list_additional_data)
+
         # Create a dictionary containing inputs, labels and additional data
         if not labels:
             if not additional_data:
@@ -152,9 +200,22 @@ class DataSet(object):
                 d = {'inputs': inputs, 'labels': labels}
             else:
                 d = {'inputs': inputs, 'labels': labels, 'additional_data': additional_data}
+
+
+        # Add the column to know whether the data has to be augmented
+        #number_raw_data = len(d["inputs"])
+        #must_be_augmented_list = self.__compute_must_be_augmented_list(number_raw_data, self.use_raw_data)
+        #d.update({"must_be_augmented" : must_be_augmented_list})
+
+
         # Convert the dictionary of data into a panda DataFrame
         self.data = pd.DataFrame(d)
 
+        # Update the number of instances in the DataFrame
+        self.len_data = self.__len__()
+
+        # Notice the user that the Dataset has been loaded
+        Notification(DEEP_SUCCESS, "The '" + str(self.name) + "' dataset has successfully been loaded !", write_logs=self.write_logs)
 
     def __read_data(self, list_f_data):
         """
@@ -201,14 +262,14 @@ class DataSet(object):
         """
 
         # If it is a file
-        if self.__type_input(f) == "file":
+        if self.__type_input(f) == DEEP_TYPE_FILE:
 
             with open(f) as f:  # Read the file and get the data
                 content = f.readlines()
 
             content = [x.strip() for x in content]  # Remove the end of line \n
 
-        elif self.__type_input(f) == "folder":  # If it is a folder given as input
+        elif self.__type_input(f) == DEEP_TYPE_FOLDER:  # If it is a folder given as input
             content = get_file_paths(f)
 
         else:
@@ -228,49 +289,53 @@ class DataSet(object):
             Notification(DEEP_ERROR, "Could not shuffle the dataset", write_logs=self.write_logs)
 
 
-    def __load_data(self, data, index, entry_type, entry_num = None):
+    def __load_data(self, data, augment, index, entry_type, entry_num = None):
         """
         :param data: The data to load in memory
         :param entry_type : Whether it in an input, a label or an additional_data
         :return: The data loaded and transformed if needed
         """
+
+
         loaded_data = []
         for i, d in enumerate(data):            # For each data given in the list (list = one instance of each file)
             if d is not None:
                 type_data = self.__data_type(d)
 
                 # If data is a sequence we use the function in a recursive fashion
-                if type_data == "sequence":
+                if type_data == DEEP_TYPE_SEQUENCE:
                     if entry_num is None:
                         entry_num = i
                     sequence_raw_data = d.split() # Generate a list from the sequence
-                    loaded_data.append(self.__load_data(sequence_raw_data, index, entry_type, entry_num)) # Get the content of the list
+                    loaded_data.append(self.__load_data(data=sequence_raw_data, augment=augment, index=index, entry_type=entry_type, entry_num=entry_num)) # Get the content of the list
 
                 # Image
-                elif type_data == "image":
+                elif type_data == DEEP_TYPE_IMAGE:
                     image = self.__load_image(d)
                     if entry_num is None:
                         entry_num = i
-                    if self.transform is not None:
+
+                    if augment is True :
                         image = self.transform.transform(data = image, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
                     loaded_data.append(image)
 
                 # Video
-                elif type_data == "video":
+                elif type_data == DEEP_TYPE_VIDEO:
                     video = self.__load_video(d)
                     if entry_num is None:
                         entry_num = i
-                    if self.transform is not None:
+
+                    if augment is True:
                         video = self.transform.transform(data = video, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
                     loaded_data.append(video)
 
                 # Integer
-                elif type_data == "integer":
+                elif type_data == DEEP_TYPE_INTEGER:
                     integer = int(d)
                     loaded_data.append(integer)
 
                 # Float
-                elif type_data == "float":
+                elif type_data == DEEP_TYPE_FLOAT:
                     floating = float(d)
                     loaded_data.append(floating)
 
@@ -296,9 +361,9 @@ class DataSet(object):
         :return:
         """
         if os.path.isfile(f):
-            type = "file"
+            type = DEEP_TYPE_FILE
         elif os.path.isdir(f):
-            type = "folder"
+            type = DEEP_TYPE_FOLDER
         else:
             raise ValueError("The following data file/folder could not be recognize : " +str (f))
         return type
@@ -310,7 +375,6 @@ class DataSet(object):
         :param data:
         :return:
         """
-
         try:
             mime = mimetypes.guess_type(data)
             mime = mime[0].split("/")[0]
@@ -319,23 +383,23 @@ class DataSet(object):
 
         # Image
         if mime == "image":
-            return "image"
+            return DEEP_TYPE_IMAGE
 
         # Video
         elif mime == "video":
-            return "video"
+            return DEEP_TYPE_VIDEO
 
         # Float
-        elif self.__get_int_or_float(data) == "float":
-            return "float"
+        elif self.__get_int_or_float(data) == DEEP_TYPE_FLOAT:
+            return DEEP_TYPE_FLOAT
 
         # Integer
-        elif self.__get_int_or_float(data) == "int":
-            return "integer"
+        elif self.__get_int_or_float(data) == DEEP_TYPE_INTEGER:
+            return DEEP_TYPE_INTEGER
 
         # List
         elif type(data) is list:
-            return "sequence"
+            return DEEP_TYPE_SEQUENCE
 
         # Type not handled
         else:
@@ -348,14 +412,13 @@ class DataSet(object):
         try:
             number_as_float = float(v)
             number_as_int = int(number_as_float)
-            return "int" if number_as_float == number_as_int else "float"
+            return DEEP_TYPE_INTEGER if number_as_float == number_as_int else DEEP_TYPE_FLOAT
         except ValueError:
             return False
 
     #
     # DATA LOADERS
     #
-
     def __load_image(self, image_path):
         """
         Authors : Alix Leroy,
@@ -364,24 +427,28 @@ class DataSet(object):
         """
         if self.cv_library == "opencv":
             image =  cv2.imread(image_path, cv2.IMREAD_ANYDEPTH)
-
             # Check that the image was correctly loaded
-            if not image is None:
-                Notification(DEEP_FATAL, "The following image cannot be loaded : " +str(image_path), write_logs=self.write_logs)
+            if image is None:
+                Notification(DEEP_FATAL, "The following image cannot be loaded with OpenCV: " +str(image_path), write_logs=self.write_logs)
 
-            # Convert to RGB(a)
-            image = self.__convert_bgra2rgba(image)
+            # If the image is not a grayscale (only width + height axis)
+            if len(image.shape) > 2:
+                # Convert to RGB(a)
+                image = self.__convert_bgra2rgba(image)
 
         elif self.cv_library == "PIL":
             try:
                 image = Image.open(image_path)
             except:
-                Notification(DEEP_FATAL, "The following image cannot be loaded : " +str(image_path), write_logs=self.write_logs)
+                Notification(DEEP_FATAL, "The following image cannot be loaded with PIL: " + str(image_path),
+                             write_logs=self.write_logs)
+            image = np.array(image)
 
         else:
             Notification(DEEP_FATAL, "The following image module is not implemented : "+ str(self.cv_library), write_logs=self.write_logs)
 
         return image
+
 
     def __convert_bgra2rgba(self, image):
         """
@@ -393,6 +460,8 @@ class DataSet(object):
 
         # Convert BGR(A) to RGB(A)
         _, _, channels = image.shape
+
+        # Handle BGR and BGRA images
         if channels == 3:
             image = image[:, :, (2, 1, 0)]
         elif channels == 4:
@@ -494,6 +563,27 @@ class DataSet(object):
             if num_instances != self.number_instances:
                 Notification(DEEP_FATAL, "Number of instances in " + str(self.list_inputs[0]) + " and " + str(f) + " do not match.", write_logs=self.write_logs)
 
+    @staticmethod
+    def __compute_must_be_augmented_list(number_instances, use_raw_data):
+
+        """
+        Authors : Alix Leroy,
+        Return a list to know whether or not we should augment raw data
+        :param number_instances:
+        :param use_raw_data:
+        :return:
+        """
+
+        must_be_augmented_list = []
+
+        for i in range(number_instances):
+            if use_raw_data == True:
+                must_be_augmented_list.append(1)
+            else:
+                must_be_augmented_list.append(0)
+
+        return must_be_augmented_list
+
 
     def __check_data_type(self):
 
@@ -502,14 +592,14 @@ class DataSet(object):
         for f in self.list_data:
 
             # If the input is a file
-            if self.__type_input(f) == "file":
+            if self.__type_input(f) == DEEP_TYPE_FILE:
 
                 with open(f) as file:
                     Notification(DEEP_ERROR, "Check data type not implemented", write_logs=self.write_logs)
 
 
             # If the input is a folder
-            elif self.__type_input(f) == "folder":
+            elif self.__type_input(f) == DEEP_TYPE_FOLDER:
                 Notification(DEEP_FATAL, "Cannot currently check folders", write_logs=self.write_logs)
 
 
@@ -556,13 +646,13 @@ class DataSet(object):
         """
 
         # If the frame input is a file
-        if self.__type_input(f) == "file":
+        if self.__type_input(f) == DEEP_TYPE_FILE:
 
             with open(f) as f:
                 num_instances = sum(1 for _ in f)
 
         # If the frame input is a folder
-        elif self.__type_input(f) == "folder":
+        elif self.__type_input(f) == DEEP_TYPE_FOLDER:
 
             raise ValueError("Not implemented")
 
