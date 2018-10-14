@@ -4,20 +4,20 @@ import os
 import mimetypes
 import time
 
-from deeplodocus.utils.generic_utils import get_file_paths
+from deeplodocus.utils.generic_utils import sorted_nicely
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.types import *
 
-cv_library = "opencv"
+cv_library = DEEP_OPENCV
 
 # IMPORT COMPUTER VISION LIBRARY
-if cv_library == "opencv":
+if cv_library == DEEP_OPENCV:
     try:
         import cv2
     except ImportError:
         raise ImportError("OpenCV could not be loaded. Please check https://opencv.org/ ")
 
-elif cv_library == "PIL":
+elif cv_library == DEEP_PIL:
     try:
         from PIL import Image
     except ImportError:
@@ -30,39 +30,102 @@ else:
 
 
 
-class DataSet(object):
+class Dataset(object):
+    """
+    AUTHORS:
+    --------
 
-    def __init__(self, list_inputs, list_labels, list_additional_data, use_raw_data = True, transform=None, cv_library="PIL", write_logs=True, name="Default"):
+    author : Alix Leroy
+
+
+    DESCRIPTION:
+    ------------
+
+    A dataset class to manage the data given by the config files.
+    The following class permits :
+        - Data checking
+        - Smart data loading
+        - Data formatting
+        - Data transform (through the TransformManager class)
+
+
+    The dataset is splitted into 3 subsets :
+        - Inputs : Data given as input to the network
+        - Labels : Data given as output (ground truth) to the network (optional)
+        - Additional data : Data given to the loss function (optional)
+
+    The dataset class supports 2 different image processing libraries :
+        - PILLOW (fork of PIL) as default
+        - OpenCV (usage recommended for efficiency)
+    """
+
+    def __init__(self, list_inputs, list_labels, list_additional_data, use_raw_data = True, transform_manager=None, cv_library=DEEP_PIL, write_logs=True, name="Default"):
         """
-        :param list_inputs: list of files/folder/list of files/folders
-        :param list_labels: list of files/folder/list of files/folders
-        :param list_additional_data: list of files/folder/list of files/folders
-        :param use_raw_data: Boolean : Whether we want to use the raw data or always apply a Transform on it
-        :param transform:
-        :param cv_library: The computer vision library we want to use
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+        author:
+
+        DESCRIPTION:
+        ---------
+
+        Initialize the dataset
+
+        PARAMETERS:
+        -----------
+
+        :param list_inputs: A list of input files/folders/list of files/folders
+        :param list_labels: A list of label files/folders/list of files/folders
+        :param list_additional_data: A list of additional data files/folders/list of files/folders
+        :param use_raw_data: Boolean : Whether to feed the network with raw data or always apply transforms on it
+        :param transform: A transform object
+        :param cv_library: The computer vision library to be used for opening and modifying the images data
+        :param write_logs: Whether to write logs
+        :param name: Name of the dataset
         """
+
         self.list_inputs = list_inputs
         self.list_labels = list_labels
         self.list_additional_data = list_additional_data
         self.list_data = list_inputs + list_labels + list_additional_data
         self.cv_library = cv_library
-        self.transform = transform
+        self.transform_manager = transform_manager
         self.write_logs = write_logs
-        self.number_instances = self.__compute_number_instances()
+        self.number_raw_instances = self.__compute_number_raw_instances()
         self.data = None
         self.use_raw_data = use_raw_data
         self.len_data = None
         self.name = name
         # Check that the given data are in a correct format before any training
         #self.__check_data()
+        self.warning_video = None
 
-    def __getitem__(self, index):
+    def __getitem__(self, index : int):
+
         """
-        Authors : Alix Leroy,
-        Get the ith item (or its transformed corresponding one)
-        :param index: index of the item to load
-        :return: Loaded instance
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ---------
+
+        Get the instance (input, label, additional_data) corresponding to the given index
+
+        PARAMETERS:
+        -----------
+
+        :param index -> Integer : Index of the instance to load
+
+
+        RETURN:
+        -------
+
+        :return : Loaded and possibly transformed instance to be given to the training
         """
+
 
         # If we ask for a not existing index we use the modulo and consider the data to have to be augmented
         if index >= self.len_data:
@@ -79,7 +142,7 @@ class DataSet(object):
         if not self.list_labels:
             if not self.list_additional_data:
                 inputs = self.data.iloc[index]
-                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
+                inputs = self.__load_data(data=inputs[0], augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)         #Keep key == 0 else the datafram  also returns the name of the column (issue only on single column dataframe)
                 return inputs
             else:
                 inputs, additional_data = self.data.iloc[index]
@@ -99,92 +162,94 @@ class DataSet(object):
                 additional_data = self.__load_data(data=additional_data, augment=augment, index=index,  entry_type=DEEP_TYPE_ADDITIONAL_DATA)
                 return inputs, labels, additional_data
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
-        Authors : Alix Leroy,
-        Get the number of raw instances (online augmented instances included only if the number was previously given by the model)
-        :return: Number of raw instances
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the size of the dataset
+
+        PARAMETERS:
+        ----------
+
+        None
+
+        RETURN:
+        -------
+
+        return -> Integer : Length of the dataset
         """
 
-        # Avoids to recompute the len of the raw dataset
+
+        # If the lenth of the dataset has never been calculated we compute it
         if self.len_data == None:
             return len(self.data)
+
+        # Else, if the length of the dataset has been specified by an external demand (specific number of instance) we return this number
         else:
             return self.len_data
 
-    def __set_len_dataset(self, length_data):
+    def summary(self) -> None:
         """
-        Authors : Alix Leroy,
-        Set the length of the dataset
-        :param length: The desired length
-        :return: None
-        """
+        AUTHORS:
+        --------
 
-        if length_data < len(self.data):
-            res = None
-            while res.lower() != "y" or res != "n":
-                res = Notification(DEEP_INPUT, "Dataset contains {0} instances, are you sure you want to only use {1} instances ? (Y/N) ".format(len(self.data), length_data))
+        author: Alix Leroy
 
-            if res.lower() == "y" :
-                self.len_data = length_data
-            else:
-                self.len_data = len(self.data)
+        DESCRIPTION:
+        ------------
 
-        else:
-            self.len_data = length_data
-
-
-    def summary(self):
-        """
-        Authors : Alix Leroy,
         Print the summary of the dataset
-        :return: None
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        None
+
         """
 
         Notification(DEEP_INFO, "Summary of the '" + str(self.name)+ "' dataset : \n" + str(self.data), write_logs=self.write_logs)
 
-    def set_use_raw_data(self, use_raw_data):
-        """
-        Authors : Alix Leroy
-        Whether raw data should be included or only use transformed data
-        :param include: Boolean
-        :return: None
-        """
-        self.use_raw_data = use_raw_data
 
-    def has_labels(self):
+
+
+    def load(self)-> None:
         """
-        Authors : Alix Leroy,
-        Check whether the dataset contains labels
-        :return: Boolean
-        """
+        AUTHORS:
+        --------
 
-        columns = list(self.data.columns.values)
+        author: Alix Leroy
 
-        if "labels" in columns:
-            return True
-        else:
-            return False
+        DESCRIPTION:
+        ------------
 
-    def has_additional_data(self):
-        """
-        Authors : Alix Leroy,
-        Check whether the dataset contains additional_data
-        :return: Boolean
-        """
+        Load the dataset into memory
 
-        columns = list(self.data.columns.values)
+        PARAMETERS:
+        -----------
 
-        if "additional_data" in columns:
-            return True
-        else:
-            return False
+        None
 
-    def fill_data(self):
-        """
-        Authors
+        RETURN:
+        -------
+
+        None
+
         :return:
         """
+
+
+        # Read the data given as input
         inputs = self.__read_data(self.list_inputs)
         labels = self.__read_data(self.list_labels)
         additional_data = self.__read_data(self.list_additional_data)
@@ -202,12 +267,6 @@ class DataSet(object):
                 d = {'inputs': inputs, 'labels': labels, 'additional_data': additional_data}
 
 
-        # Add the column to know whether the data has to be augmented
-        #number_raw_data = len(d["inputs"])
-        #must_be_augmented_list = self.__compute_must_be_augmented_list(number_raw_data, self.use_raw_data)
-        #d.update({"must_be_augmented" : must_be_augmented_list})
-
-
         # Convert the dictionary of data into a panda DataFrame
         self.data = pd.DataFrame(d)
 
@@ -217,12 +276,39 @@ class DataSet(object):
         # Notice the user that the Dataset has been loaded
         Notification(DEEP_SUCCESS, "The '" + str(self.name) + "' dataset has successfully been loaded !", write_logs=self.write_logs)
 
+
+    """
+    "
+    " PRIVATE METHODS
+    "
+    """
+
+
     def __read_data(self, list_f_data):
         """
-        Authors : Alix Leroy, Samuel Westlake
-        :param list_f_data: All the data given in the config file
-        :return: Data formatted to fill a pandas dataframe
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+        author:  Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Read the content given in the input files or folders
+
+        PARAMETERS:
+        -----------
+
+        :param list_f_data : List of files or folders
+
+        RETURN:
+        -------
+
+        :return final_data: The content of the files and folder given as input. The list is formatted to fit a pandas Dataframe columns
         """
+
+
         data = []
 
         # For all the files/folder given as input
@@ -253,37 +339,117 @@ class DataSet(object):
                 final_data.append(temp_data)
         return final_data
 
+
     def __get_content(self, f):
         """
-        Authors : Alix Leroy
-        List all the data from a file or a folder
-        :param file: a file path
-        :return: Content of the file in a list
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        List all the data from a file or from a folder
+
+        PARAMETERS:
+        -----------
+        :param f: A file or a folder
+
+        RETURN:
+        -------
+
+        :return content: Content of the file/folder in a list
         """
 
-        # If it is a file
-        if self.__type_input(f) == DEEP_TYPE_FILE:
+        # Get the source path type
+        source_type = self.__source_path_type(f)
+
+
+        # If f is a file
+        if source_type == DEEP_TYPE_FILE:
 
             with open(f) as f:  # Read the file and get the data
                 content = f.readlines()
 
             content = [x.strip() for x in content]  # Remove the end of line \n
 
-        elif self.__type_input(f) == DEEP_TYPE_FOLDER:  # If it is a folder given as input
-            content = get_file_paths(f)
+        # If f is a folder
+        elif source_type == DEEP_TYPE_FOLDER:  # If it is a folder given as input
+            content = self.__get_file_paths(f)
 
+        # Else (neither a file nor a folder)
         else:
-            raise ValueError("Not implemented")
+            Notification(DEEP_FATAL, "The source type of the following source path does not exist : " + str(f), write_logs=self.write_logs)
 
         return content
 
-    def __shuffle(self):
+
+    def __get_file_paths(self, directory):
         """
-        Authors : Alix Leroy,
-        Shuffle the dataframe containing the dataset
-        :return: None
+        AUTHORS:
+        --------
+
+        author: Samuel Westlake
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the list of paths to every file within the given directories
+
+        PARAMETERS:
+        -----------
+
+        :param directory: str or list of str: path to directories to get paths from
+
+        RETURN:
+        -------
+
+        :return list of str: list of paths to every file within the given directories
+
         """
-        try :
+
+        paths = []
+
+        # For each item in the directory
+        for item in os.listdir(directory):
+            sub_path = "%s/%s" % (directory, item)
+
+            # If the subpath of the item is a directory we apply the self function recursively
+            if os.path.isdir(sub_path):
+                paths.extend(self.__get_file_paths(sub_path))
+
+            # Else we add the path of the file to the list of files
+            else:
+                paths.extend([sub_path])
+
+        return sorted_nicely(paths)
+
+
+    def __shuffle(self) -> None:
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Shuffle the dataframe containing the data
+
+        PARAMETERS:
+        -----------
+        None
+
+        RETURN:
+        -------
+
+        :return None:
+        """
+
+        try:
             self.data = self.data.sample(frac=1).reset_index(drop=True)
         except:
             Notification(DEEP_ERROR, "Could not shuffle the dataset", write_logs=self.write_logs)
@@ -291,10 +457,31 @@ class DataSet(object):
 
     def __load_data(self, data, augment, index, entry_type, entry_num = None):
         """
-        :param data: The data to load in memory
-        :param entry_type : Whether it in an input, a label or an additional_data
-        :return: The data loaded and transformed if needed
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Load (and transform is needed) the requested data
+
+        PARAMETERS:
+        -----------
+
+        :param data: The path to the data which has to be loaded
+        :param augment: Whether to augment or not the requested data
+        :param index: The index of the data
+        :param entry_type: Whether it in an input, a label or an additional_data
+        :param entry_num: Number of the entry (input1, input2, ...) (useful for sequences)
+
+        RETURN:
+        -------
+
+        :return loaded_data: The loaded (and transformed if required) data
         """
+
 
 
         loaded_data = []
@@ -316,7 +503,11 @@ class DataSet(object):
                         entry_num = i
 
                     if augment is True :
-                        image = self.transform.transform(data = image, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
+                        image = self.transform_manager.transform(data = image, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
+
+                    if self.cv_library == DEEP_PIL:
+                        image = np.array(image)
+
                     loaded_data.append(image)
 
                 # Video
@@ -326,7 +517,7 @@ class DataSet(object):
                         entry_num = i
 
                     if augment is True:
-                        video = self.transform.transform(data = video, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
+                        video = self.transform_manager.transform(data = video, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
                     loaded_data.append(video)
 
                 # Integer
@@ -341,45 +532,97 @@ class DataSet(object):
 
                 # Data type not recognized
                 else:
-                    raise ValueError("The following data could not be loaded because its type is not recognize : %s.\n"
-                                     "Please check the documentation online to see the supported types" % data)
+                    Notification(DEEP_FATAL,
+                                 "The following data could not be loaded because its type is not recognize : %s.\n"
+                                 "Please check the documentation online to see the supported types" % data,
+                                 write_logs=self.write_logs)
 
                 entry_num = None
+
+            # If the data is None
             else:
-                raise ValueError("The following data is None : %s" % d)
+                Notification(DEEP_FATAL, "The following data is None : %s" % d, write_logs=self.write_logs)
 
 
         return loaded_data
 
-    #
-    # DATA TYPE ANALYZERS
-    #
 
-    def __type_input(self, f):
+
+    """
+    "
+    " DATA TYPE ANALYZERS
+    "
+    """
+
+    def __source_path_type(self, f)->int:
         """
-        :param f:
-        :return:
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Find the type of the source path
+
+        PARAMETERS:
+        -----------
+
+        A source path
+
+        RETURN:
+        -------
+
+        :return type-> int: A type flag
         """
+
+        # If the source path is a file
         if os.path.isfile(f):
             type = DEEP_TYPE_FILE
+
+        # If the source path is a directory
         elif os.path.isdir(f):
             type = DEEP_TYPE_FOLDER
+
+        # TODO: Add database as source path
+
+        # Else
         else:
-            raise ValueError("The following data file/folder could not be recognize : " +str (f))
+            Notification(DEEP_FATAL,
+                         "The source type of the following source path does not exist : " + str(f),
+                         write_logs=self.write_logs)
+
         return type
 
-    def __data_type(self, data):
+    def __data_type(self, data)-> int:
         """
-        Authors : Alix Leroy,
-        Get the type of data given
-        :param data:
-        :return:
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Find the type of the given data
+
+        PARAMETERS:
+        -----------
+
+        :param data: The data to analyze
+
+        RETURN:
+        -------
+
+        :return: The integer flag of the corresponding type
         """
+
         try:
             mime = mimetypes.guess_type(data)
             mime = mime[0].split("/")[0]
         except:
-            mime = ""
+            mime = None
 
         # Image
         if mime == "image":
@@ -403,14 +646,38 @@ class DataSet(object):
 
         # Type not handled
         else:
-            Notification(DEEP_FATAL, "The following type of data is not handled : " + str(data), write_logs=self.write_logs)
+            Notification(DEEP_FATAL,
+                         "The type of the following data is not handled : " + str(data),
+                         write_logs=self.write_logs)
 
 
 
     @staticmethod
-    def __get_int_or_float(v):
+    def __get_int_or_float(data):
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check whether the data is an integer or a float
+
+        PARAMETERS:
+        -----------
+
+        :param data: The data to check
+
+        RETURN:
+        -------
+
+        :return:  The integer flag of the corresponding type or False if the data isn't a number
+        """
+
         try:
-            number_as_float = float(v)
+            number_as_float = float(data)
             number_as_int = int(number_as_float)
             return DEEP_TYPE_INTEGER if number_as_float == number_as_int else DEEP_TYPE_FLOAT
         except ValueError:
@@ -425,8 +692,8 @@ class DataSet(object):
         :param image_path: The path of the image to load
         :return: The loaded image
         """
-        if self.cv_library == "opencv":
-            image =  cv2.imread(image_path, cv2.IMREAD_ANYDEPTH)
+        if self.cv_library == DEEP_OPENCV:
+            image =  cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
             # Check that the image was correctly loaded
             if image is None:
                 Notification(DEEP_FATAL, "The following image cannot be loaded with OpenCV: " +str(image_path), write_logs=self.write_logs)
@@ -436,21 +703,20 @@ class DataSet(object):
                 # Convert to RGB(a)
                 image = self.__convert_bgra2rgba(image)
 
-        elif self.cv_library == "PIL":
+
+        elif self.cv_library == DEEP_PIL:
             try:
                 image = Image.open(image_path)
             except:
                 Notification(DEEP_FATAL, "The following image cannot be loaded with PIL: " + str(image_path),
                              write_logs=self.write_logs)
-            image = np.array(image)
-
         else:
             Notification(DEEP_FATAL, "The following image module is not implemented : "+ str(self.cv_library), write_logs=self.write_logs)
 
         return image
 
-
-    def __convert_bgra2rgba(self, image):
+    @staticmethod
+    def __convert_bgra2rgba(image):
         """
         Authors : Alix Leroy,
         Convert BGR(alpha) image to RGB(alpha) image
@@ -476,11 +742,11 @@ class DataSet(object):
         :param video_path: absolute path to a video
         :return: a list of frame from the video
         """
-
+        self.__throw_warning_video()
         video = []
 
         # If the computer vision library selected is OpenCV
-        if self.cv_library == "opencv":
+        if self.cv_library == DEEP_OPENCV:
 
             # try to load the file
             try:
@@ -509,7 +775,15 @@ class DataSet(object):
         return  video # Return the sequence of frames loaded
 
 
-
+    def __throw_warning_video(self):
+        """
+        Authors : Alix Leroy,
+        Warn the user of the unsupported vidoe mode.
+        :return: None
+        """
+        if self.warning_video is None:
+            Notification(DEEP_WARNING, "The video mode is not fully supported. We deeply suggest you to use sequences of images.", write_logs=self.write_logss)
+            self.warning_video = 1
 
     #
     # DATA CHECKERS
@@ -614,7 +888,7 @@ class DataSet(object):
     # DATA UTILS
     #
 
-    def __compute_number_instances(self):
+    def __compute_number_raw_instances(self):
         """
         Author: Alix Leroy
         Compute the theoretical number of instances in each epoch
@@ -646,13 +920,13 @@ class DataSet(object):
         """
 
         # If the frame input is a file
-        if self.__type_input(f) == DEEP_TYPE_FILE:
+        if self.__source_path_type(f) == DEEP_TYPE_FILE:
 
             with open(f) as f:
                 num_instances = sum(1 for _ in f)
 
         # If the frame input is a folder
-        elif self.__type_input(f) == DEEP_TYPE_FOLDER:
+        elif self.__source_path_type(f) == DEEP_TYPE_FOLDER:
 
             raise ValueError("Not implemented")
 
@@ -662,5 +936,90 @@ class DataSet(object):
 
         return num_instances
 
+
+    """
+    "
+    " SETTERS
+    "
+    """
+
+    def set_len_dataset(self, length_data : int) -> None:
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Set the length of the dataset
+
+        PARAMETERS:
+        -----------
+
+        :param length_data -> Integer:  Desired length of the dataset
+
+        RETURN:
+        -------
+
+        None
+        """
+
+        # If the given length is smaller than the number of instances already available in the dataset
+        if length_data < len(self.data):
+            res = None
+
+            # Ask the user to confirm the given length
+            while res.lower() != "y" or res != "n":
+                res = Notification(DEEP_INPUT, "Dataset contains {0} instances, are you sure you want to only use {1} instances ? (Y/N) ".format(len(self.data), length_data))
+
+            if res.lower() == "y":
+                self.len_data = length_data
+
+            # If not confirmed, keep the current size of the dataset as default
+            else:
+                self.len_data = len(self.data)
+
+
+        # If there isn't any issue of length set the length given as argument
+        else:
+            self.len_data = length_data
+
+
+
+
+    def set_use_raw_data(self, use_raw_data: bool) -> None:
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Set the use_raw_data attribut to new value
+
+        PARAMETERS:
+        -----------
+
+        :param use_raw_data -> bool : Whether to use or not the raw data in the training
+
+
+        RETURN:
+        -------
+
+        None
+        """
+
+        self.use_raw_data = use_raw_data
+
+
+    """
+    "
+    " GETTERS
+    "
+    """
 
 

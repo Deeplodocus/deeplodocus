@@ -8,10 +8,11 @@ from deeplodocus.utils.types import *
 
 class Transformer(object):
 
-    def __init__(self, path):
+    def __init__(self, config):
 
-        self.path = path
-        self.pointer_to_transformer = self.__get_pointer()
+        self.name = config.name
+        self.path = config.path
+        self.pointer_to_transformer = self.__generate_pointer()
 
         self.last_index = None
         self.last_transforms = []
@@ -27,6 +28,70 @@ class Transformer(object):
         :return: The transformed data
         """
         pass # Will be overridden
+
+    def get_pointer(self):
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the pointer to the other transformer
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: pointer_to_transformer attribut
+        """
+        return self.pointer_to_transformer
+
+    def __generate_pointer(self):
+        """
+        Authors : Alix Leroy,
+        Check if the transformer has to point to another transformer
+        :return: The pointer to another transformer
+        """
+        if str(self.path)[0] == "*":                 # If we have defined the transformer as a pointer to another transformer
+            path_splitted = str(self.path).split(":")[1:] # Get the path to the other transformer (Entrytype:Number)
+
+            if len(path_splitted) != 2 :
+                Notification(DEEP_FATAL, "The following transformer does not point correctly to another transformer (path:number format required), please check the documentation : " + str(self.path))
+
+            # Check that the pointer type is valid and convert it to an integer for efficiency during training or testing
+            path_splitted[0] = self.__convert_pointer_type(path_splitted[0])
+
+            if isinstance(path_splitted[1], int) is False:
+                Notification(DEEP_FATAL, "The second argument of the following transformer's pointer is not an integer : " + str(self.path))
+
+            return [path_splitted[0], int(path_splitted[1])] # Return type and index of the pointer
+
+        else:
+            Notification(DEEP_FATAL, "The following transformer is not a pointer : " + str(self.name))
+
+
+    def __convert_pointer_type(self, pointer_type):
+
+        type = str(pointer_type).lower()
+
+        if type == "inputs" or type == "input":
+            return DEEP_TYPE_INPUT
+
+        elif  type == "labels" or type == "label":
+            return DEEP_TYPE_LABEL
+
+        elif type == "additional_data":
+            return DEEP_TYPE_ADDITIONAL_DATA
+
+        else :
+            Notification(DEEP_FATAL, "The type of the following transformer's pointer does not exist, please check the documentation : " + str(self.path))
 
     def __apply_transform(self, data, transformation, parameters):
         """
@@ -56,44 +121,8 @@ class Transformer(object):
 
         return data
 
-    def __get_pointer(self):
-        """
-        Authors : Alix Leroy,
-        Check if the transformer has to point to another transformer
-        :return: The pointer to another transformer
-        """
-        if str(self.path)[0] == "*":                 # If we have defined the transformer as a pointer to another transformer
-            path_splitted = str(self.path).split(":")[1:]
 
-            if len(path_splitted) != 2 :
-                Notification(DEEP_FATAL, "The following transformer does not point correctly to another transformer, please check the documentation : " + str(self.path))
 
-            if self.__pointer_type_exists(path_splitted[0]) is False:
-                Notification(DEEP_FATAL, "The type of the following transformer's pointer does not exist, please check the documentation : " + str(self.path))
-
-            if isinstance(path_splitted[1], int) is False:
-                Notification(DEEP_FATAL, "The second argument of the following transformer's pointer is not an integer : " + str(self.path))
-
-            return [str(path_splitted[0]), int(path_splitted[1])] # Return type and index of the pointer
-
-        else:
-            return None
-
-    def __pointer_type_exists(self, type):
-
-        type = str(type).lower()
-
-        if type == "inputs":
-            return True
-
-        elif  type == "labels":
-            return True
-
-        elif type == "additional_data":
-            return True
-
-        else :
-            return False
 
 
 

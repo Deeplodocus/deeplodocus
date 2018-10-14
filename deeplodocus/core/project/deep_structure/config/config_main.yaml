@@ -1,0 +1,23 @@
+# ______________
+#
+# ---- MAIN ----
+# ______________
+#
+# This is the main config file
+# This config files
+# Specify a path from which to load a model in load: path
+# Set load: from_working_dir to true to import a model from the working directory
+# If load: from_working_dir only the file name (not path) needs to be specified in load: path
+
+
+project: "project_config.yaml"
+data: "data_config.yaml"
+transform : "transform_yaml.yaml"
+network : "network_config.yaml"
+optimizer: "optimizer_config.yaml"
+metrics: "metrics_config.yaml"
+loss: "loss_config.yaml"
+history : "history_config.yaml"
+
+
+
