@@ -1,0 +1,10 @@
+# ___________________________
+#
+# ---- TRANSFORM EXAMPLE ----
+# ___________________________
+#
+
+method: "oneof"
+transforms:
+  resize : [512, 512, 3]
+  normalize :

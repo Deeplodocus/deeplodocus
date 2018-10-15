@@ -3,11 +3,18 @@
 # ---- MAIN ----
 # ______________
 #
-# This is the main config file
-# This config files
-# Specify a path from which to load a model in load: path
-# Set load: from_working_dir to true to import a model from the working directory
-# If load: from_working_dir only the file name (not path) needs to be specified in load: path
+# This is the main config file. Its path has to be given to the deeplodocus brain as input.
+# This config file gives the path to other config files
+# The required config files are :
+#     - project
+#     - data
+#     - transform
+#     - network
+#     - optimizer
+#     - metrics
+#     - loss
+#     - history
+#     - ...
 
 
 project: "project_config.yaml"

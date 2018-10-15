@@ -125,38 +125,38 @@ class Dataset(object):
 
         :return : Loaded and possibly transformed instance to be given to the training
         """
-
+        # Index of the raw data is used only to get the path to original data. Real index is used for data transformation
+        index_raw_data = index % self.len_data
 
         # If we ask for a not existing index we use the modulo and consider the data to have to be augmented
         if index >= self.len_data:
-
-            index = index % self.len_data
             augment = True
 
         # If we ask for a raw data, augment it only if required by the user
         else:
             augment = not self.use_raw_data
 
+
         # Extract lists of raw data from the pandas DataFrame for the select index
         # TODO : Find a cleaner / faster way to do it
         if not self.list_labels:
             if not self.list_additional_data:
-                inputs = self.data.iloc[index]
+                inputs = self.data.iloc[index_raw_data]
                 inputs = self.__load_data(data=inputs[0], augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)         #Keep key == 0 else the datafram  also returns the name of the column (issue only on single column dataframe)
                 return inputs
             else:
-                inputs, additional_data = self.data.iloc[index]
+                inputs, additional_data = self.data.iloc[index_raw_data]
                 inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
                 additional_data = self.__load_data(data=additional_data, augment=augment, index=index, entry_type=DEEP_TYPE_ADDITIONAL_DATA)
                 return inputs, additional_data
         else:
             if not self.list_additional_data:
-                inputs, labels = self.data.iloc[index]
+                inputs, labels = self.data.iloc[index_raw_data]
                 inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
                 labels = self.__load_data(data=labels, augment=augment, index=index, entry_type=DEEP_TYPE_LABEL)
                 return inputs, labels
             else:
-                inputs, labels, additional_data = self.data.iloc[index]
+                inputs, labels, additional_data = self.data.iloc[index_raw_data]
                 inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
                 labels = self.__load_data(data=labels, augment=augment, index=index, entry_type=DEEP_TYPE_LABEL)
                 additional_data = self.__load_data(data=additional_data, augment=augment, index=index,  entry_type=DEEP_TYPE_ADDITIONAL_DATA)
@@ -365,6 +365,7 @@ class Dataset(object):
         # Get the source path type
         source_type = self.__source_path_type(f)
 
+        content = None
 
         # If f is a file
         if source_type == DEEP_TYPE_FILE:

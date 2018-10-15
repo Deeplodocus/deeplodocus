@@ -1,3 +1,5 @@
+import time
+
 # Import transformers
 from deeplodocus.data.transformer.transformer import Transformer
 from deeplodocus.data.transformer.one_of import OneOf
@@ -35,7 +37,7 @@ class TransformManager(object):
 
 
 
-    def __init__(self, parameters)->None:
+    def __init__(self, parameters, write_logs=True)->None:
         """
         AUTHORS:
         --------
@@ -58,16 +60,90 @@ class TransformManager(object):
         None
         """
 
+        self.write_logs = write_logs
+
         self.parameters = parameters
 
+        # Handle name
+        if hasattr(parameters, 'name'):
+            self.name = str(parameters.name)
+        else:
+            self.name = "No name given - " + str(time.time())
 
+        # Handle inputs
+        if hasattr(parameters, 'inputs') or hasattr(parameters, 'input'):
+            self.list_input_transformers = self.__load_transformers(parameters.inputs)
+        else:
+            self.list_input_transformers = []
 
-        self.list_input_transformers = self.__load_transformers(parameters.inputs)
-        self.list_label_transformers = self.__load_transformers(parameters.labels)
-        self.list_additional_data_transformers = self.__load_transformers(parameters.additional_data)
+        # Handle labels
+        if hasattr(parameters, 'labels') or hasattr(parameters, 'label'):
+            self.list_label_transformers = self.__load_transformers(parameters.labels)
+        else:
+            self.list_label_transformers = []
+
+        # Handle additional_data
+        if hasattr(parameters, 'additional_data'):
+            self.list_additional_data_transformers = self.__load_transformers(parameters.additional_data)
+        else:
+            self.list_additional_data_transformers = []
 
         # Print summary of the transformer
         self.__summary()
+
+    def update(self, parameters) -> None:
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Update all the parameters of the TransformerManager
+
+        PARAMETERS:
+        -----------
+
+        :param parameters: The list of parameters to update
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        try:
+            self.parameters = parameters
+
+            if hasattr(parameters, 'name'):
+                self.name = str(parameters.name)
+
+            # Handle inputs
+            if hasattr(parameters, 'inputs') or hasattr(parameters, 'input'):
+                self.list_input_transformers = self.__load_transformers(parameters.inputs)
+            else:
+                self.list_input_transformers = []
+
+            # Handle labels
+            if hasattr(parameters, 'labels') or hasattr(parameters, 'label'):
+                self.list_label_transformers = self.__load_transformers(parameters.labels)
+            else:
+                self.list_label_transformers = []
+
+            # Handle additional_data
+            if hasattr(parameters, 'additional_data'):
+                self.list_additional_data_transformers = self.__load_transformers(parameters.additional_data)
+            else:
+                self.list_additional_data_transformers = []
+
+            Notification(DEEP_SUCCESS, "The TransformManager '" + str(self.name) +"' has succesfully been updated.", write_logs=self.write_logs)
+
+        except:
+            Notification(DEEP_ERROR,
+                         "An error occurred while updating the TransformManager '" + str(self.name) +"'. Please check the given configuration",
+                         write_logs=self.write_logs)
 
 
     def transform(self, data, index, type_data, entry_type , entry_num):
@@ -196,27 +272,31 @@ class TransformManager(object):
         RETURN:
         -------
 
-        :return transformers: The list of the transformers corresponding to the entries
+        :return transformers_list: The list of the transformers corresponding to the entries
         """
 
-        transformers = []
+        transformers_list = []
 
         # If there is only one entry not in a list format (input, label, additional_data)
         if entries is not list:
             entries = [entries]
 
+
+
         # Load and create the transformers and then add them to the transformers list
         for entry in entries:
-
-            transformer_config = Namespace(entry)
-            transformer = self.__create_transformer(config=transformer_config)
-            transformers.append(transformer)
+            # Check if the entry is None
+            if entry is None or entry == "":
+                transformers_list.append(None)
+            else:
+                transformer = self.__create_transformer(config_entry=entry)
+                transformers_list.append(transformer)
 
         # return the list of transformers
-        return transformers
+        return transformers_list
 
 
-    def __create_transformer(self, config, pointer=False):
+    def __create_transformer(self, config_entry):
         """
         CONTRIBUTORS:
         -------------
@@ -240,29 +320,67 @@ class TransformManager(object):
         :return transformer: The created transformer
         """
 
+        # If the config source is a pointer to another transformer
+        if self.__is_pointer(config_entry) is True:
+            transformer = Transformer(config_entry) # Generic Transformer
 
-        # Get the config method in lowercases
-        config.method = config.method.lower()
-
-        if pointer is True:
-            transformer = Transformer(config) # Generic Transformer
-
-        # If sequential method selected
-        elif config.method == "sequential":
-            transformer = Sequential(config)
-
-        # If someOf method selected
-        elif config.method == "someof":
-            transformer = SomeOf(config)
-
-        # If oneof method selected
-        elif config.method == "oneof":
-            transformer = OneOf(config)
-
-        # If the method does not exist
+        # If the user wants to create a transformer from scratch
         else:
-            Notification(DEEP_FATAL , "The following transformation method does not exist : " + str(config.method))
+
+            config = Namespace(yaml_path=config_entry[0])
+
+            if hasattr(config, 'method') is False:
+                Notification(DEEP_FATAL, "The following transformer does not have any method specified : " + str(config_entry), write_logs=self.write_logs)
+
+            # Get the config method in lowercases
+            config.method = config.method.lower()
+
+            # If sequential method selected
+            if config.method == "sequential":
+                transformer = Sequential(config)
+
+            # If someOf method selected
+            elif config.method == "someof":
+                transformer = SomeOf(config)
+
+            # If oneof method selected
+            elif config.method == "oneof":
+                transformer = OneOf(config)
+
+            # If the method does not exist
+            else:
+                Notification(DEEP_FATAL , "The following transformation method does not exist : " + str(config.method))
 
         return transformer
+
+
+    @staticmethod
+    def __is_pointer(source_path : str) -> bool:
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check whether or not the source path is a pointer to another transformer (Additional checks are made when creating the pointer itself)
+
+        PARAMETERS:
+        -----------
+
+        :param source_path: Source path to the transformer
+
+        RETURN:
+        -------
+
+        :return->bool : Whether the source path is a pointer to another transformer
+        """
+
+        if str(source_path)[0] == "*":
+            return True
+        else:
+            return False
 
 
