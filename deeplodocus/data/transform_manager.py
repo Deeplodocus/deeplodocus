@@ -5,6 +5,7 @@ from deeplodocus.data.transformer.transformer import Transformer
 from deeplodocus.data.transformer.one_of import OneOf
 from deeplodocus.data.transformer.sequential import Sequential
 from deeplodocus.data.transformer.some_of import SomeOf
+from deeplodocus.data.transformer.pointer import Pointer
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
@@ -240,15 +241,18 @@ class TransformManager(object):
 
         # Inputs
         for transformer in self.list_input_transformers:
-            transformer.summary()
+            if transformer is not None:
+                transformer.summary()
 
         # Labels
         for transformer in self.list_label_transformers:
-            transformer.summary()
+            if transformer is not None:
+                transformer.summary()
 
         # Additional data
         for transformer in self.list_additional_data_transformers:
-            transformer.summary()
+            if transformer is not None:
+                transformer.summary()
 
 
 
@@ -278,9 +282,8 @@ class TransformManager(object):
         transformers_list = []
 
         # If there is only one entry not in a list format (input, label, additional_data)
-        if entries is not list:
+        if isinstance(entries, list) is False:
             entries = [entries]
-
 
 
         # Load and create the transformers and then add them to the transformers list
@@ -322,12 +325,12 @@ class TransformManager(object):
 
         # If the config source is a pointer to another transformer
         if self.__is_pointer(config_entry) is True:
-            transformer = Transformer(config_entry) # Generic Transformer
+            transformer = Pointer(config_entry) # Generic Transformer as a pointer
 
         # If the user wants to create a transformer from scratch
         else:
-
-            config = Namespace(yaml_path=config_entry[0])
+            print(config_entry)
+            config = Namespace(yaml_path=config_entry)
 
             if hasattr(config, 'method') is False:
                 Notification(DEEP_FATAL, "The following transformer does not have any method specified : " + str(config_entry), write_logs=self.write_logs)

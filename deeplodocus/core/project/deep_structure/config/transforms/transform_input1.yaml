@@ -5,6 +5,13 @@
 #
 
 method: "oneof"
+name: "OneOf example"
+normalize_output: yes
+
 transforms:
-  resize : [512, 512, 3]
-  normalize :
+  - resize :
+      shape : [512, 512, 3]
+      keep_aspect : True
+      padding : 0
+  - blur :
+      kernel_size : 3

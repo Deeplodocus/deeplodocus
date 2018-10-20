@@ -1,23 +1,263 @@
 import cv2
 import numpy as np
+import inspect
+import __main__
 
-
+from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.types import *
 
 
 class Transformer(object):
+    """
+    AUTHORS:
+    --------
 
-    def __init__(self, config):
+    :author: Alix Leroy
+    :author: Samuel Westlake
 
+    DESCRIPTION:
+    ------------
+
+    A generic transformer class.
+    The transformer loads the transforms in memory and allows the data to be transformed
+    """
+
+    def __init__(self, config, write_logs=False):
+        self.write_logs = write_logs
         self.name = config.name
-        self.path = config.path
-        self.pointer_to_transformer = self.__generate_pointer()
+        self.last_index = None
+        self.last_transforms = []
+        self.list_transforms = []
+        self.list_customed_transform_methods = self.__fill_list_customed_transform_methods()
+        self.normalize_output = self.__check_normalize_output(config)
+        self.__fill_transform_list(config.transforms)
+
+    def summary(self):
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        -----------
+
+        Print the summary of the tranformer
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        Notification(DEEP_INFO, "Transformer '" + str(self.name) + "' summary :", write_logs=self.write_logs)
+
+        for t in self.list_transforms:
+            Notification(DEEP_INFO, "--> Name : " + str(t[0]) + " , Args : " + str(t[2]) + ", Method : " + str(t[1]), write_logs=self.write_logs)
+
+    def reset(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Reset the last index and last transforms used after one epoch
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
 
         self.last_index = None
         self.last_transforms = []
 
+    def __fill_transform_list(self, transforms):
+        """
+        AUTHORS:
+        --------
 
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Fill the list of transforms with the corresponding methods and arguments
+
+        PARAMETERS:
+        -----------
+
+        :param transforms-> list: A list of transforms
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        for i, transform in enumerate(transforms):
+            key = list(transform.keys())[0]
+            values = list(transform.values())[0]
+
+            if self.__is_default_transform(list(transform.keys())[0]):
+                self.list_transforms.append([key, self.__get_default_transform_method(key), values])
+            elif self.__is_customed_transform(key):
+                self.list_transforms.append([key, self.__get_customed_transform(key), values])
+            else:
+                Notification(DEEP_FATAL, "The following transform does not exist in the default and customed transforms : " + str(key), write_logs=self.write_logs)
+
+    def __fill_list_customed_transform_methods(self)->dict:
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Fill the list of customed transforms by parsing the transform folder
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return customed_transforms-> dict: The dictionary listing all the transform names associated to its corresponding customed method
+        """
+
+        customed_transforms = dict()
+
+        return customed_transforms
+
+
+    def __is_default_transform(self, transform_name:str)->bool:
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check if the given transform is one of the default available in Deeplodocus
+
+        PARAMETERS:
+        -----------
+
+        :param transform-> str: A transform name
+
+        RETURN:
+        -------
+
+        :return->bool: Whether or not the requested transform is a default one available in Deeplodocus
+        """
+
+        if hasattr(Transformer, transform_name) and callable(getattr(Transformer, transform_name)):
+            #arg= inspect.getargspec(getattr(Transformer, list(transform.keys())[0]))
+            #print(len(arg.args))
+            return True
+        else:
+            return False
+
+    def __is_customed_transform(self, transform_name:str)->bool:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check if the given transform is an existing customed one
+
+        PARAMETERS:
+        -----------
+
+        :param transform_name-> str: A transform name
+
+        RETURN:
+        -------
+
+        :return-> bool: Whether or not the requested transform is a customed one available in the transform folder
+        """
+        if transform_name in self.list_customed_transform_methods:
+            return True
+        else:
+            False
+
+    def __get_default_transform_method(self, transform_name:str)->callable:
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the transform method of an existing default one
+
+        PARAMETERS:
+        -----------
+
+        :param transform-> str: A transform name
+
+        RETURN:
+        -------
+
+        :return->callable: A callable method of the Transformer class
+        """
+        return getattr(Transformer, transform_name)
+
+
+    def __check_normalize_output(self, config:Namespace)->bool:
+        """
+        AUTHORS:
+        -------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check if an output normalization is requested y the user
+
+        PARAMETERS:
+        -----------
+
+        :param config-> Namespace: The config namespace instance
+
+        RETURN:
+        -------
+
+        :return->bool: Whether or not the output has to be normalized
+        """
+
+        if hasattr(config, "normalize_output") is True:
+            return True
+        else:
+            return False
 
     def transform(self, data, index, data_type):
         """
@@ -29,69 +269,6 @@ class Transformer(object):
         """
         pass # Will be overridden
 
-    def get_pointer(self):
-        """
-        AUTHORS:
-        --------
-
-        author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Get the pointer to the other transformer
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return: pointer_to_transformer attribut
-        """
-        return self.pointer_to_transformer
-
-    def __generate_pointer(self):
-        """
-        Authors : Alix Leroy,
-        Check if the transformer has to point to another transformer
-        :return: The pointer to another transformer
-        """
-        if str(self.path)[0] == "*":                 # If we have defined the transformer as a pointer to another transformer
-            path_splitted = str(self.path).split(":")[1:] # Get the path to the other transformer (Entrytype:Number)
-
-            if len(path_splitted) != 2 :
-                Notification(DEEP_FATAL, "The following transformer does not point correctly to another transformer (path:number format required), please check the documentation : " + str(self.path))
-
-            # Check that the pointer type is valid and convert it to an integer for efficiency during training or testing
-            path_splitted[0] = self.__convert_pointer_type(path_splitted[0])
-
-            if isinstance(path_splitted[1], int) is False:
-                Notification(DEEP_FATAL, "The second argument of the following transformer's pointer is not an integer : " + str(self.path))
-
-            return [path_splitted[0], int(path_splitted[1])] # Return type and index of the pointer
-
-        else:
-            Notification(DEEP_FATAL, "The following transformer is not a pointer : " + str(self.name))
-
-
-    def __convert_pointer_type(self, pointer_type):
-
-        type = str(pointer_type).lower()
-
-        if type == "inputs" or type == "input":
-            return DEEP_TYPE_INPUT
-
-        elif  type == "labels" or type == "label":
-            return DEEP_TYPE_LABEL
-
-        elif type == "additional_data":
-            return DEEP_TYPE_ADDITIONAL_DATA
-
-        else :
-            Notification(DEEP_FATAL, "The type of the following transformer's pointer does not exist, please check the documentation : " + str(self.path))
 
     def __apply_transform(self, data, transformation, parameters):
         """
@@ -233,7 +410,10 @@ class Transformer(object):
             Notification(DEEP_FATAL, "This transformation function does not exist : " + str(transformation))
         return image
 
-
+    def blur(self, image, kernel_size):
+        kernel = tuple(int(kernel_size), int(kernel_size))
+        image = cv2.blur(image, kernel)
+        return image
 
     def adjust_gamma(self, image, gamma=1.0):
 
@@ -248,6 +428,7 @@ class Transformer(object):
     # IMAGES
     #
 
+    @staticmethod
     def resize(image, shape, keep_aspect=True, padding=0):
         """
         Author: Samuel Westlake, Alix Leroy
@@ -273,6 +454,7 @@ class Transformer(object):
             image = cv2.resize(image, (shape[0], shape[1]), interpolation=interpolation)
         return image.astype(np.float32)
 
+    @staticmethod
     def pad(image, shape, value=0):
         """
         Author: Samuel Westlake and Alix Leroy

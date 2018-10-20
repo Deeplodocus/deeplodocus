@@ -2,12 +2,12 @@ train:                                                                          
     name: "Train Transform Manager"
     inputs :
       - "/home/alix/Documents/deeplodocus/deeplodocus/core/project/deep_structure/config/transforms/transform_input1.yaml"
-      - "transforms/transform_input2.yaml"
+      - "*input:10"
     labels :
-      - None
-      - None
+      - Null
+      - Null
     additional_data:
-      - None
+      - Null
 validation:                                                                        # Validation entries
     name: "Validation Transform Manager"
     inputs:
