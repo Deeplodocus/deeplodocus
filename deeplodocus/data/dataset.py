@@ -126,15 +126,18 @@ class Dataset(object):
         :return : Loaded and possibly transformed instance to be given to the training
         """
         # Index of the raw data is used only to get the path to original data. Real index is used for data transformation
-        index_raw_data = index % self.len_data
+        index_raw_data = index % self.number_raw_instances
 
         # If we ask for a not existing index we use the modulo and consider the data to have to be augmented
-        if index >= self.len_data:
+        if index >= self.number_raw_instances:
             augment = True
 
         # If we ask for a raw data, augment it only if required by the user
         else:
             augment = not self.use_raw_data
+
+        if index >= self.len_data:
+            Notification(DEEP_FATAL, "The given instance index is too high : " + str(index), write_logs=self.write_logs)
 
 
         # Extract lists of raw data from the pandas DataFrame for the select index
@@ -454,6 +457,9 @@ class Dataset(object):
             self.data = self.data.sample(frac=1).reset_index(drop=True)
         except:
             Notification(DEEP_ERROR, "Could not shuffle the dataset", write_logs=self.write_logs)
+
+        if self.transform_manager is not None:
+            self.transform_manager.reset()
 
 
     def __load_data(self, data, augment, index, entry_type, entry_num = None):

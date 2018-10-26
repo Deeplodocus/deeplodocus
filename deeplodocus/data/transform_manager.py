@@ -209,11 +209,48 @@ class TransformManager(object):
 
             else:
                 Notification(DEEP_FATAL, "The following type of transformer does not exist : " + str (pointer[0]))
-
+            print(pointer)
             transformed_data = list_transformers[pointer[1]].transform(data, index, type_data)
 
         return transformed_data
 
+    def reset(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Reset all the transformers (avoids pointers and None)
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        # Inputs
+        for transformer in self.list_input_transformers:
+            if transformer is not None and isinstance(transformer, Pointer) is False:
+                transformer.reset()
+
+        # Labels
+        for transformer in self.list_label_transformers:
+            if transformer is not None and isinstance(transformer, Pointer) is False:
+                transformer.reset()
+
+        # Additional data
+        for transformer in self.list_additional_data_transformers:
+            if transformer is not None and isinstance(transformer, Pointer) is False:
+                transformer.reset()
 
 
     def __summary(self):
@@ -329,7 +366,6 @@ class TransformManager(object):
 
         # If the user wants to create a transformer from scratch
         else:
-            print(config_entry)
             config = Namespace(yaml_path=config_entry)
 
             if hasattr(config, 'method') is False:

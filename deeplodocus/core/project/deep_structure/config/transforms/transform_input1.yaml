@@ -9,9 +9,12 @@ name: "OneOf example"
 normalize_output: yes
 
 transforms:
-  - resize :
-      shape : [512, 512, 3]
-      keep_aspect : True
-      padding : 0
+#  - resize :
+#      shape : [512, 512, 3]
+#      keep_aspect : True
+#      padding : 0
   - blur :
       kernel_size : 3
+  - random_blur:
+      kernel_size_min: 15
+      kernel_size_max : 21

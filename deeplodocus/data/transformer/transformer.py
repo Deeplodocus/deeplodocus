@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import random
 import inspect
 import __main__
 
@@ -27,6 +28,7 @@ class Transformer(object):
         self.write_logs = write_logs
         self.name = config.name
         self.last_index = None
+        self.pointer_to_transformer = None
         self.last_transforms = []
         self.list_transforms = []
         self.list_customed_transform_methods = self.__fill_list_customed_transform_methods()
@@ -60,6 +62,30 @@ class Transformer(object):
 
         for t in self.list_transforms:
             Notification(DEEP_INFO, "--> Name : " + str(t[0]) + " , Args : " + str(t[2]) + ", Method : " + str(t[1]), write_logs=self.write_logs)
+
+    def get_pointer(self):
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the pointer to the other transformer
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: pointer_to_transformer attribute
+        """
+        return self.pointer_to_transformer
 
     def reset(self):
         """
@@ -228,7 +254,7 @@ class Transformer(object):
 
         :return->callable: A callable method of the Transformer class
         """
-        return getattr(Transformer, transform_name)
+        return getattr(self, transform_name)
 
 
     def __check_normalize_output(self, config:Namespace)->bool:
@@ -403,17 +429,22 @@ class Transformer(object):
             rows, cols = shape[0:2]
             m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
             image = cv2.warpAffine(image, m, (cols, rows)).astype(np.float32)
-
-
-
         else:
             Notification(DEEP_FATAL, "This transformation function does not exist : " + str(transformation))
         return image
 
+    def random_blur(self, image, kernel_size_min, kernel_size_max):
+
+        kernel_size = (random.randint(kernel_size_min//2, kernel_size_max//2)) * 2 + 1
+        image, _ = self.blur(image, kernel_size)
+        transform =  ["blur", self.blur, {"kernel_size": kernel_size}]
+        return image, transform
+
     def blur(self, image, kernel_size):
-        kernel = tuple(int(kernel_size), int(kernel_size))
+        #kernel = tuple(int(kernel_size), int(kernel_size))
+        kernel = (int(kernel_size), int(kernel_size))
         image = cv2.blur(image, kernel)
-        return image
+        return image, None
 
     def adjust_gamma(self, image, gamma=1.0):
 
@@ -428,8 +459,7 @@ class Transformer(object):
     # IMAGES
     #
 
-    @staticmethod
-    def resize(image, shape, keep_aspect=True, padding=0):
+    def resize(self, image, shape, keep_aspect=True, padding=0):
         """
         Author: Samuel Westlake, Alix Leroy
         :param image: np.array, input image
@@ -454,8 +484,7 @@ class Transformer(object):
             image = cv2.resize(image, (shape[0], shape[1]), interpolation=interpolation)
         return image.astype(np.float32)
 
-    @staticmethod
-    def pad(image, shape, value=0):
+    def pad(self, image, shape, value=0):
         """
         Author: Samuel Westlake and Alix Leroy
         Pads an image to self.x_size with a given value with the image centred
@@ -517,13 +546,14 @@ class Transformer(object):
 
 
         # The normalization compute the mean of the image online.
+        # TODO: Normalize using a mean given by a config file
         # This takes more time than just giving the mean as a parameter in the config file
         # However this time is still relatively small
         # Moreover this is done in parallel of the training
         # Note 1 : OpenCV is roughly 50% faster than numpy
         # Note 2 : Could be a limiting factor for big "mini"-batches (>= 1024) and big images (>= 512, 512, 3)
 
-        # If OpenCV is selected (50% than numpy)
+        # If OpenCV is selected (50% faster than numpy)
         if cv_library == "opencv":
             channels = image.shape[-1]
             mean = cv2.mean(image)

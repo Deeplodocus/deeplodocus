@@ -25,6 +25,7 @@ additional_data = []
 
 dataset = Dataset(inputs, labels, additional_data, transform_manager=None,  cv_library=DEEP_OPENCV, write_logs=False, name="Test")
 dataset.load()
+dataset.set_len_dataset(1000)
 dataset.summary()
 #inputs, labels, additional_data = dataset.__getitem__(1)
 
