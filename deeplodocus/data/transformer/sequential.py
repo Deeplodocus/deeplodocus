@@ -1,42 +1,67 @@
-from deeplodocus.data.transformer.transformer import Transformer
-from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.types import *
+from .transformer import Transformer
+
+class Sequentiql(Transformer):
+
+    def __init__(self, config):
+        Transformer.__init__(self, config)
 
 
-class Sequential(Transformer):
-
-    def __init__(self, augmentation_functions=None, random_order=False):
-        Transformer.__init__(self)
-
-        self.augmentation_functions = augmentation_functions
-        self.random_order = random_order
-
-
-    def augment_image(self, image):
-
-        for key in self.augmentation_functions:
-
-            image = self.__augment_image(image, key)
-
-        return image
-
-
-    def transform(self, data, index, data_type):
+    def transform(self, transformed_data, index, data_type):
         """
-        Authors : Alix Leroy,
-        :param data: data to transform
-        :param index: The index of the instance in the Data Frame
-        :param data_type: The type of data
-        :return: The transformed data
-        """
+        AUTHORS:
+        --------
 
-        for augmentation in self.augmentation_functions:
-            if data_type == "image":
-                data_transformed = self.__transform_image(data, index, augmentation)
-            elif data_type =="video":
-                data_transformed = self.__transform_video(data, index, augmentation)
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Transform the data using the Sequential transformer
+
+        PARAMETERS:
+        -----------
+
+        :param transformed_data: The data to transform
+        :param index: The index of the data
+        :param data_type: The data_type
+
+        RETURN:
+        -------
+
+        :return transformed_data: The transformed data
+        """
+        transforms = []
+
+        if self.last_index == index:
+            transforms = self.last_transforms
+
+        else:
+            transforms = self.list_transforms
+
+        # Reinitialize the last transforms
+        self.last_transforms = []
+
+
+        # Apply the transforms
+        for transform in transforms:
+
+            transform_name = transform[0]
+            transform_method = transform[1]  # Create a generic alias for the transform method
+            transform_args = transform[2]  # Dictionary of arguments
+            transformed_data, last_method_used = transform_method(transformed_data, **transform_args)       # Apply the transform
+
+            # Update the last transforms used and the last index
+            if last_method_used is None:
+                self.last_transforms.append([transform_name, transform_method, transform_args])
+
             else:
-                Notification(DEEP_FATAL, "The following data type is not supported for data transformation : "  + str(data_type))
+                self.last_transforms.append(last_method_used)
+
+        # Update the last index
+        self.last_index = index
 
 
-        return data_transformed
+        return transformed_data
+
+
+
