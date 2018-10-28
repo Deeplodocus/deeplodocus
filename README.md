@@ -124,23 +124,120 @@ All notifications are saved into a log file in `logs/notification-datetime.logs`
 
 ## Data
 
-Data are loaded by Deeplodocus through two interfaces :
+The data in Deeplodocus is splitted into 3 different entries:
+
+- Inputs (input given to your Machine Learning algorithm)
+- Labels (Expected Output, optional)
+- Additional Data (Additional data given to the loss function if required, optional)
+
+
+In order to load the data you have to feed Deeplodocus using the `data_config.yaml` file:
+
+```yaml
+
+# data_config.yaml
+
+# _____________________________
+#
+# ---- DATA CONFIG EXAMPLE ----
+# _____________________________
+#
+
+dataloader:
+  batch_size: 4                                                                     # Number of instances loaded in on batch
+  num_workers: 4                                                                    # Number of processes or threads used for loading the data in memory
+
+dataset:
+  train:                                                                              # Training entries
+      inputs :
+        - ["input1-1.txt", "input1-2.txt"]
+        - "input2.txt"
+      labels :
+        - "labels1.txt"
+        - "labels2.txt"
+      additional_data:
+        - "additional.txt"
+  validation:                                                                        # Validation entries
+      inputs:
+        - ["input1-1.txt", "input1-2.txt"]
+        - "input2.txt"
+      labels:
+        - "labels1.txt"
+        - "labels2.txt"
+      additional_data:
+        - "additional.txt"
+  test:                                                                               # Test entries
+      inputs:
+        - ["input1-1.txt", "input1-2.txt"]
+        - "input2.txt"
+      labels:
+        - "labels1.txt"
+        - "labels2.txt"
+      additional_data:
+        - "additional.txt"
+```
+
+Deeplodocus accepts to load data referenced in text files (images path, video path, numbers, text, numpy array path, etc...) and also files inside folder.
+Therefore you can directly give a file path or a folder path.
+
+```yaml
+
+# Example
+
+train:
+    inputs:
+      - "input1.txt"            # Works
+
+train:
+    inputs:
+      - "./path_to_folder/"     # Work as well
+```
+
+
+If you have multiple entries, please add the item below:
+
+```yaml
+
+# Example
+
+train:
+    inputs:
+      - "input1.txt"            # Input 1
+      - "input2.txt"            # Input 2
+```
+
+If one entry is splitted in to different location, you can merge these to sources in one using brackets:
+```yaml
+
+# Example
+
+train:
+    inputs:
+      - ["input1-1.txt", "input1-2.txt"]            # Input 1 = input1-1 + input1-2
+      - "input2.txt"                                # Input 2
+```
+
+ 
+ 
+ Data are loaded by Deeplodocus through two interfaces :
  - Dataset
  - Dataloader
- 
+
 ### Dataset
 
-The Dataset has two main objectives :
+The `Dataset` has two main objectives :
 - Automatically read, check the completeness and format the data given in the config files in folders and files
 - Open, augment/transform the data before being transmitted to the network
 
 
 ### Dataloader
 
-The Dataloader can call the Dataset in parralel of the training using the CPU.
-The data are assembled into batches and then sent to the "Trainer" or the "Tester"
+The `Dataloader` can call the `Dataset` in parralel of the training using the CPU.
+The data are assembled into batches and then sent to the `Trainer` or the `Tester`
 
 NOTE : Currently the Dataloader is provided by the PyTorch's Dataloader.
+
+
 
 
 ### Data Transformation
