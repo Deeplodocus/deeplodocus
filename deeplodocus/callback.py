@@ -1,4 +1,4 @@
-from .callbacks.save import Save
+from .callbacks.saver import Saver
 from .callbacks.history import History
 from .callbacks.stopping import Stopping
 
@@ -21,9 +21,7 @@ class Callback(object):
                  stopping_parameters,
                  # Save
                  model,
-                 input_size,
-                 input_names,
-                 output_names,
+                 optimizer
                 ):
 
         self.model = None
@@ -45,14 +43,14 @@ class Callback(object):
         #
 
         # Save
-        self.__initialize_saver(model)                                 # Callback to save the config, the model and the weights
+        self.__initialize_saver(model=model, optimizer=optimizer)                                 # Callback to save the config, the model and the weights
 
 
         # History
         self.__initialize_history()            # Callback to keep track of the history, display, plot and save it
 
         # Stopping
-        self.stopping = Stopping(**stopping_parameters)                                     # Callback to check the condition to stop the training
+        self.stopping = Stopping(stopping_parameters)                                     # Callback to check the condition to stop the training
 
 
 
@@ -65,7 +63,7 @@ class Callback(object):
         self.history.on_train_begin()
 
 
-    def on_batch_end(self):
+    def on_batch_end(self, batch, num_batches):
         """
         Authors : Alix Leroy,
         Calls callbacks at the end of one epoch
@@ -75,7 +73,7 @@ class Callback(object):
         self.stopping.on_batch_end()
 
 
-    def on_epoch_end(self):
+    def on_epoch_end(self, epoch, num_epochs):
         """
         Authors : Alix Leroy,
         Call callbacks at the end of one epoch
@@ -107,7 +105,7 @@ class Callback(object):
         """
 
         # Get the directory for saving the history
-        log_dir = "%s/%s" % (self.working_dir, self.model_name)
+        log_dir = "%s/%s" % (self.working_directory, self.model_name)
 
         # Initialize the history
         self.history = History(metrics=self.metrics,
@@ -117,12 +115,16 @@ class Callback(object):
                                verbose=self.verbose,
                                save_condition = self.save_condition)
 
+    def update(self):
 
-    def __initialize_saver(self, model):
+        self.history.update(num_epochs=self.num_epochs, num_batches=self.num_batches)
+
+
+    def __initialize_saver(self, model, optimizer):
         """
         Authors : Alix Leroy,
         Initialize the saver
         :param model: model to save
         :return: None
         """
-        self.saver = Saver(model)
+        self.saver = Saver(model, optimizer)

@@ -1,6 +1,6 @@
 from .transformer import Transformer
 
-class Sequentiql(Transformer):
+class Sequential(Transformer):
 
     def __init__(self, config):
         Transformer.__init__(self, config)

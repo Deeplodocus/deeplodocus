@@ -25,6 +25,28 @@ class Transformer(object):
     """
 
     def __init__(self, config, write_logs=False):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Initialize the Transformer by filling the transforms list
+
+        PARAMETERS:
+        -----------
+
+        :param config->Namespace: The Namespace containing the config
+        :param write_logs->bool: Whether we want to write the write the logs
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         self.write_logs = write_logs
         self.name = config.name
         self.last_index = None
@@ -296,62 +318,6 @@ class Transformer(object):
         pass # Will be overridden
 
 
-    def __apply_transform(self, data, transformation, parameters):
-        """
-        Authors : Alix Leroy
-        :param data: Data to transform
-        :param transformation: The transformation to do
-        :param parameters: The parameters of the transformation
-        :return: The transformed data
-        """
-
-        pass
-
-
-
-    def __apply_last_transforms(self, data):
-        """
-        Authors : Alix Leroy
-        Apply the last transform to the current instance
-        :param data : The data to transform
-        :return: The transformed data
-        """
-
-        # For each transformation in the list
-        for transformation, parameters in self.list_last_transforms:
-            data = self.__apply_transform(data, transformation, parameters)
-
-
-        return data
-
-
-
-
-
-
-    def __transformation_video(self, video, index):
-        """
-        Authors : Alix Leroy,
-        :param video: The video to transform
-        :param index: The index of the video in the Data Frame
-        :return: The transformed video
-        """
-
-        transformed_video = []
-
-        # For each image in the video we transform the image
-
-        # If we want to use the transformations of a previous index
-        if self.last_index == index:
-            for image in video:
-                transformed_image = self.__apply_last_transforms(image)
-                transformed_video.append(transformed_image)
-        else:
-            for image in video:
-                transformed_image = self.__transform(image, index)
-                transformed_video.append(transformed_image)
-
-        return transformed_video
 
     def __transform_image(self, image, key):
 

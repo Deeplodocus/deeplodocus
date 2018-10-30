@@ -17,6 +17,7 @@ from PIL import Image
 import numpy as np
 import cv2
 
+
 inputs = []
 labels = []
 additional_data = []
@@ -37,8 +38,11 @@ dataset.set_len_dataset(1000)
 dataset.summary()
 #inputs, labels, additional_data = dataset.__getitem__(1)
 
+t0 = time.time()
+inputs, labels, additional_data = dataset.__getitem__(500)
+t1 = time.time()
 
-inputs, labels = dataset.__getitem__(500)
+print(t1-t0)
 print(labels)
 print(len(inputs))
 cv2.imshow("test", inputs[1])

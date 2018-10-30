@@ -125,6 +125,10 @@ class Dataset(object):
 
         :return : Loaded and possibly transformed instance to be given to the training
         """
+        inputs = []
+        labels = []
+        additional_data = []
+
         # Index of the raw data is used only to get the path to original data. Real index is used for data transformation
         index_raw_data = index % self.number_raw_instances
 
@@ -141,29 +145,26 @@ class Dataset(object):
 
 
         # Extract lists of raw data from the pandas DataFrame for the select index
-        # TODO : Find a cleaner / faster way to do it
         if not self.list_labels:
             if not self.list_additional_data:
                 inputs = self.data.iloc[index_raw_data]
                 inputs = self.__load_data(data=inputs[0], augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)         #Keep key == 0 else the datafram  also returns the name of the column (issue only on single column dataframe)
-                return inputs
             else:
                 inputs, additional_data = self.data.iloc[index_raw_data]
                 inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
                 additional_data = self.__load_data(data=additional_data, augment=augment, index=index, entry_type=DEEP_TYPE_ADDITIONAL_DATA)
-                return inputs, additional_data
         else:
             if not self.list_additional_data:
                 inputs, labels = self.data.iloc[index_raw_data]
                 inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
                 labels = self.__load_data(data=labels, augment=augment, index=index, entry_type=DEEP_TYPE_LABEL)
-                return inputs, labels
             else:
                 inputs, labels, additional_data = self.data.iloc[index_raw_data]
                 inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
                 labels = self.__load_data(data=labels, augment=augment, index=index, entry_type=DEEP_TYPE_LABEL)
                 additional_data = self.__load_data(data=additional_data, augment=augment, index=index,  entry_type=DEEP_TYPE_ADDITIONAL_DATA)
-                return inputs, labels, additional_data
+
+        return inputs, labels, additional_data
 
     def __len__(self) -> int:
         """
@@ -458,6 +459,32 @@ class Dataset(object):
         except:
             Notification(DEEP_ERROR, "Could not shuffle the dataset", write_logs=self.write_logs)
 
+        # Reset the TransformManager
+        self.reset()
+
+
+    def reset(self)->None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Reset the transform_manager
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         if self.transform_manager is not None:
             self.transform_manager.reset()
 
@@ -492,10 +519,12 @@ class Dataset(object):
 
 
         loaded_data = []
+
         for i, d in enumerate(data):            # For each data given in the list (list = one instance of each file)
             if d is not None:
                 type_data = self.__data_type(d)
 
+                # TODO : Check how sequence behaves
                 # If data is a sequence we use the function in a recursive fashion
                 if type_data == DEEP_TYPE_SEQUENCE:
                     if entry_num is None:
@@ -515,8 +544,10 @@ class Dataset(object):
                     if self.cv_library == DEEP_PIL:
                         image = np.array(image)
 
-                    loaded_data.append(image)
+                    np.moveaxis(image, -1, 0)
+                    loaded_data = image
 
+                # TODO : Check how video behaves
                 # Video
                 elif type_data == DEEP_TYPE_VIDEO:
                     video = self.__load_video(d)
@@ -525,17 +556,21 @@ class Dataset(object):
 
                     if augment is True:
                         video = self.transform_manager.transform(data = video, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
-                    loaded_data.append(video)
+                    loaded_data = video
 
                 # Integer
                 elif type_data == DEEP_TYPE_INTEGER:
                     integer = int(d)
-                    loaded_data.append(integer)
+                    loaded_data = integer
 
                 # Float
                 elif type_data == DEEP_TYPE_FLOAT:
                     floating = float(d)
-                    loaded_data.append(floating)
+                    loaded_data = floating
+
+                # Numpy array
+                elif type_data == DEEP_TYPE_NP_ARRAY:
+                    loaded_data = np.load(d)
 
                 # Data type not recognized
                 else:

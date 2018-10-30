@@ -2,6 +2,7 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.types import *
 from deeplodocus.data.transformer.transformer import Transformer
 
+
 class Pointer(object):
 
     def __init__(self, pointer, write_logs=False):
@@ -12,14 +13,12 @@ class Pointer(object):
 
         #Transformer.__init__(self, config)
 
-
     def summary(self):
 
         Notification(DEEP_INFO, "------------------------------------", write_logs=self.write_logs)
         Notification(DEEP_INFO, "Transformer '" + str(self.name) + "' summary :", write_logs=self.write_logs)
         Notification(DEEP_INFO, "Points to : " + str(self.pointer_to_transformer), write_logs=self.write_logs)
         Notification(DEEP_INFO, "------------------------------------", write_logs=self.write_logs)
-
 
     def get_pointer(self):
         """
@@ -44,8 +43,6 @@ class Pointer(object):
         :return: pointer_to_transformer attribute
         """
         return self.pointer_to_transformer
-
-
 
     def __generate_pointer(self, pointer):
         """
@@ -72,7 +69,6 @@ class Pointer(object):
 
         else:
             Notification(DEEP_FATAL, "The following transformer is not a pointer : " + str(pointer), write_logs=self.write_logs)
-
 
     def __convert_pointer_type(self, pointer_type):
 

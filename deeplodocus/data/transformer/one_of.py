@@ -2,6 +2,7 @@ import random
 
 from deeplodocus.data.transformer.transformer import Transformer
 
+
 class OneOf(Transformer):
 
     def __init__(self, config):
@@ -43,19 +44,15 @@ class OneOf(Transformer):
         transform_args = transform[2]                                   # Dictionary of arguments
         transform_data, last_method_used = transform_method(data, **transform_args)
 
+        # Reinitialize the last transforms
+        self.last_transforms = []
 
         # Update the last transforms used and the last index
         if last_method_used is None:
-            if len(self.last_transforms) == 0:
-                self.last_transforms.append([transform_name, transform_method, transform_args])
-            else:
-                self.last_transforms[0] = [transform_name, transform_method, transform_args]
+            self.last_transforms.append([transform_name, transform_method, transform_args])
+
         else:
-            if len(self.last_transforms) == 0:
-                self.last_transforms.append(last_method_used)
-            else:
-                self.last_transforms[0] = last_method_used
+            self.last_transforms.append(last_method_used)
 
         self.last_index = index
-
         return transform_data
