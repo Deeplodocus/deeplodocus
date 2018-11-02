@@ -544,8 +544,8 @@ class Dataset(object):
                     if self.cv_library == DEEP_PIL:
                         image = np.array(image)
 
-                    np.moveaxis(image, -1, 0)
-                    loaded_data = image
+                    image = np.swapaxes(image, 0, 2)
+                    loaded_data.append(image)
 
                 # TODO : Check how video behaves
                 # Video
@@ -556,21 +556,21 @@ class Dataset(object):
 
                     if augment is True:
                         video = self.transform_manager.transform(data = video, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
-                    loaded_data = video
+                    loaded_data.append(video)
 
                 # Integer
                 elif type_data == DEEP_TYPE_INTEGER:
                     integer = int(d)
-                    loaded_data = integer
+                    loaded_data.append(integer)
 
                 # Float
                 elif type_data == DEEP_TYPE_FLOAT:
                     floating = float(d)
-                    loaded_data = floating
+                    loaded_data.append(floating)
 
                 # Numpy array
                 elif type_data == DEEP_TYPE_NP_ARRAY:
-                    loaded_data = np.load(d)
+                    loaded_data.append(np.load(d))
 
                 # Data type not recognized
                 else:

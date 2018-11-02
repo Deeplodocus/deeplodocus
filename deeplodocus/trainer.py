@@ -1,3 +1,6 @@
+from typing import Union
+
+from torch import tensor
 from torch.utils.data import  DataLoader
 
 from deeplodocus.data.dataset import Dataset
@@ -84,11 +87,14 @@ class Trainer(object):
             for i, batch in enumerate(self.dataloader_train, 0):
 
                 # get the inputs
-                inputs, labels, additional_data = batch
+                inputs, labels, additional_data = self.__clean_single_element_list(batch)
+
+
 
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
-                print(inputs.shape)
+                #(inputs)
+                print(inputs)
                 # forward + backward + optimize
                 outputs = self.model(inputs)          #infer the outputs of the network
 
@@ -115,6 +121,7 @@ class Trainer(object):
 
             # Reset the dataloader
             self.train_dataset.reset()
+
             #Epoch callback
             self.callbacks.on_epoch_end(um_total_epochs=num_total_epochs)
 
@@ -123,20 +130,50 @@ class Trainer(object):
         # End of training callback
         self.callbacks.on_training_end()
 
+    def __clean_single_element_list(self, batch:list)->list:
+        """
+        AUTHORS:
+        --------
 
+        :author: Alix Leroy
 
-    def __compute_loss(self, criterion, outputs, labels, additional_data):
+        DESCRIPTION:
+        ------------
 
-        if labels is None:
-            if additional_data is None:
-                loss = criterion(outputs)
+        Convert single element lists from the batch into an element
+
+        PARAMETERS:
+        -----------
+
+        :param batch->list: The batch to clean
+
+        RETURN:
+        -------
+
+        :return cleaned_batch->list: The cleaned batch
+        """
+        cleaned_batch = []
+        for entry in batch:
+            if isinstance(entry, list) and len(entry) == 1:
+                cleaned_batch.append(entry[0])
             else:
-                loss = criterion(outputs, additional_data)
-        else:
-            if additional_data is None:
-                loss = criterion(outputs, labels)
+                cleaned_batch.append(entry)
+
+        return  cleaned_batch
+
+
+    def __compute_loss(self, criterion:dict, outputs:Union[tensor, list], labels:Union[tensor, list], additional_data:Union[tensor, list])->list:
+        for loss in criterion:
+            if labels is None:
+                if additional_data is None:
+                    loss = criterion(outputs)
+                else:
+                    loss = criterion(outputs, additional_data)
             else:
-                loss = criterion(outputs, labels, additional_data)
+                if additional_data is None:
+                    loss = criterion(outputs, labels)
+                else:
+                    loss = criterion(outputs, labels, additional_data)
 
         return loss
 

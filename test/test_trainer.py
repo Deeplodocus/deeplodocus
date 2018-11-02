@@ -15,6 +15,7 @@ inputs = []
 labels = []
 additional_data = []
 inputs.append([r"data/input1.txt"])
+inputs.append([r"data/input1.txt"])
 labels.append([r"data/label1.txt"])
 #inputs.append([r"data/label1.txt"])
 
