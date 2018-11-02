@@ -4,6 +4,8 @@ Data can added on initialisation as a dictionary, a path to a directory and/or a
 """
 
 import yaml
+from pathlib import Path
+
 
 
 class Namespace(object):
@@ -81,6 +83,16 @@ class Namespace(object):
         for key, item in dictionary.items():
             if isinstance(item, dict):
                 item = self.__dict2namespace(item)
+            """
+            #TODO: Find a way add included yaml files into the namespace
+            elif self.__is_yaml_file(item):
+                item = self.__yaml2namespace(item)
+
+            elif isinstance(item, list):
+                for n, it in enumerate(item):
+                    if self.__is_yaml_file(it):
+                        item[n] = self.__yaml2namespace(it)
+            """
             namespace.add({key: item})
         return namespace
 
@@ -93,3 +105,65 @@ class Namespace(object):
         with open(file_name, "r") as file:
             dictionary = yaml.load(file)
             return self.__dict2namespace(dictionary)
+
+
+    @staticmethod
+    def __is_yaml_file(item):
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check if the item is a yaml file
+
+        PARAMETERS:
+        -----------
+
+        :param item: A dictionary item
+
+        RETURN:
+        -------
+
+        :return -> bool: Whether or not the item is an existing yaml file
+        """
+
+        if isinstance(item, str):
+            if item.endswith(('.yaml', ".yml")):
+                file = Path(item)
+                if file.is_file():
+                    return True
+            else:
+                return False
+        else:
+            return False
+
+
+    @staticmethod
+    def __get_absolute_config_path(relative_config_path):
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the absolute config path
+
+        PARAMETERS:
+        -----------
+
+        :param relative_config_path: relative config path
+
+        RETURN:
+        -------
+
+        :return absolute_config_path -> str : The corresponding absolute config path
+        """
+        absolute_config_path = relative_config_path
+        return absolute_config_path

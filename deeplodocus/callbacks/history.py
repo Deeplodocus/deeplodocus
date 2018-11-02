@@ -11,8 +11,6 @@ class History(object):
 
     def __init__(self,
                  metrics,
-                 num_epochs,
-                 num_batches,
                  initial_epoch = "auto",
                  log_dir = "../../results/",
                  file_name = "history.csv",
@@ -29,12 +27,8 @@ class History(object):
         self.num_current_batch = 1
         self.num_current_epoch = initial_epoch
 
-        self.num_total_epochs = num_epochs
-        self.num_total_batches = num_batches
-
-
         self.metrics = metrics
-        self.history = pd.DataFrame(columns=["wall time", "relative time", "epoch"] + metrics)
+        self.history = pd.DataFrame(columns=["wall time", "relative time", "epoch"] + list(metrics.keys()))
         self.start_time = 0
 
         self.file_path = "%s/%s" % (log_dir, file_name)

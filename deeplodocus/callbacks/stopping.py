@@ -2,7 +2,7 @@
 
 class Stopping(object):
 
-    def __init__(self):
+    def __init__(self, params):
 
         print("Stopping class created")
 

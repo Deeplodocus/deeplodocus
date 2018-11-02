@@ -1,0 +1,23 @@
+#___________________________________
+#
+# ---- TRANSFORM SOMEOF EXAMPLE ----
+# __________________________________
+#
+
+method: "someof"
+name: "SomeOf example"
+num_transformations : 3             #If used, comment "num_transformations_min" and  "num_transformations_max"
+#num_transformations_min : 1        #If used, comment "num_transformations"
+#num_transformations_max : 5        #If used, comment "num_transformations"
+normalize_output: yes
+
+transforms:
+#  - resize :
+#      shape : [512, 512, 3]
+#      keep_aspect : True
+#      padding : 0
+  - blur :
+      kernel_size : 3
+  - random_blur:
+      kernel_size_min: 15
+      kernel_size_max : 21
