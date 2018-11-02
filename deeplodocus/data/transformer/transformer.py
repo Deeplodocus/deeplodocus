@@ -53,7 +53,7 @@ class Transformer(object):
         self.pointer_to_transformer = None
         self.last_transforms = []
         self.list_transforms = []
-        self.list_customed_transform_methods = self.__fill_list_customed_transform_methods()
+        self.list_custom_transform_methods = self.__fill_list_custom_transform_methods()
         self.normalize_output = self.__check_normalize_output(config)
         self.__fill_transform_list(config.transforms)
 
@@ -164,12 +164,12 @@ class Transformer(object):
 
             if self.__is_default_transform(list(transform.keys())[0]):
                 self.list_transforms.append([key, self.__get_default_transform_method(key), values])
-            elif self.__is_customed_transform(key):
-                self.list_transforms.append([key, self.__get_customed_transform(key), values])
+            elif self.__is_custom_transform(key):
+                self.list_transforms.append([key, self.__get_custom_transform(key), values])
             else:
-                Notification(DEEP_FATAL, "The following transform does not exist in the default and customed transforms : " + str(key), write_logs=self.write_logs)
+                Notification(DEEP_FATAL, "The following transform does not exist in the default and custom transforms : " + str(key), write_logs=self.write_logs)
 
-    def __fill_list_customed_transform_methods(self)->dict:
+    def __fill_list_custom_transform_methods(self)->dict:
         """
         AUTHORS:
         --------
@@ -179,7 +179,7 @@ class Transformer(object):
         DESCRIPTION:
         ------------
 
-        Fill the list of customed transforms by parsing the transform folder
+        Fill the list of custom transforms by parsing the transform folder
 
         PARAMETERS:
         -----------
@@ -189,12 +189,12 @@ class Transformer(object):
         RETURN:
         -------
 
-        :return customed_transforms-> dict: The dictionary listing all the transform names associated to its corresponding customed method
+        :return custom_transforms-> dict: The dictionary listing all the transform names associated to its corresponding custom method
         """
 
-        customed_transforms = dict()
+        custom_transforms = dict()
 
-        return customed_transforms
+        return custom_transforms
 
 
     def __is_default_transform(self, transform_name:str)->bool:
@@ -227,7 +227,7 @@ class Transformer(object):
         else:
             return False
 
-    def __is_customed_transform(self, transform_name:str)->bool:
+    def __is_custom_transform(self, transform_name:str)->bool:
         """
         AUTHORS:
         --------
@@ -237,7 +237,7 @@ class Transformer(object):
         DESCRIPTION:
         ------------
 
-        Check if the given transform is an existing customed one
+        Check if the given transform is an existing custom one
 
         PARAMETERS:
         -----------
@@ -247,9 +247,9 @@ class Transformer(object):
         RETURN:
         -------
 
-        :return-> bool: Whether or not the requested transform is a customed one available in the transform folder
+        :return-> bool: Whether or not the requested transform is a custom one available in the transform folder
         """
-        if transform_name in self.list_customed_transform_methods:
+        if transform_name in self.list_custom_transform_methods:
             return True
         else:
             False
