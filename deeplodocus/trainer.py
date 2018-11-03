@@ -1,4 +1,5 @@
 from typing import Union
+from typing import List
 
 from torch import tensor
 from torch.utils.data import  DataLoader
@@ -8,6 +9,7 @@ from deeplodocus.callback import Callback
 from deeplodocus.tester import Tester
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.types import *
+from deeplodocus.core.metric import Metric
 
 
 
@@ -93,28 +95,27 @@ class Trainer(object):
 
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
-                #(inputs)
-                print(inputs)
+
                 # forward + backward + optimize
-                outputs = self.model(inputs)          #infer the outputs of the network
+                outputs = self.model.forward(inputs)          #infer the outputs of the network
 
-                criterions = self.loss_functions
 
-                losses = self.__compute_loss(criterions, outputs, labels, additional_data) # Compute the losses
-                metrics = self.__compute_metrics(outputs, labels)
+                result_losses = self.__compute_loss(self.loss_functions, outputs, labels, additional_data) # Compute the losses
+
+                result_metrics = self.__compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
                 # Add weights to losses
-                for i, loss in enumerate(self.losses):
-                    loss *= self.losses_weights[i]
+                for i, loss in enumerate(result_losses):
+                    result_losses[i] = loss * self.loss_weights[i]
 
-                # Sum all the losses
-                loss = sum(self.losses)
+                # Sum all the result of the losses
+                total_loss = sum(result_losses)
 
-                loss.backward() # accumulates the gradient (by addition) for each parameter
+                total_loss.backward() # accumulates the gradient (by addition) for each parameter
                 self.optimizer.step() # performs a parameter update based on the current gradient (stored in .grad attribute of a parameter) and the update rule
 
                 # Minibatch callback
-                self.callbacks.on_batch_end(losses, metrics)
+                self.callbacks.on_batch_end(total_loss, result_losses, self.loss_weights, result_metrics)
 
             if self.shuffle is not None:
                 pass
@@ -156,26 +157,88 @@ class Trainer(object):
         for entry in batch:
             if isinstance(entry, list) and len(entry) == 1:
                 cleaned_batch.append(entry[0])
+            elif isinstance(entry, list) and len(entry) ==0:
+                cleaned_batch.append(None)
             else:
                 cleaned_batch.append(entry)
 
         return  cleaned_batch
 
 
-    def __compute_loss(self, criterion:dict, outputs:Union[tensor, list], labels:Union[tensor, list], additional_data:Union[tensor, list])->list:
-        for loss in criterion:
+    def __compute_loss(self, criterions:dict, outputs:Union[tensor, list], labels:Union[tensor, list], additional_data:Union[tensor, list])->list:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Compute the different losses
+
+        PARAMETERS:
+        -----------
+
+        :param criterions->dict: The different criterion f
+        :param outputs: The predicted outputs
+        :param labels:  The expected outputs
+        :param additional_data: Additional data given to the loss function
+
+        RETURN:
+        -------
+
+        :return losses->list: The list of computed losses
+        """
+
+        losses = []
+        for _, criterion_function in criterions.items():        # First argument is criterion_name and is not needed here
             if labels is None:
                 if additional_data is None:
-                    loss = criterion(outputs)
+                    losses.append(criterion_function(outputs))
                 else:
-                    loss = criterion(outputs, additional_data)
+                    losses.append(criterion_function(outputs, additional_data))
             else:
                 if additional_data is None:
-                    loss = criterion(outputs, labels)
+                    losses.append(criterion_function(outputs, labels))
                 else:
-                    loss = criterion(outputs, labels, additional_data)
+                    losses.append(criterion_function(outputs, labels, additional_data))
 
-        return loss
+        return losses
+
+
+    def __compute_metrics(self, metrics:List[Metric], inputs, outputs, labels, additional_data)->list:
+        result_metrics = []
+
+        for metric in metrics:
+            metric_args = metric.get_arguments()
+            metric_method = metric.get_method()
+            print(metric.get_method())
+
+            if DEEP_ENTRY_INPUT in metric_args:
+                if DEEP_ENTRY_LABEL in metric_args:
+                    if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
+                        result_metrics.append(metric_method(inputs, outputs, labels, additional_data))
+                    else:
+                        result_metrics.append(metric_method(inputs, outputs, labels))
+                else:
+                    if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
+                        result_metrics.append(metric_method(inputs, outputs, additional_data))
+                    else:
+                        result_metrics.append(metric_method(inputs, outputs))
+            else:
+                if DEEP_ENTRY_LABEL in metric_args:
+                    if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
+                        result_metrics.append(metric_method(outputs, labels, additional_data))
+                    else:
+                        result_metrics.append(metric_method(outputs, labels))
+                else:
+                    if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
+                        result_metrics.append(metric_method(outputs, additional_data))
+                    else:
+                        result_metrics.append(metric_method(outputs))
+
+        return result_metrics
 
     def __continue_training(self):
 

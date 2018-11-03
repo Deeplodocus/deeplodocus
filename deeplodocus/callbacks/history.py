@@ -28,7 +28,7 @@ class History(object):
         self.num_current_epoch = initial_epoch
 
         self.metrics = metrics
-        self.history = pd.DataFrame(columns=["wall time", "relative time", "epoch"] + list(metrics.keys()))
+        self.history = pd.DataFrame(columns=["wall time", "relative time", "epoch"] + [metric.get_name() for metric in metrics])
         self.start_time = 0
 
         self.file_path = "%s/%s" % (log_dir, file_name)

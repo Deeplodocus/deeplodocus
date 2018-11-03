@@ -3,6 +3,7 @@ import numpy as np
 import random
 import inspect
 import __main__
+from typing import Union
 
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification
@@ -319,6 +320,7 @@ class Transformer(object):
 
 
 
+
     def __transform_image(self, image, key):
 
         """
@@ -502,47 +504,67 @@ class Transformer(object):
     # DATA NORMALIZERS
     #
 
-    def __normalize_image(self, image):
+    def normalize_image(self, image, mean:Union[None, list, int], standard_deviation:int):
         """
-        Author : Alix Leroy
-        Normalize an image (mean and standard deviation)
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Normalize an image
+
+        PARAMETERS:
+        -----------
+
         :param image: an image
+        :param mean->Union[None, list, int]: The mean of the channel(s)
+        :param standard_deviation->int: The standard deviation of the channel(s)
+
+        RETURN:
+        -------
         :return: a normalized image
         """
 
+        if standard_deviation is None:
+            standard_deviation = 255
 
-        # The normalization compute the mean of the image online.
-        # TODO: Normalize using a mean given by a config file
+        # The normalization compute the mean of the image online if not given
         # This takes more time than just giving the mean as a parameter in the config file
         # However this time is still relatively small
         # Moreover this is done in parallel of the training
         # Note 1 : OpenCV is roughly 50% faster than numpy
-        # Note 2 : Could be a limiting factor for big "mini"-batches (>= 1024) and big images (>= 512, 512, 3)
+        # Note 2 : Could be a limiting factor for big "mini"-batches (i.e. >= 1024) and big images (i.e. >= 512, 512, 3)
 
         # If OpenCV is selected (50% faster than numpy)
-        if cv_library == "opencv":
+        if cv_library == DEEP_LIB_OPENCV:
             channels = image.shape[-1]
-            mean = cv2.mean(image)
 
-            normalized_image = (image - mean[:channels]) / 255  # Norm = (data - mean) / standard deviation
+            if mean is None:
+                mean = cv2.mean(image)
+
+            normalized_image = (image - mean[:channels]) / standard_deviation  # Norm = (data - mean) / standard deviation
 
         # Default option
         else:
-            mean = np.mean(image, axis=(0, 1))  # Compute the mean on each channel
+            if mean is None:
+                mean = np.mean(image, axis=(0, 1))  # Compute the mean on each channel
 
-            normalized_image = (image - mean) / 255  # Norm = (data - mean) / standard deviation
+            normalized_image = (image - mean) / standard_deviation  # Norm = (data - mean) / standard deviation
 
         return normalized_image
 
 
-    def __normalize_video(self, video):
+    def normalize_video(self, video):
         """
         Author: Alix Leroy
         :param video: sequence of frames
         :return: a normalized sequence of frames
         """
 
-        video = [self.__normalize_image(frame) for frame in video]
+        video = [self.normalize_image(frame) for frame in video]
 
         return video
 

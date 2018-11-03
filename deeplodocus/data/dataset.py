@@ -98,7 +98,7 @@ class Dataset(object):
         self.len_data = None
         self.name = name
         # Check that the given data are in a correct format before any training
-        #self.__check_data()
+        # self.__check_data()
         self.warning_video = None
 
     def __getitem__(self, index : int):

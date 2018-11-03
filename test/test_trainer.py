@@ -1,14 +1,18 @@
 import torch.nn.functional as F
+import torch.nn as nn
 import torch
+import collections
+
 
 from deeplodocus.utils.types import *
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.trainer import Trainer
-from deeplodocus.core.project.deep_structure.modules.models.LeNet import LeNet
+from deeplodocus.core.project.deep_structure.modules.models.classification import Net
 from deeplodocus.core.project.deep_structure.modules.metrics.accuracy import accuracy
+from deeplodocus.core.metric import Metric
 
 # Model
-model = LeNet()
+model = Net()
 
 # Dataset
 inputs = []
@@ -25,11 +29,16 @@ train_dataset.set_len_dataset(7)
 train_dataset.summary()
 
 # Losses
-loss_functions = {"Binary_accuracy" : F.nll_loss, "test2" : F.mse_loss}
-loss_weights = [0.5, 0.5]
+loss_functions = collections.OrderedDict({"Binary_accuracy" : nn.CrossEntropyLoss(), "test2" :  nn.CrossEntropyLoss()})
+
+loss_weights = [0.5, 0.6]
 
 # Metrics
-metrics = {"accuracy" : accuracy}
+loss =  nn.CrossEntropyLoss()
+accuracy_metric2 = Metric(name="Accurac", method=loss)
+#accuracy_metric = Metric(name="Accuracy", method=accuracy)
+
+metrics = [accuracy_metric2, accuracy_metric2]
 
 # Optimizer
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
@@ -43,7 +52,7 @@ trainer = Trainer(model = model,
                   optimizer=optimizer,
                   epochs=10,
                   initial_epoch=0,
-                  batch_size=2,
+                  batch_size=4,
                   shuffle = "all",
                   num_workers = 1,
                   write_logs=False)

@@ -2,7 +2,7 @@ from deeplodocus.data.transform_manager import TransformManager
 from deeplodocus.utils.namespace import Namespace
 
 # Get the config for the transform managers
-config_transforms = Namespace(yaml_path="/home/alix/Documents/deeplodocus/deeplodocus/core/project/deep_structure/config/transform_config.yaml")
+config_transforms = Namespace("/home/alix/Documents/deeplodocus/deeplodocus/core/project/deep_structure/config/transform_config.yaml")
 
 
 # Create the transform managers
