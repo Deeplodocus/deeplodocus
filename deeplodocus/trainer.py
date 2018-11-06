@@ -27,8 +27,8 @@ class Trainer(object):
                  shuffle:bool = DEEP_SHUFFLE_ALL,
                  num_workers:int = 4,
                  verbose:int=2,
-                 data_to_save:int = DEEP_SAVE_BATCHES,
-                 save_condition="auto",
+                 data_to_memorize:int = DEEP_MEMORIZE_BATCHES,
+                 save_condition:int=DEEP_SAVE_CONDITION_AUTO,
                  stopping_parameters=None,
                  write_logs=False):
 
@@ -46,7 +46,7 @@ class Trainer(object):
                                   working_directory="",
                                   model_name="test",
                                   verbose=verbose,
-                                  data_to_save=data_to_save,
+                                  data_to_memorize=data_to_memorize,
                                   save_condition=save_condition,
                                   stopping_parameters=stopping_parameters)
         self.num_epochs = num_epochs

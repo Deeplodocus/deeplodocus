@@ -9,7 +9,7 @@ class Saver(object):
 
 
     def __init__(self,
-                 condition = "",
+                 save_condition:int = DEEP_SAVE_CONDITION_AUTO,
                  metric = "loss"):
 
 
@@ -37,7 +37,7 @@ class Saver(object):
 
 
     def __is_saving_required(self):
-        print("Not available now")
+        return False
 
 
 

@@ -25,7 +25,7 @@ class Callback(object):
                  working_directory,
                  model_name,
                  verbose,
-                 data_to_save,
+                 data_to_memorize,
                  save_condition,
                  # Stopping
                  stopping_parameters,
@@ -59,7 +59,7 @@ class Callback(object):
 
 
         # History
-        self.__initialize_history(data_to_save=data_to_save)            # Callback to keep track of the history, display, plot and save it
+        self.__initialize_history(data_to_memorize=data_to_memorize)            # Callback to keep track of the history, display, plot and save it
 
         # Stopping
         self.stopping = Stopping(stopping_parameters)                                     # Callback to check the condition to stop the training
@@ -151,7 +151,7 @@ class Callback(object):
         self.stopping.on_training_end()
 
 
-    def __initialize_history(self, data_to_save:int)->None:
+    def __initialize_history(self, data_to_memorize:int)->None:
         """
         Authors : Samuel Westlake, Alix Leroy
         Initialise the history
@@ -169,7 +169,7 @@ class Callback(object):
                                train_epochs_filename="%s_history_train_epochs.csv" % self.model_name,
                                validation_filename="%s_history_validation.csv" % self.model_name,
                                verbose=self.verbose,
-                               data_to_save=data_to_save,
+                               data_to_memorize=data_to_memorize,
                                save_condition = self.save_condition,
                                write_logs=self.write_logs)
 

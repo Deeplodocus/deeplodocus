@@ -215,34 +215,34 @@ class History(object):
         Notification(DEEP_NOTIF_SUCCESS, "History saved", write_logs=self.write_logs)
 
 
-    # def __initialize_running_metrics(self, metrics):
-    #     """
-    #     AUTHORS:
-    #     --------
-    #
-    #     :author: Alix Leroy
-    #
-    #     DESCRIPTION:
-    #     ------------
-    #
-    #     Initialize the running_metrics
-    #
-    #     PARAMETERS:
-    #     -----------
-    #
-    #     None
-    #
-    #     RETURN:
-    #     -------
-    #     :return initialized_running_metrics->list: The initialized running metrics
-    #     """
-    #
-    #     initialized_running_metrics = [0 for i in range(len(metrics))]
-    #     return initialized_running_metrics
+        # def __initialize_running_metrics(self, metrics):
+        #     """
+        #     AUTHORS:
+        #     --------
+        #
+        #     :author: Alix Leroy
+        #
+        #     DESCRIPTION:
+        #     ------------
+        #
+        #     Initialize the running_metrics
+        #
+        #     PARAMETERS:
+        #     -----------
+        #
+        #     None
+        #
+        #     RETURN:
+        #     -------
+        #     :return initialized_running_metrics->list: The initialized running metrics
+        #     """
+        #
+        #     initialized_running_metrics = [0 for i in range(len(metrics))]
+        #     return initialized_running_metrics
 
 
     def __do_saving(self):
-
+        pass
 
 
     def __save_history(self):
@@ -253,7 +253,7 @@ class History(object):
         """
 
         # Save train batches history
-        if self.data_to_save >= DEEP_SAVE_BATCHES:
+        if self.data_to_save >= DEEP_SAVE_CONDITION_END_BATCH:
             self.train_batches_history.to_csv(self.train_batches_filepath, header=True, index=True, encoding='utf-8')
 
         # Save train epochs history
