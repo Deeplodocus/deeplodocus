@@ -6,18 +6,18 @@ import time
 
 from deeplodocus.utils.generic_utils import sorted_nicely
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.types import *
+from deeplodocus.utils.flags import *
 
-cv_library = DEEP_OPENCV
+cv_library = DEEP_LIB_OPENCV
 
 # IMPORT COMPUTER VISION LIBRARY
-if cv_library == DEEP_OPENCV:
+if cv_library == DEEP_LIB_OPENCV:
     try:
         import cv2
     except ImportError:
         raise ImportError("OpenCV could not be loaded. Please check https://opencv.org/ ")
 
-elif cv_library == DEEP_PIL:
+elif cv_library == DEEP_LIB_PIL:
     try:
         from PIL import Image
     except ImportError:
@@ -25,7 +25,7 @@ elif cv_library == DEEP_PIL:
                           "Please check if PIL is correctly installed. "
                           "If not use 'pip install Pillow'.")
 else:
-    Notification(DEEP_FATAL,  "The following image module is not implemented : %s" % cv_library)
+    Notification(DEEP_NOTIF_FATAL,  "The following image module is not implemented : %s" % cv_library)
 
 
 
@@ -59,7 +59,7 @@ class Dataset(object):
         - OpenCV (usage recommended for efficiency)
     """
 
-    def __init__(self, list_inputs, list_labels, list_additional_data, use_raw_data = True, transform_manager=None, cv_library=DEEP_PIL, write_logs=True, name="Default"):
+    def __init__(self, list_inputs, list_labels, list_additional_data, use_raw_data = True, transform_manager=None, cv_library=DEEP_LIB_PIL, write_logs=True, name="Default"):
         """
         AUTHORS:
         --------
@@ -141,28 +141,28 @@ class Dataset(object):
             augment = not self.use_raw_data
 
         if index >= self.len_data:
-            Notification(DEEP_FATAL, "The given instance index is too high : " + str(index), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The given instance index is too high : " + str(index), write_logs=self.write_logs)
 
 
         # Extract lists of raw data from the pandas DataFrame for the select index
         if not self.list_labels:
             if not self.list_additional_data:
                 inputs = self.data.iloc[index_raw_data]
-                inputs = self.__load_data(data=inputs[0], augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)         #Keep key == 0 else the datafram  also returns the name of the column (issue only on single column dataframe)
+                inputs = self.__load_data(data=inputs[0], augment=augment, index=index, entry_type=DEEP_ENTRY_INPUT)         #Keep key == 0 else the datafram  also returns the name of the column (issue only on single column dataframe)
             else:
                 inputs, additional_data = self.data.iloc[index_raw_data]
-                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
-                additional_data = self.__load_data(data=additional_data, augment=augment, index=index, entry_type=DEEP_TYPE_ADDITIONAL_DATA)
+                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_ENTRY_INPUT)
+                additional_data = self.__load_data(data=additional_data, augment=augment, index=index, entry_type=DEEP_ENTRY_ADDITIONAL_DATA)
         else:
             if not self.list_additional_data:
                 inputs, labels = self.data.iloc[index_raw_data]
-                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
-                labels = self.__load_data(data=labels, augment=augment, index=index, entry_type=DEEP_TYPE_LABEL)
+                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_ENTRY_INPUT)
+                labels = self.__load_data(data=labels, augment=augment, index=index, entry_type=DEEP_ENTRY_LABEL)
             else:
                 inputs, labels, additional_data = self.data.iloc[index_raw_data]
-                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_TYPE_INPUT)
-                labels = self.__load_data(data=labels, augment=augment, index=index, entry_type=DEEP_TYPE_LABEL)
-                additional_data = self.__load_data(data=additional_data, augment=augment, index=index,  entry_type=DEEP_TYPE_ADDITIONAL_DATA)
+                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_ENTRY_INPUT)
+                labels = self.__load_data(data=labels, augment=augment, index=index, entry_type=DEEP_ENTRY_LABEL)
+                additional_data = self.__load_data(data=additional_data, augment=augment, index=index,  entry_type=DEEP_ENTRY_ADDITIONAL_DATA)
 
         return inputs, labels, additional_data
 
@@ -222,7 +222,7 @@ class Dataset(object):
 
         """
 
-        Notification(DEEP_INFO, "Summary of the '" + str(self.name)+ "' dataset : \n" + str(self.data), write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "Summary of the '" + str(self.name)+ "' dataset : \n" + str(self.data), write_logs=self.write_logs)
 
 
 
@@ -278,7 +278,7 @@ class Dataset(object):
         self.len_data = self.__len__()
 
         # Notice the user that the Dataset has been loaded
-        Notification(DEEP_SUCCESS, "The '" + str(self.name) + "' dataset has successfully been loaded !", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_SUCCESS, "The '" + str(self.name) + "' dataset has successfully been loaded !", write_logs=self.write_logs)
 
 
     """
@@ -385,7 +385,7 @@ class Dataset(object):
 
         # Else (neither a file nor a folder)
         else:
-            Notification(DEEP_FATAL, "The source type of the following source path does not exist : " + str(f), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The source type of the following source path does not exist : " + str(f), write_logs=self.write_logs)
 
         return content
 
@@ -432,7 +432,7 @@ class Dataset(object):
         return sorted_nicely(paths)
 
 
-    def __shuffle(self) -> None:
+    def shuffle(self, method:int) -> None:
         """
         AUTHORS:
         --------
@@ -454,10 +454,13 @@ class Dataset(object):
         :return None:
         """
 
-        try:
-            self.data = self.data.sample(frac=1).reset_index(drop=True)
-        except:
-            Notification(DEEP_ERROR, "Could not shuffle the dataset", write_logs=self.write_logs)
+        if method == DEEP_SHUFFLE_ALL:
+            try:
+                self.data = self.data.sample(frac=1).reset_index(drop=True)
+            except:
+                Notification(DEEP_NOTIF_ERROR, "Cannot shuffle the dataset", write_logs=self.write_logs)
+        else:
+            Notification(DEEP_NOTIF_ERROR, "The shuffling method does not exist.", write_logs=self.write_logs)
 
         # Reset the TransformManager
         self.reset()
@@ -541,7 +544,7 @@ class Dataset(object):
                     if augment is True :
                         image = self.transform_manager.transform(data = image, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
 
-                    if self.cv_library == DEEP_PIL:
+                    if self.cv_library == DEEP_LIB_PIL:
                         image = np.array(image)
 
                     image = np.swapaxes(image, 0, 2)
@@ -574,7 +577,7 @@ class Dataset(object):
 
                 # Data type not recognized
                 else:
-                    Notification(DEEP_FATAL,
+                    Notification(DEEP_NOTIF_FATAL,
                                  "The following data could not be loaded because its type is not recognize : %s.\n"
                                  "Please check the documentation online to see the supported types" % data,
                                  write_logs=self.write_logs)
@@ -583,7 +586,7 @@ class Dataset(object):
 
             # If the data is None
             else:
-                Notification(DEEP_FATAL, "The following data is None : %s" % d, write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following data is None : %s" % d, write_logs=self.write_logs)
 
 
         return loaded_data
@@ -631,7 +634,7 @@ class Dataset(object):
 
         # Else
         else:
-            Notification(DEEP_FATAL,
+            Notification(DEEP_NOTIF_FATAL,
                          "The source type of the following source path does not exist : " + str(f),
                          write_logs=self.write_logs)
 
@@ -688,7 +691,7 @@ class Dataset(object):
 
         # Type not handled
         else:
-            Notification(DEEP_FATAL,
+            Notification(DEEP_NOTIF_FATAL,
                          "The type of the following data is not handled : " + str(data),
                          write_logs=self.write_logs)
 
@@ -734,11 +737,11 @@ class Dataset(object):
         :param image_path: The path of the image to load
         :return: The loaded image
         """
-        if self.cv_library == DEEP_OPENCV:
+        if self.cv_library == DEEP_LIB_OPENCV:
             image =  cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
             # Check that the image was correctly loaded
             if image is None:
-                Notification(DEEP_FATAL, "The following image cannot be loaded with OpenCV: " +str(image_path), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following image cannot be loaded with OpenCV: " +str(image_path), write_logs=self.write_logs)
 
             # If the image is not a grayscale (only width + height axis)
             if len(image.shape) > 2:
@@ -746,14 +749,14 @@ class Dataset(object):
                 image = self.__convert_bgra2rgba(image)
 
 
-        elif self.cv_library == DEEP_PIL:
+        elif self.cv_library == DEEP_LIB_PIL:
             try:
                 image = Image.open(image_path)
             except:
-                Notification(DEEP_FATAL, "The following image cannot be loaded with PIL: " + str(image_path),
+                Notification(DEEP_NOTIF_FATAL, "The following image cannot be loaded with PIL: " + str(image_path),
                              write_logs=self.write_logs)
         else:
-            Notification(DEEP_FATAL, "The following image module is not implemented : "+ str(self.cv_library), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The following image module is not implemented : "+ str(self.cv_library), write_logs=self.write_logs)
 
         return image
 
@@ -788,7 +791,7 @@ class Dataset(object):
         video = []
 
         # If the computer vision library selected is OpenCV
-        if self.cv_library == DEEP_OPENCV:
+        if self.cv_library == DEEP_LIB_OPENCV:
 
             # try to load the file
             try:
@@ -813,7 +816,7 @@ class Dataset(object):
                     video.append(frame)                 # Add the frame to the sequence
 
             except:
-                Notification(DEEP_FATAL, "The following file could not be loaded : " + str(video_path) + "\n The selected Computer Vision library does not handle the videos. \n Deeplodocus tried to use OpenCV by default without success.", write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following file could not be loaded : " + str(video_path) + "\n The selected Computer Vision library does not handle the videos. \n Deeplodocus tried to use OpenCV by default without success.", write_logs=self.write_logs)
         return  video # Return the sequence of frames loaded
 
 
@@ -824,7 +827,7 @@ class Dataset(object):
         :return: None
         """
         if self.warning_video is None:
-            Notification(DEEP_WARNING, "The video mode is not fully supported. We deeply suggest you to use sequences of images.", write_logs=self.write_logss)
+            Notification(DEEP_NOTIF_WARNING, "The video mode is not fully supported. We deeply suggest you to use sequences of images.", write_logs=self.write_logss)
             self.warning_video = 1
 
     #
@@ -838,7 +841,7 @@ class Dataset(object):
         :return:
         """
 
-        Notification(DEEP_INFO, "Checking the data ...", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "Checking the data ...", write_logs=self.write_logs)
 
 
         # Check the number of data
@@ -854,7 +857,7 @@ class Dataset(object):
         # Check data is available
         # TODO : Add a progress bar
 
-        Notification(DEEP_SUCCESS, "Data checked without any error.", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_SUCCESS, "Data checked without any error.", write_logs=self.write_logs)
 
     def __check_data_num_instances(self):
 
@@ -877,7 +880,7 @@ class Dataset(object):
 
 
             if num_instances != self.number_instances:
-                Notification(DEEP_FATAL, "Number of instances in " + str(self.list_inputs[0]) + " and " + str(f) + " do not match.", write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "Number of instances in " + str(self.list_inputs[0]) + " and " + str(f) + " do not match.", write_logs=self.write_logs)
 
     @staticmethod
     def __compute_must_be_augmented_list(number_instances, use_raw_data):
@@ -911,17 +914,17 @@ class Dataset(object):
             if self.__type_input(f) == DEEP_TYPE_FILE:
 
                 with open(f) as file:
-                    Notification(DEEP_ERROR, "Check data type not implemented", write_logs=self.write_logs)
+                    Notification(DEEP_NOTIF_ERROR, "Check data type not implemented", write_logs=self.write_logs)
 
 
             # If the input is a folder
             elif self.__type_input(f) == DEEP_TYPE_FOLDER:
-                Notification(DEEP_FATAL, "Cannot currently check folders", write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "Cannot currently check folders", write_logs=self.write_logs)
 
 
             # If it is not a file neither a folder then BUG :(
             else:
-                Notification(DEEP_FATAL, "The following path is neither a file nor a folder : " + str(f) + ".", write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following path is neither a file nor a folder : " + str(f) + ".", write_logs=self.write_logs)
 
 
 
@@ -974,7 +977,7 @@ class Dataset(object):
 
         # If it is not a file neither a folder then BUG :(
         else:
-            Notification(DEEP_FATAL, "The following input is neither a file nor a folder :" + str(f), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The following input is neither a file nor a folder :" + str(f), write_logs=self.write_logs)
 
         return num_instances
 
@@ -1014,7 +1017,7 @@ class Dataset(object):
 
             # Ask the user to confirm the given length
             while res.lower() != "y" or res != "n":
-                res = Notification(DEEP_INPUT, "Dataset contains {0} instances, are you sure you want to only use {1} instances ? (Y/N) ".format(len(self.data), length_data))
+                res = Notification(DEEP_NOTIF_INPUT, "Dataset contains {0} instances, are you sure you want to only use {1} instances ? (Y/N) ".format(len(self.data), length_data))
 
             if res.lower() == "y":
                 self.len_data = length_data

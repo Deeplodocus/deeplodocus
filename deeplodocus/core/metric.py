@@ -2,7 +2,7 @@ import inspect
 from typing import Union
 from torch.nn import Module
 
-from deeplodocus.utils.types import *
+from deeplodocus.utils.flags import *
 from deeplodocus.utils.notification import Notification
 
 
@@ -10,9 +10,9 @@ class Metric(object):
 
     def __init__(self, name:str, method:Union[callable, Module], write_logs:bool = True):
         self.name = name
+        self.write_logs = write_logs
         self.method = self.__check_method(method)
         self.arguments = self.__check_arguments(method)
-        self.write_logs = write_logs
 
 
     def get_name(self)->str:
@@ -25,6 +25,7 @@ class Metric(object):
         return self.arguments
 
     def __check_method(self, method)->callable:
+        print(method)
         if isinstance(method, Module):
             return method.forward
         else:
@@ -42,11 +43,10 @@ class Metric(object):
         label_list = ["y", "y_expect", "y_expected", "label", "labels", "target", "targets"]
         additional_data_list = ["additional_data", "aditional_data"]
 
+        print(arguments_list)
         for arg in arguments_list:
             if arg in input_list:
-                print(arg)
                 if isinstance(method, Module):
-                    print("test")
                     arguments.append(DEEP_ENTRY_OUTPUT)
                 else:
                     arguments.append(DEEP_ENTRY_INPUT)
@@ -59,5 +59,5 @@ class Metric(object):
             elif arg == "self":
                 continue
             else:
-                Notification(DEEP_FATAL, "The following argument is not handled by Deeplodocus, please check the documentation", write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following argument is not handled by the Deeplodocus metric system, please check the documentation : " + str(arg), write_logs=self.write_logs)
         return arguments

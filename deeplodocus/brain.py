@@ -2,7 +2,7 @@ import os.path
 import time
 
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.types import *
+from deeplodocus.utils.flags import *
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.end import End
@@ -30,7 +30,7 @@ class Brain(object):
         :return: None
         """
         while True:
-            command = Notification(DEEP_INPUT, "Waiting for instruction...").get()
+            command = Notification(DEEP_NOTIF_INPUT, "Waiting for instruction...").get()
             command = command.replace(" ", "")
             if command in self.exit_flags:
                 break
@@ -57,13 +57,13 @@ class Brain(object):
             if self.user_interface is None:
                 self.user_interface = UserInterface()
             else:
-                Notification(DEEP_ERROR, "The user interface is already running")
+                Notification(DEEP_NOTIF_ERROR, "The user interface is already running")
         elif command == "ui_stop" or command == "stop_ui" or command == "ui stop":
             if self.user_interface is not None:
                 self.user_interface.stop()
                 self.user_interface = None
         else:
-            Notification(DEEP_WARNING, "The given command does not exist.")
+            Notification(DEEP_NOTIF_WARNING, "The given command does not exist.")
 
     def __init_logs(self):
         """
@@ -73,7 +73,7 @@ class Brain(object):
         """
         for log_name in self.logs:
             Logs(log_name).check_init()
-        Notification(DEEP_SUCCESS, "Logs initialized ! ")
+        Notification(DEEP_NOTIF_SUCCESS, "Logs initialized ! ")
 
     def __load_config(self):
         """
@@ -84,18 +84,17 @@ class Brain(object):
         while True:
             if os.path.isfile(self.config_path):
                 self.config = Namespace(self.config_path)
-                Notification(DEEP_SUCCESS, "Config file loaded (%s)" % self.config_path)
+                Notification(DEEP_NOTIF_SUCCESS, "Config file loaded (%s)" % self.config_path)
                 return True
             else:
-                Notification(DEEP_ERROR, "Given path does not point to a file (%s)" % self.config_path)
-                self.config_path = Notification(DEEP_INPUT, "Please insert the config file path :").get()
+                Notification(DEEP_NOTIF_ERROR, "Given path does not point to a file (%s)" % self.config_path)
+                self.config_path = Notification(DEEP_NOTIF_INPUT, "Please insert the config file path :").get()
                 if self.config_path in self.exit_flags:
                     return False
 
 
 if __name__ == "__main__":
     import argparse
-
 
     def main(args):
         config = args.c

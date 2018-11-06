@@ -3,7 +3,7 @@ import os
 from distutils.dir_util import copy_tree, remove_tree
 
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.types import *
+from deeplodocus.utils.flags import *
 
 class ProjectUtility(object):
     """

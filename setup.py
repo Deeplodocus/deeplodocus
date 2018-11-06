@@ -23,9 +23,10 @@ setup(
     description=('Deeplodocus is a high-level Python framework for Deep Learning that encourages rapid neural networks  trainings'),
     long_description=read('README.rst'),
     license='MIT',
-    packages=find_packages(exclude=EXCLUDE_FROM_PACKAGES),
-    #include_package_data=True,
-    #scripts=['deeplodocus/bin/deeplodocus-admin.py'],
+    #packages=find_packages(exclude=EXCLUDE_FROM_PACKAGES),
+    packages=find_packages(),
+    include_package_data=True,
+    scripts=['deeplodocus/bin/deeplodocus-admin.py'],
     entry_points={'console_scripts': [
         'deeplodocus = deeplodocus.core.management:execute_from_command_line',
     ]},

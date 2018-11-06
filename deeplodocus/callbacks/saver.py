@@ -2,7 +2,7 @@ import torch
 import torch.onnx as onnx
 
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.types import *
+from deeplodocus.utils.flags import *
 
 
 class Saver(object):

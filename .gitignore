@@ -104,3 +104,7 @@ venv.bak/
 .mypy_cache/
 
 /.idea
+
+# Deeplodocus logs
+
+deeplodocus/core/project/deep_structure/logs/*

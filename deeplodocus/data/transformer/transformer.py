@@ -7,7 +7,7 @@ from typing import Union
 
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.types import *
+from deeplodocus.utils.flags import *
 
 
 class Transformer(object):
@@ -398,7 +398,7 @@ class Transformer(object):
             m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
             image = cv2.warpAffine(image, m, (cols, rows)).astype(np.float32)
         else:
-            Notification(DEEP_FATAL, "This transformation function does not exist : " + str(transformation))
+            Notification(DEEP_NOTIF_FATAL, "This transformation function does not exist : " + str(transformation))
         return image
 
     def random_blur(self, image, kernel_size_min, kernel_size_max):
@@ -447,7 +447,7 @@ class Transformer(object):
             scale = min(np.asarray(shape[0:2]) / np.asarray(image.shape[0:2]))
             new_size = np.array(image.shape[0:2]) * scale
             image = cv2.resize(image, (int(new_size[1]), int(new_size[0])), interpolation=interpolation)
-            image = pad(image, shape, padding)
+            image = self.pad(image, shape, padding)
         else:
             image = cv2.resize(image, (shape[0], shape[1]), interpolation=interpolation)
         return image.astype(np.float32)
