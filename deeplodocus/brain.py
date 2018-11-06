@@ -11,8 +11,43 @@ from deeplodocus.ui.user_interface import UserInterface
 from deeplodocus import __version__
 
 class Brain(object):
+    """
+    AUTHORS:
+    --------
 
-    def __init__(self, config_path, write_logs=True):
+    :author: Alix Leroy
+    :author: Samuel Westlake
+
+    DESCRIPTION:
+    ------------
+
+    A Brain class that manages the commands of the user and allows to start the training
+    """
+
+    def __init__(self, config_path, write_logs:bool=True):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Initialize a Deeplodocus Brain
+
+        PARAMETERS:
+        -----------
+
+        :param config_path->str: The config path
+        :param write_logs->bool: Whether to write logs or not
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
         self.write_logs = write_logs
         self.config_path = config_path
         self.logs = ["notification"]
@@ -36,32 +71,54 @@ class Brain(object):
                 break
             else:
                 self.__run_command(command)
-                time.sleep(0.2)                 # Sleep to make sure that asynchronous commands are completed
+                time.sleep(0.5)                 # Sleep to make sure that asynchronous commands are completed
         if self.user_interface is not None:
             self.user_interface.stop()
         End(error=False)
 
-    def __run_command(self, command):
+    def __run_command(self, command:str)->None:
         """
-        :param command:
-        :return:
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Run the given command
+
+        PARAMETERS:
+        -----------
+
+        :param command->str: The given command
+
+        RETURN:
+        -------
+
+        :return: None
         """
+
         # Load a new config file
         if command == "load_config":
             self.__load_config()
+
         # train the network
         elif command == "train":
             print("Train")
+
         # Start the User Interface
         elif command == "ui" or command == "user_interface" or command == "interface":
             if self.user_interface is None:
                 self.user_interface = UserInterface()
             else:
                 Notification(DEEP_NOTIF_ERROR, "The user interface is already running", write_logs=self.write_logs)
+
         elif command == "ui_stop" or command == "stop_ui" or command == "ui stop":
             if self.user_interface is not None:
                 self.user_interface.stop()
                 self.user_interface = None
+
         else:
             Notification(DEEP_NOTIF_WARNING, "The given command does not exist.", write_logs=self.write_logs)
 
