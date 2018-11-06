@@ -13,7 +13,7 @@ class Saver(object):
                  metric = "loss"):
 
 
-        self.condition = condition     # save condition : "epoch" = on every epoch, "auto" = everytime the selected metric improves, "end" = save the model at the end of the training
+        self.save_condition = save_condition
         self.method = "pytorch"         #pytorch, onnx, ... ?
         self.metric = metric
 

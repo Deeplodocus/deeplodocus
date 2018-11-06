@@ -39,9 +39,7 @@ class Trainer(object):
         self.shuffle = shuffle
         self.optimizer = optimizer
         self.initial_epoch = initial_epoch
-        self.callbacks = Callback(model = model,
-                                  optimizer=optimizer,
-                                  metrics=metrics,
+        self.callbacks = Callback(metrics=metrics,
                                   losses=losses,
                                   working_directory="",
                                   model_name="test",

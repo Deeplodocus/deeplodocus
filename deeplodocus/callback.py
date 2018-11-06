@@ -22,16 +22,14 @@ class Callback(object):
                  # History
                  losses: dict,
                  metrics: dict,
-                 working_directory,
-                 model_name,
-                 verbose,
-                 data_to_memorize,
-                 save_condition,
+                 working_directory:str,
+                 model_name:str,
+                 verbose:int,
+                 data_to_memorize:int,
+                 # Saver
+                 save_condition:int,
                  # Stopping
                  stopping_parameters,
-                 # Save
-                 model,
-                 optimizer,
                  write_logs: bool = True
                 ):
 
@@ -55,7 +53,7 @@ class Callback(object):
         #
 
         # Save
-        self.__initialize_saver(model=model, optimizer=optimizer)                                 # Callback to save the config, the model and the weights
+        self.__initialize_saver()                                 # Callback to save the config, the model and the weights
 
 
         # History
@@ -178,14 +176,14 @@ class Callback(object):
         self.history.update(num_epochs=self.num_epochs, num_batches=self.num_batches)
 
 
-    def __initialize_saver(self, model, optimizer):
+    def __initialize_saver(self):
         """
         Authors : Alix Leroy,
         Initialize the saver
         :param model: model to save
         :return: None
         """
-        self.saver = Saver(model, optimizer)
+        self.saver = Saver(self.save_condition, self.metrics)
 
     def pause(self):
 
