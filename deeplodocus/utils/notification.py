@@ -1,5 +1,6 @@
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.end import End
+from deeplodocus.utils.flags import *
 #
 # List of color codes
 # Found at : https://stackoverflow.com/questions/287871/print-in-terminal-with-colors
@@ -77,25 +78,25 @@ class Notification(object):
 
 
 
-        if type == 0:
+        if type == DEEP_NOTIF_INFO:
             self.__info(message)
 
-        elif type == 1:
+        elif type == DEEP_NOTIF_DEBUG:
             self.__debug(message)
 
-        elif type == 2:
+        elif type == DEEP_NOTIF_SUCCESS:
             self.__success(message)
 
-        elif type == 3:
+        elif type == DEEP_NOTIF_WARNING:
             self.__warning(message)
 
-        elif type == 4:
+        elif type == DEEP_NOTIF_ERROR:
             self.__error(message)
 
-        elif type == 5:
+        elif type == DEEP_NOTIF_FATAL:
             self.__fatal_error(message)
 
-        elif type == 6:
+        elif type == DEEP_NOTIF_INPUT:
             self.__input(message)
 
         # Info notification as default
