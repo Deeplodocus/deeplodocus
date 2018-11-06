@@ -103,7 +103,7 @@ if __name__ == "__main__":
         brain.wake()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", type=str, default="config/config_depthnet.yaml",
+    parser.add_argument("-c", type=str, default="config/deeplodocus.yaml",
                         help="Path to the config yaml file")
     arguments = parser.parse_args()
     main(arguments)

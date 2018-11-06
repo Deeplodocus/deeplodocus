@@ -115,7 +115,7 @@ class Logs(object):
                 line = f.readline()
 
             # Get the initialization time
-            time = line.split(":")[1].replace(" ", "")
+            time = line.split(":")[1].replace(" ", "").replace("\n", "")
 
             # Generate new name
             new_log_name = os.path.dirname(__main__.__file__)+ "/logs/" + str(self.type) + "_" + str(time) + ".logs"
