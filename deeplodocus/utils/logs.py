@@ -118,6 +118,7 @@ class Logs(object):
             time = line.split(":")[1].replace(" ", "")
 
             # Generate new name
-            new_log_name =os.path.dirname(__main__.__file__)+ "/logs/" + str(self.type) + "_" + str(time) + ".logs"
+            new_log_name = os.path.dirname(__main__.__file__)+ "/logs/" + str(self.type) + "_" + str(time) + ".logs"
 
             os.rename(logs_path, new_log_name)
+            print("test")

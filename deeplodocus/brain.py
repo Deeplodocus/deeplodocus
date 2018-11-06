@@ -8,16 +8,16 @@ from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.end import End
 from deeplodocus.utils.logs import Logs
 from deeplodocus.ui.user_interface import UserInterface
-
+from deeplodocus import __version__
 
 class Brain(object):
 
-    def __init__(self, config_path):
+    def __init__(self, config_path, write_logs=True):
+        self.write_logs = write_logs
         self.config_path = config_path
         self.logs = ["notification"]
         self.__init_logs()
-        self.version = "0.1.0"
-        Logo(version=self.version)
+        Logo(version=__version__, write_logs=write_logs)
         self.exit_flags = ["q", "quit", "exit"]
         self.config = None
         self.user_interface = None
@@ -30,7 +30,7 @@ class Brain(object):
         :return: None
         """
         while True:
-            command = Notification(DEEP_NOTIF_INPUT, "Waiting for instruction...").get()
+            command = Notification(DEEP_NOTIF_INPUT, "Waiting for instruction...", write_logs=self.write_logs).get()
             command = command.replace(" ", "")
             if command in self.exit_flags:
                 break
@@ -57,13 +57,13 @@ class Brain(object):
             if self.user_interface is None:
                 self.user_interface = UserInterface()
             else:
-                Notification(DEEP_NOTIF_ERROR, "The user interface is already running")
+                Notification(DEEP_NOTIF_ERROR, "The user interface is already running", write_logs=self.write_logs)
         elif command == "ui_stop" or command == "stop_ui" or command == "ui stop":
             if self.user_interface is not None:
                 self.user_interface.stop()
                 self.user_interface = None
         else:
-            Notification(DEEP_NOTIF_WARNING, "The given command does not exist.")
+            Notification(DEEP_NOTIF_WARNING, "The given command does not exist.", write_logs=self.write_logs)
 
     def __init_logs(self):
         """
@@ -73,7 +73,7 @@ class Brain(object):
         """
         for log_name in self.logs:
             Logs(log_name).check_init()
-        Notification(DEEP_NOTIF_SUCCESS, "Logs initialized ! ")
+        Notification(DEEP_NOTIF_SUCCESS, "Logs initialized ! ", write_logs=self.write_logs)
 
     def __load_config(self):
         """
@@ -84,11 +84,11 @@ class Brain(object):
         while True:
             if os.path.isfile(self.config_path):
                 self.config = Namespace(self.config_path)
-                Notification(DEEP_NOTIF_SUCCESS, "Config file loaded (%s)" % self.config_path)
+                Notification(DEEP_NOTIF_SUCCESS, "Config file loaded (%s)" % self.config_path, write_logs=self.write_logs)
                 return True
             else:
-                Notification(DEEP_NOTIF_ERROR, "Given path does not point to a file (%s)" % self.config_path)
-                self.config_path = Notification(DEEP_NOTIF_INPUT, "Please insert the config file path :").get()
+                Notification(DEEP_NOTIF_ERROR, "Given path does not point to a file (%s)" % self.config_path, write_logs=self.write_logs)
+                self.config_path = Notification(DEEP_NOTIF_INPUT, "Please insert the config file path :", write_logs=self.write_logs).get()
                 if self.config_path in self.exit_flags:
                     return False
 
