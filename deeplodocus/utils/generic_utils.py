@@ -22,3 +22,11 @@ def sorted_nicely(l):
 
 
 
+def is_string_an_integer(string:str)->bool:
+    try :
+        int(string)
+    except:
+        return False
+
+    return True
+

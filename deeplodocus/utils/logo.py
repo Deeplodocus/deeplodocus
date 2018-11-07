@@ -85,7 +85,7 @@ class Logo(object):
         Notification(DEEP_NOTIF_INFO, ".##..##..##......##......##......##......##..##..##..##..##..##..##..##..##..##......##.", write_logs=write_logs)
         Notification(DEEP_NOTIF_INFO, ".#####...######..######..##......######...####...#####....####....####....####....####..", write_logs=write_logs)
         Notification(DEEP_NOTIF_INFO, "........................................................................................", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, "...................THE FRAMEWORK THAT KEEPS YOUR HEAD ABOVE WATER.......................", write_logs=write_logs)
+        Notification(DEEP_NOTIF_INFO, "....................THE FRAMEWORK KEEPING YOUR HEAD ABOVE WATER.........................", write_logs=write_logs)
         Notification(DEEP_NOTIF_INFO, "..................................VERSION : " + str(version) + ".......................................", write_logs=write_logs)
         Notification(DEEP_NOTIF_INFO, "``'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,.='````'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,", write_logs=write_logs)
         print("\n")

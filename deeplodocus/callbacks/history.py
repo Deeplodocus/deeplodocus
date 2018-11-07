@@ -5,7 +5,7 @@ import datetime
 from typing import List
 from typing import Union
 from collections import defaultdict
-
+import __main__
 
 from torch import tensor
 
@@ -26,7 +26,7 @@ class History(object):
     def __init__(self,
                  metrics: dict,
                  losses: dict,
-                 log_dir: str = "../../results/",
+                 log_dir: str = os.path.dirname(__main__.__file__)+ "/results/history/",
                  train_batches_filename: str = "history_batches_training.csv",
                  train_epochs_filename: str = "history_epochs_training.csv",
                  validation_filename: str = "history_validation.csv",
@@ -54,7 +54,7 @@ class History(object):
         self.validation_history = pd.DataFrame(columns=["wall time", "relative time", "epoch", "total_loss"] + list(losses.keys()) + list(metrics.keys()))
 
         self.start_time = 0
-
+        print(log_dir)
         self.train_batches_filepath = "%s/%s" % (log_dir, train_batches_filename)
         self.train_epochs_filepath = "%s/%s" % (log_dir, train_epochs_filename)
         self.validation_filepath = "%s/%s" % (log_dir, validation_filename)
@@ -253,7 +253,7 @@ class History(object):
         """
 
         # Save train batches history
-        if self.data_to_save >= DEEP_SAVE_CONDITION_END_BATCH:
+        if self.data_to_memorize >= DEEP_SAVE_CONDITION_END_BATCH:
             self.train_batches_history.to_csv(self.train_batches_filepath, header=True, index=True, encoding='utf-8')
 
         # Save train epochs history

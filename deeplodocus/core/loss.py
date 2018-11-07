@@ -7,6 +7,7 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.core.metric import Metric
 
 Num = Union[int, float]
+
 class Loss(Metric):
 
     def __init__(self, name:str, loss:Module, is_custom=False, weight:Num=1, write_logs:bool = True):

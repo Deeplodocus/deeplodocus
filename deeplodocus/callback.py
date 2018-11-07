@@ -1,10 +1,14 @@
 from torch import tensor
 from typing import List
 from typing import Union
+import os
+import __main__
 
-from .callbacks.saver import Saver
-from .callbacks.history import History
-from .callbacks.stopping import Stopping
+from torch.nn import Module
+
+from deeplodocus.callbacks.saver import Saver
+from deeplodocus.callbacks.history import History
+from deeplodocus.callbacks.stopping import Stopping
 from deeplodocus.core.metric import Metric
 from deeplodocus.core.loss import Loss
 
@@ -125,7 +129,7 @@ class Callback(object):
 
 
 
-    def on_epoch_end(self, epoch_index:int, num_epochs:int):
+    def on_epoch_end(self, epoch_index:int, num_epochs:int, model:Module):
         """
         Authors : Alix Leroy,
         Call callbacks at the end of one epoch
@@ -133,11 +137,11 @@ class Callback(object):
         """
 
         self.history.on_epoch_end(epoch_index=epoch_index, num_epochs=num_epochs)
-        self.saver.on_epoch_end()
+        self.saver.on_epoch_end(model)
         self.stopping.on_epoch_end()
 
 
-    def on_training_end(self):
+    def on_training_end(self, model:Module):
         """
         Authors : Alix Leroy,
         Calls callbacks at the end of the training
@@ -145,7 +149,7 @@ class Callback(object):
         """
 
         self.history.on_training_end()
-        self.saver.on_training_end()
+        self.saver.on_training_end(model=model)
         self.stopping.on_training_end()
 
 
@@ -157,7 +161,7 @@ class Callback(object):
         """
 
         # Get the directory for saving the history
-        log_dir = "%s/%s" % (self.working_directory, self.model_name)
+        log_dir = os.path.dirname(__main__.__file__)+ "/results/history/"
 
         # Initialize the history
         self.history = History(metrics=self.metrics,

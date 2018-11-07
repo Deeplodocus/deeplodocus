@@ -3,6 +3,7 @@ from typing import List
 
 from torch import tensor
 from torch.utils.data import  DataLoader
+from torch.nn import Module
 
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.callback import Callback
@@ -11,12 +12,14 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
 from deeplodocus.core.metric import Metric
 from deeplodocus.core.loss import Loss
+from deeplodocus.utils.generic_utils import is_string_an_integer
 
 
 
 class Trainer(object):
 
-    def __init__(self, model,
+    def __init__(self,
+                 model:Module,
                  dataset:Dataset,
                  metrics:dict,
                  losses:dict,
@@ -30,7 +33,7 @@ class Trainer(object):
                  data_to_memorize:int = DEEP_MEMORIZE_BATCHES,
                  save_condition:int=DEEP_SAVE_CONDITION_AUTO,
                  stopping_parameters=None,
-                 write_logs=False):
+                 write_logs=True):
 
         self.model = model
         self.write_logs=write_logs
@@ -46,7 +49,8 @@ class Trainer(object):
                                   verbose=verbose,
                                   data_to_memorize=data_to_memorize,
                                   save_condition=save_condition,
-                                  stopping_parameters=stopping_parameters)
+                                  stopping_parameters=stopping_parameters,
+                                  write_logs=write_logs)
         self.num_epochs = num_epochs
         self.train_dataset = dataset
         self.dataloader_train =  DataLoader(dataset=dataset,
@@ -57,14 +61,14 @@ class Trainer(object):
         self.tester = Tester()          # Tester for validation
 
 
-    def fit(self):
+    def fit(self, first_training:bool = True)->None:
         """
         :param method:
         :return:
         """
 
 
-        self.__train()
+        self.__train(first_training=first_training)
 
         Notification(DEEP_NOTIF_SUCCESS, "\n", write_logs=self.write_logs)
         Notification(DEEP_NOTIF_SUCCESS,"=============================================================", write_logs=self.write_logs)
@@ -151,12 +155,12 @@ class Trainer(object):
             self.train_dataset.reset()
 
             #Epoch callback
-            self.callbacks.on_epoch_end(epoch_index=epoch, num_epochs=self.num_epochs)
+            self.callbacks.on_epoch_end(epoch_index=epoch, num_epochs=self.num_epochs, model=self.model)
 
             self.tester.evaluate()
 
         # End of training callback
-        self.callbacks.on_training_end()
+        self.callbacks.on_training_end(model=self.model)
 
         # Pause callbacks which compute time
         self.callbacks.pause()
@@ -318,23 +322,23 @@ class Trainer(object):
         # Ask if the user want to continue the training
         while continue_training.lower() != ("y" or "n"):
 
-            continue_training = Notification(DEEP_NOTIF_INPUT, 'Would you like to continue the training ? (Y/N) ', write_logs=self.write_logs)
+            continue_training = Notification(DEEP_NOTIF_INPUT, 'Would you like to continue the training ? (Y/N) ', write_logs=self.write_logs).get()
 
         #If yes ask the number of epochs
         if continue_training.lower() == "y":
             epochs = ""
 
-            while not isinstance(epochs, int):
-                epochs =  Notification(DEEP_NOTIF_INPUT, 'Number of epochs ? ', write_logs=self.write_logs)
+            while is_string_an_integer(epochs) is False:
+                epochs =  Notification(DEEP_NOTIF_INPUT, 'Number of epochs ? ', write_logs=self.write_logs).get()
 
-
+        epochs = int(epochs)
         # Reset the system to continue the training
         if epochs > 0:
-            self.initial_epoch = self.epochs
-            self.epochs += epochs
+            self.initial_epoch = self.num_epochs
+            self.num_epochs += epochs
 
             # Resume the training
-            self.__train_from_file(first_training = False)
+            self.fit(first_training = False)
 
 
 
