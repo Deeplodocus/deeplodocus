@@ -3,10 +3,11 @@ import numpy as np
 import random
 import inspect
 import __main__
+from typing import Union
 
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.types import *
+from deeplodocus.utils.flags import *
 
 
 class Transformer(object):
@@ -53,7 +54,7 @@ class Transformer(object):
         self.pointer_to_transformer = None
         self.last_transforms = []
         self.list_transforms = []
-        self.list_customed_transform_methods = self.__fill_list_customed_transform_methods()
+        self.list_custom_transform_methods = self.__fill_list_custom_transform_methods()
         self.normalize_output = self.__check_normalize_output(config)
         self.__fill_transform_list(config.transforms)
 
@@ -164,12 +165,12 @@ class Transformer(object):
 
             if self.__is_default_transform(list(transform.keys())[0]):
                 self.list_transforms.append([key, self.__get_default_transform_method(key), values])
-            elif self.__is_customed_transform(key):
-                self.list_transforms.append([key, self.__get_customed_transform(key), values])
+            elif self.__is_custom_transform(key):
+                self.list_transforms.append([key, self.__get_custom_transform(key), values])
             else:
-                Notification(DEEP_FATAL, "The following transform does not exist in the default and customed transforms : " + str(key), write_logs=self.write_logs)
+                Notification(DEEP_FATAL, "The following transform does not exist in the default and custom transforms : " + str(key), write_logs=self.write_logs)
 
-    def __fill_list_customed_transform_methods(self)->dict:
+    def __fill_list_custom_transform_methods(self)->dict:
         """
         AUTHORS:
         --------
@@ -179,7 +180,7 @@ class Transformer(object):
         DESCRIPTION:
         ------------
 
-        Fill the list of customed transforms by parsing the transform folder
+        Fill the list of custom transforms by parsing the transform folder
 
         PARAMETERS:
         -----------
@@ -189,12 +190,12 @@ class Transformer(object):
         RETURN:
         -------
 
-        :return customed_transforms-> dict: The dictionary listing all the transform names associated to its corresponding customed method
+        :return custom_transforms-> dict: The dictionary listing all the transform names associated to its corresponding custom method
         """
 
-        customed_transforms = dict()
+        custom_transforms = dict()
 
-        return customed_transforms
+        return custom_transforms
 
 
     def __is_default_transform(self, transform_name:str)->bool:
@@ -227,7 +228,7 @@ class Transformer(object):
         else:
             return False
 
-    def __is_customed_transform(self, transform_name:str)->bool:
+    def __is_custom_transform(self, transform_name:str)->bool:
         """
         AUTHORS:
         --------
@@ -237,7 +238,7 @@ class Transformer(object):
         DESCRIPTION:
         ------------
 
-        Check if the given transform is an existing customed one
+        Check if the given transform is an existing custom one
 
         PARAMETERS:
         -----------
@@ -247,9 +248,9 @@ class Transformer(object):
         RETURN:
         -------
 
-        :return-> bool: Whether or not the requested transform is a customed one available in the transform folder
+        :return-> bool: Whether or not the requested transform is a custom one available in the transform folder
         """
-        if transform_name in self.list_customed_transform_methods:
+        if transform_name in self.list_custom_transform_methods:
             return True
         else:
             False
@@ -316,6 +317,7 @@ class Transformer(object):
         :return: The transformed data
         """
         pass # Will be overridden
+
 
 
 
@@ -396,7 +398,7 @@ class Transformer(object):
             m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
             image = cv2.warpAffine(image, m, (cols, rows)).astype(np.float32)
         else:
-            Notification(DEEP_FATAL, "This transformation function does not exist : " + str(transformation))
+            Notification(DEEP_NOTIF_FATAL, "This transformation function does not exist : " + str(transformation))
         return image
 
     def random_blur(self, image, kernel_size_min, kernel_size_max):
@@ -445,7 +447,7 @@ class Transformer(object):
             scale = min(np.asarray(shape[0:2]) / np.asarray(image.shape[0:2]))
             new_size = np.array(image.shape[0:2]) * scale
             image = cv2.resize(image, (int(new_size[1]), int(new_size[0])), interpolation=interpolation)
-            image = pad(image, shape, padding)
+            image = self.pad(image, shape, padding)
         else:
             image = cv2.resize(image, (shape[0], shape[1]), interpolation=interpolation)
         return image.astype(np.float32)
@@ -502,47 +504,67 @@ class Transformer(object):
     # DATA NORMALIZERS
     #
 
-    def __normalize_image(self, image):
+    def normalize_image(self, image, mean:Union[None, list, int], standard_deviation:int):
         """
-        Author : Alix Leroy
-        Normalize an image (mean and standard deviation)
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Normalize an image
+
+        PARAMETERS:
+        -----------
+
         :param image: an image
+        :param mean->Union[None, list, int]: The mean of the channel(s)
+        :param standard_deviation->int: The standard deviation of the channel(s)
+
+        RETURN:
+        -------
         :return: a normalized image
         """
 
+        if standard_deviation is None:
+            standard_deviation = 255
 
-        # The normalization compute the mean of the image online.
-        # TODO: Normalize using a mean given by a config file
+        # The normalization compute the mean of the image online if not given
         # This takes more time than just giving the mean as a parameter in the config file
         # However this time is still relatively small
         # Moreover this is done in parallel of the training
         # Note 1 : OpenCV is roughly 50% faster than numpy
-        # Note 2 : Could be a limiting factor for big "mini"-batches (>= 1024) and big images (>= 512, 512, 3)
+        # Note 2 : Could be a limiting factor for big "mini"-batches (i.e. >= 1024) and big images (i.e. >= 512, 512, 3)
 
         # If OpenCV is selected (50% faster than numpy)
-        if cv_library == "opencv":
+        if cv_library == DEEP_LIB_OPENCV:
             channels = image.shape[-1]
-            mean = cv2.mean(image)
 
-            normalized_image = (image - mean[:channels]) / 255  # Norm = (data - mean) / standard deviation
+            if mean is None:
+                mean = cv2.mean(image)
+
+            normalized_image = (image - mean[:channels]) / standard_deviation  # Norm = (data - mean) / standard deviation
 
         # Default option
         else:
-            mean = np.mean(image, axis=(0, 1))  # Compute the mean on each channel
+            if mean is None:
+                mean = np.mean(image, axis=(0, 1))  # Compute the mean on each channel
 
-            normalized_image = (image - mean) / 255  # Norm = (data - mean) / standard deviation
+            normalized_image = (image - mean) / standard_deviation  # Norm = (data - mean) / standard deviation
 
         return normalized_image
 
 
-    def __normalize_video(self, video):
+    def normalize_video(self, video):
         """
         Author: Alix Leroy
         :param video: sequence of frames
         :return: a normalized sequence of frames
         """
 
-        video = [self.__normalize_image(frame) for frame in video]
+        video = [self.normalize_image(frame) for frame in video]
 
         return video
 

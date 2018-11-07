@@ -422,7 +422,6 @@ To define a Pointer, instead of the path to the transformer config file, enter
 # index: The index of the transformer in the selected category (indexed at 0)
 
 #e.g. : "*input:0" points to the first transformer of the input
-
 ```
 
 Note : A `Pointer` cannot point to another `Pointer`

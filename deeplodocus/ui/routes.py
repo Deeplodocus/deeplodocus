@@ -19,7 +19,7 @@ class Routes(object):
         :return: None
         """
         for route in self.list_routes:
-            app.router.add_route(route[0], route[1], route[2], name=route[3], allow_head = route[4])
+            app.router.add_route(route[0], route[1], route[2], name=route[3])
 
 
     def __load_routes(self):

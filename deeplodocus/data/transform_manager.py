@@ -9,7 +9,7 @@ from deeplodocus.data.transformer.pointer import Pointer
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
-from deeplodocus.utils.types import *
+from deeplodocus.utils.flags import *
 
 
 
@@ -366,7 +366,7 @@ class TransformManager(object):
 
         # If the user wants to create a transformer from scratch
         else:
-            config = Namespace(yaml_path=config_entry)
+            config = Namespace(config_entry)
 
             if hasattr(config, 'method') is False:
                 Notification(DEEP_FATAL, "The following transformer does not have any method specified : " + str(config_entry), write_logs=self.write_logs)

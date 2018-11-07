@@ -7,13 +7,12 @@ import jinja2
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.ui.routes import Routes
-from deeplodocus.utils.types import *
+from deeplodocus.utils.flags import *
 
 
 class UserInterface(object):
 
     def __init__(self):
-
 
         # Create the web server in a second process
         self.process = Process(target=self.__run, args=())
@@ -29,14 +28,14 @@ class UserInterface(object):
         :return: None
         """
 
-        Notification(DEEP_SUCCESS, "User Interface created")
+        Notification(DEEP_NOTIF_SUCCESS, "User Interface created")
 
         app = web.Application()                                                                     # Start the web application
         aiohttp_jinja2.setup(app, loader = jinja2.PackageLoader('deeplodocus', 'ui/templates'))     # Load the templates
         Routes().setup_routes(app=app)                                                              # Define the routes
         web.run_app(app)                                                                            # Run the app
 
-        Notification(DEEP_SUCCESS, "User interface closed successfully")
+        Notification(DEEP_NOTIF_SUCCESS, "User interface closed successfully")
         sys.exit(0)  # kill the child process
 
 
