@@ -9,6 +9,7 @@ from deeplodocus.data.dataset import Dataset
 from deeplodocus.callback import Callback
 from deeplodocus.tester import Tester
 from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.dict_utils import apply_weight
 from deeplodocus.utils.flags import *
 from deeplodocus.core.metric import Metric
 from deeplodocus.core.loss import Loss
@@ -36,7 +37,7 @@ class Trainer(object):
                  write_logs=True):
 
         self.model = model
-        self.write_logs=write_logs
+        self.write_logs = write_logs
         self.metrics = metrics
         self.losses = losses
         self.shuffle = shuffle
@@ -58,7 +59,8 @@ class Trainer(object):
                                             shuffle=False,
                                             num_workers=num_workers)
         self.num_minibatches = self.__compute_num_minibatches(length_dataset=dataset.__len__(), batch_size=batch_size)
-        self.tester = Tester()          # Tester for validation
+        # Tester for validation
+        self.tester = Tester(model, dataset, metrics, losses, batch_size, num_workers, verbose)
 
 
     def fit(self, first_training:bool = True)->None:
@@ -110,7 +112,7 @@ class Trainer(object):
 
         for epoch in range(self.initial_epoch, self.num_epochs+1):  # loop over the dataset multiple times
 
-            for minibatch_index, minibatch in enumerate(self.dataloader_train, 0):
+            for minibatch_index, minibatch in enumerate(self.dataloader_train):
 
                 # Clean the given data
                 inputs, labels, additional_data = self.__clean_single_element_list(minibatch)
@@ -126,8 +128,10 @@ class Trainer(object):
                 result_metrics = self.__compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
                 # Add weights to losses
-                for name, value in zip(list(result_losses.keys()), list(result_losses.values())):
+                for name, value in result_losses.items():
                     result_losses[name] = value * self.losses[name].get_weight()
+                # TRY THIS FROM DICT_UTILS INSTEAD...
+                # result_losses = apply_weight(result_losses, self.losses)
 
 
                 # Sum all the result of the losses
@@ -154,10 +158,11 @@ class Trainer(object):
             # Reset the dataset (transforms cache)
             self.train_dataset.reset()
 
+            result_losses, result_metrics = self.evaluate()
+
             #Epoch callback
             self.callbacks.on_epoch_end(epoch_index=epoch, num_epochs=self.num_epochs, model=self.model)
 
-            self.tester.evaluate()
 
         # End of training callback
         self.callbacks.on_training_end(model=self.model)
@@ -172,6 +177,12 @@ class Trainer(object):
         if num_minibatches != length_dataset*batch_size:
             num_minibatches += 1
         return num_minibatches
+
+    def evaluate(self):
+
+        self.tester.evaluate()
+
+        return result_losses, result_metrics
 
 
     def __clean_single_element_list(self, minibatch:list)->list:
@@ -279,7 +290,6 @@ class Trainer(object):
 
 
     def __compute_metrics(self, metrics:dict, inputs:Union[tensor, list], outputs:Union[tensor, list], labels:Union[tensor, list], additional_data:Union[tensor, list])->dict:
-
 
         result_metrics = {}
         temp_metric_result = None
