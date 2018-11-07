@@ -3,6 +3,7 @@ from typing import List
 from typing import Union
 import os
 import __main__
+import datetime
 
 from torch.nn import Module
 
@@ -129,14 +130,14 @@ class Callback(object):
 
 
 
-    def on_epoch_end(self, epoch_index:int, num_epochs:int, model:Module):
+    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int, model:Module):
         """
         Authors : Alix Leroy,
         Call callbacks at the end of one epoch
         :return: None
         """
 
-        self.history.on_epoch_end(epoch_index=epoch_index, num_epochs=num_epochs)
+        self.history.on_epoch_end(epoch_index=epoch_index, num_epochs=num_epochs, num_minibatches=num_minibatches)
         self.saver.on_epoch_end(model)
         self.stopping.on_epoch_end()
 
@@ -163,13 +164,19 @@ class Callback(object):
         # Get the directory for saving the history
         log_dir = os.path.dirname(__main__.__file__)+ "/results/history/"
 
+        timestr = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        train_batches_filename =  self.model_name + "_history_train_batches-"+ timestr + ".csv"
+        train_epochs_filename =  self.model_name + "_history_train_epochs-"+ timestr + ".csv"
+        validation_filename =  self.model_name + "_history_validation-"+ timestr + ".csv"
+
+
         # Initialize the history
         self.history = History(metrics=self.metrics,
                                losses=self.losses,
                                log_dir=log_dir,
-                               train_batches_filename="%s_history_train_batches.csv" % self.model_name,
-                               train_epochs_filename="%s_history_train_epochs.csv" % self.model_name,
-                               validation_filename="%s_history_validation.csv" % self.model_name,
+                               train_batches_filename=train_batches_filename,
+                               train_epochs_filename=train_epochs_filename,
+                               validation_filename=validation_filename,
                                verbose=self.verbose,
                                data_to_memorize=data_to_memorize,
                                save_condition = self.save_condition,

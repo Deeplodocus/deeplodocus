@@ -31,6 +31,9 @@ class Metric(object):
         else:
             return method
 
+    def is_loss(self):
+        return False
+
 
     def __check_arguments(self, method)->list:
 
