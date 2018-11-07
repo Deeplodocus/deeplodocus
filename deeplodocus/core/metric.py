@@ -4,49 +4,40 @@ from torch.nn import Module
 
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.notification import Notification
+from deeplodocus.core.generic_metric import GenericMetric
 
-
-class Metric(object):
+class Metric(GenericMetric):
 
     def __init__(self, name:str, method:Union[callable, Module], write_logs:bool = True):
-        self.name = name
-        self.write_logs = write_logs
+        super().__init__(name=name, method=method, write_logs=write_logs)
         self.method = self.__check_method(method)
         self.arguments = self.__check_arguments(method)
 
-
-    def get_name(self)->str:
-        return self.name
-
-    def get_method(self)->callable:
-        return self.method
-
-    def get_arguments(self)->list:
-        return self.arguments
-
-    def __check_method(self, method)->callable:
-        print(method)
+    @staticmethod
+    def __check_method(method)->callable:
         if isinstance(method, Module):
             return method.forward
         else:
             return method
 
-    def is_loss(self):
+    @staticmethod
+    def is_loss():
         return False
-
 
     def __check_arguments(self, method)->list:
 
         arguments = []
 
-        arguments_list =  inspect.getargspec(self.method)[0]
+        if isinstance(method, Module):
+            arguments_list =  inspect.getargspec(method.forward)[0]
+        else:
+            arguments_list = inspect.getargspec(method)[0]
 
         input_list= ["input", "x", "inputs"]
         output_list = ["out", "y_pred", "y_predicted", "output", "outputs"]
         label_list = ["y", "y_expect", "y_expected", "label", "labels", "target", "targets"]
         additional_data_list = ["additional_data", "aditional_data"]
 
-        print(arguments_list)
         for arg in arguments_list:
             if arg in input_list:
                 if isinstance(method, Module):

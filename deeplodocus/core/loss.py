@@ -4,41 +4,25 @@ from torch.nn import Module
 
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.notification import Notification
-from deeplodocus.core.metric import Metric
+from deeplodocus.core.generic_metric import GenericMetric
 
 Num = Union[int, float]
 
-class Loss(Metric):
+class Loss(GenericMetric):
 
-    def __init__(self, name:str, loss:Module, is_custom=False, weight:Num=1, write_logs:bool = True):
-        self.name = name
-        self.write_logs = write_logs
-        self.loss = loss
+    def __init__(self, name:str, loss:Module, is_custom=False, weight:Num=1.0, write_logs:bool = True):
+        super().__init__(name=name, method=loss, write_logs=write_logs)
         self.is_custom = is_custom
         self.weight = weight
         self.arguments = self.__check_arguments(loss.forward)
 
 
-
-
-    def get_name(self)->str:
-        return self.name
-
-    def get_method(self)->callable:
-        return self.loss
-
-    def get_arguments(self)->list:
-        return self.arguments
-
     def get_weight(self)->Num:
         return self.weight
 
-    def __check_method(self, method)->callable:
-            return method
-
-    def is_loss(self):
+    @staticmethod
+    def is_loss():
         return True
-
 
     def __check_arguments(self, loss)->list:
 
