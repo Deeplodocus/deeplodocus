@@ -49,16 +49,21 @@ class History(object):
         self.running_metrics = {}
 
         self.metrics = metrics
-        self.train_batches_history = pd.DataFrame(columns=["wall time", "relative time", "epoch", "batch", "total_loss"] + list(losses.keys()) + list(metrics.keys()))
-        self.train_epochs_history = pd.DataFrame(columns=["wall time", "relative time", "epoch", "total_loss"] + list(losses.keys()) + list(metrics.keys()))
-        self.validation_history = pd.DataFrame(columns=["wall time", "relative time", "epoch", "total_loss"] + list(losses.keys()) + list(metrics.keys()))
+        self.train_batches_history = pd.DataFrame(columns=["wall time", "relative time", "epoch", "batch", "total loss"] + list(losses.keys()) + list(metrics.keys()))
+        self.train_epochs_history = pd.DataFrame(columns=["wall time", "relative time", "epoch", "total loss"] + list(losses.keys()) + list(metrics.keys()))
+        self.validation_history = pd.DataFrame(columns=["wall time", "relative time", "epoch", "total loss"] + list(losses.keys()) + list(metrics.keys()))
+
 
         self.start_time = 0
-        print(log_dir)
+
+        #
+        # Filepaths
+        #
         self.train_batches_filepath = "%s/%s" % (log_dir, train_batches_filename)
         self.train_epochs_filepath = "%s/%s" % (log_dir, train_epochs_filename)
         self.validation_filepath = "%s/%s" % (log_dir, validation_filename)
 
+        # Load histories
         self.__load_histories()
 
     def on_train_begin(self):
@@ -118,10 +123,10 @@ class History(object):
         # Save the running metrics
         self.running_total_loss = self.running_total_loss + total_loss
         self.running_losses = self.dsum(self.running_losses, result_losses)
-        self.running_metrics = self.dsum(self.running_losses, result_metrics)
+        self.running_metrics = self.dsum(self.running_metrics, result_metrics)
 
         # If the user wants to print stats for each batch
-        if self.verbose == DEEP_VERBOSE_BATCH:
+        if self.verbose >= DEEP_VERBOSE_BATCH:
 
             print_metrics = ", ".join(["total loss : " + str(total_loss)] +
                                       [str(loss_name) + " : " + str(value.item()) for (loss_name, value) in result_losses.items()] +
@@ -129,22 +134,21 @@ class History(object):
             print("[" + str(minibatch_index) + "/" + str(num_minibatches) + "] :  " + str(print_metrics))
 
         # Save the data in memory
-        if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
+        if self.data_to_memorize == DEEP_MEMORIZE_BATCHES:
             # Save the history in memory
             data = dict([("total loss", total_loss)] +
                         [(loss_name, value.item()) for (loss_name, value) in result_losses.items()] +
                         [(metric_name, value) for (metric_name, value) in result_metrics.items()])
-
-            #data = dict(list(zip(self.metrics, [self.running_metrics.get(m) for m in self.metrics])))
             data["wall time"] = datetime.datetime.now().strftime("%Y:%m:%d:%H:%M:%S")
             data["relative time"] = self.__time()
             data["epoch"] = epoch_index
             data["batch"] = minibatch_index
-            self.train_batches_history.append(data, ignore_index=True)
+            self.train_batches_history = self.train_batches_history.append(data, ignore_index=True)
 
         # Save the history
-        if self.__do_saving() is True:
-            self.__save_history()
+        # Not available for a batch
+        #if self.__do_saving() is True:
+        #    self.__save_history()
 
     def on_epoch_end(self, epoch_index:int, num_epochs:int):
         """
@@ -157,8 +161,7 @@ class History(object):
         # MANAGE TRAIN HISTORY
         #
         # If we want to display the metrics at the end of each epoch
-        if self.verbose >= DEEP_VERBOSE_EPOCH:
-
+        if self.verbose >= DEEP_VERBOSE_BATCH:
             print_metrics = ", ".join(["total loss : " + str(self.running_total_loss / num_epochs)] +
                                       [str(loss_name) + " : " + str(value.item() / num_epochs) for (loss_name, value) in self.running_losses.items()] +
                                       [str(metric_name) + " : " + str(value / num_epochs) for (metric_name, value) in self.running_metrics.items()])
@@ -175,7 +178,8 @@ class History(object):
             data["wall time"] = datetime.datetime.now().strftime("%Y:%m:%d:%H:%M:%S")
             data["relative time"] = self.__time()
             data["epoch"] = epoch_index
-            self.train_epochs_history.append(data, ignore_index=True)
+            self.train_epochs_history = self.train_epochs_history.append(data, ignore_index=True)
+
 
         self.running_total_loss = 0
         self.running_losses = {}
@@ -253,9 +257,9 @@ class History(object):
         """
 
         # Save train batches history
-        if self.data_to_memorize >= DEEP_SAVE_CONDITION_END_BATCH:
-            self.train_batches_history.to_csv(self.train_batches_filepath, header=True, index=True, encoding='utf-8')
-
+        if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
+            #self.train_batches_history.to_csv(self.train_batches_filepath, header=True, index=True, encoding='utf-8')
+            pass
         # Save train epochs history
         self.train_epochs_history.to_csv(self.train_epochs_filepath, header=True, index=True, encoding='utf-8')
 
