@@ -130,14 +130,14 @@ class Callback(object):
 
 
 
-    def on_epoch_end(self, epoch_index:int, num_epochs:int, model:Module):
+    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int, model:Module):
         """
         Authors : Alix Leroy,
         Call callbacks at the end of one epoch
         :return: None
         """
 
-        self.history.on_epoch_end(epoch_index=epoch_index, num_epochs=num_epochs)
+        self.history.on_epoch_end(epoch_index=epoch_index, num_epochs=num_epochs, num_minibatches=num_minibatches)
         self.saver.on_epoch_end(model)
         self.stopping.on_epoch_end()
 

@@ -38,7 +38,7 @@ loss_functions = {loss1.get_name() : loss1, loss2.get_name() :  loss2}
 
 
 # Metrics
-accuracy_metric = Metric(name="Accurac", method=loss)
+accuracy_metric = Metric(name="Accuracy1", method=loss)
 accuracy_metric2 = Metric(name="Accuracy2", method=accuracy)
 
 metrics = {accuracy_metric.get_name() : accuracy_metric, accuracy_metric2.get_name() : accuracy_metric2}

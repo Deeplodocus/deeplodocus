@@ -36,6 +36,9 @@ class Loss(Metric):
     def __check_method(self, method)->callable:
             return method
 
+    def is_loss(self):
+        return True
+
 
     def __check_arguments(self, loss)->list:
 

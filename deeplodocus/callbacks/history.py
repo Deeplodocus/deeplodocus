@@ -11,8 +11,6 @@ from torch import tensor
 
 
 from deeplodocus.utils.flags import *
-from deeplodocus.core.metric import Metric
-from deeplodocus.core.loss import Loss
 from deeplodocus.utils.notification import Notification
 
 Num = Union[int, float]
@@ -53,12 +51,9 @@ class History(object):
         self.train_epochs_history = pd.DataFrame(columns=["wall time", "relative time", "epoch", "total loss"] + list(losses.keys()) + list(metrics.keys()))
         self.validation_history = pd.DataFrame(columns=["wall time", "relative time", "epoch", "total loss"] + list(losses.keys()) + list(metrics.keys()))
 
-
         self.start_time = 0
 
-        #
         # Filepaths
-        #
         self.train_batches_filepath = "%s/%s" % (log_dir, train_batches_filename)
         self.train_epochs_filepath = "%s/%s" % (log_dir, train_epochs_filename)
         self.validation_filepath = "%s/%s" % (log_dir, validation_filename)
@@ -150,7 +145,7 @@ class History(object):
         #if self.__do_saving() is True:
         #    self.__save_history()
 
-    def on_epoch_end(self, epoch_index:int, num_epochs:int):
+    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int):
         """
         Authors : Alix Leroy,
         Called at the end of every epoch of the training
@@ -162,9 +157,9 @@ class History(object):
         #
         # If we want to display the metrics at the end of each epoch
         if self.verbose >= DEEP_VERBOSE_BATCH:
-            print_metrics = ", ".join(["total loss : " + str(self.running_total_loss / num_epochs)] +
-                                      [str(loss_name) + " : " + str(value.item() / num_epochs) for (loss_name, value) in self.running_losses.items()] +
-                                      [str(metric_name) + " : " + str(value / num_epochs) for (metric_name, value) in self.running_metrics.items()])
+            print_metrics = ", ".join(["total loss : " + str(self.running_total_loss / num_minibatches)] +
+                                      [str(loss_name) + " : " + str(value.item() / num_minibatches) for (loss_name, value) in self.running_losses.items()] +
+                                      [str(metric_name) + " : " + str(value / num_minibatches) for (metric_name, value) in self.running_metrics.items()])
 
             print("==============================================================================================================================")
             print("Epoch " + str(epoch_index) + "/" + str(num_epochs) + " : "  + str(print_metrics))
@@ -174,7 +169,9 @@ class History(object):
         # Save the data in memory
         if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
             # Save the history in memory
-            data = dict(list(zip(self.metrics, [self.running_metrics.get(m) for m in self.metrics])))
+            data = dict([("total loss", self.running_total_loss/num_minibatches)] +
+                        [(loss_name, value.item()/num_minibatches) for (loss_name, value) in self.running_losses.items()] +
+                        [(metric_name, value/num_minibatches) for (metric_name, value) in self.running_metrics.items()])
             data["wall time"] = datetime.datetime.now().strftime("%Y:%m:%d:%H:%M:%S")
             data["relative time"] = self.__time()
             data["epoch"] = epoch_index
@@ -189,6 +186,7 @@ class History(object):
         # MANAGE VALIDATION HISTORY
         #
 
+        # TODO: Include the validation history
 
 
         #
@@ -258,8 +256,8 @@ class History(object):
 
         # Save train batches history
         if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
-            #self.train_batches_history.to_csv(self.train_batches_filepath, header=True, index=True, encoding='utf-8')
-            pass
+            self.train_batches_history.to_csv(self.train_batches_filepath, header=True, index=True, encoding='utf-8')
+
         # Save train epochs history
         self.train_epochs_history.to_csv(self.train_epochs_filepath, header=True, index=True, encoding='utf-8')
 
@@ -337,7 +335,7 @@ class History(object):
 
         # Else use the last time of the history
         else:
-            self.start_time = time.time() - self.history["relative time"][self.train_epochs_history.index[-1]]
+            self.start_time = time.time() - self.train_epochs_history["relative time"][self.train_epochs_history.index[-1]]
 
 
 
