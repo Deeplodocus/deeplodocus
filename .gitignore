@@ -108,3 +108,5 @@ venv.bak/
 # Deeplodocus logs
 
 deeplodocus/core/project/deep_structure/logs/*
+test/results/*
+test

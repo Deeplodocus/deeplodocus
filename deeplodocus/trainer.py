@@ -11,8 +11,6 @@ from deeplodocus.tester import Tester
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.dict_utils import apply_weight
 from deeplodocus.utils.flags import *
-from deeplodocus.core.metric import Metric
-from deeplodocus.core.loss import Loss
 from deeplodocus.utils.generic_utils import is_string_an_integer
 
 
@@ -34,6 +32,7 @@ class Trainer(object):
                  data_to_memorize:int = DEEP_MEMORIZE_BATCHES,
                  save_condition:int=DEEP_SAVE_CONDITION_AUTO,
                  stopping_parameters=None,
+                 tester=None,
                  write_logs=True):
 
         self.model = model
@@ -59,9 +58,11 @@ class Trainer(object):
                                             shuffle=False,
                                             num_workers=num_workers)
         self.num_minibatches = self.__compute_num_minibatches(length_dataset=dataset.__len__(), batch_size=batch_size)
-        # Tester for validation
-        self.tester = Tester(model, dataset, metrics, losses, batch_size, num_workers, verbose)
 
+        if isinstance(tester, Tester):
+            self.tester = tester          # Tester for validation
+        else:
+            self.tester = None
 
     def fit(self, first_training:bool = True)->None:
         """
@@ -124,7 +125,7 @@ class Trainer(object):
                 outputs = self.model(inputs)
 
                 # Compute losses and metrics
-                result_losses = self.__compute_losses(self.losses, inputs, outputs, labels, additional_data)
+                result_losses = self.__compute_metrics(self.losses, inputs, outputs, labels, additional_data)
                 result_metrics = self.__compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
                 # Add weights to losses
@@ -158,10 +159,16 @@ class Trainer(object):
             # Reset the dataset (transforms cache)
             self.train_dataset.reset()
 
-            result_losses, result_metrics = self.evaluate()
+            total_validation_loss, result_validation_losses, result_validation_metrics = self.__evaluate_epoch()
 
             #Epoch callback
-            self.callbacks.on_epoch_end(epoch_index=epoch, num_epochs=self.num_epochs, model=self.model)
+            self.callbacks.on_epoch_end(epoch_index=epoch,
+                                        num_epochs=self.num_epochs,
+                                        model=self.model,
+                                        num_minibatches=self.num_minibatches,
+                                        total_validation_loss=total_validation_loss,
+                                        result_validation_losses=result_validation_losses,
+                                        result_validation_metrics=result_validation_metrics)
 
 
         # End of training callback
@@ -177,12 +184,6 @@ class Trainer(object):
         if num_minibatches != length_dataset*batch_size:
             num_minibatches += 1
         return num_minibatches
-
-    def evaluate(self):
-
-        self.tester.evaluate()
-
-        return result_losses, result_metrics
 
 
     def __clean_single_element_list(self, minibatch:list)->list:
@@ -228,9 +229,9 @@ class Trainer(object):
         return cleaned_minibatch
 
 
-    def __compute_losses(self, losses:dict, inputs:Union[tensor, list], outputs:Union[tensor, list], labels:Union[tensor, list], additional_data:Union[tensor, list])->dict:
+    def __compute_metrics(self, metrics:dict, inputs:Union[tensor, list], outputs:Union[tensor, list], labels:Union[tensor, list], additional_data:Union[tensor, list])->dict:
         """
-        AUTHORS:
+        AUTHORS;
         --------
 
         :author: Alix Leroy
@@ -238,66 +239,35 @@ class Trainer(object):
         DESCRIPTION:
         ------------
 
-        Compute the different losses
+        Compute the metrics using the corresponding method arguments
 
         PARAMETERS:
         -----------
 
-        :param loss_functions->List[Loss]: The different loss functions
-        :param outputs: The predicted outputs
-        :param labels:  The expected outputs
-        :param additional_data: Additional data given to the loss function
+        :param metrics->dict: The metrics to compute
+        :param inputs->Union[tensor, list]: The inputs
+        :param outputs->Union[tensor, list]: Outputs of the network
+        :param labels->Union[tensor, list]: Labels
+        :param additional_data->Union[tensor, list]: Additional data
 
         RETURN:
         -------
 
-        :return losses->dict: The list of computed losses
+        :return->dict: A dictionary containing the associations (key, output)
         """
 
-        result_losses = {}
-        temp_loss_result = None
-
-        for loss in list(losses.values()):
-            loss_args = loss.get_arguments()
-            loss_method = loss.get_method()
-
-            if DEEP_ENTRY_INPUT in loss_args:
-                if DEEP_ENTRY_LABEL in loss_args:
-                    if DEEP_ENTRY_ADDITIONAL_DATA in loss_args:
-                        temp_loss_result = loss_method(inputs, outputs, labels, additional_data)
-                    else:
-                        temp_loss_result = loss_method(inputs, outputs, labels)
-                else:
-                    if DEEP_ENTRY_ADDITIONAL_DATA in loss_args:
-                        temp_loss_result = loss_method(inputs, outputs, additional_data)
-                    else:
-                        temp_loss_result = loss_method(inputs, outputs)
-            else:
-                if DEEP_ENTRY_LABEL in loss_args:
-                    if DEEP_ENTRY_ADDITIONAL_DATA in loss_args:
-                        temp_loss_result = loss_method(outputs, labels, additional_data)
-                    else:
-                        temp_loss_result = loss_method(outputs, labels)
-                else:
-                    if DEEP_ENTRY_ADDITIONAL_DATA in loss_args:
-                        temp_loss_result = loss_method(outputs, additional_data)
-                    else:
-                        temp_loss_result = loss_method(outputs)
-
-            # Add the loss to the dictionary
-            result_losses[loss.get_name()] = temp_loss_result
-        return result_losses
-
-
-    def __compute_metrics(self, metrics:dict, inputs:Union[tensor, list], outputs:Union[tensor, list], labels:Union[tensor, list], additional_data:Union[tensor, list])->dict:
-
         result_metrics = {}
+
+        # Temporary variable for saving the output
         temp_metric_result = None
 
         for metric in list(metrics.values()):
             metric_args = metric.get_arguments()
             metric_method = metric.get_method()
 
+            #
+            # Select the good type of input
+            #
             if DEEP_ENTRY_INPUT in metric_args:
                 if DEEP_ENTRY_LABEL in metric_args:
                     if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
@@ -321,8 +291,17 @@ class Trainer(object):
                     else:
                         temp_metric_result = metric_method(outputs)
 
+            #
             # Add the metric to the dictionary
-            result_metrics[metric.get_name()] = temp_metric_result.item()
+            #
+
+            # Check if the the metric is a Metric instance or a Loss instance
+            if metric.is_loss() is True:
+                # Do not call ".item()" in order to be able to achieve back propagation on the total_loss
+                result_metrics[metric.get_name()] = temp_metric_result
+            else:
+                result_metrics[metric.get_name()] = temp_metric_result.item()
+
         return result_metrics
 
     def __continue_training(self):
@@ -341,14 +320,30 @@ class Trainer(object):
             while is_string_an_integer(epochs) is False:
                 epochs =  Notification(DEEP_NOTIF_INPUT, 'Number of epochs ? ', write_logs=self.write_logs).get()
 
-        epochs = int(epochs)
-        # Reset the system to continue the training
-        if epochs > 0:
-            self.initial_epoch = self.num_epochs
-            self.num_epochs += epochs
+            epochs = int(epochs)
+            # Reset the system to continue the training
+            if epochs > 0:
+                self.initial_epoch = self.num_epochs
+                self.num_epochs += epochs
 
-            # Resume the training
-            self.fit(first_training = False)
+                # Resume the training
+                self.fit(first_training = False)
+
+
+
+        else:
+            pass
+
+    def __evaluate_epoch(self):
+
+        total_validation_loss = None
+        result_losses = None
+        result_metrics = None
+
+        if self.tester is not None:
+            total_validation_loss, result_losses, result_metrics = self.tester.evaluate()
+
+        return total_validation_loss, result_losses, result_metrics
 
 
 
