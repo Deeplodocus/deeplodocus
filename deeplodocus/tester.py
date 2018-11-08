@@ -1,5 +1,5 @@
 from deeplodocus.data.dataset import Dataset
-from deeplodocus.utils.dict_utils import apply, apply_weight
+from deeplodocus.utils import dict_utils
 from torch.utils.data import DataLoader
 from torch.nn import Module
 
@@ -29,25 +29,29 @@ class Tester(object):
 
     def evaluate(self):
         """
-        :return:
+        Author: SW
+        :return: dict, dict: the total losses and total metrics for the model over the test data set
         """
-        total_losses = {}
-        for name in list(self.losses.keys()):
-            total_losses[name] = []
-        total_metrics = {}
-        for name in list(self.metrics.keys()):
-            total_metrics[name] = []
+        # Make dictionaries like losses and metrics but initialised with lists
+        total_losses = dict_utils.like(self.losses, [])
+        total_metrics = dict_utils.like(self.metrics, [])
+        # Loop through each mini batch
         for minibatch_index, minibatch in enumerate(self.dataloader_test, 0):
             inputs, labels, additional_data = self.__clean_single_element_list(minibatch)
+            # Infer the outputs from the model over the given mini batch
             outputs = self.model(inputs)
+            # Compute the losses and metrics
             batch_losses = self.__compute_losses(self.losses, inputs, outputs, labels, additional_data)
             batch_metrics = self.__compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
-            batch_losses = apply_weight(batch_losses, self.losses)
-            total_losses = apply(total_losses, batch_losses, "append")
-            total_metrics = apply(total_metrics, batch_metrics, "append")
-        total_losses =
+            # Apply weights to the losses
+            batch_losses = dict_utils.apply_weight(batch_losses, self.losses)
+            # Append the losses and metrics for this batch to the total losses and metrics
+            total_losses = dict_utils.apply(total_losses, batch_losses, "append")
+            total_metrics = dict_utils.apply(total_metrics, batch_metrics, "append")
+        # Calculate the mean for each loss and metric
+        total_losses = dict_utils.mean(total_losses)
+        total_metrics = dict_utils.mean(total_metrics)
         return total_losses, total_metrics
-
 
     def __clean_single_element_list(self, minibatch:list)->list:
         """
