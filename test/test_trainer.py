@@ -9,8 +9,8 @@ from deeplodocus.data.dataset import Dataset
 from deeplodocus.trainer import Trainer
 from deeplodocus.core.project.deep_structure.modules.models.classification import Net
 from deeplodocus.core.project.deep_structure.modules.metrics.accuracy import accuracy
-from deeplodocus.core.metric import Metric
-from deeplodocus.core.loss import Loss
+from deeplodocus.core.metrics.metric import Metric
+from deeplodocus.core.metrics.loss import Loss
 
 # Model
 model = Net()

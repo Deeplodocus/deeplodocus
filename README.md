@@ -37,15 +37,19 @@ Deeplodocus is designed to be crossplatform (Windows, Linux and Mac OS). It uses
 
 ##Roadmap : 
 
-
-* Callbacks
-* History
-* Saving the model
-* Smart saving
+* User friendly notifications [✓]
+* User interface on browser
+* Logs [✓]
+* Automatic trainer [✓]
+* Automatic tester/validator [✓]
+* Callbacks [✓]
+* History [✓]
+* Saving the model [✓]
+* Smart saving [✓]
 * Dataset Loader [✓]
 * Data checker
 * Data Augmentation
-* Transformations
+* Transformations [✓]
 * Filters
 * Augmentation modes
 

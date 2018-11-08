@@ -10,8 +10,7 @@ from torch.nn import Module
 from deeplodocus.callbacks.saver import Saver
 from deeplodocus.callbacks.history import History
 from deeplodocus.callbacks.stopping import Stopping
-from deeplodocus.core.metric import Metric
-from deeplodocus.core.loss import Loss
+
 
 
 Num = Union[int, float]
@@ -130,14 +129,19 @@ class Callback(object):
 
 
 
-    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int, model:Module):
+    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int, model:Module, total_validation_loss:int, result_validation_losses:dict, result_validation_metrics:dict):
         """
         Authors : Alix Leroy,
         Call callbacks at the end of one epoch
         :return: None
         """
 
-        self.history.on_epoch_end(epoch_index=epoch_index, num_epochs=num_epochs, num_minibatches=num_minibatches)
+        self.history.on_epoch_end(epoch_index=epoch_index,
+                                  num_epochs=num_epochs,
+                                  num_minibatches=num_minibatches,
+                                  total_validation_loss=total_validation_loss,
+                                  result_validation_losses=result_validation_losses,
+                                  result_validation_metrics=result_validation_metrics)
         self.saver.on_epoch_end(model)
         self.stopping.on_epoch_end()
 
