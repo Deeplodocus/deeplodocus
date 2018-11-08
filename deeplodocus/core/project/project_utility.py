@@ -37,21 +37,23 @@ class ProjectUtility(object):
         """
 
         deeplodocus_project_path = self.main_path + "/" + self.project_name
-        source_project_structre = os.path.abspath(os.path.dirname(__file__)) + "/deep_structure"
+        source_project_structure = os.path.abspath(os.path.dirname(__file__)) + "/deep_structure"
 
         try:
             if not os.path.exists(deeplodocus_project_path):
                 os.mkdir(deeplodocus_project_path)
         except:
-            Notification(DEEP_FATAL, "An error occured during the generation of the folders. Make sure the desired folder exists.", write_logs=False)
+            Notification(DEEP_NOTIF_FATAL, "An error occured during the generation of the folders. Make sure the desired folder exists.", write_logs=False)
 
         try:
             # Copy the whole structure of a Deeplodocus project
-            copy_tree(source_project_structre, deeplodocus_project_path, update= 1)
+            copy_tree(source_project_structure, deeplodocus_project_path, update= 1)
         except:
-            Notification(DEEP_FATAL, "An error occurred during the copy of the files. Make sure the destination folder exists and check your Deeplodocus installation.", write_logs=False)
+            Notification(DEEP_NOTIF_FATAL, "An error occurred during the copy of the files. Make sure the destination folder exists and check your Deeplodocus installation.", write_logs=False)
 
         #self.__clean_structure()
+
+        Notification(DEEP_NOTIF_SUCCESS, "Project successfully generated ! Have fun <3 ", write_logs=False)
 
     def __clean_structure(self):
         """

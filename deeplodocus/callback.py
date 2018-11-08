@@ -166,7 +166,7 @@ class Callback(object):
         """
 
         # Get the directory for saving the history
-        log_dir = os.path.dirname(__main__.__file__)+ "/results/history/"
+        log_dir = os.path.dirname(os.path.abspath(__main__.__file__))+ "/results/history/"
 
         timestr = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         train_batches_filename =  self.model_name + "_history_train_batches-"+ timestr + ".csv"
