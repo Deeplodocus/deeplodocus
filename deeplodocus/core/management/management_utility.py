@@ -46,7 +46,7 @@ class ManagementUtility(object):
                 self.__help()
 
             else:
-                Notification(DEEP_ERROR, "The following command does not exits : " + str(self.argv[1]),  write_logs=False)
+                Notification(DEEP_NOTIF_ERROR, "The following command does not exits : " + str(self.argv[1]),  write_logs=False)
 
         else:
             self.__help()
@@ -56,12 +56,12 @@ class ManagementUtility(object):
 
 
         for command, description in self.commands.items():
-            Notification(DEEP_INFO, str(command) + " : " + str(description), write_logs=False)
+            Notification(DEEP_NOTIF_INFO, str(command) + " : " + str(description), write_logs=False)
 
     def __version(self):
 
         version = str(__version__)
-        Notification(DEEP_INFO, "DEEPLODOCUS VERSION : " + str(version),  write_logs=False)
+        Notification(DEEP_NOTIF_INFO, "DEEPLODOCUS VERSION : " + str(version),  write_logs=False)
 
 
     def __startproject(self):
