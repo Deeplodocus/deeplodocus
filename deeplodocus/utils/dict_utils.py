@@ -99,6 +99,6 @@ if __name__ == "__main__":
     d1 = {"a": 5, "b": 6, "c": 100, "d": -7}
     d2 = {"a": 7, "b": 2, "c": 20, "d": 2}
     print(apply(d1, d2, "append"))
-    d3 = dict_like(d2, [])
+    d3 = like(d2, [])
     d3["a"].append(4)
     print(d3)
