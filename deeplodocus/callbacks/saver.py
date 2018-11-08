@@ -22,7 +22,7 @@ class Saver(object):
         self.save_model_method = save_model_method
         self.save_condition = save_condition
         self.overwatch_metric = overwatch_metric
-        self.path = os.path.dirname(__main__.__file__)+ "/results/models"
+        self.path = os.path.dirname(os.path.abspath(__main__.__file__))+ "/results/models"
 
 
     """

@@ -63,7 +63,7 @@ class Logs(object):
         """
 
         # Log paths
-        logs_folder_path = os.path.dirname(__main__.__file__) + "/logs"
+        logs_folder_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/logs"
         logs_file_path = logs_folder_path + "/" + str(self.type) + ".logs"
 
         # Check the logs folder exists
@@ -96,7 +96,7 @@ class Logs(object):
 
         """
 
-        logs_path = os.path.dirname(__main__.__file__) + "/logs/" + str(self.type) + ".logs"
+        logs_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/logs/" + str(self.type) + ".logs"
         timestr = datetime.datetime.now()
 
         with open(logs_path, "a") as log:
@@ -104,7 +104,7 @@ class Logs(object):
 
 
 
-    def __check_log_folder_exists(self, logs_path:str):
+    def __check_log_folder_exists(self, logs_folder_path:str):
         """
         AUTHORS:
         --------
@@ -128,9 +128,9 @@ class Logs(object):
         """
 
         # If the folder path does not exist we create it
-        if not os.path.exists(logs_path):
+        if not os.path.exists(logs_folder_path):
             try:
-                os.mkdir(logs_path)
+                os.mkdir(logs_folder_path)
 
             # Raise Value (Cannot use Notification from Logs class)
             except:
@@ -138,7 +138,7 @@ class Logs(object):
                                  "Make sure the framework has the permission to write in this folder")
 
 
-    def __check_log_file_exists(self, logs_path:str):
+    def __check_log_file_exists(self, logs_filepath:str):
         """
         AUTHORS:
         --------
@@ -161,16 +161,16 @@ class Logs(object):
         """
 
         # If the file path does exist we finish the previous log
-        if  os.path.exists(logs_path):
+        if  os.path.exists(logs_filepath):
             self.close_log()
 
         # Create the log file
         try:
-            self.__create_log_file(logs_path)
+            self.__create_log_file(logs_filepath)
 
         # Raise Value (Cannot use Notification from Logs class)
         except:
-            raise ValueError("An error occurred during the generation of the log folder. "
+            raise ValueError("An error occurred during the generation of the LOGS file. "
                              "Make sure the framework as the permission to write in this folder")
 
     def __create_log_file(self, logs_path:str)->None:
@@ -225,20 +225,32 @@ class Logs(object):
         :return: None
         """
 
-        logs_path = os.path.dirname(__main__.__file__)+ "/logs/" + str(self.type) +".logs"
-
+        print(os.path.dirname(os.path.abspath(__main__.__file__)))
+        old_logs_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/logs/" + str(self.type) + ".logs"
 
         # If the log file exists
-        if os.path.isfile(logs_path):
+        if os.path.isfile(old_logs_path):
             # Read the first line
-            with open(logs_path, "r") as f:
+            with open(old_logs_path, "r") as f:
                 line = f.readline()
 
             # Get the initialization time
             time = line.split(":")[1].replace(" ", "").replace("\n", "")
 
             # Generate new name
-            new_log_name = os.path.dirname(__main__.__file__)+ "/logs/" + str(self.type) + "_" + str(time) + ".logs"
+            new_log_name = os.path.dirname(os.path.abspath(__main__.__file__))+ "/logs/" + str(self.type) + "_" + str(time) + ".logs"
 
-            os.rename(logs_path, new_log_name)
-            print("test")
+            # try:
+            #     with open(old_logs_path, "r") as f:
+            #         file_content = f.read()
+            #
+            #     with open(new_log_name,"w") as f:
+            #         f.write(file_content)
+            # except:
+            #     print("TEST WRITE")
+            #
+            # try:
+            #     os.remove(old_logs_path)
+            # except:
+            #     print("error")
+            os.rename(old_logs_path, new_log_name)

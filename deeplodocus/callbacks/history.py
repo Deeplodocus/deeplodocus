@@ -24,7 +24,7 @@ class History(object):
     def __init__(self,
                  metrics: dict,
                  losses: dict,
-                 log_dir: str = os.path.dirname(__main__.__file__)+ "/results/history/",
+                 log_dir: str = os.path.dirname(os.path.abspath(__main__.__file__))+ "/results/history/",
                  train_batches_filename: str = "history_batches_training.csv",
                  train_epochs_filename: str = "history_epochs_training.csv",
                  validation_filename: str = "history_validation.csv",
