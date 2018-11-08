@@ -145,7 +145,7 @@ class History(object):
         #if self.__do_saving() is True:
         #    self.__save_history()
 
-    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int):
+    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int, total_validation_loss:int, result_validation_losses:dict, result_validation_metrics:dict):
         """
         Authors : Alix Leroy,
         Called at the end of every epoch of the training
@@ -162,8 +162,10 @@ class History(object):
                                       [str(metric_name) + " : " + str(value / num_minibatches) for (metric_name, value) in self.running_metrics.items()])
 
             print("==============================================================================================================================")
-            print("Epoch " + str(epoch_index) + "/" + str(num_epochs) + " : "  + str(print_metrics))
-            print("==============================================================================================================================")
+            print("Summary Epoch " + str(epoch_index) + "/" + str(num_epochs) + " : ")
+            print("Training : " + str(print_metrics))
+
+
 
 
         # Save the data in memory
@@ -186,8 +188,32 @@ class History(object):
         # MANAGE VALIDATION HISTORY
         #
 
-        # TODO: Include the validation history
+        if total_validation_loss is not None:
 
+            # If we want to display the metrics at the end of each epoch
+            if self.verbose >= DEEP_VERBOSE_BATCH:
+                print_metrics = ", ".join(["total loss : " + str(total_validation_loss)] +
+                                          [str(loss_name) + " : " + str(value.item() / num_minibatches) for
+                                           (loss_name, value) in self.running_losses.items()] +
+                                          [str(metric_name) + " : " + str(value / num_minibatches) for
+                                           (metric_name, value) in self.running_metrics.items()])
+
+                print("Validation : " + str(print_metrics))
+
+            # Save the data in memory
+            if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
+                # Save the history in memory
+                data = dict([("total loss", self.running_total_loss / num_minibatches)] +
+                            [(loss_name, value.item() / num_minibatches) for (loss_name, value) in
+                             self.running_losses.items()] +
+                            [(metric_name, value / num_minibatches) for (metric_name, value) in
+                             self.running_metrics.items()])
+                data["wall time"] = datetime.datetime.now().strftime("%Y:%m:%d:%H:%M:%S")
+                data["relative time"] = self.__time()
+                data["epoch"] = epoch_index
+                self.train_epochs_history = self.train_epochs_history.append(data, ignore_index=True)
+
+        print("==============================================================================================================================")
 
         #
         # END EPOCH PARAMETERS

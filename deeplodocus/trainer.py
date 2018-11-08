@@ -10,8 +10,6 @@ from deeplodocus.callback import Callback
 from deeplodocus.tester import Tester
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
-from deeplodocus.core.metric import Metric
-from deeplodocus.core.loss import Loss
 from deeplodocus.utils.generic_utils import is_string_an_integer
 
 
@@ -33,6 +31,7 @@ class Trainer(object):
                  data_to_memorize:int = DEEP_MEMORIZE_BATCHES,
                  save_condition:int=DEEP_SAVE_CONDITION_AUTO,
                  stopping_parameters=None,
+                 tester=None,
                  write_logs=True):
 
         self.model = model
@@ -58,7 +57,11 @@ class Trainer(object):
                                             shuffle=False,
                                             num_workers=num_workers)
         self.num_minibatches = self.__compute_num_minibatches(length_dataset=dataset.__len__(), batch_size=batch_size)
-        self.tester = Tester()          # Tester for validation
+
+        if isinstance(tester, Tester):
+            self.tester = tester          # Tester for validation
+        else:
+            self.tester = None
 
 
     def fit(self, first_training:bool = True)->None:
@@ -154,10 +157,17 @@ class Trainer(object):
             # Reset the dataset (transforms cache)
             self.train_dataset.reset()
 
-            #Epoch callback
-            self.callbacks.on_epoch_end(epoch_index=epoch, num_epochs=self.num_epochs, model=self.model, num_minibatches=self.num_minibatches)
+            total_validation_loss, result_validation_losses, result_validation_metrics = self.__evaluate_epoch()
 
-            self.tester.evaluate()
+            #Epoch callback
+            self.callbacks.on_epoch_end(epoch_index=epoch,
+                                        num_epochs=self.num_epochs,
+                                        model=self.model,
+                                        num_minibatches=self.num_minibatches,
+                                        total_validation_loss=total_validation_loss,
+                                        result_validation_losses=result_validation_losses,
+                                        result_validation_metrics=result_validation_metrics)
+
 
         # End of training callback
         self.callbacks.on_training_end(model=self.model)
@@ -321,6 +331,17 @@ class Trainer(object):
 
         else:
             pass
+
+    def __evaluate_epoch(self):
+
+        total_validation_loss = None
+        result_losses = None
+        result_metrics = None
+
+        if self.tester is not None:
+            total_validation_loss, result_losses, result_metrics = self.tester.evaluate()
+
+        return total_validation_loss, result_losses, result_metrics
 
 
 
