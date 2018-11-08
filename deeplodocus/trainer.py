@@ -9,6 +9,7 @@ from deeplodocus.data.dataset import Dataset
 from deeplodocus.callback import Callback
 from deeplodocus.tester import Tester
 from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.dict_utils import apply_weight
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.generic_utils import is_string_an_integer
 
@@ -35,7 +36,7 @@ class Trainer(object):
                  write_logs=True):
 
         self.model = model
-        self.write_logs=write_logs
+        self.write_logs = write_logs
         self.metrics = metrics
         self.losses = losses
         self.shuffle = shuffle
@@ -62,7 +63,6 @@ class Trainer(object):
             self.tester = tester          # Tester for validation
         else:
             self.tester = None
-
 
     def fit(self, first_training:bool = True)->None:
         """
@@ -113,7 +113,7 @@ class Trainer(object):
 
         for epoch in range(self.initial_epoch, self.num_epochs+1):  # loop over the dataset multiple times
 
-            for minibatch_index, minibatch in enumerate(self.dataloader_train, 0):
+            for minibatch_index, minibatch in enumerate(self.dataloader_train):
 
                 # Clean the given data
                 inputs, labels, additional_data = self.__clean_single_element_list(minibatch)
@@ -129,8 +129,10 @@ class Trainer(object):
                 result_metrics = self.__compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
                 # Add weights to losses
-                for name, value in zip(list(result_losses.keys()), list(result_losses.values())):
+                for name, value in result_losses.items():
                     result_losses[name] = value * self.losses[name].get_weight()
+                # TRY THIS FROM DICT_UTILS INSTEAD...
+                # result_losses = apply_weight(result_losses, self.losses)
 
 
                 # Sum all the result of the losses
@@ -253,7 +255,7 @@ class Trainer(object):
 
         :return->dict: A dictionary containing the associations (key, output)
         """
-        # Dict used as output
+
         result_metrics = {}
 
         # Temporary variable for saving the output
