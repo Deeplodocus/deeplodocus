@@ -51,7 +51,7 @@ class Tester(object):
         # Calculate the mean for each loss and metric
         total_losses = dict_utils.mean(total_losses)
         total_metrics = dict_utils.mean(total_metrics)
-        return total_losses, total_metrics
+        return dict_utils.sum_dict(total_losses), total_losses, total_metrics
 
     def __clean_single_element_list(self, minibatch:list)->list:
         """
