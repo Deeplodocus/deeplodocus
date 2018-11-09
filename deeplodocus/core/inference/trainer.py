@@ -1,21 +1,24 @@
-from typing import Union
-from typing import List
-
-from torch import tensor
-from torch.utils.data import  DataLoader
+#
+# BACKEND IMPORTS
+#
 from torch.nn import Module
 
+
+#
+# DEEPLODOCUS IMPORTS
+#
+
 from deeplodocus.data.dataset import Dataset
-from deeplodocus.callback import Callback
-from deeplodocus.tester import Tester
+from deeplodocus.callbacks.callback import Callback
+from deeplodocus.core.inference.tester import Tester
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.dict_utils import apply_weight
+from deeplodocus.utils.dict_utils import sum_dict
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.generic_utils import is_string_an_integer
+from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 
-
-
-class Trainer(object):
+class Trainer(GenericEvaluator):
 
     def __init__(self,
                  model:Module,
@@ -26,41 +29,88 @@ class Trainer(object):
                  num_epochs:int,
                  initial_epoch:int = 1,
                  batch_size:int = 4,
-                 shuffle:bool = DEEP_SHUFFLE_ALL,
+                 shuffle:int = DEEP_SHUFFLE_ALL,
                  num_workers:int = 4,
-                 verbose:int=2,
+                 verbose:int=DEEP_VERBOSE_BATCH,
                  data_to_memorize:int = DEEP_MEMORIZE_BATCHES,
                  save_condition:int=DEEP_SAVE_CONDITION_AUTO,
                  stopping_parameters=None,
-                 tester=None,
+                 tester:Tester=None,
+                 model_name:str = "test",
                  write_logs=True):
+        """
+        AUTHORS:
+        --------
 
-        self.model = model
-        self.write_logs = write_logs
-        self.metrics = metrics
-        self.losses = losses
-        self.shuffle = shuffle
-        self.optimizer = optimizer
-        self.initial_epoch = initial_epoch
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Initialize a Trainer instance
+
+        PARAMETERS:
+        -----------
+
+        :param model->torch.nn.Module: The model which has to be trained
+        :param dataset->Dataset: The dataset to be trained on
+        :param metrics->dict: The metrics to analyze
+        :param losses->dict: The losses to use for the backpropagation
+        :param optimizer: The optimizer to use for the backpropagation
+        :param num_epochs->int: Number of epochs for the training
+        :param initial_epoch->int: The index of the initial epoch
+        :param batch_size->int: Size a minibatch
+        :param shuffle->int: DEEP_SHUFFLE flag, method of shuffling to use
+        :param num_workers->int: Number of processes / threads to use for data loading
+        :param verbose->int: DEEP_VERBOSE flag, How verbose the Trainer is
+        :param data_to_memorize->int: DEEP_MEMORIZE flag, what data to save
+        :param save_condition->int: DEEP_SAVE flag, when to save the results
+        :param stopping_parameters:
+        :param tester->Tester: The tester to use for validation
+        :param model_name->str: The name of the model
+        :param write_logs->bool: Whether to write the logs or not
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        # Initialize the GenericEvaluator par
+        super().__init__(model=model,
+                         dataset=dataset,
+                         metrics=metrics,
+                         losses=losses,
+                         batch_size=batch_size,
+                         num_workers=num_workers,
+                         verbose=verbose)
+
+        # Create callbacks
         self.callbacks = Callback(metrics=metrics,
                                   losses=losses,
                                   working_directory="",
-                                  model_name="test",
+                                  model_name=model_name,
                                   verbose=verbose,
                                   data_to_memorize=data_to_memorize,
                                   save_condition=save_condition,
                                   stopping_parameters=stopping_parameters,
                                   write_logs=write_logs)
+
+        # Compute the number of minibatches
+        self.num_minibatches = self.__compute_num_minibatches(length_dataset=dataset.__len__(),
+                                                              batch_size=batch_size)
+
+        self.write_logs = write_logs
+        self.shuffle = shuffle
+        self.optimizer = optimizer
+        self.initial_epoch = initial_epoch
         self.num_epochs = num_epochs
         self.train_dataset = dataset
-        self.dataloader_train =  DataLoader(dataset=dataset,
-                                            batch_size=batch_size,
-                                            shuffle=False,
-                                            num_workers=num_workers)
-        self.num_minibatches = self.__compute_num_minibatches(length_dataset=dataset.__len__(), batch_size=batch_size)
 
         if isinstance(tester, Tester):
             self.tester = tester          # Tester for validation
+            self.tester.set_metrics(metrics=metrics)
+            self.tester.set_losses(losses=losses)
         else:
             self.tester = None
 
@@ -73,7 +123,7 @@ class Trainer(object):
 
         self.__train(first_training=first_training)
 
-        Notification(DEEP_NOTIF_SUCCESS, "\n", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_SUCCESS, "", write_logs=self.write_logs)
         Notification(DEEP_NOTIF_SUCCESS,"=============================================================", write_logs=self.write_logs)
         Notification(DEEP_NOTIF_SUCCESS,'Finished Training', write_logs=self.write_logs)
         Notification(DEEP_NOTIF_SUCCESS,"=============================================================", write_logs=self.write_logs)
@@ -113,10 +163,10 @@ class Trainer(object):
 
         for epoch in range(self.initial_epoch, self.num_epochs+1):  # loop over the dataset multiple times
 
-            for minibatch_index, minibatch in enumerate(self.dataloader_train):
+            for minibatch_index, minibatch in enumerate(self.dataloader):
 
                 # Clean the given data
-                inputs, labels, additional_data = self.__clean_single_element_list(minibatch)
+                inputs, labels, additional_data = self.clean_single_element_list(minibatch)
 
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
@@ -125,26 +175,22 @@ class Trainer(object):
                 outputs = self.model(inputs)
 
                 # Compute losses and metrics
-                result_losses = self.__compute_metrics(self.losses, inputs, outputs, labels, additional_data)
-                result_metrics = self.__compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
+                result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
+                result_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
                 # Add weights to losses
-                for name, value in result_losses.items():
-                    result_losses[name] = value * self.losses[name].get_weight()
-                # TRY THIS FROM DICT_UTILS INSTEAD...
-                # result_losses = apply_weight(result_losses, self.losses)
-
+                result_losses = apply_weight(result_losses, self.losses)
 
                 # Sum all the result of the losses
-                total_loss = sum(list(result_losses.values()))
+                total_loss = sum_dict(result_losses)
 
                 # Accumulates the gradient (by addition) for each parameter
                 total_loss.backward()
 
-                # performs a parameter update based on the current gradient (stored in .grad attribute of a parameter) and the update rule
+                # Performs a parameter update based on the current gradient (stored in .grad attribute of a parameter) and the update rule
                 self.optimizer.step()
 
-                # Minibatch callback
+                # Mini batch callback
                 self.callbacks.on_batch_end(minibatch_index=minibatch_index+1,
                                             num_minibatches=self.num_minibatches,
                                             epoch_index=epoch,
@@ -160,7 +206,9 @@ class Trainer(object):
             self.train_dataset.reset()
 
             total_validation_loss, result_validation_losses, result_validation_metrics = self.__evaluate_epoch()
-
+            print(total_validation_loss)
+            print(result_validation_losses)
+            print(result_validation_metrics)
             #Epoch callback
             self.callbacks.on_epoch_end(epoch_index=epoch,
                                         num_epochs=self.num_epochs,
@@ -178,15 +226,6 @@ class Trainer(object):
         self.callbacks.pause()
 
     def __compute_num_minibatches(self, batch_size:int, length_dataset:int):
-
-        num_minibatches = length_dataset//batch_size
-
-        if num_minibatches != length_dataset*batch_size:
-            num_minibatches += 1
-        return num_minibatches
-
-
-    def __clean_single_element_list(self, minibatch:list)->list:
         """
         AUTHORS:
         --------
@@ -196,113 +235,30 @@ class Trainer(object):
         DESCRIPTION:
         ------------
 
-        Convert single element lists from the batch into an element
+        Calculate the number of mini batches for one epoch
 
         PARAMETERS:
         -----------
 
-        :param batch->list: The batch to clean
+        :param batch_size->int: Number of instance in one mini batch
+        :param length_dataset->int: Number of instance in the whole data set
 
         RETURN:
         -------
 
-        :return cleaned_batch->list: The cleaned batch
+        :return num_minibatches->int: Number of mini batches per epoch
         """
-        cleaned_minibatch = []
+        num_minibatches = length_dataset//batch_size
 
-        # For each entry in the minibatch:
-        # If it is a single element list -> Make it the single element
-        # If it is an empty list -> Make it None
-        # Else -> Do not change
-
-        for entry in minibatch:
-
-            if isinstance(entry, list) and len(entry) == 1:
-                cleaned_minibatch.append(entry[0])
-
-            elif isinstance(entry, list) and len(entry) == 0:
-                cleaned_minibatch.append(None)
-
-            else:
-                cleaned_minibatch.append(entry)
-
-        return cleaned_minibatch
+        if num_minibatches != length_dataset*batch_size:
+            num_minibatches += 1
+        return num_minibatches
 
 
-    def __compute_metrics(self, metrics:dict, inputs:Union[tensor, list], outputs:Union[tensor, list], labels:Union[tensor, list], additional_data:Union[tensor, list])->dict:
-        """
-        AUTHORS;
-        --------
 
-        :author: Alix Leroy
 
-        DESCRIPTION:
-        ------------
 
-        Compute the metrics using the corresponding method arguments
 
-        PARAMETERS:
-        -----------
-
-        :param metrics->dict: The metrics to compute
-        :param inputs->Union[tensor, list]: The inputs
-        :param outputs->Union[tensor, list]: Outputs of the network
-        :param labels->Union[tensor, list]: Labels
-        :param additional_data->Union[tensor, list]: Additional data
-
-        RETURN:
-        -------
-
-        :return->dict: A dictionary containing the associations (key, output)
-        """
-
-        result_metrics = {}
-
-        # Temporary variable for saving the output
-        temp_metric_result = None
-
-        for metric in list(metrics.values()):
-            metric_args = metric.get_arguments()
-            metric_method = metric.get_method()
-
-            #
-            # Select the good type of input
-            #
-            if DEEP_ENTRY_INPUT in metric_args:
-                if DEEP_ENTRY_LABEL in metric_args:
-                    if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
-                        temp_metric_result = metric_method(inputs, outputs, labels, additional_data)
-                    else:
-                        temp_metric_result = metric_method(inputs, outputs, labels)
-                else:
-                    if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
-                        temp_metric_result = metric_method(inputs, outputs, additional_data)
-                    else:
-                        temp_metric_result = metric_method(inputs, outputs)
-            else:
-                if DEEP_ENTRY_LABEL in metric_args:
-                    if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
-                        temp_metric_result = metric_method(outputs, labels, additional_data)
-                    else:
-                        temp_metric_result = metric_method(outputs, labels)
-                else:
-                    if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
-                        temp_metric_result = metric_method(outputs, additional_data)
-                    else:
-                        temp_metric_result = metric_method(outputs)
-
-            #
-            # Add the metric to the dictionary
-            #
-
-            # Check if the the metric is a Metric instance or a Loss instance
-            if metric.is_loss() is True:
-                # Do not call ".item()" in order to be able to achieve back propagation on the total_loss
-                result_metrics[metric.get_name()] = temp_metric_result
-            else:
-                result_metrics[metric.get_name()] = temp_metric_result.item()
-
-        return result_metrics
 
     def __continue_training(self):
 
