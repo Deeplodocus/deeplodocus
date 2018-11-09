@@ -10,6 +10,7 @@ from deeplodocus.utils.logs import Logs
 from deeplodocus.ui.user_interface import UserInterface
 from deeplodocus import __version__
 
+
 class Brain(object):
     """
     AUTHORS:
@@ -56,7 +57,7 @@ class Brain(object):
         self.exit_flags = ["q", "quit", "exit"]
         self.config = None
         self.user_interface = None
-        self.__load_config()
+        self.load_config()
 
     def wake(self):
         """
@@ -75,6 +76,28 @@ class Brain(object):
         if self.user_interface is not None:
             self.user_interface.stop()
         End(error=False)
+
+    def load_config(self):
+        """
+        Author: SW
+        Function: Checks current config path is valid, if not, user is prompted to give another
+        :return: bool: True if a valid config path is set, otherwise, False
+        """
+        while True:
+            if os.path.isfile(self.config_path):
+                self.config = Namespace(self.config_path)
+                directory = "/".join(self.config_path.split("/")[:-1])
+                for key, path in self.config.get().items():
+                    self.config.get()[key] = Namespace("%s/%s" % (directory, path))
+                self.config.load(self.config_path, "main")
+                Notification(DEEP_NOTIF_SUCCESS, "Config file loaded (%s)" % self.config_path)
+                return True
+            else:
+                if self.config_path in self.exit_flags:
+                    return False
+                else:
+                    Notification(DEEP_NOTIF_ERROR, "Given path does not point to a file (%s)" % self.config_path)
+                    self.config_path = Notification(DEEP_NOTIF_INPUT, "Please insert the config file path :").get()
 
     def __run_command(self, command:str)->None:
         """
@@ -101,7 +124,7 @@ class Brain(object):
 
         # Load a new config file
         if command == "load_config":
-            self.__load_config()
+            self.load_config()
 
         # train the network
         elif command == "train":
@@ -131,23 +154,6 @@ class Brain(object):
         for log_name in self.logs:
             Logs(log_name).check_init()
         Notification(DEEP_NOTIF_SUCCESS, "Logs initialized ! ", write_logs=self.write_logs)
-
-    def __load_config(self):
-        """
-        Author: SW
-        Function: Checks current config path is valid, if not, user is prompted to give another
-        :return: bool: True if a valid config path is set, otherwise, False
-        """
-        while True:
-            if os.path.isfile(self.config_path):
-                self.config = Namespace(self.config_path)
-                Notification(DEEP_NOTIF_SUCCESS, "Config file loaded (%s)" % self.config_path, write_logs=self.write_logs)
-                return True
-            else:
-                Notification(DEEP_NOTIF_ERROR, "Given path does not point to a file (%s)" % self.config_path, write_logs=self.write_logs)
-                self.config_path = Notification(DEEP_NOTIF_INPUT, "Please insert the config file path :", write_logs=self.write_logs).get()
-                if self.config_path in self.exit_flags:
-                    return False
 
 
 if __name__ == "__main__":

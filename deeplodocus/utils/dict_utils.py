@@ -21,7 +21,7 @@ def sum_dict(dictionary: dict):
     :param dictionary: dict: input dictionary of float/int
     :return: float: sum of the values in the dictionary
     """
-    return list(sum(dictionary.values()))
+    return sum(list(dictionary.values()))
 
 
 def like(dictionary: dict, value=None):
