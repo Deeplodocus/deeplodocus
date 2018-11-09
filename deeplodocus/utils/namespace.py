@@ -14,37 +14,29 @@ class Namespace(object):
         """
         for arg in args:
             if isinstance(arg, str):
-                for key, item in self.__yaml2namespace(arg).get().items():
-                    self.add({key: item})
+                self.load(arg)
             elif isinstance(arg, dict):
-                for key, item in self.__dict2namespace(arg).get().items():
-                    self.add({key: item})
+                self.add(arg)
             else:
                 print("Warning: unused argument %s" % arg)
 
     def add(self, dictionary, sub_space=None):
         """
-        Add a new dictionary to the namespace.
-        :param dictionary: dict: the dictionary of data to add.
-        :param sub_space: str or list of str: path to a sub-space within the Namespace.
-        :return: None.
+        :param dictionary:
+        :param sub_space:
+        :return:
         """
-        if sub_space is None:
-            self.__dict__.update(dictionary)
-        else:
-            if isinstance(sub_space, list):
-                sub_space = sub_space[0] if len(sub_space) == 1 else sub_space
-            if isinstance(sub_space, list):
-                if sub_space[0] not in self.get().keys():
-                    self.__dict__.update({sub_space[0]: Namespace()})
-                try:
-                    self.get()[sub_space[0]].add(dictionary, sub_space[1:])
-                except AttributeError:
-                    raise AttributeError("Unable to add data to '%s', location not a namespace " % sub_space[0])
-            else:
-                if sub_space not in self.get().keys():
-                    self.__dict__.update({sub_space: Namespace()})
-                self.get()[sub_space].add(dictionary)
+        for key, item in self.__dict2namespace(dictionary).get().items():
+            self.__add({key: item}, sub_space)
+
+    def load(self, yaml_path, sub_space=None):
+        """
+        :param yaml_path:
+        :param sub_space:
+        :return:
+        """
+        for key, item in self.__yaml2namespace(yaml_path).get().items():
+            self.__add({key: item}, sub_space)
 
     def get(self, key=None):
         """
@@ -69,9 +61,16 @@ class Namespace(object):
         :return:
         """
         with open(file_name, "w") as file:
-            file.write(self.get_summary(tab_size=tab_size))
+            file.write(self.__get_summary(tab_size=tab_size))
 
-    def get_summary(self, tab_size=2, tabs=0, line=None):
+    def summary(self, tab_size=2):
+        """
+        :param tab_size:
+        :return:
+        """
+        print(self.__get_summary(tab_size=tab_size))
+
+    def __get_summary(self, tab_size=2, tabs=0, line=None):
         """
         Prints a summary of all the data in the Namespace.
         :param tab_size: int: number of spaces per tab.
@@ -84,17 +83,10 @@ class Namespace(object):
         for key, item in self.__dict__.items():
             if isinstance(item, Namespace):
                 line += "%s%s:\n" % (" " * tab_size * tabs, key)
-                line += item.get_summary(tabs=tabs + 1)
+                line += item.__get_summary(tabs=tabs + 1)
             else:
                 line += "%s%s: %s\n" % (" " * tab_size * tabs, key, item)
         return line
-
-    def summary(self, tab_size=2):
-        """
-        :param tab_size:
-        :return:
-        """
-        print(self.get_summary(tab_size=tab_size))
 
     def __dict2namespace(self, dictionary):
         """
@@ -107,7 +99,7 @@ class Namespace(object):
         for key, item in dictionary.items():
             if isinstance(item, dict):
                 item = self.__dict2namespace(item)
-            namespace.add({key: item})
+            namespace.__add({key: item})
         return namespace
 
     def __yaml2namespace(self, file_name):
@@ -120,10 +112,34 @@ class Namespace(object):
             dictionary = yaml.load(file)
             return self.__dict2namespace(dictionary)
 
+    def __add(self, dictionary, sub_space=None):
+        """
+        Add a new dictionary to the namespace.
+        :param dictionary: dict: the dictionary of data to add.
+        :param sub_space: str or list of str: path to a sub-space within the Namespace.
+        :return: None.
+        """
+        if sub_space is None:
+            self.__dict__.update(dictionary)
+        else:
+            if isinstance(sub_space, list):
+                sub_space = sub_space[0] if len(sub_space) == 1 else sub_space
+            if isinstance(sub_space, list):
+                if sub_space[0] not in self.get().keys():
+                    self.__dict__.update({sub_space[0]: Namespace()})
+                try:
+                    self.get()[sub_space[0]].__add(dictionary, sub_space[1:])
+                except AttributeError:
+                    raise AttributeError("Unable to add data to '%s', location not a namespace " % sub_space[0])
+            else:
+                if sub_space not in self.get().keys():
+                    self.__dict__.update({sub_space: Namespace()})
+                self.get()[sub_space].__add(dictionary)
+
 
 if __name__ == "__main__":
     namespace = Namespace({"a": 1, "b": 2, "c": {"d": 5, "e": 6}})
-    a = {"project": "../yaml1", "network": "yaml2"}
+    a = {"project": "../yaml1", "network": {"gv": 56, "you": 90}}
     namespace.add(a, ["c", "main", "moop"])
-    namespace.save("/home/samuel/config.yaml")
+    namespace.summary()
 
