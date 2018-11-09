@@ -47,12 +47,13 @@ class GenericInferer(object):
         self.model = model
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.dataset=dataset
         self.dataloader = DataLoader(dataset=dataset,
-                                        batch_size=batch_size,
-                                      shuffle=False,
-                                    num_workers=num_workers)
-
-        pass
+                                     batch_size=batch_size,
+                                     shuffle=False,
+                                     num_workers=num_workers)
+        self.num_minibatches = self.compute_num_minibatches(batch_size=batch_size,
+                                                          length_dataset=dataset.__len__())
 
     @staticmethod
     def clean_single_element_list(minibatch: list) -> list:
@@ -96,3 +97,58 @@ class GenericInferer(object):
                 cleaned_minibatch.append(entry)
 
         return cleaned_minibatch
+
+    @staticmethod
+    def compute_num_minibatches(batch_size:int, length_dataset:int):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Calculate the number of mini batches for one epoch
+
+        PARAMETERS:
+        -----------
+
+        :param batch_size->int: Number of instance in one mini batch
+        :param length_dataset->int: Number of instance in the whole data set
+
+        RETURN:
+        -------
+
+        :return num_minibatches->int: Number of mini batches per epoch
+        """
+        num_minibatches = length_dataset//batch_size
+
+        if num_minibatches != length_dataset*batch_size:
+            num_minibatches += 1
+        return num_minibatches
+
+
+    def get_num_minibatches(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Getter for self.num_minibatches
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return self.num_minibatches->int: The number of mini batches in the Inferer instance
+        """
+        return self.num_minibatches

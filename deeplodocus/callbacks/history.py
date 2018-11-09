@@ -2,16 +2,15 @@ import pandas as pd
 import time
 import os
 import datetime
-from typing import List
 from typing import Union
 from collections import defaultdict
 import __main__
 
-from torch import tensor
 
 
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.dict_utils import sum_dict
 
 Num = Union[int, float]
 
@@ -142,10 +141,11 @@ class History(object):
 
         # Save the history
         # Not available for a batch
+        # Please do not uncomment
         #if self.__do_saving() is True:
         #    self.__save_history()
 
-    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int, total_validation_loss:int, result_validation_losses:dict, result_validation_metrics:dict):
+    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int, total_validation_loss:int, result_validation_losses:dict, result_validation_metrics:dict, num_minibatches_validation:int):
         """
         Authors : Alix Leroy,
         Called at the end of every epoch of the training
@@ -193,25 +193,25 @@ class History(object):
             # If we want to display the metrics at the end of each epoch
             if self.verbose >= DEEP_VERBOSE_BATCH:
                 print_metrics = ", ".join(["total loss : " + str(total_validation_loss)] +
-                                          [str(loss_name) + " : " + str(value.item() / num_minibatches) for
-                                           (loss_name, value) in self.running_losses.items()] +
-                                          [str(metric_name) + " : " + str(value / num_minibatches) for
-                                           (metric_name, value) in self.running_metrics.items()])
+                                          [str(loss_name) + " : " + str(value.item() / num_minibatches_validation) for
+                                           (loss_name, value) in result_validation_losses.items()] +
+                                          [str(metric_name) + " : " + str(value / num_minibatches_validation) for
+                                           (metric_name, value) in result_validation_metrics.items()])
 
                 print("Validation : " + str(print_metrics))
 
             # Save the data in memory
             if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
                 # Save the history in memory
-                data = dict([("total loss", self.running_total_loss / num_minibatches)] +
-                            [(loss_name, value.item() / num_minibatches) for (loss_name, value) in
-                             self.running_losses.items()] +
-                            [(metric_name, value / num_minibatches) for (metric_name, value) in
-                             self.running_metrics.items()])
+                data = dict([("total loss", total_validation_loss / num_minibatches_validation)] +
+                            [(loss_name, value.item() / num_minibatches_validation) for (loss_name, value) in
+                             result_validation_losses.items()] +
+                            [(metric_name, value / num_minibatches_validation) for (metric_name, value) in
+                             result_validation_metrics.items()])
                 data["wall time"] = datetime.datetime.now().strftime("%Y:%m:%d:%H:%M:%S")
                 data["relative time"] = self.__time()
                 data["epoch"] = epoch_index
-                self.train_epochs_history = self.train_epochs_history.append(data, ignore_index=True)
+                self.validation_history = self.validation_history.append(data, ignore_index=True)
 
         print("==============================================================================================================================")
 

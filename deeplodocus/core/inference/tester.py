@@ -22,7 +22,16 @@ from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 
 class Tester(GenericEvaluator):
     """
-    Author: Samuel Westlake, Alix Leroy
+    AUTHORS:
+    --------
+
+    :author: Samuel Westlake
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Class for evaluating the results of the model
     """
 
     def __init__(self,
@@ -140,8 +149,49 @@ class Tester(GenericEvaluator):
 
 
     def set_metrics(self, metrics:dict):
+        """
+        AUTHORS:
+        --------
 
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Setter for self.metrics
+
+        PARAMETERS:
+        -----------
+
+        :param metrics->dict: The metrics we want to analyze
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         self.metrics = metrics
 
     def set_losses(self, losses:dict):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Setter for self.losses
+
+        PARAMETERS:
+        -----------
+
+        :param losses->dict: The losses we want to analyze
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         self.losses = losses
