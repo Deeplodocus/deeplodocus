@@ -96,16 +96,11 @@ class Trainer(GenericEvaluator):
                                   stopping_parameters=stopping_parameters,
                                   write_logs=write_logs)
 
-        # Compute the number of minibatches
-        self.num_minibatches = self.__compute_num_minibatches(length_dataset=dataset.__len__(),
-                                                              batch_size=batch_size)
-
         self.write_logs = write_logs
         self.shuffle = shuffle
         self.optimizer = optimizer
         self.initial_epoch = initial_epoch
         self.num_epochs = num_epochs
-        self.train_dataset = dataset
 
         if isinstance(tester, Tester):
             self.tester = tester          # Tester for validation
@@ -200,23 +195,23 @@ class Trainer(GenericEvaluator):
 
             # Shuffle the data if required
             if self.shuffle is not None:
-                self.train_dataset.shuffle(self.shuffle)
+                self.dataset.shuffle(self.shuffle)
 
             # Reset the dataset (transforms cache)
-            self.train_dataset.reset()
+            self.dataset.reset()
 
+            # Evaluate the model
             total_validation_loss, result_validation_losses, result_validation_metrics = self.__evaluate_epoch()
-            print(total_validation_loss)
-            print(result_validation_losses)
-            print(result_validation_metrics)
-            #Epoch callback
+
+            # Epoch callback
             self.callbacks.on_epoch_end(epoch_index=epoch,
                                         num_epochs=self.num_epochs,
                                         model=self.model,
                                         num_minibatches=self.num_minibatches,
-                                        total_validation_loss=total_validation_loss,
+                                        total_validation_loss=total_validation_loss.item(),
                                         result_validation_losses=result_validation_losses,
-                                        result_validation_metrics=result_validation_metrics)
+                                        result_validation_metrics=result_validation_metrics,
+                                        num_minibatches_validation=self.tester.get_num_minibatches())
 
 
         # End of training callback
@@ -225,34 +220,7 @@ class Trainer(GenericEvaluator):
         # Pause callbacks which compute time
         self.callbacks.pause()
 
-    def __compute_num_minibatches(self, batch_size:int, length_dataset:int):
-        """
-        AUTHORS:
-        --------
 
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Calculate the number of mini batches for one epoch
-
-        PARAMETERS:
-        -----------
-
-        :param batch_size->int: Number of instance in one mini batch
-        :param length_dataset->int: Number of instance in the whole data set
-
-        RETURN:
-        -------
-
-        :return num_minibatches->int: Number of mini batches per epoch
-        """
-        num_minibatches = length_dataset//batch_size
-
-        if num_minibatches != length_dataset*batch_size:
-            num_minibatches += 1
-        return num_minibatches
 
 
 
