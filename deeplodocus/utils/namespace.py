@@ -4,8 +4,6 @@ Data can added on initialisation as a dictionary, a path to a directory and/or a
 """
 
 import yaml
-from pathlib import Path
-
 
 
 class Namespace(object):
@@ -37,8 +35,15 @@ class Namespace(object):
             if isinstance(sub_space, list):
                 sub_space = sub_space[0] if len(sub_space) == 1 else sub_space
             if isinstance(sub_space, list):
-                self.get()[sub_space[0]].add(dictionary, sub_space[1:])
+                if sub_space[0] not in self.get().keys():
+                    self.__dict__.update({sub_space[0]: Namespace()})
+                try:
+                    self.get()[sub_space[0]].add(dictionary, sub_space[1:])
+                except AttributeError:
+                    raise AttributeError("Unable to add data to '%s', location not a namespace " % sub_space[0])
             else:
+                if sub_space not in self.get().keys():
+                    self.__dict__.update({sub_space: Namespace()})
                 self.get()[sub_space].add(dictionary)
 
     def get(self, key=None):
@@ -58,19 +63,38 @@ class Namespace(object):
             else:
                 return self.__dict__[key]
 
-    def summary(self, tab_size=2, tabs=0):
+    def save(self, file_name, tab_size=2):
+        """
+        :param tab_size:
+        :return:
+        """
+        with open(file_name, "w") as file:
+            file.write(self.get_summary(tab_size=tab_size))
+
+    def get_summary(self, tab_size=2, tabs=0, line=None):
         """
         Prints a summary of all the data in the Namespace.
         :param tab_size: int: number of spaces per tab.
         :param tabs: int: number of tabs to use (for internal use).
+        :param line: str: the summary statement from a previous call (for internal use)
         :return: None.
         """
+        if line is None:
+            line = ""
         for key, item in self.__dict__.items():
             if isinstance(item, Namespace):
-                print("%s%s:" % (" " * tab_size * tabs, key))
-                item.summary(tabs=tabs + 1)
+                line += "%s%s:\n" % (" " * tab_size * tabs, key)
+                line += item.get_summary(tabs=tabs + 1)
             else:
-                print("%s%s: %s" % (" " * tab_size * tabs, key, item))
+                line += "%s%s: %s\n" % (" " * tab_size * tabs, key, item)
+        return line
+
+    def summary(self, tab_size=2):
+        """
+        :param tab_size:
+        :return:
+        """
+        print(self.get_summary(tab_size=tab_size))
 
     def __dict2namespace(self, dictionary):
         """
@@ -83,16 +107,6 @@ class Namespace(object):
         for key, item in dictionary.items():
             if isinstance(item, dict):
                 item = self.__dict2namespace(item)
-            """
-            #TODO: Find a way add included yaml files into the namespace
-            elif self.__is_yaml_file(item):
-                item = self.__yaml2namespace(item)
-
-            elif isinstance(item, list):
-                for n, it in enumerate(item):
-                    if self.__is_yaml_file(it):
-                        item[n] = self.__yaml2namespace(it)
-            """
             namespace.add({key: item})
         return namespace
 
@@ -107,63 +121,9 @@ class Namespace(object):
             return self.__dict2namespace(dictionary)
 
 
-    @staticmethod
-    def __is_yaml_file(item):
-        """
-        AUTHORS:
-        --------
+if __name__ == "__main__":
+    namespace = Namespace({"a": 1, "b": 2, "c": {"d": 5, "e": 6}})
+    a = {"project": "../yaml1", "network": "yaml2"}
+    namespace.add(a, ["c", "main", "moop"])
+    namespace.save("/home/samuel/config.yaml")
 
-        author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Check if the item is a yaml file
-
-        PARAMETERS:
-        -----------
-
-        :param item: A dictionary item
-
-        RETURN:
-        -------
-
-        :return -> bool: Whether or not the item is an existing yaml file
-        """
-
-        if isinstance(item, str):
-            if item.endswith(('.yaml', ".yml")):
-                file = Path(item)
-                if file.is_file():
-                    return True
-            else:
-                return False
-        else:
-            return False
-
-
-    @staticmethod
-    def __get_absolute_config_path(relative_config_path):
-        """
-        AUTHORS:
-        --------
-
-        author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Get the absolute config path
-
-        PARAMETERS:
-        -----------
-
-        :param relative_config_path: relative config path
-
-        RETURN:
-        -------
-
-        :return absolute_config_path -> str : The corresponding absolute config path
-        """
-        absolute_config_path = relative_config_path
-        return absolute_config_path
