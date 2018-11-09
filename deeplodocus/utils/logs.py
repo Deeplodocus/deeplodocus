@@ -240,17 +240,4 @@ class Logs(object):
             # Generate new name
             new_log_name = os.path.dirname(os.path.abspath(__main__.__file__))+ "/logs/" + str(self.type) + "_" + str(time) + ".logs"
 
-            # try:
-            #     with open(old_logs_path, "r") as f:
-            #         file_content = f.read()
-            #
-            #     with open(new_log_name,"w") as f:
-            #         f.write(file_content)
-            # except:
-            #     print("TEST WRITE")
-            #
-            # try:
-            #     os.remove(old_logs_path)
-            # except:
-            #     print("error")
             os.rename(old_logs_path, new_log_name)
