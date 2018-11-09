@@ -61,9 +61,16 @@ class Namespace(object):
         :return:
         """
         with open(file_name, "w") as file:
-            file.write(self.get_summary(tab_size=tab_size))
+            file.write(self.__get_summary(tab_size=tab_size))
 
-    def get_summary(self, tab_size=2, tabs=0, line=None):
+    def summary(self, tab_size=2):
+        """
+        :param tab_size:
+        :return:
+        """
+        print(self.__get_summary(tab_size=tab_size))
+
+    def __get_summary(self, tab_size=2, tabs=0, line=None):
         """
         Prints a summary of all the data in the Namespace.
         :param tab_size: int: number of spaces per tab.
@@ -76,17 +83,10 @@ class Namespace(object):
         for key, item in self.__dict__.items():
             if isinstance(item, Namespace):
                 line += "%s%s:\n" % (" " * tab_size * tabs, key)
-                line += item.get_summary(tabs=tabs + 1)
+                line += item.__get_summary(tabs=tabs + 1)
             else:
                 line += "%s%s: %s\n" % (" " * tab_size * tabs, key, item)
         return line
-
-    def summary(self, tab_size=2):
-        """
-        :param tab_size:
-        :return:
-        """
-        print(self.get_summary(tab_size=tab_size))
 
     def __dict2namespace(self, dictionary):
         """

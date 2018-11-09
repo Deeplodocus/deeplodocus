@@ -10,6 +10,7 @@ from deeplodocus.utils.logs import Logs
 from deeplodocus.ui.user_interface import UserInterface
 from deeplodocus import __version__
 
+
 class Brain(object):
     """
     AUTHORS:
@@ -56,7 +57,7 @@ class Brain(object):
         self.exit_flags = ["q", "quit", "exit"]
         self.config = None
         self.user_interface = None
-        self.__load_config()
+        self.load_config()
 
     def wake(self):
         """
@@ -88,15 +89,15 @@ class Brain(object):
                 directory = "/".join(self.config_path.split("/")[:-1])
                 for key, path in self.config.get().items():
                     self.config.get()[key] = Namespace("%s/%s" % (directory, path))
-                self.config.add({"main": Namespace(Namespace(self.config_path).get())})
-                Notification(DEEP_SUCCESS, "Config file loaded (%s)" % self.config_path)
+                self.config.load(self.config_path, "main")
+                Notification(DEEP_NOTIF_SUCCESS, "Config file loaded (%s)" % self.config_path)
                 return True
             else:
                 if self.config_path in self.exit_flags:
                     return False
                 else:
-                    Notification(DEEP_ERROR, "Given path does not point to a file (%s)" % self.config_path)
-                    self.config_path = Notification(DEEP_INPUT, "Please insert the config file path :").get()
+                    Notification(DEEP_NOTIF_ERROR, "Given path does not point to a file (%s)" % self.config_path)
+                    self.config_path = Notification(DEEP_NOTIF_INPUT, "Please insert the config file path :").get()
 
     def __run_command(self, command:str)->None:
         """
@@ -123,7 +124,7 @@ class Brain(object):
 
         # Load a new config file
         if command == "load_config":
-            self.__load_config()
+            self.load_config()
 
         # train the network
         elif command == "train":
