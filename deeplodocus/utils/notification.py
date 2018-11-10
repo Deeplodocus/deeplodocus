@@ -394,7 +394,7 @@ class Notification(object):
 
         :return: None
         """
-        l = Logs("notification")
+        l = Logs("notification", "/logs", ".logs")
         l.add(message)
 
 

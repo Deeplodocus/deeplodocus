@@ -10,7 +10,7 @@ from torch.nn import Module
 from deeplodocus.callbacks.saver import Saver
 from deeplodocus.callbacks.history import History
 from deeplodocus.callbacks.stopping import Stopping
-
+from deeplodocus.utils.flags import *
 
 
 Num = Union[int, float]
@@ -31,9 +31,11 @@ class Callback(object):
                  verbose:int,
                  data_to_memorize:int,
                  # Saver
-                 save_condition:int,
+                 save_condition:int = DEEP_SAVE_CONDITION_END_TRAINING,
+                 save_model_method:int = DEEP_SAVE_NET_FORMAT_PYTORCH,
+                 overwatch_metric:str = "total_loss",
                  # Stopping
-                 stopping_parameters,
+                 stopping_parameters=None,
                  write_logs: bool = True
                 ):
 
@@ -50,6 +52,8 @@ class Callback(object):
         self.model_name = model_name
         self.verbose = verbose
         self.save_condition = save_condition
+        self.save_model_method = save_model_method
+        self.overwatch_metric = overwatch_metric
 
 
         #
@@ -199,8 +203,11 @@ class Callback(object):
         :param model: model to save
         :return: None
         """
-        self.saver = Saver(self.save_condition, self.metrics)
+        self.saver = Saver(model_name=self.model_name,
+                           save_condition=self.save_condition,
+                           save_model_method=self.save_model_method,
+                           overwatch_metric=self.overwatch_metric,
+                           write_logs=self.write_logs)
 
     def pause(self):
-
         print("Callbacks pause not implemented")

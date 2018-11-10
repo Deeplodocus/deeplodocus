@@ -51,7 +51,10 @@ class Brain(object):
 
         self.write_logs = write_logs
         self.config_path = config_path
-        self.logs = ["notification"]
+        self.logs = [["notification", "/logs", ".logs"],
+                     ["history_train_batches", "/results", ".csv"],
+                     ["history_train_epochs", "/results", ".csv"],
+                     ["history_validation", "/results", ".csv"]]
         self.__init_logs()
         Logo(version=__version__, write_logs=write_logs)
         self.exit_flags = ["q", "quit", "exit"]
@@ -151,9 +154,9 @@ class Brain(object):
         Initialize all logs
         :return:None
         """
-        for log_name in self.logs:
-            Logs(log_name).check_init()
-        Notification(DEEP_NOTIF_SUCCESS, "Logs initialized ! ", write_logs=self.write_logs)
+        for log_name, log_folder, log_extension in self.logs:
+            Logs(log_name, log_folder, log_extension).check_init()
+        Notification(DEEP_NOTIF_SUCCESS, "Log and History files initialized ! ", write_logs=self.write_logs)
 
 
 if __name__ == "__main__":

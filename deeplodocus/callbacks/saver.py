@@ -11,8 +11,8 @@ from deeplodocus.utils.flags import *
 
 class Saver(object):
 
-
     def __init__(self,
+                 model_name:str = "no_name",
                  save_condition:int = DEEP_SAVE_CONDITION_AUTO,
                  save_model_method = DEEP_SAVE_NET_FORMAT_PYTORCH,
                  overwatch_metric = "total_loss",
@@ -22,9 +22,15 @@ class Saver(object):
         self.save_model_method = save_model_method
         self.save_condition = save_condition
         self.overwatch_metric = overwatch_metric
-        self.path = os.path.dirname(os.path.abspath(__main__.__file__))+ "/results/models"
+        self.directory = os.path.dirname(os.path.abspath(__main__.__file__))+ "/results/models/"
+        self.model_name = model_name
 
+        if self.save_model_method == DEEP_SAVE_NET_FORMAT_ONNX:
+            self.extension = ".onnx"
+        else:
+            self.extension = ".model"
 
+        print(write_logs)
     """
     ON BATCH END NOT TO BE IMPLEMENTED FOR EFFICIENCY REASONS
     def on_batch_end(self, model:Module):
@@ -96,12 +102,14 @@ class Saver(object):
 
 
 
-    def __save_model(self, model:Module)->None:
+    def __save_model(self, model:Module, input)->None:
+
+        filepath = self.directory + self.model_name + self.extension
 
         # If we want to save to the pytorch format
         if self.save_model_method == DEEP_SAVE_NET_FORMAT_PYTORCH:
             try:
-                torch.save(model.state_dict(), self.path)
+                torch.save(model.state_dict(), filepath)
             except:
                 Notification(DEEP_NOTIF_ERROR, "Error while saving the pytorch model and weights" ,write_logs=self.write_logs)
                 self.__handle_error_saving(model)
@@ -109,14 +117,14 @@ class Saver(object):
         # If we want to save to the ONNX format
         elif self.save_model_method == DEEP_SAVE_NET_FORMAT_ONNX:
             try:
-                torch.onnx.export(model, dummy_input, "alexnet.proto", verbose=True, input_names=input_names, output_names=output_names)
+                torch.onnx._export(model, input, filepath, export_params=True, verbose=True, input_names=input_names, output_names=output_names)
             except:
                 Notification(DEEP_NOTIF_ERROR, "Error while saving the ONNX model and weights" ,write_logs=self.write_logs)
                 self.__handle_error_saving(model)
 
         Notification(DEEP_NOTIF_SUCCESS, "Model and weights saved", write_logs=self.write_logs)
 
-    def __handle_error_saving(self, model:Module)->None:
+    def __handle_error_saving(self, model_name:str, model:Module)->None:
         """
         AUTHORS:
         --------
@@ -139,7 +147,7 @@ class Saver(object):
 
         :return: None
         """
-        Notification(DEEP_NOTIF_ERROR, "Please make sure you have the permission to write for this following file : " + str(self.save_path), write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_ERROR, "Please make sure you have the permission to write for this following file : " + str(model_name), write_logs=self.write_logs)
         response = ""
 
         while response.lower() != ("y" or "n"):
@@ -159,8 +167,8 @@ class Saver(object):
                 response = ""
 
                 while response.lower() != ("y" or "n"):
-                    Notification(DEEP_NOTIF_WARNING, "You will lose all your data if Deeplodocus is closed !" ,write_logs=self.write_logs)
-                    response = Notification(DEEP_NOTIF_INPUT, "Are you sure to close Deeplodocus (y/n)", write_logs=self.write_logs).get()
+                    Notification(DEEP_NOTIF_WARNING, "You will lose all your data if Deeplodocus is closed !" ,write_logs = self.write_logs)
+                    response = Notification(DEEP_NOTIF_INPUT, "Are you sure to close Deeplodocus (y/n)", write_logs = self.write_logs).get()
 
                 if response.lower() == "n":
                     self.__handle_error_saving()
@@ -170,7 +178,7 @@ class Saver(object):
                 response = ""
 
                 while response.lower() != ("pytorch" or "onnx"):
-                    response = Notification(DEEP_NOTIF_INPUT, "What format would you like to save ? (pytorch/onnx)", write_logs=self.write_logs).get()
+                    response = Notification(DEEP_NOTIF_INPUT, "What format would you like to save ? (pytorch/onnx)", write_logs = self.write_logs).get()
 
                 if response.lower() == "pytorch":
                     self.save_model_method = DEEP_SAVE_NET_FORMAT_PYTORCH

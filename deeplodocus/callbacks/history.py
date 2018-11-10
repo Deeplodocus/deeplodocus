@@ -3,14 +3,13 @@ import time
 import os
 import datetime
 from typing import Union
-from collections import defaultdict
 import __main__
 
 
 
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.dict_utils import sum_dict
+from deeplodocus.utils.dict_utils import merge_sum_dict
 
 Num = Union[int, float]
 
@@ -116,8 +115,8 @@ class History(object):
 
         # Save the running metrics
         self.running_total_loss = self.running_total_loss + total_loss
-        self.running_losses = self.dsum(self.running_losses, result_losses)
-        self.running_metrics = self.dsum(self.running_metrics, result_metrics)
+        self.running_losses = merge_sum_dict(self.running_losses, result_losses)
+        self.running_metrics = merge_sum_dict(self.running_metrics, result_metrics)
 
         # If the user wants to print stats for each batch
         if self.verbose >= DEEP_VERBOSE_BATCH:
@@ -223,13 +222,6 @@ class History(object):
         if self.__do_saving() is True:
             self.__save_history()
 
-    def dsum(self, *dicts):
-        # https://stackoverflow.com/questions/10461531/merge-and-sum-of-two-dictionaries
-        ret = defaultdict(int)
-        for d in dicts:
-            for k, v in d.items():
-                ret[k] += v
-        return dict(ret)
 
 
     def on_training_end(self):
@@ -243,34 +235,10 @@ class History(object):
         Notification(DEEP_NOTIF_SUCCESS, "History saved", write_logs=self.write_logs)
 
 
-        # def __initialize_running_metrics(self, metrics):
-        #     """
-        #     AUTHORS:
-        #     --------
-        #
-        #     :author: Alix Leroy
-        #
-        #     DESCRIPTION:
-        #     ------------
-        #
-        #     Initialize the running_metrics
-        #
-        #     PARAMETERS:
-        #     -----------
-        #
-        #     None
-        #
-        #     RETURN:
-        #     -------
-        #     :return initialized_running_metrics->list: The initialized running metrics
-        #     """
-        #
-        #     initialized_running_metrics = [0 for i in range(len(metrics))]
-        #     return initialized_running_metrics
-
 
     def __do_saving(self):
         pass
+    # TODO : Check if history has to be saved
 
 
     def __save_history(self):
@@ -369,7 +337,25 @@ class History(object):
 
     def __time(self):
         """
-        :return: Current train time in seconds
+        AUTHORS:
+        --------
+
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Calculate the relative time between the start of the training and the current time
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return->float: Current train time in seconds
         """
         return round(time.time() - self.start_time, 2)
 
