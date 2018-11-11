@@ -3,7 +3,6 @@
 #
 from torch.nn import Module
 
-
 #
 # DEEPLODOCUS IMPORTS
 #
@@ -18,25 +17,26 @@ from deeplodocus.utils.flags import *
 from deeplodocus.utils.generic_utils import is_string_an_integer
 from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 
+
 class Trainer(GenericEvaluator):
 
     def __init__(self,
-                 model:Module,
-                 dataset:Dataset,
-                 metrics:dict,
-                 losses:dict,
+                 model: Module,
+                 dataset: Dataset,
+                 metrics: dict,
+                 losses: dict,
                  optimizer,
-                 num_epochs:int,
-                 initial_epoch:int = 1,
-                 batch_size:int = 4,
-                 shuffle:int = DEEP_SHUFFLE_ALL,
-                 num_workers:int = 4,
-                 verbose:int=DEEP_VERBOSE_BATCH,
-                 data_to_memorize:int = DEEP_MEMORIZE_BATCHES,
-                 save_condition:int=DEEP_SAVE_CONDITION_AUTO,
+                 num_epochs: int,
+                 initial_epoch: int = 1,
+                 batch_size: int = 4,
+                 shuffle: int = DEEP_SHUFFLE_ALL,
+                 num_workers: int = 4,
+                 verbose: int=DEEP_VERBOSE_BATCH,
+                 data_to_memorize: int = DEEP_MEMORIZE_BATCHES,
+                 save_condition: int=DEEP_SAVE_CONDITION_AUTO,
                  stopping_parameters=None,
-                 tester:Tester=None,
-                 model_name:str = "test",
+                 tester: Tester=None,
+                 model_name: str = "test",
                  write_logs=True):
         """
         AUTHORS:
@@ -109,26 +109,17 @@ class Trainer(GenericEvaluator):
         else:
             self.tester = None
 
-    def fit(self, first_training:bool = True)->None:
+    def fit(self, first_training: bool = True)->None:
         """
-        :param method:
+        :param first_training:
         :return:
         """
-
-
         self.__train(first_training=first_training)
-
-        Notification(DEEP_NOTIF_SUCCESS, "", write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_SUCCESS,"=============================================================", write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_SUCCESS,'Finished Training', write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_SUCCESS,"=============================================================", write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_SUCCESS,"\n", write_logs=self.write_logs)
-
+        Notification(DEEP_NOTIF_SUCCESS, FINISHED_TRAINING, write_logs=self.write_logs)
         # Prompt if the user want to continue the training
         self.__continue_training()
 
-
-    def __train(self, first_training = True)->None:
+    def __train(self, first_training=True)->None:
         """
         AUTHORS:
         --------
@@ -151,13 +142,11 @@ class Trainer(GenericEvaluator):
         :return: None
         """
 
-
-        if first_training is True :
-
+        if first_training is True:
             self.callbacks.on_train_begin()
 
         for epoch in range(self.initial_epoch, self.num_epochs+1):  # loop over the dataset multiple times
-
+            self.callbacks.on_epoch_start(epoch_index=epoch, num_epochs=self.num_epochs)
             for minibatch_index, minibatch in enumerate(self.dataloader):
 
                 # Clean the given data
@@ -212,64 +201,45 @@ class Trainer(GenericEvaluator):
                                         result_validation_losses=result_validation_losses,
                                         result_validation_metrics=result_validation_metrics,
                                         num_minibatches_validation=self.tester.get_num_minibatches())
-
-
         # End of training callback
         self.callbacks.on_training_end(model=self.model)
-
         # Pause callbacks which compute time
         self.callbacks.pause()
 
-
-
-
-
-
-
-
-
     def __continue_training(self):
-
+        """
+        :return:
+        """
         continue_training = ""
-
         # Ask if the user want to continue the training
-        while continue_training.lower() != ("y" or "n"):
-
-            continue_training = Notification(DEEP_NOTIF_INPUT, 'Would you like to continue the training ? (Y/N) ', write_logs=self.write_logs).get()
-
-        #If yes ask the number of epochs
+        while continue_training.lower() not in ["y", "n"]:
+            continue_training = Notification(DEEP_NOTIF_INPUT, "Would you like to continue the training ? (Y/N) ",
+                                             write_logs=self.write_logs).get()
+        # If yes ask the number of epochs
         if continue_training.lower() == "y":
-            epochs = ""
-
-            while is_string_an_integer(epochs) is False:
-                epochs =  Notification(DEEP_NOTIF_INPUT, 'Number of epochs ? ', write_logs=self.write_logs).get()
-
-            epochs = int(epochs)
-            # Reset the system to continue the training
+            while True:
+                epochs = Notification(DEEP_NOTIF_INPUT, "Number of epochs ? ", write_logs=self.write_logs).get()
+                try:
+                    epochs = int(epochs)
+                    break
+                except ValueError:
+                    Notification(DEEP_NOTIF_WARNING, "Number of epochs must be an integer",
+                                 write_logs=self.write_logs).get()
             if epochs > 0:
-                self.initial_epoch = self.num_epochs
+                self.initial_epoch = self.num_epochs + 1
                 self.num_epochs += epochs
-
                 # Resume the training
-                self.fit(first_training = False)
-
-
-
+                self.fit(first_training=False)
         else:
             pass
 
     def __evaluate_epoch(self):
-
+        """
+        :return:
+        """
         total_validation_loss = None
         result_losses = None
         result_metrics = None
-
         if self.tester is not None:
             total_validation_loss, result_losses, result_metrics = self.tester.evaluate()
-
         return total_validation_loss, result_losses, result_metrics
-
-
-
-
-

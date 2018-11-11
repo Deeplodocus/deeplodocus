@@ -8,7 +8,7 @@ from deeplodocus.utils.generic_utils import sorted_nicely
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
 
-cv_library = DEEP_LIB_OPENCV
+cv_library = DEEP_LIB_PIL
 
 # IMPORT COMPUTER VISION LIBRARY
 if cv_library == DEEP_LIB_OPENCV:
@@ -26,8 +26,6 @@ elif cv_library == DEEP_LIB_PIL:
                           "If not use 'pip install Pillow'.")
 else:
     Notification(DEEP_NOTIF_FATAL,  "The following image module is not implemented : %s" % cv_library)
-
-
 
 
 class Dataset(object):
@@ -59,7 +57,12 @@ class Dataset(object):
         - OpenCV (usage recommended for efficiency)
     """
 
-    def __init__(self, list_inputs, list_labels, list_additional_data, use_raw_data = True, transform_manager=None, cv_library=DEEP_LIB_PIL, write_logs=True, name="Default"):
+    def __init__(self, list_inputs, list_labels, list_additional_data,
+                 use_raw_data = True,
+                 transform_manager=None,
+                 cv_library=DEEP_LIB_PIL,
+                 write_logs=True,
+                 name="Default"):
         """
         AUTHORS:
         --------

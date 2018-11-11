@@ -1,6 +1,7 @@
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
 
+
 class Logo(object):
     """
     AUTHORS:
@@ -14,8 +15,7 @@ class Logo(object):
     Display the logo of Deeplodocus containing the version number.
     """
 
-
-    def __init__(self, version:str, write_logs:bool=True):
+    def __init__(self, version: str, write_logs: bool=True):
         """
         AUTHORS:
         --------
@@ -40,7 +40,8 @@ class Logo(object):
 
         self.__display(version, write_logs)
 
-    def __display(self, version:str, write_logs:bool):
+    @staticmethod
+    def __display(version: str, write_logs: bool):
         """
         AUTHORS:
         --------
@@ -61,7 +62,6 @@ class Logo(object):
         -------
         :return: None
         """
-
 
         Notification(DEEP_NOTIF_SUCCESS, "         `.-.````                                                                   ", write_logs=write_logs)
         Notification(DEEP_NOTIF_SUCCESS, "      ....0.0-....`                                                                 ", write_logs=write_logs)
@@ -89,6 +89,3 @@ class Logo(object):
         Notification(DEEP_NOTIF_INFO, "..................................VERSION : " + str(version) + ".......................................", write_logs=write_logs)
         Notification(DEEP_NOTIF_INFO, "``'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,.='````'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,", write_logs=write_logs)
         print("\n")
-
-
-
