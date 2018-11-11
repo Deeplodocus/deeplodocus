@@ -1,7 +1,5 @@
-import torch.nn.functional as F
 import torch.nn as nn
 import torch
-import collections
 
 from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
@@ -47,9 +45,9 @@ metrics = {accuracy_metric.get_name() : accuracy_metric, accuracy_metric2.get_na
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
 tester = Tester(model=model,
-                dataset=train_dataset,
-                metrics={},
-                losses={},
+                dataset=train_dataset,  # You same dataset to simplify
+                metrics={},             # Will be filled by the Trainer
+                losses={},              # Will be filled by the Trainer
                 batch_size=4,
                 num_workers=4,
                 verbose=DEEP_VERBOSE_BATCH)
@@ -65,10 +63,11 @@ trainer = Trainer(model=model,
                   batch_size=4,
                   shuffle = DEEP_SHUFFLE_ALL,
                   data_to_memorize=DEEP_MEMORIZE_BATCHES,
-                  save_condition=DEEP_SAVE_CONDITION_AUTO,
+                  save_condition=DEEP_SAVE_CONDITION_END_TRAINING,
                   verbose=DEEP_VERBOSE_BATCH,
                   num_workers=1,
                   tester=tester,
+                  model_name="test-trainer",
                   write_logs=False)
 
 trainer.fit()

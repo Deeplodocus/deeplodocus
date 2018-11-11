@@ -15,7 +15,7 @@ class Logs(object):
     A class which manages the logs
     """
 
-    def __init__(self, type:str)->None:
+    def __init__(self, type:str, folder:str ="/logs", extension:str = ".logs")->None:
         """
         AUTHORS:
         --------
@@ -38,6 +38,8 @@ class Logs(object):
         :return: None
         """
         self.type = type
+        self.folder = folder
+        self.extension = extension
 
     def check_init(self)->None:
         """
@@ -63,8 +65,8 @@ class Logs(object):
         """
 
         # Log paths
-        logs_folder_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/logs"
-        logs_file_path = logs_folder_path + "/" + str(self.type) + ".logs"
+        logs_folder_path = os.path.dirname(os.path.abspath(__main__.__file__)) + self.folder
+        logs_file_path = logs_folder_path + "/" + str(self.type) + self.extension
 
         # Check the logs folder exists
         self.__check_log_folder_exists(logs_folder_path)
@@ -96,7 +98,7 @@ class Logs(object):
 
         """
 
-        logs_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/logs/" + str(self.type) + ".logs"
+        logs_path = os.path.dirname(os.path.abspath(__main__.__file__)) + self.folder + "/" + str(self.type) + self.extension
         timestr = datetime.datetime.now()
 
         with open(logs_path, "a") as log:
@@ -200,7 +202,7 @@ class Logs(object):
         # Append the date time as first line
         with open(logs_path, "a") as log:
             timestr = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-            log.write("Initialized : " + str(timestr) + "\n")
+            log.write("Initialized : " + self.type + str(timestr) + "\n")
 
     def close_log(self):
         """
@@ -226,7 +228,7 @@ class Logs(object):
         """
 
         print(os.path.dirname(os.path.abspath(__main__.__file__)))
-        old_logs_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/logs/" + str(self.type) + ".logs"
+        old_logs_path = os.path.dirname(os.path.abspath(__main__.__file__)) + self.folder +"/" + str(self.type) + self.extension
 
         # If the log file exists
         if os.path.isfile(old_logs_path):
@@ -238,6 +240,6 @@ class Logs(object):
             time = line.split(":")[1].replace(" ", "").replace("\n", "")
 
             # Generate new name
-            new_log_name = os.path.dirname(os.path.abspath(__main__.__file__))+ "/logs/" + str(self.type) + "_" + str(time) + ".logs"
+            new_log_name = os.path.dirname(os.path.abspath(__main__.__file__))+ self.folder +"/" + str(self.type) + "_" + str(time) + self.extension
 
             os.rename(old_logs_path, new_log_name)
