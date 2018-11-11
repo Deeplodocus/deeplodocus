@@ -129,7 +129,7 @@ class Callback(object):
 
 
 
-    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int, model:Module, total_validation_loss:int, result_validation_losses:dict, result_validation_metrics:dict):
+    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int, model:Module, total_validation_loss:int, result_validation_losses:dict, result_validation_metrics:dict, num_minibatches_validation:int):
         """
         Authors : Alix Leroy,
         Call callbacks at the end of one epoch
@@ -141,7 +141,8 @@ class Callback(object):
                                   num_minibatches=num_minibatches,
                                   total_validation_loss=total_validation_loss,
                                   result_validation_losses=result_validation_losses,
-                                  result_validation_metrics=result_validation_metrics)
+                                  result_validation_metrics=result_validation_metrics,
+                                  num_minibatches_validation=num_minibatches_validation)
         self.saver.on_epoch_end(model)
         self.stopping.on_epoch_end()
 

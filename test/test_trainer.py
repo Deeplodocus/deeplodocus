@@ -6,11 +6,12 @@ import collections
 
 from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
-from deeplodocus.trainer import Trainer
+from deeplodocus.core.inference.trainer import Trainer
 from deeplodocus.core.project.deep_structure.modules.models.classification import Net
 from deeplodocus.core.project.deep_structure.modules.metrics.accuracy import accuracy
 from deeplodocus.core.metrics.metric import Metric
 from deeplodocus.core.metrics.loss import Loss
+from deeplodocus.core.inference.tester import Tester
 
 # Model
 model = Net()
@@ -31,7 +32,7 @@ train_dataset.summary()
 
 # Losses
 loss =  nn.CrossEntropyLoss()
-loss1 = Loss(name="Binary_accuracy1", loss=loss, weight=0.5, write_logs=False)
+loss1 = Loss(name="Binary_accuracy1", loss=loss, weight=0.6, write_logs=False)
 loss2 = Loss(name="Binary_accuracy2", loss=loss, weight=0.5, write_logs=False)
 
 loss_functions = {loss1.get_name() : loss1, loss2.get_name() :  loss2}
@@ -46,6 +47,14 @@ metrics = {accuracy_metric.get_name() : accuracy_metric, accuracy_metric2.get_na
 # Optimizer
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
+tester = Tester(model=model,
+                dataset=train_dataset,
+                metrics={},
+                losses={},
+                batch_size=4,
+                num_workers=4,
+                verbose=DEEP_VERBOSE_BATCH)
+
 
 trainer = Trainer(model = model,
                   dataset = train_dataset,
@@ -58,7 +67,9 @@ trainer = Trainer(model = model,
                   shuffle = DEEP_SHUFFLE_ALL,
                   data_to_memorize=DEEP_MEMORIZE_BATCHES,
                   save_condition=DEEP_SAVE_CONDITION_AUTO,
+                  verbose=DEEP_VERBOSE_BATCH,
                   num_workers = 1,
+                  tester=tester,
                   write_logs=False)
 
 trainer.fit()
