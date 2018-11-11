@@ -339,7 +339,7 @@ class Notification(object):
         print(CBLINK + CBOLD + str(message) + CEND)
 
         # Wait for an input from the user
-        self.response = input(">")
+        self.response = input("> ")
 
         if self.write_logs is True :
             # Add the the message to the log
