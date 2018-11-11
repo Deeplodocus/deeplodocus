@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch
 import collections
 
-
 from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.trainer import Trainer
@@ -25,13 +24,13 @@ inputs.append([r"data/input1.txt"])
 labels.append([r"data/label1.txt"])
 #inputs.append([r"data/label1.txt"])
 
-train_dataset = Dataset(inputs, labels, additional_data, transform_manager=None,  cv_library=DEEP_LIB_OPENCV, write_logs=False, name="Test Trainer")
+train_dataset = Dataset(inputs, labels, additional_data, transform_manager=None,  cv_library=DEEP_LIB_PIL, write_logs=False, name="Test Trainer")
 train_dataset.load()
 train_dataset.set_len_dataset(7)
 train_dataset.summary()
 
 # Losses
-loss =  nn.CrossEntropyLoss()
+loss = nn.CrossEntropyLoss()
 loss1 = Loss(name="Binary_accuracy1", loss=loss, weight=0.6, write_logs=False)
 loss2 = Loss(name="Binary_accuracy2", loss=loss, weight=0.5, write_logs=False)
 
@@ -56,8 +55,8 @@ tester = Tester(model=model,
                 verbose=DEEP_VERBOSE_BATCH)
 
 
-trainer = Trainer(model = model,
-                  dataset = train_dataset,
+trainer = Trainer(model=model,
+                  dataset=train_dataset,
                   losses=loss_functions,
                   metrics=metrics,
                   optimizer=optimizer,
@@ -68,7 +67,7 @@ trainer = Trainer(model = model,
                   data_to_memorize=DEEP_MEMORIZE_BATCHES,
                   save_condition=DEEP_SAVE_CONDITION_AUTO,
                   verbose=DEEP_VERBOSE_BATCH,
-                  num_workers = 1,
+                  num_workers=1,
                   tester=tester,
                   write_logs=False)
 

@@ -149,7 +149,7 @@ In order to load the data you have to feed Deeplodocus using the `data_config.ya
 
 ```yaml
 
-# data_config.yaml
+data.yaml
 
 # _____________________________
 #

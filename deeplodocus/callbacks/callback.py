@@ -92,6 +92,14 @@ class Callback(object):
         """
         self.history.on_train_begin()
 
+    def on_epoch_start(self, epoch_index: int, num_epochs: int):
+        """
+        Author: SW
+        :param epoch_index: int: index of current epoch
+        :param num_epochs: int: total number of epochs
+        :return:
+        """
+        self.history.on_epoch_start(epoch_index, num_epochs)
 
     def on_batch_end(self, minibatch_index:int, num_minibatches:int, epoch_index:int, total_loss:int, result_losses:dict, result_metrics:dict):
         """
@@ -188,7 +196,6 @@ class Callback(object):
                                write_logs=self.write_logs)
 
     def update(self):
-
         self.history.update(num_epochs=self.num_epochs, num_batches=self.num_batches)
 
 
@@ -202,5 +209,4 @@ class Callback(object):
         self.saver = Saver(self.save_condition, self.metrics)
 
     def pause(self):
-
         print("Callbacks pause not implemented")

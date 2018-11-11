@@ -81,4 +81,21 @@ DEEP_SHUFFLE_BATCHES = 2
 DEEP_SAVE_NET_FORMAT_ONNX = 0
 DEEP_SAVE_NET_FORMAT_PYTORCH = 1
 
+#
+# NOTIFICATION STATEMENTS
+#
 
+H_LINE = "=" * 150
+FINISHED_TRAINING = "Finished training"
+SUMMARY = "Summary"
+TOTAL_LOSS = "Total Loss"
+WALL_TIME = "Wall Time"
+RELATIVE_TIME = "Relative Time"
+EPOCH = "Epoch"
+BATCH = "Batch"
+TRAINING = "Training"
+VALIDATION = "Validation"
+TIME_FORMAT = "%Y:%m:%d:%H:%M:%S"
+EPOCH_END = "End of Epoch [%i/%i]"
+EPOCH_START = "Start of Epoch [%i/%i]"
+HISTORY_SAVED = "History saved to %s"

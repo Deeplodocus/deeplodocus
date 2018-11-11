@@ -9,13 +9,13 @@ from typing import Union
 from torch.nn import Module
 from torch import tensor
 
-
 #
 # Deeplodocus imports
 #
 from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
+
 
 class GenericEvaluator(GenericInferer):
     """
@@ -29,7 +29,6 @@ class GenericEvaluator(GenericInferer):
 
     A GenericIEvaluator class
     """
-
 
     def __init__(self,
                  model: Module,
@@ -75,9 +74,12 @@ class GenericEvaluator(GenericInferer):
         self.metrics = metrics
         self.losses = losses
 
-
     @staticmethod
-    def compute_metrics(metrics: dict, inputs: Union[tensor, list], outputs: Union[tensor, list], labels: Union[tensor, list], additional_data: Union[tensor, list]) -> dict:
+    def compute_metrics(metrics: dict,
+                        inputs: Union[tensor, list],
+                        outputs: Union[tensor, list],
+                        labels: Union[tensor, list],
+                        additional_data: Union[tensor, list]) -> dict:
         """
         AUTHORS;
         --------
