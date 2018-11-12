@@ -15,7 +15,8 @@ class Logs(object):
     A class which manages the logs
     """
 
-    def __init__(self, type:str, folder:str ="%s/logs" % os.path.dirname(os.path.abspath(__main__.__file__)), extension:str = ".logs")->None:
+    def __init__(self, type:str, folder:str ="%s/logs" % os.path.dirname(os.path.abspath(__main__.__file__)),
+                 extension:str = ".logs")->None:
 
         """
         AUTHORS:
@@ -114,9 +115,6 @@ class Logs(object):
         else:
             with open(logs_path, "a") as log:
                 log.write(text)
-
-
-
 
 
     def __check_log_folder_exists(self, logs_folder_path:str):

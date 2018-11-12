@@ -125,6 +125,7 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: [DEEP_CONFIG_PROJECT_NAME,
 # DEEP MESSAGES / TEXT / STATEMENTS
 #
 DEEP_MSG_ALREADY_AWAKE = "I am already awake !"
+DEEP_MSG_CONFIG_NOT_FOUND = "%s is missing from project configurations"
 DEEP_MSG_DIR_NOT_FOUND = "Directory not found : %s"
 DEEP_MSG_FILE_NOT_FOUND = "File not found : %s"
 DEEP_MSG_INSTRUCTRION = "Awaiting instruction ..."

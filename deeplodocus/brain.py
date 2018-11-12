@@ -57,7 +57,7 @@ class Brain(object):
                      ["history_train_batches", "/results", ".csv"],
                      ["history_train_epochs", "/results", ".csv"],
                      ["history_validation", "/results", ".csv"]]
-        self.__init_logs()
+        # self.__init_logs()
         Logo(version=__version__, write_logs=self.write_logs)
         self.config = self.__new_config()
         self.user_interface = None
@@ -161,6 +161,7 @@ class Brain(object):
                     Notification(DEEP_NOTIF_WARNING, DEEP_MSG_FILE_NOT_FOUND % config_path, write_logs=self.write_logs)
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir, write_logs=self.write_logs)
+        self.config.summary()
         a = self.check_config()
         print(a)
         if a:
@@ -176,24 +177,23 @@ class Brain(object):
         """
         complete = True
         for key, items in dictionary.items():
+            if sub_space is None:
+                this_sub_sapce = [key]
+            elif isinstance(sub_space, list):
+                this_sub_sapce = sub_space + [key]
+            else:
+                this_sub_sapce = [sub_space] + key
+            if isinstance(items, list)
             for item in items:
-                if sub_space is None:
-                    this_sub_space = key
-                else:
-                    if isinstance(sub_space, list):
-                        this_sub_space = sub_space + [key]
-                    else:
-                        this_sub_space = [sub_space] + [key]
                 if isinstance(item, dict):
-                    self.check_config(item, sub_space=this_sub_space)
-                else:
-                    if not self.config.check(item, sub_space=this_sub_space):
+                    if not self.check_config(dictionary=item, sub_space=this_sub_sapce):
                         complete = False
-                        if isinstance(this_sub_space, list):
-                            item = ".".join(this_sub_space + [item])
-                        else:
-                            item = ".".join([this_sub_space, item])
-                        Notification(DEEP_NOTIF_ERROR, "%s does not exist" % item, write_logs=False)
+                else:
+                    print(this_sub_sapce, item)
+                    if not self.config.check(item, this_sub_sapce):
+                        complete = False
+                        item = ".".join([item] + this_sub_sapce)
+                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_FOUND % item, write_logs=self.write_logs)
         return complete
 
     def __set_write_logs(self):
