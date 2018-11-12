@@ -1,5 +1,7 @@
 import torch.nn as nn
 import torch
+import os
+import __main__
 
 from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
@@ -9,6 +11,20 @@ from deeplodocus.core.project.deep_structure.modules.metrics.accuracy import acc
 from deeplodocus.core.metrics.metric import Metric
 from deeplodocus.core.metrics.loss import Loss
 from deeplodocus.core.inference.tester import Tester
+from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.logs import Logs
+
+log_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/logs"
+result_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/results/history"
+
+logs = [["notification", log_path, ".logs"],
+             ["history_train_batches", result_path, ".csv"],
+             ["history_train_epochs", result_path, ".csv"],
+             ["history_validation", result_path, ".csv"]]
+
+for log_name, log_folder, log_extension in logs:
+    Logs(log_name, log_folder, log_extension).check_init()
+Notification(DEEP_NOTIF_SUCCESS, "Log and History files initialized ! ", write_logs=False)
 
 # Model
 model = Net()
