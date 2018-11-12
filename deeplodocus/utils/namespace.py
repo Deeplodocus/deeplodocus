@@ -51,9 +51,9 @@ class Namespace(object):
             if isinstance(key, list):
                 key = key[0] if len(key) == 1 else key
             if isinstance(key, list):
-                return self.get(key[0]).get(key=key[1:])
+                return self.__dict__[key[0]].get(key[1:])
             else:
-                return self.__dict__[key]
+                return self.__dict__[key].get()
 
     def save(self, file_name, tab_size=2):
         """
@@ -69,6 +69,18 @@ class Namespace(object):
         :return:
         """
         print(self.__get_summary(tab_size=tab_size))
+
+    def check(self, item, sub_space=None):
+        """
+        Author: SW
+        :param item: str: an item to check the existence of
+        :param sub_space: str: a subspace where the item is expected to be found
+        :return: bool: whether or not the subspace exists in namespace
+        """
+        if item in self.get(sub_space).keys():
+            return True
+        else:
+            return False
 
     def __get_summary(self, tab_size=2, tabs=0, line=None):
         """

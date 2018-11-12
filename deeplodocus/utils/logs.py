@@ -16,6 +16,7 @@ class Logs(object):
     """
 
     def __init__(self, type:str, folder:str ="%s/logs" % os.path.dirname(os.path.abspath(__main__.__file__)), extension:str = ".logs")->None:
+
         """
         AUTHORS:
         --------
@@ -41,7 +42,13 @@ class Logs(object):
         self.folder = folder
         self.extension = extension
 
-    def check_init(self)->None:
+    def delete(self):
+        """
+        :return:
+        """
+        os.remove("%s/%s.%s" % (self.folder, self.type, self.extension))
+
+    def check_init(self) -> None:
         """
         AUTHORS:
         --------
