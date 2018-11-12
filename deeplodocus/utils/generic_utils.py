@@ -18,7 +18,7 @@ def sorted_nicely(l):
     return sorted(l, key=alphanum_key)
 
 
-def is_string_an_integer(string:str) -> bool:
+def is_string_an_integer(string: str) -> bool:
     try:
         int(string)
         return True

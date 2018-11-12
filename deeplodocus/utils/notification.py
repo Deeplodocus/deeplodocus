@@ -268,7 +268,7 @@ class Notification(object):
         :return: None
         """
 
-        message = "DEEP INFO : %s" + message
+        message = "DEEP INFO : %s" % message
         print("%s%s%s" % (CBLUE, message, CEND))
         if self.write_logs is True:
             self.__add_log(message)

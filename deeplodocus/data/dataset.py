@@ -8,26 +8,6 @@ from deeplodocus.utils.generic_utils import sorted_nicely
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
 
-cv_library = DEEP_LIB_PIL
-
-# IMPORT COMPUTER VISION LIBRARY
-if cv_library == DEEP_LIB_OPENCV:
-    try:
-        import cv2
-    except ImportError:
-        raise ImportError("OpenCV could not be loaded. Please check https://opencv.org/ ")
-
-elif cv_library == DEEP_LIB_PIL:
-    try:
-        from PIL import Image
-    except ImportError:
-        raise ImportError("PIL Image could not be loaded. "
-                          "Please check if PIL is correctly installed. "
-                          "If not use 'pip install Pillow'.")
-else:
-    Notification(DEEP_NOTIF_FATAL,  "The following image module is not implemented : %s" % cv_library)
-
-
 class Dataset(object):
     """
     AUTHORS:
@@ -58,9 +38,9 @@ class Dataset(object):
     """
 
     def __init__(self, list_inputs, list_labels, list_additional_data,
-                 use_raw_data = True,
+                 use_raw_data=True,
                  transform_manager=None,
-                 cv_library=DEEP_LIB_PIL,
+                 cv_library=DEEP_LIB_OPENCV,
                  write_logs=True,
                  name="Default"):
         """
@@ -87,7 +67,6 @@ class Dataset(object):
         :param write_logs: Whether to write logs
         :param name: Name of the dataset
         """
-
         self.list_inputs = list_inputs
         self.list_labels = list_labels
         self.list_additional_data = list_additional_data
@@ -103,6 +82,23 @@ class Dataset(object):
         # Check that the given data are in a correct format before any training
         # self.__check_data()
         self.warning_video = None
+
+        if cv_library == DEEP_LIB_OPENCV:
+            try:
+                Notification(DEEP_NOTIF_INFO, "importing cv2", write_logs=self.write_logs)
+                global cv2
+                import cv2
+            except ImportError as e:
+                Notification(DEEP_NOTIF_ERROR, str(e), write_logs=self.write_logs)
+        elif cv_library == DEEP_LIB_PIL:
+            try:
+                Notification(DEEP_NOTIF_INFO, "importing Image from Pillow", write_logs=self.write_logs)
+                global Image
+                from PIL import Image
+            except ImportError as e:
+                Notification(DEEP_NOTIF_ERROR, str(e), write_logs=self.write_logs)
+        else:
+            Notification(DEEP_NOTIF_ERROR, "Unknown CV library flag %s" % cv_library, write_logs=self.write_logs)
 
     def __getitem__(self, index : int):
 

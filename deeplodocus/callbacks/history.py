@@ -136,7 +136,7 @@ class History(object):
                                       [str(loss_name) + " : " + str(value.item()) for (loss_name, value) in result_losses.items()] +
                                       [str(metric_name) + " : " + str(value) for (metric_name, value) in result_metrics.items()])
             # print("[" + str(minibatch_index) + "/" + str(num_minibatches) + "] :  " + str(print_metrics))
-            Notification(DEEP_NOTIF_INFO, "[%i/%i] : %s" % (minibatch_index, num_minibatches, print_metrics),
+            Notification(DEEP_NOTIF_RESULT, "[%i/%i] : %s" % (minibatch_index, num_minibatches, print_metrics),
                          write_logs=self.write_logs).get()
 
         # Save the data in memory
