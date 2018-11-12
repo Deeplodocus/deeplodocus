@@ -15,15 +15,14 @@ class Saver(object):
                  model_name:str = "no_name",
                  save_condition:int = DEEP_SAVE_CONDITION_AUTO,
                  save_model_method = DEEP_SAVE_NET_FORMAT_PYTORCH,
-                 overwatch_metric = "total_loss",
                  write_logs:bool=True):
 
         self.write_logs=write_logs
         self.save_model_method = save_model_method
         self.save_condition = save_condition
-        self.overwatch_metric = overwatch_metric
         self.directory = os.path.dirname(os.path.abspath(__main__.__file__))+ "/results/models/"
         self.model_name = model_name
+        self.best_overwatch_metric_value = None
 
         if self.save_model_method == DEEP_SAVE_NET_FORMAT_ONNX:
             self.extension = ".onnx"
@@ -37,7 +36,7 @@ class Saver(object):
         pass
     """
 
-    def on_epoch_end(self, model:Module)->None:
+    def on_epoch_end(self, model:Module, current_overwatch_metric_value:float)->None:
         """
         AUTHORS:
         --------
@@ -66,7 +65,7 @@ class Saver(object):
 
         # If we want to save the model only if we had an improvement over a metric
         elif self.save_condition == DEEP_SAVE_CONDITION_AUTO:
-            if self.__is_saving_required() is True:
+            if self.__is_saving_required(current_overwatch_metric_value=current_overwatch_metric_value) is True:
                 self.__save_model(model)
 
     def on_training_end(self, model:Module)->None:
@@ -96,8 +95,41 @@ class Saver(object):
 
 
 
-    def __is_saving_required(self):
-        return False
+    def __is_saving_required(self, current_overwatch_metric_value:float)->bool:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check if saving the model is required
+
+        PARAMETERS:
+        -----------
+
+        :param current_overwatch_metric_value->float: The value of the metric to over watch
+
+        RETURN:
+        -------
+
+        :return->bool: Whether the model should be saved or not
+        """
+        # Do not save at the first epoch
+        if self.previous_overwatch_metric_value is None:
+            self.previous_overwatch_metric_value = current_overwatch_metric_value
+            return False
+
+        # If the model improved since last batch => Save
+        elif self.previous_overwatch_metric_value > current_overwatch_metric_value:
+            self.previous_overwatch_metric_value = current_overwatch_metric_value
+            return True
+
+        # No improvement => Return False
+        else:
+            return False
 
 
 

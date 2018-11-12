@@ -155,7 +155,8 @@ class Callback(object):
                                   result_validation_losses=result_validation_losses,
                                   result_validation_metrics=result_validation_metrics,
                                   num_minibatches_validation=num_minibatches_validation)
-        self.saver.on_epoch_end(model)
+        overwatch_metric = self.history.get_overwatch_metric()
+        self.saver.on_epoch_end(model, current_overwatch_metric=overwatch_metric)
         self.stopping.on_epoch_end()
 
 

@@ -101,6 +101,7 @@ class Trainer(GenericEvaluator):
         self.optimizer = optimizer
         self.initial_epoch = initial_epoch
         self.num_epochs = num_epochs
+        self.overwatch_metric = "total_loss",
 
         if isinstance(tester, Tester):
             self.tester = tester          # Tester for validation
