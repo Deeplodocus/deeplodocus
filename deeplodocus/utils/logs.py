@@ -15,7 +15,7 @@ class Logs(object):
     A class which manages the logs
     """
 
-    def __init__(self, type:str, folder:str ="/logs", extension:str = ".logs")->None:
+    def __init__(self, type: str, folder: str ="/logs", extension: str = ".logs")->None:
         """
         AUTHORS:
         --------
@@ -41,7 +41,13 @@ class Logs(object):
         self.folder = folder
         self.extension = extension
 
-    def check_init(self)->None:
+    def delete(self):
+        """
+        :return:
+        """
+        os.remove("%s/%s.%s" % (self.folder, self.type, self.extension))
+
+    def check_init(self) -> None:
         """
         AUTHORS:
         --------

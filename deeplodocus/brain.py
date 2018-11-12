@@ -1,5 +1,6 @@
 import os.path
 import time
+import random
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
@@ -9,6 +10,7 @@ from deeplodocus.utils.end import End
 from deeplodocus.utils.logs import Logs
 from deeplodocus.ui.user_interface import UserInterface
 from deeplodocus import __version__
+import __main__
 
 
 class Brain(object):
@@ -25,7 +27,7 @@ class Brain(object):
     A Brain class that manages the commands of the user and allows to start the training
     """
 
-    def __init__(self, config_path, write_logs:bool=True):
+    def __init__(self, config_dir):
         """
         AUTHORS:
         --------
@@ -49,36 +51,93 @@ class Brain(object):
         :return: None
         """
 
-        self.write_logs = write_logs
-        self.config_path = config_path
+        self.write_logs = True                  # Initially set to True and updated after the config is loaded
+        self.config_dir = config_dir
         self.logs = [["notification", "/logs", ".logs"],
                      ["history_train_batches", "/results", ".csv"],
                      ["history_train_epochs", "/results", ".csv"],
                      ["history_validation", "/results", ".csv"]]
         self.__init_logs()
-        Logo(version=__version__, write_logs=write_logs)
-        self.exit_flags = ["q", "quit", "exit"]
-        self.config = None
+        Logo(version=__version__, write_logs=self.write_logs)
+        self.config = self.__new_config()
         self.user_interface = None
+        time.sleep(0.5)
         self.load_config()
 
     def wake(self):
         """
-        Authors : Alix Leroy
+        Authors : Alix Leroy, SW
         Main of deeplodocus framework
         :return: None
         """
-        while True:
-            command = Notification(DEEP_NOTIF_INPUT, "Waiting for instruction...", write_logs=self.write_logs).get()
-            command = command.replace(" ", "")
-            if command in self.exit_flags:
-                break
-            else:
-                self.__run_command(command)
-                time.sleep(0.5)                 # Sleep to make sure that asynchronous commands are completed
+        sleep = False
+        while not sleep:
+            command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION, write_logs=self.write_logs).get()
+            for command in self.__preprocess_command(command):
+                if command in DEEP_EXIT_FLAGS:
+                    sleep = True
+                    break
+                else:
+                    exec("self.%s" % command)
+                    time.sleep(0.5)
         if self.user_interface is not None:
             self.user_interface.stop()
         End(error=False)
+
+    def covfefe(self):
+        """
+        :return:
+        """
+        garbage = ["These results will be the best results in history... Very clever!",
+                   "I know parameters, I have the best parameters."]
+        Notification(DEEP_NOTIF_INFO, random.choice(garbage),
+                     write_logs=False)
+
+    def __preprocess_command(self, command):
+        """
+        Author: SW
+        :param command: str: raw command input from user
+        :return: list of str: split and filtered commands for sequential execution
+        """
+        command = command.replace(" ", "")
+        commands = command.split("&&")
+        for command in commands:
+            remove = False
+            for prefix in DEEP_FILTER_STARTS_WITH:
+                if command.startswith(prefix):
+                    remove = True
+                    break
+            if not remove:
+                for suffix in DEEP_FILTER_ENDS_WITH:
+                    if command.endswith(suffix):
+                        remove = True
+            if not remove:
+                for item in DEEP_FILTER:
+                    if command == item:
+                        remove = True
+            if not remove:
+                for item in DEEP_FILTER_STARTS_ENDS_WITH:
+                    if command.startswith(item) and command.endswith(item):
+                        remove = True
+            if not remove:
+                for item in DEEP_FILTER_INCLUDES:
+                    if item in command:
+                        remove = True
+            if remove:
+                commands.remove(command)
+                message = (DEEP_MSG_REMOVE_COMMAND % command)
+                if command == "wake":
+                    message = "%s, %s" % (message, DEEP_MSG_ALREADY_AWAKE)
+                Notification(DEEP_NOTIF_WARNING, message, write_logs=self.write_logs)
+        return commands
+
+    @staticmethod
+    def __new_config():
+        """
+        Author: SW
+        :return: Namespace: new namespace with a 'complete' entry set to False
+        """
+        return Namespace({"complete": False})
 
     def load_config(self):
         """
@@ -86,23 +145,72 @@ class Brain(object):
         Function: Checks current config path is valid, if not, user is prompted to give another
         :return: bool: True if a valid config path is set, otherwise, False
         """
-        while True:
-            if os.path.isfile(self.config_path):
-                self.config = Namespace(self.config_path)
-                directory = "/".join(self.config_path.split("/")[:-1])
-                for key, path in self.config.get().items():
-                    self.config.get()[key] = Namespace("%s/%s" % (directory, path))
-                self.config.load(self.config_path, "main")
-                Notification(DEEP_NOTIF_SUCCESS, "Config file loaded (%s)" % self.config_path)
-                return True
-            else:
-                if self.config_path in self.exit_flags:
-                    return False
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOAD_CONFIG_START % self.config_dir, write_logs=self.write_logs)
+        # If the config directory exists
+        if os.path.isdir(self.config_dir):
+            self.config = self.__new_config()
+            # For each expected configuration file
+            for key, file_name in DEEP_CONFIG_FILES.items():
+                config_path = "%s/%s" % (self.config_dir, file_name)
+                # If the expected file exists
+                if os.path.isfile(config_path):
+                    self.config.add({key: Namespace(config_path)})
+                    Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_FILE % config_path, write_logs=self.write_logs)
+                # If the file does not exist
                 else:
-                    Notification(DEEP_NOTIF_ERROR, "Given path does not point to a file (%s)" % self.config_path)
-                    self.config_path = Notification(DEEP_NOTIF_INPUT, "Please insert the config file path :").get()
+                    Notification(DEEP_NOTIF_WARNING, DEEP_MSG_FILE_NOT_FOUND % config_path, write_logs=self.write_logs)
+        else:
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir, write_logs=self.write_logs)
+        a = self.check_config()
+        print(a)
+        if a:
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS % self.config_dir, write_logs=self.write_logs)
+        else:
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_LOAD_CONFIG_FAIL, write_logs=self.write_logs)
+        self.__set_write_logs()
 
-    def __run_command(self, command:str)->None:
+    def check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
+        """
+        Author: SW
+        :return: bool: whether the config has every expected entry or not
+        """
+        complete = True
+        for key, items in dictionary.items():
+            for item in items:
+                if sub_space is None:
+                    this_sub_space = key
+                else:
+                    if isinstance(sub_space, list):
+                        this_sub_space = sub_space + [key]
+                    else:
+                        this_sub_space = [sub_space] + [key]
+                if isinstance(item, dict):
+                    self.check_config(item, sub_space=this_sub_space)
+                else:
+                    if not self.config.check(item, sub_space=this_sub_space):
+                        complete = False
+                        if isinstance(this_sub_space, list):
+                            item = ".".join(this_sub_space + [item])
+                        else:
+                            item = ".".join([this_sub_space, item])
+                        Notification(DEEP_NOTIF_ERROR, "%s does not exist" % item, write_logs=False)
+        return complete
+
+    def __set_write_logs(self):
+        """
+        Author: SW
+        Sets self.write logs if the project configurations have been written
+        :return: None
+        """
+        if self.config.check(DEEP_CONFIG_PROJECT):
+            self.write_logs = self.config.project.write_logs
+            if self.write_logs is False:
+                Logs(type="notification",
+                     extension=DEEP_EXT_LOGS,
+                     folder="%s/logs" % os.path.dirname(os.path.abspath(__main__.__file__))).delete()
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_REMOVE_LOGS, write_logs=False)
+
+    def __run_command(self, command: str) -> None:
         """
         AUTHORS:
         --------
@@ -128,18 +236,15 @@ class Brain(object):
         # Load a new config file
         if command == "load_config":
             self.load_config()
-
         # train the network
         elif command == "train":
             print("Train")
-
         # Start the User Interface
         elif command == "ui" or command == "user_interface" or command == "interface":
             if self.user_interface is None:
                 self.user_interface = UserInterface()
             else:
                 Notification(DEEP_NOTIF_ERROR, "The user interface is already running", write_logs=self.write_logs)
-
         elif command == "ui_stop" or command == "stop_ui" or command == "ui stop":
             if self.user_interface is not None:
                 self.user_interface.stop()
@@ -163,13 +268,12 @@ if __name__ == "__main__":
     import argparse
 
     def main(args):
-        config = args.c
-
-        brain = Brain(config)
+        config_dir = args.c
+        brain = Brain(config_dir)
         brain.wake()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", type=str, default="config/deeplodocus.yaml",
-                        help="Path to the config yaml file")
+    parser.add_argument("-c", type=str, default="core/project/deep_structure/config",
+                        help="Path to the config directory")
     arguments = parser.parse_args()
     main(arguments)
