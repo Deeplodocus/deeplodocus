@@ -1,3 +1,6 @@
+import os
+import __main__
+
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.end import End
 from deeplodocus.utils.flags import *
@@ -363,5 +366,5 @@ class Notification(object):
 
         :return: None
         """
-        log = Logs("notification", "/logs", ".logs")
+        log = Logs("notification", "%s/logs" % os.path.dirname(os.path.abspath(__main__.__file__)), ".logs")
         log.add(message)
