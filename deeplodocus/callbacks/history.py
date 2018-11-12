@@ -278,7 +278,8 @@ class History(object):
 
                 self.validation_history = self.validation_history.append(data, ignore_index=True)
                 self.validation_history_temp_list.put(data)
-         Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs), write_logs=self.write_logs)
+
+        Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs), write_logs=self.write_logs)
 
         self.save()
 
