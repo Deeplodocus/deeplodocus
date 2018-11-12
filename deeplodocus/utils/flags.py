@@ -1,3 +1,6 @@
+import os
+import __main__
+
 #
 # ENTRIES
 #
@@ -152,6 +155,22 @@ HISTORY_SAVED = "History saved to %s"
 
 
 #
+# COMPARISON FOR THE OVERWATCH METRIC
+#
+
+DEEP_COMPARE_SMALLER = 0
+DEEP_COMPARE_BIGGER = 1
+
+#
+# ABSOLUTE PATHS TO WORKING DIRECTORIES
+#
+
+DEEP_PATH_NOTIFICATION = r"%s/logs" % os.path.dirname(os.path.abspath(__main__.__file__))
+DEEP_PATH_RESULTS = r"%s/results" % os.path.dirname(os.path.abspath(__main__.__file__))
+DEEP_PATH_HISTORY = r"%s/results/history" % os.path.dirname(os.path.abspath(__main__.__file__))
+DEEP_PATH_SAVE_MODEL = r"%s/results/models" % os.path.dirname(os.path.abspath(__main__.__file__))
+
+#
 # DEEP EXIT FLAGS
 #
 DEEP_EXIT_FLAGS = ["q", "quit", "quit"]
@@ -168,5 +187,5 @@ DEEP_FILTER_STARTS_ENDS_WITH = ["__"]
 #
 # DEEP_ENCODE_FLAGS
 #
-DEEP_ENCODE_UTF8 = "utf-8"
 DEEP_ENCODE_ASCII = "ascii"
+DEEP_ENCODE_UTF8 = "utf-8"

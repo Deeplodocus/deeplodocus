@@ -13,14 +13,16 @@ from deeplodocus.core.metrics.loss import Loss
 from deeplodocus.core.inference.tester import Tester
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.logs import Logs
+from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
+
 
 log_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/logs"
 result_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/results/history"
 
-logs = [["notification", log_path, ".logs"],
-             ["history_train_batches", result_path, ".csv"],
-             ["history_train_epochs", result_path, ".csv"],
-             ["history_validation", result_path, ".csv"]]
+logs = [["notification", DEEP_PATH_NOTIFICATION, ".logs"],
+             ["history_train_batches", DEEP_PATH_HISTORY, ".csv"],
+             ["history_train_epochs", DEEP_PATH_HISTORY, ".csv"],
+             ["history_validation", DEEP_PATH_HISTORY, ".csv"]]
 
 for log_name, log_folder, log_extension in logs:
     Logs(log_name, log_folder, log_extension).check_init()
@@ -69,6 +71,8 @@ tester = Tester(model=model,
                 verbose=DEEP_VERBOSE_BATCH)
 
 
+
+
 trainer = Trainer(model=model,
                   dataset=train_dataset,
                   losses=loss_functions,
@@ -79,11 +83,12 @@ trainer = Trainer(model=model,
                   batch_size=4,
                   shuffle = DEEP_SHUFFLE_ALL,
                   data_to_memorize=DEEP_MEMORIZE_BATCHES,
-                  save_condition=DEEP_SAVE_CONDITION_END_TRAINING,
+                  save_condition=DEEP_SAVE_CONDITION_AUTO,
                   verbose=DEEP_VERBOSE_BATCH,
                   num_workers=1,
                   tester=tester,
                   model_name="test-trainer",
+                  overwatch_metric= OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
                   write_logs=False)
 
 trainer.fit()
