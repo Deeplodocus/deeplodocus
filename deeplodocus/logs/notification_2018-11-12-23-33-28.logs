@@ -1,0 +1,39 @@
+Initialized : 2018-11-12-23-33-28
+2018-11-12 23:33:28.443756 : DEEP SUCCESS : Log and History files initialized ! 
+2018-11-12 23:33:28.443806 : DEEP SUCCESS :          `.-.````                                                                   
+2018-11-12 23:33:28.443841 : DEEP SUCCESS :       ....0.0-....`                                                                 
+2018-11-12 23:33:28.443872 : DEEP SUCCESS :       .:----::::s:-.`                                                               
+2018-11-12 23:33:28.443903 : DEEP SUCCESS :         `..-::::/:---`                                                              
+2018-11-12 23:33:28.443934 : DEEP SUCCESS :              .:/:----.`                                                             
+2018-11-12 23:33:28.443964 : DEEP SUCCESS :               ://:----`                                                             
+2018-11-12 23:33:28.443993 : DEEP SUCCESS :               :://----`                                                             
+2018-11-12 23:33:28.444023 : DEEP SUCCESS :              `////----`                                                             
+2018-11-12 23:33:28.444052 : DEEP SUCCESS :              ./:/:---..             `````````````                                   
+2018-11-12 23:33:28.444082 : DEEP SUCCESS :              -/:/:---..          ``................``                               
+2018-11-12 23:33:28.444112 : DEEP SUCCESS :              -://-----.        `---....------:------...````             `````````   
+2018-11-12 23:33:28.444141 : DEEP SUCCESS :              -:/:-----.      `-:::-----------------::---......```..``.``......`     
+2018-11-12 23:33:28.444171 : DEEP SUCCESS :              .:/:-.---.`````..---:---------------------:::---------..--.----.`      
+2018-11-12 23:33:28.444202 : DEEP INFO : ``'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'
+2018-11-12 23:33:28.444232 : DEEP INFO : ``'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,.='````'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,
+2018-11-12 23:33:28.444261 : DEEP INFO : ``'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,.='````'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,
+2018-11-12 23:33:28.444290 : DEEP INFO : .#####...######..######..#####...##.......####...#####....####....####...##..##...####..
+2018-11-12 23:33:28.444321 : DEEP INFO : .##..##..##......##......##..##..##......##..##..##..##..##..##..##..##..##..##..##.....
+2018-11-12 23:33:28.444352 : DEEP INFO : .##..##..####....####....#####...##......##..##..##..##..##..##..##......##..##...####..
+2018-11-12 23:33:28.444382 : DEEP INFO : .##..##..##......##......##......##......##..##..##..##..##..##..##..##..##..##......##.
+2018-11-12 23:33:28.444411 : DEEP INFO : .#####...######..######..##......######...####...#####....####....####....####....####..
+2018-11-12 23:33:28.444441 : DEEP INFO : ........................................................................................
+2018-11-12 23:33:28.444472 : DEEP INFO : ....................THE FRAMEWORK KEEPING YOUR HEAD ABOVE WATER.........................
+2018-11-12 23:33:28.444502 : DEEP INFO : ..................................VERSION : 0.1.7.......................................
+2018-11-12 23:33:28.444532 : DEEP INFO : ``'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,.='````'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,
+2018-11-12 23:33:28.945300 : DEEP INFO : Loading project configurations from core/project/deep_structure/config ...
+2018-11-12 23:33:28.948578 : DEEP SUCCESS : File loaded : Configurations from core/project/deep_structure/config/project.yaml successfully imported
+2018-11-12 23:33:28.960938 : DEEP SUCCESS : File loaded : Configurations from core/project/deep_structure/config/data.yaml successfully imported
+2018-11-12 23:33:28.972105 : DEEP SUCCESS : File loaded : Configurations from core/project/deep_structure/config/transform.yaml successfully imported
+2018-11-12 23:33:28.972379 : DEEP WARNING : File not found : core/project/deep_structure/config/network.yaml
+2018-11-12 23:33:28.975571 : DEEP SUCCESS : File loaded : Configurations from core/project/deep_structure/config/optimizer.yaml successfully imported
+2018-11-12 23:33:28.975834 : DEEP WARNING : File not found : core/project/deep_structure/config/metrics.yaml
+2018-11-12 23:33:28.976028 : DEEP WARNING : File not found : core/project/deep_structure/config/loss.yaml
+2018-11-12 23:33:28.976200 : DEEP WARNING : File not found : core/project/deep_structure/config/history.yaml
+2018-11-12 23:33:28.976385 : DEEP WARNING : Configuration not found : write_logs is missing from project configurations
+2018-11-12 23:33:28.976560 : DEEP WARNING : Configuration not found : verbose:option is missing from project configurations
+2018-11-12 23:33:28.976711 : DEEP ERROR : Project configurations are incomplete
