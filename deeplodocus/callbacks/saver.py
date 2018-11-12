@@ -7,7 +7,7 @@ import __main__
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.end import End
 from deeplodocus.utils.flags import *
-
+from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 
 class Saver(object):
 
@@ -22,7 +22,7 @@ class Saver(object):
         self.save_condition = save_condition
         self.directory = os.path.dirname(os.path.abspath(__main__.__file__))+ "/results/models/"
         self.model_name = model_name
-        self.best_overwatch_metric_value = None
+        self.best_overwatch_metric = None
 
         if self.save_model_method == DEEP_SAVE_NET_FORMAT_ONNX:
             self.extension = ".onnx"
@@ -36,7 +36,7 @@ class Saver(object):
         pass
     """
 
-    def on_epoch_end(self, model:Module, current_overwatch_metric:dict)->None:
+    def on_epoch_end(self, model:Module, current_overwatch_metric:OverWatchMetric)->None:
         """
         AUTHORS:
         --------
@@ -95,7 +95,7 @@ class Saver(object):
 
 
 
-    def __is_saving_required(self, current_overwatch_metric:dict)->bool:
+    def __is_saving_required(self, current_overwatch_metric:OverWatchMetric)->bool:
         """
         AUTHORS:
         --------
@@ -117,20 +117,36 @@ class Saver(object):
 
         :return->bool: Whether the model should be saved or not
         """
-        return False
+        print("test")
         # Do not save at the first epoch
-        if self.previous_overwatch_metric_value is None:
-            self.previous_overwatch_metric_value = current_overwatch_metric
+        if self.best_overwatch_metric is None:
+            self.best_overwatch_metric = current_overwatch_metric
             return False
 
-        # If the model improved since last batch => Save
-        elif self.previous_overwatch_metric_value > current_overwatch_metric:
-            self.previous_overwatch_metric_value = current_overwatch_metric
-            return True
+        # If  the new metric has to be smaller than the best one
+        if current_overwatch_metric.get_condition() == DEEP_COMPARE_SMALLER:
+            # If the model improved since last batch => Save
+            if self.best_overwatch_metric.get_value() > current_overwatch_metric.get_value():
+                self.best_overwatch_metric = current_overwatch_metric
+                return True
 
-        # No improvement => Return False
+            # No improvement => Return False
+            else:
+                return False
+
+        # If the new metric has to be bigger than the best one (e.g. The accuracy of a classification)
+        elif current_overwatch_metric.get_condition() == DEEP_COMPARE_BIGGER:
+            # If the model improved since last batch => Save
+            if self.best_overwatch_metric.get_value() < current_overwatch_metric.get_value():
+                self.best_overwatch_metric = current_overwatch_metric
+                return True
+
+            # No improvement => Return False
+            else:
+                return False
+
         else:
-            return False
+            Notification(DEEP_NOTIF_FATAL, "The following saving condition does not exist : " + str("test"))
 
 
 

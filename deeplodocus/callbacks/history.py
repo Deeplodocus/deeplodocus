@@ -11,6 +11,7 @@ from queue import Queue
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.dict_utils import merge_sum_dict
+from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.utils.logs import Logs
 Num = Union[int, float]
 
@@ -38,6 +39,7 @@ class History(object):
                  verbose: int = DEEP_VERBOSE_BATCH,
                  data_to_memorize: int = DEEP_MEMORIZE_BATCHES,
                  save_condition: int = DEEP_SAVE_CONDITION_END_EPOCH, # DEEP_SAVE_CONDITION_END_TRAINING to save at the end of training, DEEP_SAVE_CONDITION_END_EPOCH to save at the end of the epoch,
+                 overwatch_metric:OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
                  write_logs: bool = True
                  ):
         self.log_dir = log_dir
@@ -47,6 +49,7 @@ class History(object):
         self.losses = losses
         self.data_to_memorize = data_to_memorize
         self.save_condition = save_condition
+        self.overwatch_metric = overwatch_metric
 
         # Running metrics
         self.running_total_loss = 0
@@ -190,8 +193,7 @@ class History(object):
         # Save the history
         # Not available for a batch
         # Please do not uncomment
-        #if self.__do_saving() is True:
-        #    self.__save_history()
+        # self.save()
 
     def on_epoch_end(self,
                      epoch_index: int,
@@ -279,11 +281,20 @@ class History(object):
                 self.validation_history = self.validation_history.append(data, ignore_index=True)
                 self.validation_history_temp_list.put(data)
 
+        self.__compute_overwatch_metric(num_minibatches_training = num_minibatches,
+                                        running_total_loss=self.running_total_loss,
+                                        running_losses=self.running_losses,
+                                        running_metrics=self.running_metrics,
+                                        total_validation_loss=total_validation_loss,
+                                        result_validation_losses=result_validation_losses,
+                                        result_validation_metrics=result_validation_metrics)
         Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs), write_logs=self.write_logs)
 
         self.save()
 
-
+        #
+        # TO BE REMOVE IN THE NEXT VERSION
+        #
         if self.__do_saving():
             self.__save_history()
 
@@ -293,7 +304,12 @@ class History(object):
         Actions to perform when the training finishes
         :return: None
         """
+        #
+        # TO BE REMOVED IN THE NEXT VERSION
+        #
         self.__save_history()
+
+
         Notification(DEEP_NOTIF_SUCCESS, HISTORY_SAVED % self.log_dir, write_logs=self.write_logs)
 
     def save(self):
@@ -314,9 +330,11 @@ class History(object):
         self.__add_logs("history_train_epochs", self.log_dir, ".csv", train_epochs_history)
         self.__add_logs("history_validation", self.log_dir, ".csv", validation_history)
 
+    #
+    # TO BE REMOVED IN THE NEXT VERSION
+    #
     def __do_saving(self):
         pass
-    # TODO : Check if history has to be saved
 
     def __save_history(self):
         """
@@ -439,5 +457,34 @@ class History(object):
         l = Logs(log_type, log_folder, log_extension)
         l.add(message, write_time=False)
 
+    def __compute_overwatch_metric(self, num_minibatches_training,
+                                        running_total_loss,
+                                        running_losses,
+                                        running_metrics,
+                                        total_validation_loss,
+                                        result_validation_losses,
+                                        result_validation_metrics):
+
+        # If the validaiton loss is None (No validation) we take the metric from the training as overwatch metric
+        if total_validation_loss is None:
+            data = dict([(TOTAL_LOSS, running_total_loss / num_minibatches_training)] +
+                        [(loss_name, value.item() / num_minibatches_training) for (loss_name, value) in running_losses.items()] +
+                        [(metric_name, value / num_minibatches_training) for (metric_name, value) in  running_metrics.items()])
+
+            for key, value in data.items():
+                if key == self.overwatch_metric.get_name():
+                    self.overwatch_metric.set_value(value)
+                    break
+        else:
+            data = dict([(TOTAL_LOSS, total_validation_loss)] +
+                        [(loss_name, value.item()) for (loss_name, value) in result_validation_losses.items()] +
+                        [(metric_name, value / num_minibatches_training) for (metric_name, value) in result_validation_metrics.items()])
+
+            for key, value in data.items():
+                if key == self.overwatch_metric.get_name():
+                    self.overwatch_metric.set_value(value)
+                    break
+
     def get_overwatch_metric(self):
-        return None
+        print(self.overwatch_metric.get_value())
+        return self.overwatch_metric

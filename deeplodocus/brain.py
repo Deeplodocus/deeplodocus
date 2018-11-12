@@ -51,12 +51,13 @@ class Brain(object):
         :return: None
         """
 
-        self.write_logs = True                  # Initially set to True and updated after the config is loaded
+        self.write_logs = True   # Initially set to True and updated after the config is loaded
         self.config_dir = config_dir
-        self.logs = [["notification", "/logs", ".logs"],
-                     ["history_train_batches", "/results", ".csv"],
-                     ["history_train_epochs", "/results", ".csv"],
-                     ["history_validation", "/results", ".csv"]]
+        self.logs = [["notification", DEEP_PATH_NOTIFICATION, ".logs"],
+                     ["history_train_batches", DEEP_PATH_HISTORY, ".csv"],
+                     ["history_train_epochs", DEEP_PATH_HISTORY, ".csv"],
+                     ["history_validation", DEEP_PATH_HISTORY, ".csv"]]
+
         self.__init_logs()
         Logo(version=__version__, write_logs=self.write_logs)
         self.config = self.__new_config()

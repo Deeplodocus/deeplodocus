@@ -1,3 +1,6 @@
+import os
+import __main__
+
 #
 # ENTRIES
 #
@@ -149,6 +152,22 @@ EPOCH_END = "End of Epoch [%i/%i]"
 EPOCH_START = "Start of Epoch [%i/%i]"
 HISTORY_SAVED = "History saved to %s"
 
+
+#
+# COMPARISON FOR THE OVERWATCH METRIC
+#
+
+DEEP_COMPARE_SMALLER = 0
+DEEP_COMPARE_BIGGER = 1
+
+#
+# ABSOLUTE PATHS TO WORKING DIRECTORIES
+#
+
+DEEP_PATH_NOTIFICATION = "%s/logs" % os.path.dirname(os.path.abspath(__main__.__file__))
+DEEP_PATH_RESULTS = "%s/results" % os.path.dirname(os.path.abspath(__main__.__file__))
+DEEP_PATH_HISTORY = "%s/results/history" % os.path.dirname(os.path.abspath(__main__.__file__))
+DEEP_PATH_SAVE_MODEL = "%s/results/models" % os.path.dirname(os.path.abspath(__main__.__file__))
 
 #
 # DEEP EXIT FLAGS
