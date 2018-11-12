@@ -1,4 +1,5 @@
 import operator
+from collections import defaultdict
 
 
 def append(item1, item2):
@@ -13,6 +14,36 @@ def append(item1, item2):
     item1.append(item2)
     return item1
 
+
+def merge_sum_dict(*dicts):
+    """
+    AUTHORS:
+    --------
+
+    :author: https://stackoverflow.com/questions/10461531/merge-and-sum-of-two-dictionaries
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Merge and sum multiple dictionaries
+
+    PARAMETERS:
+    -----------
+
+    :param dicts->List[dict]: A list of dictionaries
+
+    RETURN:
+    -------
+
+    :return: The merged and summed dictionary
+    """
+    #
+    ret = defaultdict(int)
+    for d in dicts:
+        for k, v in d.items():
+            ret[k] += v
+    return dict(ret)
 
 def sum_dict(dictionary: dict):
     """

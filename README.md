@@ -53,12 +53,22 @@ Deeplodocus is designed to be crossplatform (Windows, Linux and Mac OS). It uses
 * Filters
 * Augmentation modes
 
+## Check version
+
+There are two solutions to check Deeplodocus version:
+
+
+1. Look at the version displayed into Deeplodocus logo when starting the `Brain` of your project
+
+2. Run the following command in the terminal :
+`deeplodocus version`
+
 ## Create a Deeplodocus project
 
 Open a terminal / command line and enter :
 
 
-`deeplodocus create-project "project-name"`
+`deeplodocus startproject "project-name"`
 
 replacing "project-name" by the name of your project
 
@@ -86,7 +96,7 @@ INSERT FIGURE
 
 Deeplodocus is composed of 3 entries:
 - Deeplodocus Admin : A terminal / command line entry to create a Deeplodocus project 
-- Deepldocus Brain : A main script file entry to train / test a deep network
+- Deeplodocus Brain : A main script file entry to train / test a deep network
 - Deeplodocus UI : A browser access to an interface to configure and use Deeplodocus
 
 ### Deeplodocus Admin
@@ -139,7 +149,7 @@ In order to load the data you have to feed Deeplodocus using the `data_config.ya
 
 ```yaml
 
-# data_config.yaml
+data.yaml
 
 # _____________________________
 #

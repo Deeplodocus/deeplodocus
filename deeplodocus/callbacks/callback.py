@@ -10,7 +10,7 @@ from torch.nn import Module
 from deeplodocus.callbacks.saver import Saver
 from deeplodocus.callbacks.history import History
 from deeplodocus.callbacks.stopping import Stopping
-
+from deeplodocus.utils.flags import *
 
 
 Num = Union[int, float]
@@ -31,9 +31,11 @@ class Callback(object):
                  verbose:int,
                  data_to_memorize:int,
                  # Saver
-                 save_condition:int,
+                 save_condition:int = DEEP_SAVE_CONDITION_END_TRAINING,
+                 save_model_method:int = DEEP_SAVE_NET_FORMAT_PYTORCH,
+                 overwatch_metric:str = "total_loss",
                  # Stopping
-                 stopping_parameters,
+                 stopping_parameters=None,
                  write_logs: bool = True
                 ):
 
@@ -50,6 +52,8 @@ class Callback(object):
         self.model_name = model_name
         self.verbose = verbose
         self.save_condition = save_condition
+        self.save_model_method = save_model_method
+        self.overwatch_metric = overwatch_metric
 
 
         #
@@ -92,6 +96,14 @@ class Callback(object):
         """
         self.history.on_train_begin()
 
+    def on_epoch_start(self, epoch_index: int, num_epochs: int):
+        """
+        Author: SW
+        :param epoch_index: int: index of current epoch
+        :param num_epochs: int: total number of epochs
+        :return:
+        """
+        self.history.on_epoch_start(epoch_index, num_epochs)
 
     def on_batch_end(self, minibatch_index:int, num_minibatches:int, epoch_index:int, total_loss:int, result_losses:dict, result_metrics:dict):
         """
@@ -129,7 +141,7 @@ class Callback(object):
 
 
 
-    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int, model:Module, total_validation_loss:int, result_validation_losses:dict, result_validation_metrics:dict):
+    def on_epoch_end(self, epoch_index:int, num_epochs:int, num_minibatches:int, model:Module, total_validation_loss:int, result_validation_losses:dict, result_validation_metrics:dict, num_minibatches_validation:int):
         """
         Authors : Alix Leroy,
         Call callbacks at the end of one epoch
@@ -141,7 +153,8 @@ class Callback(object):
                                   num_minibatches=num_minibatches,
                                   total_validation_loss=total_validation_loss,
                                   result_validation_losses=result_validation_losses,
-                                  result_validation_metrics=result_validation_metrics)
+                                  result_validation_metrics=result_validation_metrics,
+                                  num_minibatches_validation=num_minibatches_validation)
         self.saver.on_epoch_end(model)
         self.stopping.on_epoch_end()
 
@@ -187,7 +200,6 @@ class Callback(object):
                                write_logs=self.write_logs)
 
     def update(self):
-
         self.history.update(num_epochs=self.num_epochs, num_batches=self.num_batches)
 
 
@@ -198,8 +210,11 @@ class Callback(object):
         :param model: model to save
         :return: None
         """
-        self.saver = Saver(self.save_condition, self.metrics)
+        self.saver = Saver(model_name=self.model_name,
+                           save_condition=self.save_condition,
+                           save_model_method=self.save_model_method,
+                           overwatch_metric=self.overwatch_metric,
+                           write_logs=self.write_logs)
 
     def pause(self):
-
         print("Callbacks pause not implemented")
