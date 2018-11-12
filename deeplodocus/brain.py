@@ -51,10 +51,10 @@ class Brain(object):
 
         self.write_logs = write_logs
         self.config_path = config_path
-        self.logs = [["notification", "/logs", ".logs"],
-                     ["history_train_batches", "/results", ".csv"],
-                     ["history_train_epochs", "/results", ".csv"],
-                     ["history_validation", "/results", ".csv"]]
+        self.logs = [["notification", DEEP_PATH_NOTIFICATION, ".logs"],
+                     ["history_train_batches", DEEP_PATH_HISTORY, ".csv"],
+                     ["history_train_epochs", DEEP_PATH_HISTORY, ".csv"],
+                     ["history_validation", DEEP_PATH_HISTORY, ".csv"]]
         self.__init_logs()
         Logo(version=__version__, write_logs=write_logs)
         self.exit_flags = ["q", "quit", "exit"]
