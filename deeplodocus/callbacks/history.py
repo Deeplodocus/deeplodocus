@@ -132,19 +132,20 @@ class History(object):
 
         # If the user wants to print stats for each batch
         if self.verbose >= DEEP_VERBOSE_BATCH:
-            print_metrics = ", ".join(["total loss : " + str(total_loss)] +
-                                      [str(loss_name) + " : " + str(value.item()) for (loss_name, value) in result_losses.items()] +
-                                      [str(metric_name) + " : " + str(value) for (metric_name, value) in result_metrics.items()])
-            # print("[" + str(minibatch_index) + "/" + str(num_minibatches) + "] :  " + str(print_metrics))
+            print_metrics = ", ".join(["%s : %f" % (TOTAL_LOSS, total_loss)]
+                                      + ["%s : %f" % (loss_name, value.item())
+                                         for (loss_name, value) in result_losses.items()]
+                                      + ["%s :%f " % (metric_name, value)
+                                         for (metric_name, value) in result_metrics.items()])
             Notification(DEEP_NOTIF_RESULT, "[%i/%i] : %s" % (minibatch_index, num_minibatches, print_metrics),
                          write_logs=self.write_logs).get()
 
         # Save the data in memory
         if self.data_to_memorize == DEEP_MEMORIZE_BATCHES:
             # Save the history in memory
-            data = dict([("total loss", total_loss)] +
-                        [(loss_name, value.item()) for (loss_name, value) in result_losses.items()] +
-                        [(metric_name, value) for (metric_name, value) in result_metrics.items()])
+            data = dict([(TOTAL_LOSS, total_loss)]
+                        + [(loss_name, value.item()) for (loss_name, value) in result_losses.items()]
+                        + [(metric_name, value) for (metric_name, value) in result_metrics.items()])
             data[WALL_TIME] = datetime.datetime.now().strftime(TIME_FORMAT)
             data[RELATIVE_TIME] = self.__time()
             data[EPOCH] = epoch_index
@@ -179,14 +180,18 @@ class History(object):
         """
         # MANAGE TRAINING HISTORY
         if self.verbose >= DEEP_VERBOSE_BATCH:
-            print_metrics = ", ".join(["%s : %f" % (TOTAL_LOSS, self.running_total_loss / num_minibatches)] +
-                                      [str(loss_name) + " : " + str(value.item() / num_minibatches) for (loss_name, value) in self.running_losses.items()] +
-                                      [str(metric_name) + " : " + str(value / num_minibatches) for (metric_name, value) in self.running_metrics.items()])
+            print_metrics = ", ".join(["%s : %f" % (TOTAL_LOSS, self.running_total_loss / num_minibatches)]
+                                      + ["%s : %f" % (loss_name, value.item() / num_minibatches)
+                                         for (loss_name, value) in self.running_losses.items()]
+                                      + ["%s : %f" % (metric_name, value / num_minibatches)
+                                         for (metric_name, value) in self.running_metrics.items()])
             Notification(DEEP_NOTIF_RESULT, "%s : %s" % (TRAINING, print_metrics), write_logs=self.write_logs).get()
         if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
-            data = dict([(TOTAL_LOSS, self.running_total_loss/num_minibatches)] +
-                        [(loss_name, value.item()/num_minibatches) for (loss_name, value) in self.running_losses.items()] +
-                        [(metric_name, value/num_minibatches) for (metric_name, value) in self.running_metrics.items()])
+            data = dict([(TOTAL_LOSS, self.running_total_loss/num_minibatches)]
+                        + [(loss_name, value.item()/num_minibatches)
+                           for (loss_name, value) in self.running_losses.items()]
+                        + [(metric_name, value/num_minibatches)
+                           for (metric_name, value) in self.running_metrics.items()])
             data[WALL_TIME] = datetime.datetime.now().strftime(TIME_FORMAT)
             data[RELATIVE_TIME] = self.__time()
             data[EPOCH] = epoch_index
@@ -197,11 +202,11 @@ class History(object):
         # MANAGE VALIDATION HISTORY
         if total_validation_loss is not None:
             if self.verbose >= DEEP_VERBOSE_BATCH:
-                print_metrics = ", ".join(["%s : %f" % (TOTAL_LOSS, total_validation_loss)] +
-                                          [str(loss_name) + " : " + str(value.item() / num_minibatches_validation) for
-                                           (loss_name, value) in result_validation_losses.items()] +
-                                          [str(metric_name) + " : " + str(value / num_minibatches_validation) for
-                                           (metric_name, value) in result_validation_metrics.items()])
+                print_metrics = ", ".join(["%s : %f" % (TOTAL_LOSS, total_validation_loss)]
+                                          + ["%s : %f" % (loss_name, value.item() / num_minibatches_validation)
+                                             for (loss_name, value) in result_validation_losses.items()]
+                                          + ["%s : %f" % (metric_name, value / num_minibatches_validation)
+                                             for (metric_name, value) in result_validation_metrics.items()])
                 Notification(DEEP_NOTIF_RESULT, "%s: %s" % (VALIDATION, print_metrics), write_logs=self.write_logs)
             if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
                 data = dict([(TOTAL_LOSS, total_validation_loss / num_minibatches_validation)] +
@@ -237,7 +242,7 @@ class History(object):
         :return: None
         """
         os.makedirs(self.log_dir, exist_ok=True)
-        # Save train batches historyn
+        # Save train batches history
         if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
             self.train_batches_history.to_csv(self.__get_path(self.train_batches_filename),
                                               header=True, index=True, encoding='utf-8')
@@ -316,7 +321,7 @@ class History(object):
             self.start_time = time.time()
         # Else use the last time of the history
         else:
-            self.start_time = time.time() - self.train_epochs_history["relative time"][self.train_epochs_history.index[-1]]
+            self.start_time = time.time() - self.train_epochs_history[RELATIVE_TIME][self.train_epochs_history.index[-1]]
 
     def __time(self):
         """
