@@ -10,6 +10,7 @@ from deeplodocus.utils.logs import Logs
 from deeplodocus.ui.user_interface import UserInterface
 from deeplodocus import __version__
 
+
 class Brain(object):
     """
     AUTHORS:
