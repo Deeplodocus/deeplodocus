@@ -6,9 +6,6 @@ import os
 import re
 
 
-
-
-
 def sorted_nicely(l):
     """ Sorts the given iterable in the way that is expected.
 
@@ -21,12 +18,9 @@ def sorted_nicely(l):
     return sorted(l, key=alphanum_key)
 
 
-
-def is_string_an_integer(string:str)->bool:
-    try :
+def is_string_an_integer(string:str) -> bool:
+    try:
         int(string)
+        return True
     except:
         return False
-
-    return True
-

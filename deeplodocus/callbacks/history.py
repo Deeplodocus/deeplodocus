@@ -91,7 +91,7 @@ class History(object):
         :return: None
         """
         if self.verbose >= DEEP_VERBOSE_BATCH:
-            Notification(DEEP_NOTIF_INFO, EPOCH_START % (epoch_index, num_epochs), write_logs=self.write_logs).get()
+            Notification(DEEP_NOTIF_INFO, EPOCH_START % (epoch_index, num_epochs), write_logs=self.write_logs)
 
     def on_batch_end(self,
                      minibatch_index: int,
@@ -182,7 +182,7 @@ class History(object):
             print_metrics = ", ".join(["%s : %f" % (TOTAL_LOSS, self.running_total_loss / num_minibatches)] +
                                       [str(loss_name) + " : " + str(value.item() / num_minibatches) for (loss_name, value) in self.running_losses.items()] +
                                       [str(metric_name) + " : " + str(value / num_minibatches) for (metric_name, value) in self.running_metrics.items()])
-            Notification(DEEP_NOTIF_INFO, "%s : %s" % (TRAINING, print_metrics), write_logs=self.write_logs).get()
+            Notification(DEEP_NOTIF_RESULT, "%s : %s" % (TRAINING, print_metrics), write_logs=self.write_logs).get()
         if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
             data = dict([(TOTAL_LOSS, self.running_total_loss/num_minibatches)] +
                         [(loss_name, value.item()/num_minibatches) for (loss_name, value) in self.running_losses.items()] +
@@ -202,7 +202,7 @@ class History(object):
                                            (loss_name, value) in result_validation_losses.items()] +
                                           [str(metric_name) + " : " + str(value / num_minibatches_validation) for
                                            (metric_name, value) in result_validation_metrics.items()])
-                Notification(DEEP_NOTIF_INFO, "%s: %s" % (VALIDATION, print_metrics), write_logs=self.write_logs).get()
+                Notification(DEEP_NOTIF_RESULT, "%s: %s" % (VALIDATION, print_metrics), write_logs=self.write_logs)
             if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
                 data = dict([(TOTAL_LOSS, total_validation_loss / num_minibatches_validation)] +
                             [(loss_name, value.item() / num_minibatches_validation) for (loss_name, value) in
@@ -213,10 +213,9 @@ class History(object):
                 data[RELATIVE_TIME] = self.__time()
                 data[EPOCH] = epoch_index
                 self.validation_history = self.validation_history.append(data, ignore_index=True)
-            Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs), write_logs=self.write_logs).get()
+            Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs), write_logs=self.write_logs)
         if self.__do_saving():
             self.__save_history()
-
 
     def on_training_end(self):
         """
@@ -226,7 +225,6 @@ class History(object):
         """
         self.__save_history()
         Notification(DEEP_NOTIF_SUCCESS, HISTORY_SAVED % self.log_dir, write_logs=self.write_logs).get()
-
 
     def __do_saving(self):
         pass
@@ -239,7 +237,6 @@ class History(object):
         :return: None
         """
         os.makedirs(self.log_dir, exist_ok=True)
-
         # Save train batches historyn
         if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
             self.train_batches_history.to_csv(self.__get_path(self.train_batches_filename),

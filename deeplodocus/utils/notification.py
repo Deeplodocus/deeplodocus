@@ -51,16 +51,13 @@ CBEIGEBG2 = '\33[106m'
 CWHITEBG2 = '\33[107m'
 
 
-
-
-
 class Notification(object):
     """
     Authors : Alix Leroy
     Display a custom message to the user
     """
 
-    def __init__(self, type:int, message:str, write_logs:bool=True)->None:
+    def __init__(self, notif_type: int, message: str, write_logs: bool=True) -> None:
         """
         AUTHORS:
         --------
@@ -83,48 +80,28 @@ class Notification(object):
 
         :return : result if input required, else None
         """
-
-        self.write_logs = write_logs
-
-        # allocated, only used when requestion a DEEP_NOTIF_INPUT
-        self.response = ""
-
-        # Make sure the type is an integer
-        if not isinstance(type, int):
-            type = -1                   # DEEP_NOTIF_INFO by default
-
-        # Make sure the message is a string
-        message = str(message)
-
-        # Send the message to the corresponding displayer
-        if type == DEEP_NOTIF_INFO:
+        self.write_logs = write_logs            # Whether or not notifications should be written to logs
+        self.response = ""                      # Allocated by self.__input(), returned by self.get()
+        if notif_type == DEEP_NOTIF_INFO:
             self.__info(message)
-
-        elif type == DEEP_NOTIF_DEBUG:
+        elif notif_type == DEEP_NOTIF_DEBUG:
             self.__debug(message)
-
-        elif type == DEEP_NOTIF_SUCCESS:
+        elif notif_type == DEEP_NOTIF_SUCCESS:
             self.__success(message)
-
-        elif type == DEEP_NOTIF_WARNING:
+        elif notif_type == DEEP_NOTIF_WARNING:
             self.__warning(message)
-
-        elif type == DEEP_NOTIF_ERROR:
+        elif notif_type == DEEP_NOTIF_ERROR:
             self.__error(message)
-
-        elif type == DEEP_NOTIF_FATAL:
+        elif notif_type == DEEP_NOTIF_FATAL:
             self.__fatal_error(message)
-
-        elif type == DEEP_NOTIF_INPUT:
+        elif notif_type == DEEP_NOTIF_INPUT:
             self.__input(message)
-
-        # DEEP_NOTIF_INFO as default
+        elif notif_type == DEEP_NOTIF_RESULT:
+            self.__result(message)
         else:
-            self.__info(message)
+            raise ValueError("Unknown notification type: %s" % notif_type)
 
-
-
-    def __fatal_error(self, message:str)->None:
+    def __fatal_error(self, message: str)->None:
         """
         AUTHORS:
         --------
@@ -151,20 +128,16 @@ class Notification(object):
 
         Close Deeplodocus Brain
         """
-
-        message1 = "DEEP FATAL ERROR : " + str(message)
+        message1 = "DEEP FATAL ERROR : %s" % message
         message2 = "DEEP FATAL ERROR : Exiting the program"
-
-        print(CREDBG2 + str(message1) + CEND)
-        print(CREDBG2 + str(message2) + CEND)
-
-        if self.write_logs is True :
+        print("%s%s%s" % (CREDBG2, message1, CEND))
+        print("%s%s%s" % (CREDBG2, message2, CEND))
+        if self.write_logs is True:
             self.__add_log(message1)
             self.__add_log(message2)
+        End(error=True)
 
-        End(error = True)
-
-    def __error(self, message:str)->None:
+    def __error(self, message: str) -> None:
         """
         AUTHORS:
         --------
@@ -186,14 +159,12 @@ class Notification(object):
 
         :return: None
         """
-        message = "DEEP ERROR : " + str(message)
-        print(CRED + str(message) + CEND)
-
-        if self.write_logs is True :
-            # Add the the message to the log
+        message = "DEEP ERROR : %s" % message
+        print("%s%s%s" % (CRED, message, CEND))
+        if self.write_logs is True:
             self.__add_log(message)
 
-    def __warning(self, message:str)->None:
+    def __warning(self, message: str)->None:
         """
         AUTHORS:
         --------
@@ -215,14 +186,12 @@ class Notification(object):
 
         :return: None
         """
-        message = "DEEP WARNING : " + str(message)
-        print(CYELLOW2 + str(message) + CEND)
-
-        if self.write_logs is True :
-            # Add the the message to the log
+        message = "DEEP WARNING : %s" % message
+        print("%s%s%s" % (CYELLOW2, message, CEND))
+        if self.write_logs is True:
             self.__add_log(message)
 
-    def __debug(self, message:str)->None:
+    def __debug(self, message: str) -> None:
         """
         AUTHORS:
         --------
@@ -244,15 +213,12 @@ class Notification(object):
 
         :return: None
         """
-
-        message = "DEEP DEBUG : " + str(message)
-        print(CBEIGE + str(message) + CEND)
-
-        if self.write_logs is True :
-            # Add the the message to the log
+        message = "DEEP DEBUG : %s" % message
+        print("%s%s%s" % (CBEIGE, message, CEND))
+        if self.write_logs is True:
             self.__add_log(message)
 
-    def __success(self, message:str)->None:
+    def __success(self, message: str) -> None:
         """
         AUTHORS:
         --------
@@ -274,15 +240,12 @@ class Notification(object):
 
         :return: None
         """
-        message = "DEEP SUCCESS : " +str(message)
-        print(CGREEN + str(message) + CEND)
-
-        if self.write_logs is True :
-            # Add the the message to the log
+        message = "DEEP SUCCESS : %s" % message
+        print("%s%s%s" % (CGREEN, message, CEND))
+        if self.write_logs is True:
             self.__add_log(message)
 
-
-    def __info(self, message:str)->None:
+    def __info(self, message: str) -> None:
         """
         AUTHORS:
         --------
@@ -305,15 +268,24 @@ class Notification(object):
         :return: None
         """
 
-        message = "DEEP INFO : " + str(message)
-        print(CBLUE + str(message) + CEND)
-
-        if self.write_logs is True :
-            # Add the the message to the log
+        message = "DEEP INFO : %s" + message
+        print("%s%s%s" % (CBLUE, message, CEND))
+        if self.write_logs is True:
             self.__add_log(message)
 
+    def __result(self, message: str) -> None:
+        """
+        Author: Alix Leroy, SW
+        Displays a DEEP RESULT message in WHITE
+        :param message: str: text to be printed
+        :return: None
+        """
+        message = "DEEP RESULT : %s" % message
+        print(message)
+        if self.write_logs is True:
+            self.__add_log(message)
 
-    def __input(self, message:str)->None:
+    def __input(self, message: str) -> None:
         """
         AUTHORS:
         --------
@@ -337,17 +309,14 @@ class Notification(object):
         """
         message = "DEEP INPUT : " + str(message)
         print(CBLINK + CBOLD + str(message) + CEND)
-
         # Wait for an input from the user
         self.response = input("> ")
-
-        if self.write_logs is True :
+        if self.write_logs is True:
             # Add the the message to the log
             self.__add_log(message)
             self.__add_log(str(self.response))
 
-
-    def get(self)->str:
+    def get(self) -> str:
         """
         AUTHORS:
         --------
@@ -371,8 +340,8 @@ class Notification(object):
         """
         return self.response
 
-
-    def __add_log(self, message:str)->None:
+    @staticmethod
+    def __add_log(message: str) -> None:
         """
         AUTHORS:
         --------
@@ -394,8 +363,5 @@ class Notification(object):
 
         :return: None
         """
-        l = Logs("notification", "/logs", ".logs")
-        l.add(message)
-
-
-
+        log = Logs("notification", "/logs", ".logs")
+        log.add(message)
