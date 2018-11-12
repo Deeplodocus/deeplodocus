@@ -19,10 +19,10 @@ from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 log_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/logs"
 result_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/results/history"
 
-logs = [["notification", log_path, ".logs"],
-             ["history_train_batches", result_path, ".csv"],
-             ["history_train_epochs", result_path, ".csv"],
-             ["history_validation", result_path, ".csv"]]
+logs = [["notification", DEEP_PATH_NOTIFICATION, ".logs"],
+             ["history_train_batches", DEEP_PATH_HISTORY, ".csv"],
+             ["history_train_epochs", DEEP_PATH_HISTORY, ".csv"],
+             ["history_validation", DEEP_PATH_HISTORY, ".csv"]]
 
 for log_name, log_folder, log_extension in logs:
     Logs(log_name, log_folder, log_extension).check_init()

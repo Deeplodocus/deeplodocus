@@ -145,7 +145,8 @@ class Logs(object):
         # If the folder path does not exist we create it
         if not os.path.exists(logs_folder_path):
             try:
-                os.mkdir(logs_folder_path)
+                #os.mkdir(logs_folder_path, parents=True, exist_ok=True)
+                os.makedirs(logs_folder_path, exist_ok=True)
 
             # Raise Value (Cannot use Notification from Logs class)
             except:

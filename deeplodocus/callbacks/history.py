@@ -1,12 +1,9 @@
 import pandas as pd
 import time
-import os
 import datetime
 from typing import Union
-import __main__
 from queue import Queue
-
-
+import copy
 
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.notification import Notification
@@ -32,7 +29,7 @@ class History(object):
     def __init__(self,
                  metrics: dict,
                  losses: dict,
-                 log_dir: str = "%s/results/history" % os.path.dirname(os.path.abspath(__main__.__file__)),
+                 log_dir: str = DEEP_PATH_HISTORY,
                  train_batches_filename: str = "history_batches_training.csv",
                  train_epochs_filename: str = "history_epochs_training.csv",
                  validation_filename: str = "history_validation.csv",
@@ -78,6 +75,7 @@ class History(object):
         self.__add_logs("history_validation", log_dir, ".csv", validation_headers)
 
         self.start_time = 0
+        self.paused = False
 
         # Filepaths
         self.log_dir = log_dir
@@ -449,7 +447,28 @@ class History(object):
         return round(time.time() - self.start_time, 2)
 
     def pause(self):
-        pass
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Pause the timer in order to keep the relative time coherent if restarting the training
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        self.paused = True
 
 
     def __add_logs(self, log_type:str, log_folder:str, log_extension:str, message:str):
@@ -486,5 +505,4 @@ class History(object):
                     break
 
     def get_overwatch_metric(self):
-        print(self.overwatch_metric.get_value())
-        return self.overwatch_metric
+        return copy.deepcopy(self.overwatch_metric)

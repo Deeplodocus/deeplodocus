@@ -40,8 +40,8 @@ class Trainer(GenericEvaluator):
                  shuffle: int = DEEP_SHUFFLE_ALL,
                  num_workers: int = 4,
                  verbose: int=DEEP_VERBOSE_BATCH,
-                 history_directory: str = "%s/results/history" % os.path.dirname(os.path.abspath(__main__.__file__)),
-                 save_directory: str = "%s/results/models" % os.path.dirname(os.path.abspath(__main__.__file__)),
+                 history_directory: str = DEEP_PATH_HISTORY,
+                 save_directory: str = DEEP_PATH_SAVE_MODEL,
                  data_to_memorize: int = DEEP_MEMORIZE_BATCHES,
                  save_condition: int=DEEP_SAVE_CONDITION_AUTO,
                  overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
@@ -158,6 +158,8 @@ class Trainer(GenericEvaluator):
 
         if first_training is True:
             self.callbacks.on_train_begin()
+        else:
+            self.callbacks.unpause()
 
         for epoch in range(self.initial_epoch, self.num_epochs+1):  # loop over the dataset multiple times
             self.callbacks.on_epoch_start(epoch_index=epoch, num_epochs=self.num_epochs)

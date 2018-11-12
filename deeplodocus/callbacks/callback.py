@@ -1,8 +1,5 @@
-from torch import tensor
-from typing import List
 from typing import Union
-import os
-import __main__
+
 import datetime
 
 from torch.nn import Module
@@ -33,8 +30,8 @@ class Callback(object):
                  # Saver
                  save_condition:int = DEEP_SAVE_CONDITION_AUTO,
                  save_model_method:int = DEEP_SAVE_NET_FORMAT_PYTORCH,
-                 history_directory: str = "%s/results/history" % os.path.dirname(os.path.abspath(__main__.__file__)),
-                 save_directory: str = "%s/results/models" % os.path.dirname(os.path.abspath(__main__.__file__)),
+                 history_directory: str = DEEP_PATH_HISTORY,
+                 save_directory: str = DEEP_PATH_SAVE_MODEL,
                  overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
                  # Stopping
                  stopping_parameters=None,
@@ -182,9 +179,6 @@ class Callback(object):
         :return: None
         """
 
-        # Get the directory for saving the history
-        log_dir = os.path.dirname(os.path.abspath(__main__.__file__))+ "/results/history/"
-
         timestr = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         train_batches_filename =  self.model_name + "_history_train_batches-"+ timestr + ".csv"
         train_epochs_filename =  self.model_name + "_history_train_epochs-"+ timestr + ".csv"
@@ -194,7 +188,7 @@ class Callback(object):
         # Initialize the history
         self.history = History(metrics=self.metrics,
                                losses=self.losses,
-                               log_dir=log_dir,
+                               log_dir=self.history_directory,
                                train_batches_filename=train_batches_filename,
                                train_epochs_filename=train_epochs_filename,
                                validation_filename=validation_filename,

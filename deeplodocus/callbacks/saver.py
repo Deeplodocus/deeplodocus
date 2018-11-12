@@ -29,7 +29,6 @@ class Saver(object):
         else:
             self.extension = ".model"
 
-        print(write_logs)
     """
     ON BATCH END NOT TO BE IMPLEMENTED FOR EFFICIENCY REASONS
     def on_batch_end(self, model:Module):
@@ -117,21 +116,25 @@ class Saver(object):
 
         :return->bool: Whether the model should be saved or not
         """
-        print("test")
+
         # Do not save at the first epoch
         if self.best_overwatch_metric is None:
             self.best_overwatch_metric = current_overwatch_metric
+            print("1")
             return False
-
+        print(self.best_overwatch_metric.get_value())
+        print(current_overwatch_metric.get_value())
         # If  the new metric has to be smaller than the best one
         if current_overwatch_metric.get_condition() == DEEP_COMPARE_SMALLER:
             # If the model improved since last batch => Save
             if self.best_overwatch_metric.get_value() > current_overwatch_metric.get_value():
                 self.best_overwatch_metric = current_overwatch_metric
+                print("2")
                 return True
 
             # No improvement => Return False
             else:
+                print("3")
                 return False
 
         # If the new metric has to be bigger than the best one (e.g. The accuracy of a classification)
@@ -139,14 +142,16 @@ class Saver(object):
             # If the model improved since last batch => Save
             if self.best_overwatch_metric.get_value() < current_overwatch_metric.get_value():
                 self.best_overwatch_metric = current_overwatch_metric
+                print("4")
                 return True
 
             # No improvement => Return False
             else:
+                print("5")
                 return False
 
         else:
-            Notification(DEEP_NOTIF_FATAL, "The following saving condition does not exist : " + str("test"))
+            Notification(DEEP_NOTIF_FATAL, "The following saving condition does not exist : " + str("test"), write_logs=self.write_logs)
 
 
 
