@@ -99,3 +99,11 @@ TIME_FORMAT = "%Y:%m:%d:%H:%M:%S"
 EPOCH_END = "End of Epoch [%i/%i]"
 EPOCH_START = "Start of Epoch [%i/%i]"
 HISTORY_SAVED = "History saved to %s"
+
+
+#
+# COMPARISON FOR THE OVERWATCH METRIC
+#
+
+DEEP_COMPARE_SMALLER = 0
+DEEP_COMPARE_BIGGER = 1

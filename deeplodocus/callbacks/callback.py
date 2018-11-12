@@ -11,7 +11,7 @@ from deeplodocus.callbacks.saver import Saver
 from deeplodocus.callbacks.history import History
 from deeplodocus.callbacks.stopping import Stopping
 from deeplodocus.utils.flags import *
-
+from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 
 Num = Union[int, float]
 
@@ -31,11 +31,11 @@ class Callback(object):
                  verbose:int,
                  data_to_memorize:int,
                  # Saver
-                 save_condition:int = DEEP_SAVE_CONDITION_END_TRAINING,
+                 save_condition:int = DEEP_SAVE_CONDITION_AUTO,
                  save_model_method:int = DEEP_SAVE_NET_FORMAT_PYTORCH,
                  history_directory: str = "%s/results/history" % os.path.dirname(os.path.abspath(__main__.__file__)),
                  save_directory: str = "%s/results/models" % os.path.dirname(os.path.abspath(__main__.__file__)),
-                 overwatch_metric:str = "total_loss",
+                 overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
                  # Stopping
                  stopping_parameters=None,
                  write_logs: bool = True

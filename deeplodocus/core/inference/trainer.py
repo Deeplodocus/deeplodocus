@@ -24,6 +24,7 @@ from deeplodocus.utils.dict_utils import sum_dict
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.generic_utils import is_string_an_integer
 from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
+from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 
 class Trainer(GenericEvaluator):
 
@@ -43,6 +44,7 @@ class Trainer(GenericEvaluator):
                  save_directory: str = "%s/results/models" % os.path.dirname(os.path.abspath(__main__.__file__)),
                  data_to_memorize: int = DEEP_MEMORIZE_BATCHES,
                  save_condition: int=DEEP_SAVE_CONDITION_AUTO,
+                 overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
                  stopping_parameters=None,
                  tester: Tester=None,
                  model_name: str = "test",
@@ -104,6 +106,7 @@ class Trainer(GenericEvaluator):
                                   data_to_memorize=data_to_memorize,
                                   save_condition=save_condition,
                                   stopping_parameters=stopping_parameters,
+                                  overwatch_metric=overwatch_metric,
                                   write_logs=write_logs)
 
         self.write_logs = write_logs
