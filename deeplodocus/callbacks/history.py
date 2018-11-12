@@ -4,10 +4,14 @@ import os
 import datetime
 from typing import Union
 import __main__
+from queue import Queue
+
+
+
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.dict_utils import merge_sum_dict
-
+from deeplodocus.utils.logs import Logs
 Num = Union[int, float]
 
 
@@ -42,9 +46,24 @@ class History(object):
         self.running_metrics = {}
 
         self.metrics = metrics
-        self.train_batches_history = pd.DataFrame(columns=[WALL_TIME, RELATIVE_TIME, EPOCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
+        self.train_batches_history = pd.DataFrame(columns=[WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
         self.train_epochs_history = pd.DataFrame(columns=[WALL_TIME, RELATIVE_TIME, EPOCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
         self.validation_history = pd.DataFrame(columns=[WALL_TIME, RELATIVE_TIME, EPOCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
+        first_line =
+        self.train_batches_history_temp_list = Queue()
+        self.train_epochs_history_temp_list = Queue()
+        self.validation_history_temp_list = Queue()
+
+        #
+        # TEST NEW HISTORY SYSTEM
+        #
+        train_batches_headers = ",".join(["index", WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
+        train_epochs_headers = ",".join(["index", WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
+        validation_headers = ",".join(["index", WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
+
+        self.__add_logs("train_batches_history", "/results/history", ".csv", train_batches_headers)
+        self.__add_logs("train_epochs_history", "/results/history", ".csv", train_epochs_headers)
+        self.__add_logs("validation_history", "/results/history", ".csv", validation_headers)
 
         self.start_time = 0
 
@@ -373,3 +392,9 @@ class History(object):
 
     def pause(self):
         pass
+
+
+    def __add_logs(self, log_type:str, log_folder:str, log_extension:str, message:str):
+
+        l = Logs(log_type, log_folder, log_extension)
+        l.add(message)
