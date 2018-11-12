@@ -86,8 +86,57 @@ DEEP_SAVE_NET_FORMAT_ONNX = 0
 DEEP_SAVE_NET_FORMAT_PYTORCH = 1
 
 #
-# NOTIFICATION STATEMENTS
+# DEEP EXTENSIONS
 #
+DEEP_EXT_LOGS = "logs"
+DEEP_EXT_YAML = "yaml"
+DEEP_EXT_JPG = "jpg"
+
+#
+# DEEP CONFIG FLAGS
+#
+DEEP_CONFIG_PROJECT = "project"
+DEEP_CONFIG_DATA = "data"
+DEEP_CONFIG_TRANSFORM = "transform"
+DEEP_CONFIG_NETWORK = "network"
+DEEP_CONFIG_OPTIMIZER = "optimizer"
+DEEP_CONFIG_METRICS = "metrics"
+DEEP_CONFIG_LOSS = "loss"
+DEEP_CONFIG_HISTORY = "history"
+
+DEEP_CONFIG_FILES = {DEEP_CONFIG_PROJECT: "%s.%s" % (DEEP_CONFIG_PROJECT, DEEP_EXT_YAML),
+                     DEEP_CONFIG_DATA: "%s.%s" % (DEEP_CONFIG_DATA, DEEP_EXT_YAML),
+                     DEEP_CONFIG_TRANSFORM: "%s.%s" % (DEEP_CONFIG_TRANSFORM, DEEP_EXT_YAML),
+                     DEEP_CONFIG_NETWORK: "%s.%s" % (DEEP_CONFIG_NETWORK, DEEP_EXT_YAML),
+                     DEEP_CONFIG_OPTIMIZER: "%s.%s" % (DEEP_CONFIG_OPTIMIZER, DEEP_EXT_YAML),
+                     DEEP_CONFIG_METRICS: "%s.%s" % (DEEP_CONFIG_METRICS, DEEP_EXT_YAML),
+                     DEEP_CONFIG_LOSS: "%s.%s" % (DEEP_CONFIG_LOSS, DEEP_EXT_YAML),
+                     DEEP_CONFIG_HISTORY: "%s.%s" % (DEEP_CONFIG_HISTORY, DEEP_EXT_YAML)}
+
+DEEP_CONFIG_PROJECT_NAME = "name"
+DEEP_CONFIG_PROJECT_CV_LIBRARY = "cv_library"
+DEEP_CONFIG_PROJECT_WRITE_LOGS = "write_logs"
+DEEP_CONFIG_PROJECT_VERBOSE = "verbose"
+
+DEEP_CONFIG = {DEEP_CONFIG_PROJECT: [DEEP_CONFIG_PROJECT_NAME,
+                                     DEEP_CONFIG_PROJECT_CV_LIBRARY,
+                                     DEEP_CONFIG_PROJECT_WRITE_LOGS,
+                                     {DEEP_CONFIG_PROJECT_VERBOSE: "option"}]}
+
+
+#
+# DEEP MESSAGES / TEXT / STATEMENTS
+#
+DEEP_MSG_ALREADY_AWAKE = "I am already awake !"
+DEEP_MSG_DIR_NOT_FOUND = "Directory not found : %s"
+DEEP_MSG_FILE_NOT_FOUND = "File not found : %s"
+DEEP_MSG_INSTRUCTRION = "Awaiting instruction ..."
+DEEP_MSG_LOAD_CONFIG_FAIL = "Project configurations are incomplete"
+DEEP_MSG_LOAD_CONFIG_FILE = "Loaded configurations from %s"
+DEEP_MSG_LOAD_CONFIG_START = "Loading project configurations from %s ..."
+DEEP_MSG_LOAD_CONFIG_SUCCESS = "Finished loading project configurations from %s"
+DEEP_MSG_REMOVE_COMMAND = "Illegal command %s"
+DEEP_MSG_REMOVE_LOGS = "project.write_logs is False, notification logs have been removed"
 
 FINISHED_TRAINING = "Finished training"
 SUMMARY = "Summary"
@@ -119,3 +168,23 @@ DEEP_PATH_NOTIFICATION = "%s/logs" % os.path.dirname(os.path.abspath(__main__.__
 DEEP_PATH_RESULTS = "%s/results" % os.path.dirname(os.path.abspath(__main__.__file__))
 DEEP_PATH_HISTORY = "%s/results/history" % os.path.dirname(os.path.abspath(__main__.__file__))
 DEEP_PATH_SAVE_MODEL = "%s/results/models" % os.path.dirname(os.path.abspath(__main__.__file__))
+
+#
+# DEEP EXIT FLAGS
+#
+DEEP_EXIT_FLAGS = ["q", "quit", "quit"]
+
+#
+# DEEP FILTER OUT OF BOUND COMMANDS
+#
+DEEP_FILTER = ["wake"]
+DEEP_FILTER_ENDS_WITH = []
+DEEP_FILTER_INCLUDES = ["__"]
+DEEP_FILTER_STARTS_WITH = ["__"]
+DEEP_FILTER_STARTS_ENDS_WITH = ["__"]
+
+#
+# DEEP_ENCODE_FLAGS
+#
+DEEP_ENCODE_UTF8 = "utf-8"
+DEEP_ENCODE_ASCII = "ascii"
