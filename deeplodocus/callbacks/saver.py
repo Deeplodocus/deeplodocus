@@ -36,7 +36,7 @@ class Saver(object):
         pass
     """
 
-    def on_epoch_end(self, model:Module, current_overwatch_metric_value:float)->None:
+    def on_epoch_end(self, model:Module, current_overwatch_metric:dict)->None:
         """
         AUTHORS:
         --------
@@ -65,7 +65,7 @@ class Saver(object):
 
         # If we want to save the model only if we had an improvement over a metric
         elif self.save_condition == DEEP_SAVE_CONDITION_AUTO:
-            if self.__is_saving_required(current_overwatch_metric_value=current_overwatch_metric_value) is True:
+            if self.__is_saving_required(current_overwatch_metric=current_overwatch_metric) is True:
                 self.__save_model(model)
 
     def on_training_end(self, model:Module)->None:
@@ -95,7 +95,7 @@ class Saver(object):
 
 
 
-    def __is_saving_required(self, current_overwatch_metric_value:float)->bool:
+    def __is_saving_required(self, current_overwatch_metric:dict)->bool:
         """
         AUTHORS:
         --------
@@ -117,14 +117,15 @@ class Saver(object):
 
         :return->bool: Whether the model should be saved or not
         """
+        return False
         # Do not save at the first epoch
         if self.previous_overwatch_metric_value is None:
-            self.previous_overwatch_metric_value = current_overwatch_metric_value
+            self.previous_overwatch_metric_value = current_overwatch_metric
             return False
 
         # If the model improved since last batch => Save
-        elif self.previous_overwatch_metric_value > current_overwatch_metric_value:
-            self.previous_overwatch_metric_value = current_overwatch_metric_value
+        elif self.previous_overwatch_metric_value > current_overwatch_metric:
+            self.previous_overwatch_metric_value = current_overwatch_metric
             return True
 
         # No improvement => Return False
@@ -134,7 +135,7 @@ class Saver(object):
 
 
 
-    def __save_model(self, model:Module, input)->None:
+    def __save_model(self, model:Module, input=None)->None:
 
         filepath = self.directory + self.model_name + self.extension
 

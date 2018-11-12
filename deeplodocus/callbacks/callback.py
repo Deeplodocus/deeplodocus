@@ -26,13 +26,15 @@ class Callback(object):
                  # History
                  losses: dict,
                  metrics: dict,
-                 working_directory:str,
+
                  model_name:str,
                  verbose:int,
                  data_to_memorize:int,
                  # Saver
                  save_condition:int = DEEP_SAVE_CONDITION_END_TRAINING,
                  save_model_method:int = DEEP_SAVE_NET_FORMAT_PYTORCH,
+                 history_directory: str = "%s/results/history" % os.path.dirname(os.path.abspath(__main__.__file__)),
+                 save_directory: str = "%s/results/models" % os.path.dirname(os.path.abspath(__main__.__file__)),
                  overwatch_metric:str = "total_loss",
                  # Stopping
                  stopping_parameters=None,
@@ -48,7 +50,8 @@ class Callback(object):
 
         self.metrics = metrics
         self.losses = losses
-        self.working_directory = working_directory
+        self.history_directory = history_directory
+        self.dave_directory = save_directory
         self.model_name = model_name
         self.verbose = verbose
         self.save_condition = save_condition
@@ -155,8 +158,8 @@ class Callback(object):
                                   result_validation_losses=result_validation_losses,
                                   result_validation_metrics=result_validation_metrics,
                                   num_minibatches_validation=num_minibatches_validation)
-        overwatch_metric = self.history.get_overwatch_metric()
-        self.saver.on_epoch_end(model, current_overwatch_metric=overwatch_metric)
+        current_overwatch_metric = self.history.get_overwatch_metric()
+        self.saver.on_epoch_end(model, current_overwatch_metric=current_overwatch_metric)
         self.stopping.on_epoch_end()
 
 
@@ -214,7 +217,6 @@ class Callback(object):
         self.saver = Saver(model_name=self.model_name,
                            save_condition=self.save_condition,
                            save_model_method=self.save_model_method,
-                           overwatch_metric=self.overwatch_metric,
                            write_logs=self.write_logs)
 
     def pause(self):

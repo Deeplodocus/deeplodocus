@@ -17,7 +17,14 @@ Num = Union[int, float]
 
 class History(object):
     """
-    Authors : Alix Leroy,
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
     The class stores and manages the history
     """
 
@@ -33,6 +40,7 @@ class History(object):
                  save_condition: int = DEEP_SAVE_CONDITION_END_EPOCH, # DEEP_SAVE_CONDITION_END_TRAINING to save at the end of training, DEEP_SAVE_CONDITION_END_EPOCH to save at the end of the epoch,
                  write_logs: bool = True
                  ):
+        self.log_dir = log_dir
         self.write_logs = write_logs
         self.verbose = verbose
         self.metrics = metrics
@@ -49,7 +57,7 @@ class History(object):
         self.train_batches_history = pd.DataFrame(columns=[WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
         self.train_epochs_history = pd.DataFrame(columns=[WALL_TIME, RELATIVE_TIME, EPOCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
         self.validation_history = pd.DataFrame(columns=[WALL_TIME, RELATIVE_TIME, EPOCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
-        first_line =
+
         self.train_batches_history_temp_list = Queue()
         self.train_epochs_history_temp_list = Queue()
         self.validation_history_temp_list = Queue()
@@ -57,13 +65,14 @@ class History(object):
         #
         # TEST NEW HISTORY SYSTEM
         #
-        train_batches_headers = ",".join(["index", WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
-        train_epochs_headers = ",".join(["index", WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
-        validation_headers = ",".join(["index", WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
+        train_batches_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys())) + "\n"
+        train_epochs_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys())) + "\n"
+        validation_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys())) + "\n"
 
-        self.__add_logs("train_batches_history", "/results/history", ".csv", train_batches_headers)
-        self.__add_logs("train_epochs_history", "/results/history", ".csv", train_epochs_headers)
-        self.__add_logs("validation_history", "/results/history", ".csv", validation_headers)
+        print("test")
+        self.__add_logs("history_train_batches", log_dir, ".csv", train_batches_headers)
+        self.__add_logs("history_train_epochs", log_dir, ".csv", train_epochs_headers)
+        self.__add_logs("history_validation", log_dir, ".csv", validation_headers)
 
         self.start_time = 0
 
@@ -109,6 +118,7 @@ class History(object):
         :param num_epochs: int: total number of epochs
         :return: None
         """
+
         if self.verbose >= DEEP_VERBOSE_BATCH:
             Notification(DEEP_NOTIF_INFO, EPOCH_START % (epoch_index, num_epochs), write_logs=False)
 
@@ -160,14 +170,17 @@ class History(object):
         # Save the data in memory
         if self.data_to_memorize == DEEP_MEMORIZE_BATCHES:
             # Save the history in memory
-            data = dict([("total loss", total_loss)] +
+            data = dict([(WALL_TIME, datetime.datetime.now().strftime(TIME_FORMAT)),
+                         (RELATIVE_TIME, self.__time()),
+                         (EPOCH, epoch_index),
+                         (BATCH, minibatch_index)] +
+                        [(TOTAL_LOSS, total_loss)] +
                         [(loss_name, value.item()) for (loss_name, value) in result_losses.items()] +
                         [(metric_name, value) for (metric_name, value) in result_metrics.items()])
-            data[WALL_TIME] = datetime.datetime.now().strftime(TIME_FORMAT)
-            data[RELATIVE_TIME] = self.__time()
-            data[EPOCH] = epoch_index
-            data[BATCH] = minibatch_index
             self.train_batches_history = self.train_batches_history.append(data, ignore_index=True)
+            self.train_batches_history_temp_list.put(data)
+
+
 
         # Save the history
         # Not available for a batch
@@ -220,13 +233,17 @@ class History(object):
             Notification(DEEP_NOTIF_INFO, "%s : %s" % (TRAINING, print_metrics), write_logs=False)
 
         if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
-            data = dict([(TOTAL_LOSS, self.running_total_loss/num_minibatches)] +
-                        [(loss_name, value.item()/num_minibatches) for (loss_name, value) in self.running_losses.items()] +
-                        [(metric_name, value/num_minibatches) for (metric_name, value) in self.running_metrics.items()])
-            data[WALL_TIME] = datetime.datetime.now().strftime(TIME_FORMAT)
-            data[RELATIVE_TIME] = self.__time()
-            data[EPOCH] = epoch_index
+            data = dict([(WALL_TIME, datetime.datetime.now().strftime(TIME_FORMAT)),
+                         (RELATIVE_TIME, self.__time()),
+                        (EPOCH, epoch_index)] +
+                        [(TOTAL_LOSS, self.running_total_loss / num_minibatches)] +
+                        [(loss_name, value.item() / num_minibatches) for (loss_name, value) in
+                         self.running_losses.items()] +
+                        [(metric_name, value / num_minibatches) for (metric_name, value) in
+                         self.running_metrics.items()])
             self.train_epochs_history = self.train_epochs_history.append(data, ignore_index=True)
+            self.train_epochs_history_temp_list.put(data)
+
 
         self.running_total_loss = 0
         self.running_losses = {}
@@ -246,18 +263,19 @@ class History(object):
 
 
             if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
-                data = dict([(TOTAL_LOSS, total_validation_loss / num_minibatches_validation)] +
-                            [(loss_name, value.item() / num_minibatches_validation) for (loss_name, value) in
-                             result_validation_losses.items()] +
-                            [(metric_name, value / num_minibatches_validation) for (metric_name, value) in
-                             result_validation_metrics.items()])
-                data[WALL_TIME] = datetime.datetime.now().strftime(TIME_FORMAT)
-                data[RELATIVE_TIME] = self.__time()
-                data[EPOCH] = epoch_index
+                data = dict([(WALL_TIME, datetime.datetime.now().strftime(TIME_FORMAT)),
+                             (RELATIVE_TIME, self.__time()),
+                             (EPOCH, epoch_index)] +
+                             [(TOTAL_LOSS, total_validation_loss / num_minibatches_validation)] +
+                            [(loss_name, value.item() / num_minibatches_validation) for (loss_name, value) in result_validation_losses.items()] +
+                            [(metric_name, value / num_minibatches_validation) for (metric_name, value) in result_validation_metrics.items()])
+
                 self.validation_history = self.validation_history.append(data, ignore_index=True)
+                self.validation_history_temp_list.put(data)
 
             Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs), write_logs=False)
 
+        self.save()
 
         if self.__do_saving():
             self.__save_history()
@@ -271,6 +289,24 @@ class History(object):
         """
         self.__save_history()
         Notification(DEEP_NOTIF_SUCCESS, HISTORY_SAVED % self.log_dir, write_logs=self.write_logs)
+
+    def save(self):
+        train_batch_history = ""
+        train_epochs_history = ""
+        validation_history = ""
+
+        for i in range(self.train_batches_history_temp_list.qsize()):
+            train_batch_history =  train_batch_history + ",".join(str(value) for (item, value) in self.train_batches_history_temp_list.get().items()) + "\n"
+
+        for i in range(self.train_epochs_history_temp_list.qsize()):
+            train_epochs_history =  train_epochs_history + ",".join(str(value) for (item, value) in self.train_epochs_history_temp_list.get().items()) + "\n"
+
+        for i in range(self.validation_history_temp_list.qsize()):
+            validation_history =  validation_history + ",".join(str(value) for (item, value) in self.validation_history_temp_list.get().items()) + "\n"
+
+        self.__add_logs("history_train_batches", self.log_dir, ".csv", train_batch_history)
+        self.__add_logs("history_train_epochs", self.log_dir, ".csv", train_epochs_history)
+        self.__add_logs("history_validation", self.log_dir, ".csv", validation_history)
 
 
     def __do_saving(self):
@@ -397,4 +433,7 @@ class History(object):
     def __add_logs(self, log_type:str, log_folder:str, log_extension:str, message:str):
 
         l = Logs(log_type, log_folder, log_extension)
-        l.add(message)
+        l.add(message, write_time=False)
+
+    def get_overwatch_metric(self):
+        return None

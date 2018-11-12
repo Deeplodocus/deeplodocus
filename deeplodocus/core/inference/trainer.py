@@ -1,4 +1,12 @@
 #
+# COMMON IMPORTS
+#
+
+
+import os
+import __main__
+
+#
 # BACKEND IMPORTS
 #
 from torch.nn import Module
@@ -17,7 +25,6 @@ from deeplodocus.utils.flags import *
 from deeplodocus.utils.generic_utils import is_string_an_integer
 from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 
-
 class Trainer(GenericEvaluator):
 
     def __init__(self,
@@ -32,6 +39,8 @@ class Trainer(GenericEvaluator):
                  shuffle: int = DEEP_SHUFFLE_ALL,
                  num_workers: int = 4,
                  verbose: int=DEEP_VERBOSE_BATCH,
+                 history_directory: str = "%s/results/history" % os.path.dirname(os.path.abspath(__main__.__file__)),
+                 save_directory: str = "%s/results/models" % os.path.dirname(os.path.abspath(__main__.__file__)),
                  data_to_memorize: int = DEEP_MEMORIZE_BATCHES,
                  save_condition: int=DEEP_SAVE_CONDITION_AUTO,
                  stopping_parameters=None,
@@ -88,7 +97,8 @@ class Trainer(GenericEvaluator):
         # Create callbacks
         self.callbacks = Callback(metrics=metrics,
                                   losses=losses,
-                                  working_directory="",
+                                  history_directory=history_directory,
+                                  save_directory=save_directory,
                                   model_name=model_name,
                                   verbose=verbose,
                                   data_to_memorize=data_to_memorize,
