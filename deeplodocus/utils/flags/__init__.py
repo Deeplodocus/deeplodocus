@@ -6,7 +6,6 @@ from deeplodocus.utils.flags.config import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.entry import *
-from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags.lib import *
 from deeplodocus.utils.flags.filter import *
 
@@ -66,6 +65,10 @@ DEEP_PATH_SAVE_MODEL = r"%s/results/models" % os.path.dirname(os.path.abspath(__
 DEEP_ENCODE_ASCII = "ascii"
 DEEP_ENCODE_UTF8 = "utf-8"
 
+#
+# DEEP_EXIT_FLAGS
+#
+DEEP_EXIT_FLAGS = ["q", "quit", "exit"]
 
 FINISHED_TRAINING = "Finished training"
 SUMMARY = "Summary"

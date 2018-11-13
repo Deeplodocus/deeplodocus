@@ -1,4 +1,6 @@
 name: "Test"
 cv_library: 1
 write_logs: False
+on_wake:
+  - config.summary
 
