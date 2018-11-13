@@ -175,7 +175,7 @@ class Brain(object):
                 else:
                     try:
                         exists = self.config.check(item, this_sub_sapce)
-                    except AttributeError:
+                    except (AttributeError, KeyError):
                         exists = False
                     if not exists:
                         complete = False
@@ -191,7 +191,7 @@ class Brain(object):
         Sets self.write logs if the project configurations have been written
         :return: None
         """
-        if self.config.check(DEEP_CONFIG_PROJECT_WRITE_LOGS, DEEP_CONFIG_PROJECT):
+        if self.config.check("write_logs", DEEP_CONFIG_PROJECT):
             self.write_logs = self.config.project.write_logs
             if self.write_logs is False:
                 Logs(type="notification",
