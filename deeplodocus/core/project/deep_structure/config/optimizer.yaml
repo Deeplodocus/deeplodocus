@@ -1,7 +1,7 @@
 name: "SGD"
 learning_rate: 0.001
-epsilon: 1.0e-09
-amsgrad: false
+epsilon: 1e-09
+amsgrad: False
 beta_1: 0.9
 beta_2: 0.999
 decay: 0.0

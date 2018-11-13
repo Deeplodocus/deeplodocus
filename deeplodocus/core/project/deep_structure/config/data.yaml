@@ -1,32 +1,31 @@
 dataloader:
-  batch_size: 4                                                                     # Number of instances loaded in on batch
-  num_workers: 4                                                                    # Number of processes or threads used for loading the data in memory
-
+  batch_size: 4
+  num_workers: 4
 dataset:
-  train:                                                                              # Training entries
-      inputs :
-        - ["input1-1.txt", "input1-2.txt"]
-        - "input2.txt"
-      labels :
-        - "labels1.txt"
-        - "labels2.txt"
-      additional_data:
-        - "additional.txt"
-  validation:                                                                        # Validation entries
-      inputs:
-        - ["input1-1.txt", "input1-2.txt"]
-        - "input2.txt"
-      labels:
-        - "labels1.txt"
-        - "labels2.txt"
-      additional_data:
-        - "additional.txt"
-  test:                                                                               # Test entries
-      inputs:
-        - ["input1-1.txt", "input1-2.txt"]
-        - "input2.txt"
-      labels:
-        - "labels1.txt"
-        - "labels2.txt"
-      additional_data:
-        - "additional.txt"
+  train:
+    inputs:
+      - ['input1-1.txt', 'input1-2.txt']
+      - "input2.txt"
+    labels:
+      - "labels1.txt"
+      - "labels2.txt"
+    additional_data:
+      - "additional.txt"
+  validation:
+    inputs:
+      - ['input1-1.txt', 'input1-2.txt']
+      - "input2.txt"
+    labels:
+      - "labels1.txt"
+      - "labels2.txt"
+    additional_data:
+      - "additional.txt"
+  test:
+    inputs:
+      - ['input1-1.txt', 'input1-2.txt']
+      - "input2.txt"
+    labels:
+      - "labels1.txt"
+      - "labels2.txt"
+    additional_data:
+      - "additional.txt"
