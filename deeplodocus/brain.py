@@ -51,15 +51,15 @@ class Brain(object):
         :return: None
         """
 
-        self.write_logs = True                  # Initially set to True and updated after the config is loaded
+        self.write_logs = True   # Initially set to True and updated after the config is loaded
         self.config_dir = config_dir
-        self.logs = [["notification", "/logs", ".logs"],
-                     ["history_train_batches", "/results", ".csv"],
-                     ["history_train_epochs", "/results", ".csv"],
-                     ["history_validation", "/results", ".csv"]]
+        self.logs = [["notification", DEEP_PATH_NOTIFICATION, ".logs"],
+                     ["history_train_batches", DEEP_PATH_HISTORY, ".csv"],
+                     ["history_train_epochs", DEEP_PATH_HISTORY, ".csv"],
+                     ["history_validation", DEEP_PATH_HISTORY, ".csv"]]
         self.__init_logs()
         Logo(version=__version__, write_logs=self.write_logs)
-        self.config = self.__new_config()
+        self.config = Namespace()
         self.user_interface = None
         time.sleep(0.5)
         self.load_config()
@@ -131,14 +131,6 @@ class Brain(object):
                 Notification(DEEP_NOTIF_WARNING, message, write_logs=self.write_logs)
         return commands
 
-    @staticmethod
-    def __new_config():
-        """
-        Author: SW
-        :return: Namespace: new namespace with a 'complete' entry set to False
-        """
-        return Namespace({"complete": False})
-
     def load_config(self):
         """
         Author: SW
@@ -148,7 +140,7 @@ class Brain(object):
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOAD_CONFIG_START % self.config_dir, write_logs=self.write_logs)
         # If the config directory exists
         if os.path.isdir(self.config_dir):
-            self.config = self.__new_config()
+            self.config = Namespace()
             # For each expected configuration file
             for key, file_name in DEEP_CONFIG_FILES.items():
                 config_path = "%s/%s" % (self.config_dir, file_name)
@@ -156,17 +148,14 @@ class Brain(object):
                 if os.path.isfile(config_path):
                     self.config.add({key: Namespace(config_path)})
                     Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_FILE % config_path, write_logs=self.write_logs)
-                # If the file does not exist
                 else:
                     Notification(DEEP_NOTIF_WARNING, DEEP_MSG_FILE_NOT_FOUND % config_path, write_logs=self.write_logs)
+            if self.check_config():
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS % self.config_dir, write_logs=self.write_logs)
+            else:
+                Notification(DEEP_NOTIF_ERROR, DEEP_MSG_LOAD_CONFIG_FAIL, write_logs=self.write_logs)
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir, write_logs=self.write_logs)
-        a = self.check_config()
-        print(a)
-        if a:
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS % self.config_dir, write_logs=self.write_logs)
-        else:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_LOAD_CONFIG_FAIL, write_logs=self.write_logs)
         self.__set_write_logs()
 
     def check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
@@ -175,25 +164,25 @@ class Brain(object):
         :return: bool: whether the config has every expected entry or not
         """
         complete = True
+        sub_space = [] if sub_space is None else sub_space
+        sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
         for key, items in dictionary.items():
+            this_sub_sapce = sub_space + [key]
             for item in items:
-                if sub_space is None:
-                    this_sub_space = key
-                else:
-                    if isinstance(sub_space, list):
-                        this_sub_space = sub_space + [key]
-                    else:
-                        this_sub_space = [sub_space] + [key]
                 if isinstance(item, dict):
-                    self.check_config(item, sub_space=this_sub_space)
-                else:
-                    if not self.config.check(item, sub_space=this_sub_space):
+                    if not self.check_config(item, this_sub_sapce):
                         complete = False
-                        if isinstance(this_sub_space, list):
-                            item = ".".join(this_sub_space + [item])
-                        else:
-                            item = ".".join([this_sub_space, item])
-                        Notification(DEEP_NOTIF_ERROR, "%s does not exist" % item, write_logs=False)
+                else:
+                    try:
+                        exists = self.config.check(item, this_sub_sapce)
+                    except AttributeError:
+                        exists = False
+                    if not exists:
+                        complete = False
+                        item_path = DEEP_CONFIG_DIVIDER.join(this_sub_sapce[1:] + [item])
+                        file = this_sub_sapce[0]
+                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_FOUND % (item_path, file),
+                                     write_logs=self.write_logs)
         return complete
 
     def __set_write_logs(self):
@@ -202,7 +191,7 @@ class Brain(object):
         Sets self.write logs if the project configurations have been written
         :return: None
         """
-        if self.config.check(DEEP_CONFIG_PROJECT):
+        if self.config.check(DEEP_CONFIG_PROJECT_WRITE_LOGS, DEEP_CONFIG_PROJECT):
             self.write_logs = self.config.project.write_logs
             if self.write_logs is False:
                 Logs(type="notification",
@@ -249,7 +238,6 @@ class Brain(object):
             if self.user_interface is not None:
                 self.user_interface.stop()
                 self.user_interface = None
-
         else:
             Notification(DEEP_NOTIF_WARNING, "The given command does not exist.", write_logs=self.write_logs)
 

@@ -1,5 +1,4 @@
 name: "Test"
-cv_library: "DEEP"
+cv_library: 1
 write_logs: False
-verbose:
-  option: 1
+
