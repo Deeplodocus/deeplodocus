@@ -70,16 +70,10 @@ class Brain(object):
         Main of deeplodocus framework
         :return: None
         """
-        sleep = False
+        sleep = self.__on_wake()
         while not sleep:
             command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION, write_logs=self.write_logs).get()
-            for command in self.__preprocess_command(command):
-                if command in DEEP_EXIT_FLAGS:
-                    sleep = True
-                    break
-                else:
-                    exec("self.%s" % command)
-                    time.sleep(0.5)
+            sleep = self.__execute_command(command)
         if self.user_interface is not None:
             self.user_interface.stop()
         End(error=False)
@@ -92,6 +86,24 @@ class Brain(object):
                    "I know parameters, I have the best parameters."]
         Notification(DEEP_NOTIF_INFO, random.choice(garbage),
                      write_logs=False)
+
+    def __on_wake(self):
+        """
+        :return:
+        """
+        for command in self.config.project.on_wake:
+            if self.__execute_command(command):
+                return True
+        return False
+
+    def __execute_command(self, command):
+        for command in self.__preprocess_command(command):
+            if command in DEEP_EXIT_FLAGS:
+                return True
+            else:
+                exec("self.%s()" % command)
+                time.sleep(0.5)
+        return False
 
     def __preprocess_command(self, command):
         """
@@ -144,14 +156,14 @@ class Brain(object):
             # For each expected configuration file
             for key, file_name in DEEP_CONFIG_FILES.items():
                 config_path = "%s/%s" % (self.config_dir, file_name)
-                # If the expected file exists
                 if os.path.isfile(config_path):
                     self.config.add({key: Namespace(config_path)})
                     Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_FILE % config_path, write_logs=self.write_logs)
                 else:
                     Notification(DEEP_NOTIF_WARNING, DEEP_MSG_FILE_NOT_FOUND % config_path, write_logs=self.write_logs)
             if self.check_config():
-                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS % self.config_dir, write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS % self.config_dir,
+                             write_logs=self.write_logs)
             else:
                 Notification(DEEP_NOTIF_ERROR, DEEP_MSG_LOAD_CONFIG_FAIL, write_logs=self.write_logs)
         else:
@@ -175,7 +187,7 @@ class Brain(object):
                 else:
                     try:
                         exists = self.config.check(item, this_sub_sapce)
-                    except AttributeError:
+                    except (AttributeError, KeyError):
                         exists = False
                     if not exists:
                         complete = False
@@ -191,7 +203,7 @@ class Brain(object):
         Sets self.write logs if the project configurations have been written
         :return: None
         """
-        if self.config.check(DEEP_CONFIG_PROJECT_WRITE_LOGS, DEEP_CONFIG_PROJECT):
+        if self.config.check("write_logs", DEEP_CONFIG_PROJECT):
             self.write_logs = self.config.project.write_logs
             if self.write_logs is False:
                 Logs(type="notification",
