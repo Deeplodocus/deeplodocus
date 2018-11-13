@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+deeplodocus/logs/
+deeplodocus/results/
+
 # C extensions
 *.so
 
