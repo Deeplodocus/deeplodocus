@@ -38,4 +38,4 @@ DEEP_CONFIG = {"project": ["name",
                                                "labels",
                                                "additional_data"]}]}]}
 
-DEEP_CONFIG_FILES = {item: "%s.%s" % (item, DEEP_EXT_YAML) for item in DEEP_CONFIG_SECTIONS}
+DEEP_CONFIG_FILES = {item: "%s%s" % (item, DEEP_EXT_YAML) for item in DEEP_CONFIG_SECTIONS}

@@ -66,9 +66,15 @@ DEEP_ENCODE_ASCII = "ascii"
 DEEP_ENCODE_UTF8 = "utf-8"
 
 #
+# DEEP_COMMAND_FLAGS
+#
+DEEP_CMD_PRINT = "-p"
+DEEP_CMD_FLAGS = [DEEP_CMD_PRINT]
+
+#
 # DEEP_EXIT_FLAGS
 #
-DEEP_EXIT_FLAGS = ["q", "quit", "exit"]
+DEEP_EXIT_FLAGS = ["q", "quit", "exit", "sleep"]
 
 FINISHED_TRAINING = "Finished training"
 SUMMARY = "Summary"

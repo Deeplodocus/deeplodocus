@@ -1,6 +1,4 @@
-name: "Test"
+name: "DeepProject"
 cv_library: 1
-write_logs: False
-on_wake:
-  - config.summary
-
+write_logs: True
+on_wake: Null

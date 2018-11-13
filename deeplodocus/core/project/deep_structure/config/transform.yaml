@@ -1,31 +1,30 @@
-train:                                                                              # Training entries
-    name: "Train Transform Manager"
-    inputs :
-      - "/home/alix/Documents/deeplodocus/deeplodocus/core/project/deep_structure/config/transforms/transform_input1.yaml"
-      - "*input:0"
-    labels :
-      - Null
-      - Null
-    additional_data:
-      - Null
-validation:                                                                        # Validation entries
-    name: "Validation Transform Manager"
-    inputs:
-      - ["input1-1.txt", "input1-2.txt"]
-      - "input2.txt"
-    labels:
-      - "labels1.txt"
-      - "labels2.txt"
-    additional_data:
-      - "additional.txt"
-test:                                                                               # Test entries
-    name: "Validation Transform Manager"
-
-    inputs:
-      - ["input1-1.txt", "input1-2.txt"]
-      - "input2.txt"
-    labels:
-      - "labels1.txt"
-      - "labels2.txt"
-    additional_data:
-      - "additional.txt"
+train:
+  name: "Train Transform Manager"
+  inputs:
+   - "/home/alix/Documents/deeplodocus/deeplodocus/core/project/deep_structure/config/transforms/transform_input1.yaml"
+   - "*input:0"
+  labels:
+   - Null
+   - Null
+  additional_data:
+   - Null
+validation:
+  name: "Validation Transform Manager"
+  inputs:
+   - ['input1-1.txt', 'input1-2.txt']
+   - "input2.txt"
+  labels:
+   - "labels1.txt"
+   - "labels2.txt"
+  additional_data:
+   - "additional.txt"
+test:
+  name: "Validation Transform Manager"
+  inputs:
+   - ['input1-1.txt', 'input1-2.txt']
+   - "input2.txt"
+  labels:
+   - "labels1.txt"
+   - "labels2.txt"
+  additional_data:
+   - "additional.txt"

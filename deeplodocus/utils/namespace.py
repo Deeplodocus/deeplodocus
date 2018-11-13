@@ -4,6 +4,7 @@ Data can added on initialisation as a dictionary, a path to a directory and/or a
 """
 
 import yaml
+import copy
 
 
 class Namespace(object):
@@ -38,6 +39,12 @@ class Namespace(object):
         for key, item in self.__yaml2namespace(yaml_path).get().items():
             self.__add({key: item}, sub_space)
 
+    def copy(self):
+        """
+        :return: a deep copy of itself
+        """
+        return copy.deepcopy(self)
+
     def get(self, key=None):
         """
         Get data from the Namespace as a dictionary given a key or list of keys.
@@ -61,7 +68,7 @@ class Namespace(object):
         :return:
         """
         with open(file_name, "w") as file:
-            file.write(self.__get_summary(tab_size=tab_size))
+            file.write(self.__get_summary(tab_size=tab_size).replace(" None", " Null"))
 
     def summary(self, tab_size=2):
         """
@@ -92,12 +99,21 @@ class Namespace(object):
         """
         if line is None:
             line = ""
-        for key, item in self.__dict__.items():
-            if isinstance(item, Namespace):
+        for key, value in self.__dict__.items():
+            if isinstance(value, Namespace):
                 line += "%s%s:\n" % (" " * tab_size * tabs, key)
-                line += item.__get_summary(tabs=tabs + 1)
+                line += value.__get_summary(tabs=tabs + 1)
             else:
-                line += "%s%s: %s\n" % (" " * tab_size * tabs, key, item)
+                if isinstance(value, list):
+                    line += "%s%s:\n" % (" " * tab_size * tabs, key)
+                    for item in value:
+                        if isinstance(item, str):
+                            item = '"%s"' % item
+                        line += "%s- %s\n" % (" " * (tab_size + 1) * tabs, item)
+                else:
+                    if isinstance(value, str):
+                        value = '"%s"' % value
+                    line += "%s%s: %s\n" % (" " * tab_size * tabs, key, value)
         return line
 
     def __dict2namespace(self, dictionary):
