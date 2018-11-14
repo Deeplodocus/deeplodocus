@@ -471,8 +471,31 @@ class History(object):
         self.paused = True
 
 
-    def __add_logs(self, log_type:str, log_folder:str, log_extension:str, message:str):
+    def __add_logs(self, log_type: str, log_folder: str, log_extension: str, message: str)->None:
+        """
+        AUTHORS:
+        --------
 
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Add the history to the corresponding log file
+
+        PARAMETERS:
+        -----------
+
+        :param log_type->str: The type of log
+        :param log_folder->str: The folder in which the log will be saved
+        :param log_extension->str: The extension of the log file
+        :param message->str: The message which has to be written in the log file
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         l = Logs(log_type, log_folder, log_extension)
         l.add(message, write_time=False)
 
@@ -482,7 +505,7 @@ class History(object):
                                         running_metrics,
                                         total_validation_loss,
                                         result_validation_losses,
-                                        result_validation_metrics):
+                                        result_validation_metrics)->None:
 
         # If the validaiton loss is None (No validation) we take the metric from the training as overwatch metric
         if total_validation_loss is None:
