@@ -8,6 +8,7 @@ from deeplodocus.utils.generic_utils import sorted_nicely
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
 
+
 class Dataset(object):
     """
     AUTHORS:

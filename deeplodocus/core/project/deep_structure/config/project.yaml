@@ -1,5 +1,4 @@
-name: "Test"
-cv_library: "DEEP"
-write_logs: False
-verbose:
-  option: 1
+name: "DeepProject"
+cv_library: 1
+write_logs: True
+on_wake: Null
