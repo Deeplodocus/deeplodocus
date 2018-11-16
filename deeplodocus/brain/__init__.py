@@ -147,7 +147,6 @@ class Brain(object):
             self.config_is_complete = False
         return self.config_is_complete
 
-
     def train(self):
         """
         AUTHORS:
@@ -333,7 +332,7 @@ if __name__ == "__main__":
         brain.wake()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", type=str, default="../core/project/deep_structure/config",
+    parser.add_argument("-c", type=str, default="core/project/deep_structure/config",
                         help="Path to the config directory")
     arguments = parser.parse_args()
     main(arguments)
