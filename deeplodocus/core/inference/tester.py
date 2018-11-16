@@ -125,7 +125,7 @@ class Tester(GenericEvaluator):
             inputs, labels, additional_data = self.clean_single_element_list(minibatch)
 
             # Infer the outputs from the model over the given mini batch
-            outputs = self.model(inputs)
+            outputs = self.model(*inputs)
 
             # Compute the losses and metrics
             batch_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)

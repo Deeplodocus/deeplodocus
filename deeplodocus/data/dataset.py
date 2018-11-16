@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
-import os
 import mimetypes
-import time
 
 from deeplodocus.utils.generic_utils import sorted_nicely
 from deeplodocus.utils.notification import Notification

@@ -10,6 +10,11 @@ DEEP_MSG_DIR_NOT_FOUND = "Directory not found : %s"
 DEEP_MSG_ILLEGAL_COMMAND = "Illegal command : %s"
 DEEP_MSG_CONFIG_NOT_FOUND = "Configuration not found : %s"
 DEEP_MSG_LOAD_CONFIG_FAIL = "Missing configurations : Please include the configurations listed above"
+DEEP_MSG_MODEL_NOT_FOUND = "Model %s not found in %s."
+DEEP_MSG_LOSS_NOT_FOUND = "Loss not found : %s"
+DEEP_MSG_METRIC_NOT_FOUND = "Metric not found : %s"
+
+
 
 # Success messages
 DEEP_MSG_LOAD_CONFIG_FILE = "File loaded : %s"

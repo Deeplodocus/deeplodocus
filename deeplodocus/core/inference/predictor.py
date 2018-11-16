@@ -63,7 +63,7 @@ class Predictor(object):
         for minibatch_index, minibatch in enumerate(self.dataloader, 0):
             inputs, labels, additional_data = self.__clean_single_element_list(minibatch)
             # Infer the outputs from the model over the given mini batch
-            minibatch_output = self.model(inputs)
+            minibatch_output = self.model(*inputs)
             # Append mini_batch output to the output tensor
             outputs.cat(minibatch_output)
         return outputs

@@ -11,20 +11,20 @@ train:
 validation:
   name: "Validation Transform Manager"
   inputs:
-   - ['input1-1.txt', 'input1-2.txt']
-   - "input2.txt"
+   - "/home/alix/Documents/deeplodocus/deeplodocus/core/project/deep_structure/config/transforms/transform_input1.yaml"
+   - "*input:0"
   labels:
-   - "labels1.txt"
-   - "labels2.txt"
+   - Null
+   - Null
   additional_data:
-   - "additional.txt"
+   - Null
 test:
   name: "Validation Transform Manager"
   inputs:
-   - ['input1-1.txt', 'input1-2.txt']
-   - "input2.txt"
+   - Null
+   - Null
   labels:
-   - "labels1.txt"
-   - "labels2.txt"
+   - Null
+   - Null
   additional_data:
-   - "additional.txt"
+   - Null
