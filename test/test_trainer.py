@@ -14,6 +14,7 @@ from deeplodocus.core.inference.tester import Tester
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.logs import Logs
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
+from deeplodocus.core.optimizer.optimizer import Optimizer
 
 
 log_path = os.path.dirname(os.path.abspath(__main__.__file__)) + "/logs"
@@ -60,7 +61,8 @@ accuracy_metric2 = Metric(name="Accuracy2", method=accuracy)
 metrics = {accuracy_metric.get_name() : accuracy_metric, accuracy_metric2.get_name() : accuracy_metric2}
 
 # Optimizer
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+optimizer = Optimizer("sgd", model.parameters(), lr=0.01, momentum=0.9).get_optimizer()
+
 
 tester = Tester(model=model,
                 dataset=train_dataset,  # You same dataset to simplify
