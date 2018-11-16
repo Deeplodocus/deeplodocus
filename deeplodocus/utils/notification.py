@@ -3,7 +3,7 @@ import __main__
 
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.end import End
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.notif import *
 #
 # List of color codes
 # Found at : https://stackoverflow.com/questions/287871/print-in-terminal-with-colors
