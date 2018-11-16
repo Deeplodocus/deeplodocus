@@ -1,8 +1,6 @@
 import cv2
 import numpy as np
 import random
-import inspect
-import __main__
 from typing import Union
 
 from deeplodocus.utils.namespace import Namespace
@@ -81,10 +79,10 @@ class Transformer(object):
         :return: None
         """
 
-        Notification(DEEP_INFO, "Transformer '" + str(self.name) + "' summary :", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "Transformer '" + str(self.name) + "' summary :", write_logs=self.write_logs)
 
         for t in self.list_transforms:
-            Notification(DEEP_INFO, "--> Name : " + str(t[0]) + " , Args : " + str(t[2]) + ", Method : " + str(t[1]), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t[0]) + " , Args : " + str(t[2]) + ", Method : " + str(t[1]), write_logs=self.write_logs)
 
     def get_pointer(self):
         """
@@ -168,7 +166,7 @@ class Transformer(object):
             elif self.__is_custom_transform(key):
                 self.list_transforms.append([key, self.__get_custom_transform(key), values])
             else:
-                Notification(DEEP_FATAL, "The following transform does not exist in the default and custom transforms : " + str(key), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following transform does not exist in the default and custom transforms : " + str(key), write_logs=self.write_logs)
 
     def __fill_list_custom_transform_methods(self)->dict:
         """
