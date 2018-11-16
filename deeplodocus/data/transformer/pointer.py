@@ -1,6 +1,5 @@
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
-from deeplodocus.data.transformer.transformer import Transformer
 
 
 class Pointer(object):
@@ -15,10 +14,10 @@ class Pointer(object):
 
     def summary(self):
 
-        Notification(DEEP_INFO, "------------------------------------", write_logs=self.write_logs)
-        Notification(DEEP_INFO, "Transformer '" + str(self.name) + "' summary :", write_logs=self.write_logs)
-        Notification(DEEP_INFO, "Points to : " + str(self.pointer_to_transformer), write_logs=self.write_logs)
-        Notification(DEEP_INFO, "------------------------------------", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "------------------------------------", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "Transformer '" + str(self.name) + "' summary :", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "Points to : " + str(self.pointer_to_transformer), write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "------------------------------------", write_logs=self.write_logs)
 
     def get_pointer(self):
         """
@@ -54,7 +53,7 @@ class Pointer(object):
             path_splitted = str(pointer[1:]).split(":") # Get the path to the other transformer (Entrytype:Number)
 
             if len(path_splitted) != 2 :
-                Notification(DEEP_FATAL, "The following transformer does not point correctly to another transformer (path:number format required), please check the documentation : " + str(pointer), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following transformer does not point correctly to another transformer (path:number format required), please check the documentation : " + str(pointer), write_logs=self.write_logs)
 
             # Check that the pointer type is valid and convert it to an integer for efficiency during training or testing
             path_splitted[0] = self.__convert_pointer_type(path_splitted[0])
@@ -63,26 +62,26 @@ class Pointer(object):
                 int(path_splitted[1])
             except:
                 #if isinstance(path_splitted[1], int) is False:
-                Notification(DEEP_FATAL, "The second argument of the following transformer's pointer is not an integer : " + str(pointer), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The second argument of the following transformer's pointer is not an integer : " + str(pointer), write_logs=self.write_logs)
 
             return [path_splitted[0], int(path_splitted[1])] # Return type and index of the pointer
 
         else:
-            Notification(DEEP_FATAL, "The following transformer is not a pointer : " + str(pointer), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The following transformer is not a pointer : " + str(pointer), write_logs=self.write_logs)
 
     def __convert_pointer_type(self, pointer_type):
 
         type = str(pointer_type).lower()
 
         if type == "inputs" or type == "input":
-            return DEEP_TYPE_INPUT
+            return DEEP_ENTRY_INPUT
 
         elif  type == "labels" or type == "label":
-            return DEEP_TYPE_LABEL
+            return DEEP_ENTRY_LABEL
 
         elif type == "additional_data":
-            return DEEP_TYPE_ADDITIONAL_DATA
+            return DEEP_ENTRY_ADDITIONAL_DATA
 
         else :
-            Notification(DEEP_FATAL, "The type of the following transformer's pointer does not exist, please check the documentation : " + str(self.name), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The type of the following transformer's pointer does not exist, please check the documentation : " + str(self.name), write_logs=self.write_logs)
 

@@ -8,6 +8,8 @@ from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags.lib import *
 from deeplodocus.utils.flags.filter import *
+from deeplodocus.utils.flags.types import *
+
 
 #
 # HISTORY SAVING CONDITION

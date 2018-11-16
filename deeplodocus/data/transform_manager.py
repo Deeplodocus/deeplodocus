@@ -1,7 +1,6 @@
 import time
 
 # Import transformers
-from deeplodocus.data.transformer.transformer import Transformer
 from deeplodocus.data.transformer.one_of import OneOf
 from deeplodocus.data.transformer.sequential import Sequential
 from deeplodocus.data.transformer.some_of import SomeOf
@@ -139,10 +138,10 @@ class TransformManager(object):
             else:
                 self.list_additional_data_transformers = []
 
-            Notification(DEEP_SUCCESS, "The TransformManager '" + str(self.name) +"' has succesfully been updated.", write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_SUCCESS, "The TransformManager '" + str(self.name) +"' has succesfully been updated.", write_logs=self.write_logs)
 
         except:
-            Notification(DEEP_ERROR,
+            Notification(DEEP_NOTIF_ERROR,
                          "An error occurred while updating the TransformManager '" + str(self.name) +"'. Please check the given configuration",
                          write_logs=self.write_logs)
 
@@ -177,14 +176,14 @@ class TransformManager(object):
         list_transformers = None
 
         # Get the list of transformers corresponding to the type of entry
-        if entry_type == DEEP_TYPE_INPUT:
+        if entry_type == DEEP_ENTRY_INPUT:
             list_transformers = self.list_input_transformers
-        elif entry_type == DEEP_TYPE_LABEL:
+        elif entry_type == DEEP_ENTRY_LABEL:
             list_transformers = self.list_label_transformers
-        elif entry_type == DEEP_TYPE_ADDITIONAL_DATA:
+        elif entry_type == DEEP_ENTRY_ADDITIONAL_DATA:
             list_transformers = self.list_additional_data_transformers
         else:
-            Notification(DEEP_FATAL, "The following type of transformer does not exist : " + str (entry_type))
+            Notification(DEEP_NOTIF_FATAL, "The following type of transformer does not exist : " + str (entry_type))
 
 
         # Check if the transformer points to another transformer
@@ -198,17 +197,17 @@ class TransformManager(object):
         # If we point to another transformer, load the transformer then transform the data
         else:
 
-            if pointer[0] == DEEP_TYPE_INPUT:
+            if pointer[0] == DEEP_ENTRY_INPUT:
                 list_transformers = self.list_input_transformers
 
-            elif pointer[0] == DEEP_TYPE_LABEL:
+            elif pointer[0] == DEEP_ENTRY_LABEL:
                 list_transformers = self.list_label_transformers
 
-            elif pointer[0] == DEEP_TYPE_ADDITIONAL_DATA:
+            elif pointer[0] == DEEP_ENTRY_ADDITIONAL_DATA:
                 list_transformers = self.list_additional_data_transformers
 
             else:
-                Notification(DEEP_FATAL, "The following type of transformer does not exist : " + str (pointer[0]))
+                Notification(DEEP_NOTIF_FATAL, "The following type of transformer does not exist : " + str (pointer[0]))
             print(pointer)
             transformed_data = list_transformers[pointer[1]].transform(data, index, type_data)
 
@@ -369,7 +368,7 @@ class TransformManager(object):
             config = Namespace(config_entry)
 
             if hasattr(config, 'method') is False:
-                Notification(DEEP_FATAL, "The following transformer does not have any method specified : " + str(config_entry), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following transformer does not have any method specified : " + str(config_entry), write_logs=self.write_logs)
 
             # Get the config method in lowercases
             config.method = config.method.lower()
@@ -388,7 +387,7 @@ class TransformManager(object):
 
             # If the method does not exist
             else:
-                Notification(DEEP_FATAL , "The following transformation method does not exist : " + str(config.method))
+                Notification(DEEP_NOTIF_FATAL , "The following transformation method does not exist : " + str(config.method))
 
         return transformer
 
