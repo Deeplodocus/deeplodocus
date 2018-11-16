@@ -16,8 +16,8 @@ class Net(nn.Module):
 
         self.flatten = Flatten()
 
-    def forward(self, x):
-        x = x[0].type(torch.FloatTensor)
+    def forward(self, x, y):
+        x = x.type(torch.FloatTensor)
 
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))

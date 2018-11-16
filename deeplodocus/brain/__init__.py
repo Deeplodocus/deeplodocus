@@ -1,12 +1,12 @@
 import os.path
 import time
-import random
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.end import End
+from deeplodocus.brain.frontal_lobe import FrontalLobe
 from deeplodocus.utils.logs import Logs
 from deeplodocus.ui.user_interface import UserInterface
 from deeplodocus import __version__
@@ -60,7 +60,8 @@ class Brain(object):
         self.__init_logs()
         Logo(version=__version__, write_logs=self.write_logs)
         self.user_interface = None
-        time.sleep(0.5)
+        time.sleep(0.5)         # Wait for the UI to respond
+        self.frontal_lobe = None
         self.config = None
         self._config = None
         self.load_config()
@@ -140,10 +141,40 @@ class Brain(object):
         if self.__check_config():
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS, write_logs=self.write_logs)
             self.config_is_complete = True
+            self.frontal_lobe = FrontalLobe(self.config, write_logs=self.write_logs)
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_LOAD_CONFIG_FAIL, write_logs=self.write_logs)
             self.config_is_complete = False
         return self.config_is_complete
+
+
+    def train(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Train the model is the model is loaded
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        if self.frontal_lobe is not None:
+            self.frontal_lobe.train()
+        else:
+            Notification(DEEP_NOTIF_ERROR, "The model is not loaded yet, please feed Deeplodocus with all the required config files.", write_logs=self.write_logs)
 
     def __on_wake(self):
         """
@@ -302,7 +333,7 @@ if __name__ == "__main__":
         brain.wake()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", type=str, default="core/project/deep_structure/config",
+    parser.add_argument("-c", type=str, default="../core/project/deep_structure/config",
                         help="Path to the config directory")
     arguments = parser.parse_args()
     main(arguments)

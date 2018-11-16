@@ -1,6 +1,4 @@
 import torch.nn as nn
-import torch
-import os
 import __main__
 
 from deeplodocus.utils.flags import *

@@ -6,14 +6,16 @@ from deeplodocus.utils.flags.ext import DEEP_EXT_YAML
 DEEP_CONFIG_DIVIDER = "/"
 
 DEEP_CONFIG_PROJECT = "project"
+DEEP_CONFIG_MODEL = "model"
 DEEP_CONFIG_DATA = "data"
 DEEP_CONFIG_TRANSFORM = "transform"
 DEEP_CONFIG_OPTIMIZER = "optimizer"
 DEEP_CONFIG_METRICS = "metrics"
-DEEP_CONFIG_LOSS = "loss"
+DEEP_CONFIG_LOSS = "losses"
 DEEP_CONFIG_HISTORY = "history"
 
 DEEP_CONFIG_SECTIONS = [DEEP_CONFIG_PROJECT,
+                        DEEP_CONFIG_MODEL,
                         DEEP_CONFIG_DATA,
                         DEEP_CONFIG_TRANSFORM,
                         DEEP_CONFIG_OPTIMIZER,
@@ -26,6 +28,7 @@ DEEP_CONFIG = {"project": ["name",
                            "cv_library",
                            "write_logs",
                            "on_wake"],
+               "model": ["module", "name"],
                "data": [{"dataloader": ["batch_size",
                                         "num_workers"]},
                         {"dataset": [{"train": ["inputs",
