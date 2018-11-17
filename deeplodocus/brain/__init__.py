@@ -299,12 +299,32 @@ class Brain(object):
 
     def __init_logs(self):
         """
-        Authors : Alix Leroy
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
         Initialize all logs
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
         :return:None
         """
+
+        # For each entry in the log list
         for log_name, log_folder, log_extension in self.logs:
+            # Check if the log is initialized, if not initialize it
             Logs(log_name, log_folder, log_extension).check_init()
+            
         Notification(DEEP_NOTIF_SUCCESS, "Log and History files initialized ! ", write_logs=self.write_logs)
 
     @staticmethod
