@@ -9,16 +9,14 @@ class Optimizer(object):
 
     def __init__(self, name:str,
                  params,
-                 write_logs: bool = True,
                  **kwargs):
 
-        self.write_logs=write_logs
 
         if isinstance(name, str):
             name = self.__format_name(name)
             self.optimizer = self.__select_optimizer(name, params,  **kwargs)
         else:
-            Notification(DEEP_NOTIF_FATAL, "The following name is not a string : " + str(name), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The following name is not a string : " + str(name))
 
     def __format_name(self, name:str):
         """
@@ -45,7 +43,7 @@ class Optimizer(object):
 
         # Filter illegal optimizers
         if name.lower() in DEEP_FILTER_OPTIMIZERS:
-            Notification(DEEP_NOTIF_FATAL, "The following optimizer is not allowed : " + str(name), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The following optimizer is not allowed : " + str(name))
 
         # Format already known
         if name.lower() == "sgd":
@@ -101,7 +99,6 @@ class Optimizer(object):
         """
         local = {"optimizer" : None}
         exec("import torch \noptimizer = torch.optim.{0}".format(name), {}, local)
-        print(kwargs)
         optimizer = local["optimizer"](params, **kwargs)
 
         return optimizer

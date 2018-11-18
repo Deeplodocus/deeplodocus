@@ -23,7 +23,7 @@ class Transformer(object):
     The transformer loads the transforms in memory and allows the data to be transformed
     """
 
-    def __init__(self, config, write_logs=False):
+    def __init__(self, config):
         """
         AUTHORS:
         --------
@@ -39,14 +39,12 @@ class Transformer(object):
         -----------
 
         :param config->Namespace: The Namespace containing the config
-        :param write_logs->bool: Whether we want to write the write the logs
 
         RETURN:
         -------
 
         :return: None
         """
-        self.write_logs = write_logs
         self.name = config.name
         self.last_index = None
         self.pointer_to_transformer = None
@@ -79,10 +77,10 @@ class Transformer(object):
         :return: None
         """
 
-        Notification(DEEP_NOTIF_INFO, "Transformer '" + str(self.name) + "' summary :", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "Transformer '" + str(self.name) + "' summary :")
 
         for t in self.list_transforms:
-            Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t[0]) + " , Args : " + str(t[2]) + ", Method : " + str(t[1]), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t[0]) + " , Args : " + str(t[2]) + ", Method : " + str(t[1]))
 
     def get_pointer(self):
         """
@@ -166,7 +164,7 @@ class Transformer(object):
             elif self.__is_custom_transform(key):
                 self.list_transforms.append([key, self.__get_custom_transform(key), values])
             else:
-                Notification(DEEP_NOTIF_FATAL, "The following transform does not exist in the default and custom transforms : " + str(key), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following transform does not exist in the default and custom transforms : " + str(key))
 
     def __fill_list_custom_transform_methods(self)->dict:
         """

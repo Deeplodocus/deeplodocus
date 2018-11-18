@@ -1,6 +1,7 @@
 import operator
 from collections import defaultdict
-
+from deeplodocus.utils.generic_utils import get_int_or_float
+from deeplodocus.utils.flags import *
 
 def append(item1, item2):
     """
@@ -13,6 +14,45 @@ def append(item1, item2):
         item1 = [item1]
     item1.append(item2)
     return item1
+
+def convert_string_to_number(dict: dict):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Convert strings in a dictionnary to float or integers
+
+    PARAMETERS:
+    -----------
+
+    :param dict->dict: The dictionnary to convert
+
+    RETURN:
+    -------
+
+    :return dict->dict: The converted dictionnary
+    """
+    for key, value in dict.items():
+
+        type = get_int_or_float(value)
+        # Float
+        if type == DEEP_TYPE_FLOAT:
+            dict[key] = float(type)
+
+        # Integer
+        elif type == DEEP_TYPE_INTEGER:
+            dict[key] = int(type)
+
+        else:
+            # Do nothing
+            pass
+
+    return dict
 
 
 def merge_sum_dict(*dicts):
