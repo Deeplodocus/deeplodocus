@@ -150,7 +150,7 @@ class Brain(object):
         """
         for log_type, (directory, ext) in DEEP_LOGS.items():
             # If forced or log should not be kept, delete the log
-            if force or not self.config.project.logs.get()[log_type]:
+            if force or not self.config.project.logs.get(log_type):
                 Logs(log_type, directory, ext).delete()
 
     def close_logs(self, force=False):
@@ -162,7 +162,8 @@ class Brain(object):
         """
         for log_type, (directory, ext) in DEEP_LOGS.items():
             # If forced to closer or log should be kept, close the log
-            if force or self.config.project.logs.get()[log_type]:
+            # NB: config does not have to exist if force is True
+            if force or self.config.project.logs.get(log_type):
                 if os.path.isfile("%s/%s%s" % (directory, log_type, ext)):
                     Logs(log_type, directory, ext).close()
             else:
@@ -284,7 +285,7 @@ class Brain(object):
         :return:
         """
         message = (DEEP_MSG_ILLEGAL_COMMAND % command)
-        if "__" in command or command.startswith("_"):
+        if "__" in command or "._" in command or command.startswith("_"):
             message = "%s %s" % (message, DEEP_MSG_PRIVATE)
         if command == "wake()":
             message = "%s %s" % (message, DEEP_MSG_ALREADY_AWAKE)

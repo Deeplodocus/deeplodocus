@@ -62,8 +62,10 @@ class Namespace(object):
                 key = key[0] if len(key) == 1 else key
             if isinstance(key, list):
                 return self.__dict__[key[0]].get(key[1:])
-            else:
+            elif isinstance(self.__dict__[key], Namespace):
                 return self.__dict__[key].get()
+            else:
+                return self.__dict__[key]
 
     def save(self, file_name, tab_size=2):
         """
@@ -79,9 +81,9 @@ class Namespace(object):
         :return:
         """
         summary = self.__get_summary(tab_size=tab_size).split("\n")
+        summary = [line for line in summary if line]
         for line in summary:
-            if line:
-                Notification(DEEP_NOTIF_INFO, line)
+            Notification(DEEP_NOTIF_INFO, line)
 
     def check(self, item, sub_space=None):
         """
