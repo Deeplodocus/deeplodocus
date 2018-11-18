@@ -47,8 +47,7 @@ class Trainer(GenericEvaluator):
                  overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
                  stopping_parameters=None,
                  tester: Tester=None,
-                 model_name: str = "test",
-                 write_logs=True):
+                 model_name: str = "test"):
         """
         AUTHORS:
         --------
@@ -79,7 +78,6 @@ class Trainer(GenericEvaluator):
         :param stopping_parameters:
         :param tester->Tester: The tester to use for validation
         :param model_name->str: The name of the model
-        :param write_logs->bool: Whether to write the logs or not
 
         RETURN:
         -------
@@ -106,10 +104,8 @@ class Trainer(GenericEvaluator):
                                   data_to_memorize=data_to_memorize,
                                   save_condition=save_condition,
                                   stopping_parameters=stopping_parameters,
-                                  overwatch_metric=overwatch_metric,
-                                  write_logs=write_logs)
+                                  overwatch_metric=overwatch_metric)
 
-        self.write_logs = write_logs
         self.shuffle = shuffle
         self.optimizer = optimizer
         self.initial_epoch = initial_epoch
@@ -129,7 +125,7 @@ class Trainer(GenericEvaluator):
         :return:
         """
         self.__train(first_training=first_training)
-        Notification(DEEP_NOTIF_SUCCESS, FINISHED_TRAINING, write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_SUCCESS, FINISHED_TRAINING)
         # Prompt if the user want to continue the training
         self.__continue_training()
 
@@ -229,18 +225,16 @@ class Trainer(GenericEvaluator):
         continue_training = ""
         # Ask if the user want to continue the training
         while continue_training.lower() not in ["y", "n"]:
-            continue_training = Notification(DEEP_NOTIF_INPUT, "Would you like to continue the training ? (Y/N) ",
-                                             write_logs=self.write_logs).get()
+            continue_training = Notification(DEEP_NOTIF_INPUT, "Would you like to continue the training ? (Y/N) ").get()
         # If yes ask the number of epochs
         if continue_training.lower() == "y":
             while True:
-                epochs = Notification(DEEP_NOTIF_INPUT, "Number of epochs ? ", write_logs=self.write_logs).get()
+                epochs = Notification(DEEP_NOTIF_INPUT, "Number of epochs ? ").get()
                 try:
                     epochs = int(epochs)
                     break
                 except ValueError:
-                    Notification(DEEP_NOTIF_WARNING, "Number of epochs must be an integer",
-                                 write_logs=self.write_logs).get()
+                    Notification(DEEP_NOTIF_WARNING, "Number of epochs must be an integer").get()
             if epochs > 0:
                 self.initial_epoch = self.num_epochs + 1
                 self.num_epochs += epochs

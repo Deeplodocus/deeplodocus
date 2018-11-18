@@ -14,10 +14,8 @@ class Saver(object):
     def __init__(self,
                  model_name:str = "no_name",
                  save_condition:int = DEEP_SAVE_CONDITION_AUTO,
-                 save_model_method = DEEP_SAVE_NET_FORMAT_PYTORCH,
-                 write_logs:bool=True):
+                 save_model_method = DEEP_SAVE_NET_FORMAT_PYTORCH):
 
-        self.write_logs=write_logs
         self.save_model_method = save_model_method
         self.save_condition = save_condition
         self.directory = os.path.dirname(os.path.abspath(__main__.__file__))+ "/results/models/"
@@ -145,7 +143,7 @@ class Saver(object):
                 return False
 
         else:
-            Notification(DEEP_NOTIF_FATAL, "The following saving condition does not exist : " + str("test"), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The following saving condition does not exist : " + str("test"))
 
 
 
@@ -159,7 +157,7 @@ class Saver(object):
             try:
                 torch.save(model.state_dict(), filepath)
             except:
-                Notification(DEEP_NOTIF_ERROR, "Error while saving the pytorch model and weights" ,write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_ERROR, "Error while saving the pytorch model and weights" )
                 self.__handle_error_saving(model)
 
         # If we want to save to the ONNX format
@@ -167,10 +165,10 @@ class Saver(object):
             try:
                 torch.onnx._export(model, input, filepath, export_params=True, verbose=True, input_names=input_names, output_names=output_names)
             except:
-                Notification(DEEP_NOTIF_ERROR, "Error while saving the ONNX model and weights" ,write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_ERROR, "Error while saving the ONNX model and weights" )
                 self.__handle_error_saving(model)
 
-        Notification(DEEP_NOTIF_SUCCESS, "Model and weights saved", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_SUCCESS, "Model and weights saved")
 
     def __handle_error_saving(self, model_name:str, model:Module)->None:
         """
@@ -195,13 +193,12 @@ class Saver(object):
 
         :return: None
         """
-        Notification(DEEP_NOTIF_ERROR, "Please make sure you have the permission to write for this following file : " + str(model_name), write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_ERROR, "Please make sure you have the permission to write for this following file : " + str(model_name))
         response = ""
 
         while response.lower() != ("y" or "n"):
             response = Notification(DEEP_NOTIF_INPUT,
-                                    "Would you try to try again to save? (y/n)",
-                                    write_logs=self.write_logs).get()
+                                    "Would you try to try again to save? (y/n)").get()
 
         if response.lower() == "y":
             self.__save_model(model)
@@ -209,14 +206,14 @@ class Saver(object):
             response = ""
 
             while response.lower() != ("y" or "n"):
-                response = Notification(DEEP_NOTIF_INPUT, "Would you like to save in another format, if not Deeplodocus will be closed ? (y/n)" ,write_logs=self.write_logs).get()
+                response = Notification(DEEP_NOTIF_INPUT, "Would you like to save in another format, if not Deeplodocus will be closed ? (y/n)").get()
 
             if response.lower() == "n":
                 response = ""
 
                 while response.lower() != ("y" or "n"):
-                    Notification(DEEP_NOTIF_WARNING, "You will lose all your data if Deeplodocus is closed !" ,write_logs = self.write_logs)
-                    response = Notification(DEEP_NOTIF_INPUT, "Are you sure to close Deeplodocus (y/n)", write_logs = self.write_logs).get()
+                    Notification(DEEP_NOTIF_WARNING, "You will lose all your data if Deeplodocus is closed !" )
+                    response = Notification(DEEP_NOTIF_INPUT, "Are you sure to close Deeplodocus (y/n)").get()
 
                 if response.lower() == "n":
                     self.__handle_error_saving()
@@ -226,7 +223,7 @@ class Saver(object):
                 response = ""
 
                 while response.lower() != ("pytorch" or "onnx"):
-                    response = Notification(DEEP_NOTIF_INPUT, "What format would you like to save ? (pytorch/onnx)", write_logs = self.write_logs).get()
+                    response = Notification(DEEP_NOTIF_INPUT, "What format would you like to save ? (pytorch/onnx)").get()
 
                 if response.lower() == "pytorch":
                     self.save_model_method = DEEP_SAVE_NET_FORMAT_PYTORCH

@@ -35,10 +35,8 @@ class Callback(object):
                  overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
                  # Stopping
                  stopping_parameters=None,
-                 write_logs: bool = True
                 ):
 
-        self.write_logs=write_logs
         self.model = None
 
         #
@@ -194,8 +192,7 @@ class Callback(object):
                                validation_filename=validation_filename,
                                verbose=self.verbose,
                                data_to_memorize=data_to_memorize,
-                               save_condition = self.save_condition,
-                               write_logs=self.write_logs)
+                               save_condition = self.save_condition)
 
     def update(self):
         self.history.update(num_epochs=self.num_epochs, num_batches=self.num_batches)
@@ -210,8 +207,7 @@ class Callback(object):
         """
         self.saver = Saver(model_name=self.model_name,
                            save_condition=self.save_condition,
-                           save_model_method=self.save_model_method,
-                           write_logs=self.write_logs)
+                           save_model_method=self.save_model_method)
 
     def pause(self):
         print("Callbacks pause not implemented")

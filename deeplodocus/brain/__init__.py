@@ -43,7 +43,6 @@ class Brain(object):
         -----------
 
         :param config_path->str: The config path
-        :param write_logs->bool: Whether to write logs or not
 
         RETURN:
         -------
@@ -53,7 +52,7 @@ class Brain(object):
         self.clear_logs()
         self.config_dir = config_dir
         self.config_is_complete = False
-        Logo(version=__version__, write=True)
+        Logo(version=__version__)
         self.user_interface = None
         time.sleep(0.5)                     # Wait for the UI to respond
         self.frontal_lobe = None
@@ -67,7 +66,7 @@ class Brain(object):
         Main of deeplodocus framework
         :return: None
         """
-        # self.frontal_lobe = FrontalLobe(self.config, **self.config.project.notifications.get())
+        self.frontal_lobe = FrontalLobe(self.config)
         self.__on_wake()
         while True:
             command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
@@ -212,7 +211,7 @@ class Brain(object):
                 if flag is None:
                     exec("self.%s" % command)
                 elif flag == DEEP_CMD_PRINT:
-                    exec("Notification(DEEP_NOTIF_RESULT, self.%s, write_logs=self.write_logs)" % command)
+                    exec("Notification(DEEP_NOTIF_RESULT, self.%s)" % command)
                 #except AttributeError as e:
                     #Notification(DEEP_NOTIF_ERROR, str(e), **self.config.project.notifications.get())
                 time.sleep(0.5)
@@ -315,7 +314,7 @@ if __name__ == "__main__":
         brain.wake()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", type=str, default="core/project/deep_structure/config",
+    parser.add_argument("-c", type=str, default="../core/project/deep_structure/config",
                         help="Path to the config directory")
     arguments = parser.parse_args()
     main(arguments)

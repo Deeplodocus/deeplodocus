@@ -37,7 +37,7 @@ class TransformManager(object):
 
 
 
-    def __init__(self, parameters, write_logs=True)->None:
+    def __init__(self, parameters)->None:
         """
         AUTHORS:
         --------
@@ -60,7 +60,6 @@ class TransformManager(object):
         None
         """
 
-        self.write_logs = write_logs
 
         self.parameters = parameters
 
@@ -138,12 +137,11 @@ class TransformManager(object):
             else:
                 self.list_additional_data_transformers = []
 
-            Notification(DEEP_NOTIF_SUCCESS, "The TransformManager '" + str(self.name) +"' has succesfully been updated.", write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_SUCCESS, "The TransformManager '" + str(self.name) +"' has succesfully been updated.")
 
         except:
             Notification(DEEP_NOTIF_ERROR,
-                         "An error occurred while updating the TransformManager '" + str(self.name) +"'. Please check the given configuration",
-                         write_logs=self.write_logs)
+                         "An error occurred while updating the TransformManager '" + str(self.name) +"'. Please check the given configuration")
 
 
     def transform(self, data, index, type_data, entry_type , entry_num):
@@ -368,7 +366,7 @@ class TransformManager(object):
             config = Namespace(config_entry)
 
             if hasattr(config, 'method') is False:
-                Notification(DEEP_NOTIF_FATAL, "The following transformer does not have any method specified : " + str(config_entry), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following transformer does not have any method specified : " + str(config_entry))
 
             # Get the config method in lowercases
             config.method = config.method.lower()

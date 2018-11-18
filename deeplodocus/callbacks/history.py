@@ -37,10 +37,8 @@ class History(object):
                  data_to_memorize: int = DEEP_MEMORIZE_BATCHES,
                  save_condition: int = DEEP_SAVE_CONDITION_END_EPOCH, # DEEP_SAVE_CONDITION_END_TRAINING to save at the end of training, DEEP_SAVE_CONDITION_END_EPOCH to save at the end of the epoch,
                  overwatch_metric:OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
-                 write_logs: bool = True
                  ):
         self.log_dir = log_dir
-        self.write_logs = write_logs
         self.verbose = verbose
         self.metrics = metrics
         self.losses = losses
@@ -121,7 +119,7 @@ class History(object):
         """
 
         if self.verbose >= DEEP_VERBOSE_BATCH:
-            Notification(DEEP_NOTIF_INFO, EPOCH_START % (epoch_index, num_epochs), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_INFO, EPOCH_START % (epoch_index, num_epochs))
 
 
     def on_batch_end(self,
@@ -169,8 +167,7 @@ class History(object):
                                          for (loss_name, value) in result_losses.items()]
                                       + ["%s :%f " % (metric_name, value)
                                          for (metric_name, value) in result_metrics.items()])
-            Notification(DEEP_NOTIF_RESULT, "[%i/%i] : %s" % (minibatch_index, num_minibatches, print_metrics),
-                         write_logs=self.write_logs).get()
+            Notification(DEEP_NOTIF_RESULT, "[%i/%i] : %s" % (minibatch_index, num_minibatches, print_metrics)).get()
 
         # Save the data in memory
         if self.data_to_memorize == DEEP_MEMORIZE_BATCHES:
@@ -237,7 +234,7 @@ class History(object):
                                          for (loss_name, value) in self.running_losses.items()]
                                       + ["%s : %f" % (metric_name, value / num_minibatches)
                                          for (metric_name, value) in self.running_metrics.items()])
-            Notification(DEEP_NOTIF_RESULT, "%s : %s" % (TRAINING, print_metrics), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_RESULT, "%s : %s" % (TRAINING, print_metrics))
             
             if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
               data = dict([(WALL_TIME, datetime.datetime.now().strftime(TIME_FORMAT)),
@@ -266,7 +263,7 @@ class History(object):
                                              for (loss_name, value) in result_validation_losses.items()]
                                           + ["%s : %f" % (metric_name, value / num_minibatches_validation)
                                              for (metric_name, value) in result_validation_metrics.items()])
-                Notification(DEEP_NOTIF_RESULT, "%s: %s" % (VALIDATION, print_metrics), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_RESULT, "%s: %s" % (VALIDATION, print_metrics))
 
             if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
                 data = dict([(WALL_TIME, datetime.datetime.now().strftime(TIME_FORMAT)),
@@ -286,7 +283,7 @@ class History(object):
                                         total_validation_loss=total_validation_loss,
                                         result_validation_losses=result_validation_losses,
                                         result_validation_metrics=result_validation_metrics)
-        Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs), write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs))
 
         self.save()
 
@@ -308,7 +305,7 @@ class History(object):
         self.__save_history()
 
 
-        Notification(DEEP_NOTIF_SUCCESS, HISTORY_SAVED % self.log_dir, write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_SUCCESS, HISTORY_SAVED % self.log_dir)
 
     def save(self):
         train_batch_history = ""
@@ -497,7 +494,7 @@ class History(object):
         :return: None
         """
         l = Logs(log_type, log_folder, log_extension)
-        l.add(message, write_time=False)
+        l.add(message)
 
     def __compute_overwatch_metric(self, num_minibatches_training,
                                         running_total_loss,
