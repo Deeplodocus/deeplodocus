@@ -1,18 +1,37 @@
-from deeplodocus.utils.logs import Logs
-from deeplodocus.utils.flags.log import *
-
-
 class End(object):
     """
-    Authors : Alix Leroy,
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
     Terminates the program
     """
 
     def __init__(self, error):
         """
-        Authors : Alix Leroy
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
         Terminates the program
+
+        PARAMETERS:
+        -----------
+
         :param error: Whether the program terminated with an error or not
+
+        RETURN:
+        -------
+
+        :return: None
         """
         if error is False :
             self.__thanks_master()
@@ -21,8 +40,24 @@ class End(object):
 
     def __thanks_master(self):
         """
-        Authors: Alix Leroy
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
         Display thanks message
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
         :return: Universal Love <3
         """
 

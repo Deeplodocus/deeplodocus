@@ -3,6 +3,7 @@ import numpy as np
 import mimetypes
 
 from deeplodocus.utils.generic_utils import sorted_nicely
+from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
 
@@ -40,7 +41,6 @@ class Dataset(object):
                  use_raw_data=True,
                  transform_manager=None,
                  cv_library=DEEP_LIB_OPENCV,
-                 write_logs=True,
                  name="Default"):
         """
         AUTHORS:
@@ -63,7 +63,6 @@ class Dataset(object):
         :param use_raw_data: Boolean : Whether to feed the network with raw data or always apply transforms on it
         :param transform: A transform object
         :param cv_library: The computer vision library to be used for opening and modifying the images data
-        :param write_logs: Whether to write logs
         :param name: Name of the dataset
         """
         self.list_inputs = list_inputs
@@ -72,7 +71,6 @@ class Dataset(object):
         self.list_data = list_inputs + list_labels + list_additional_data
         self.cv_library = cv_library
         self.transform_manager = transform_manager
-        self.write_logs = write_logs
         self.number_raw_instances = self.__compute_number_raw_instances()
         self.data = None
         self.use_raw_data = use_raw_data
@@ -84,20 +82,20 @@ class Dataset(object):
 
         if cv_library == DEEP_LIB_OPENCV:
             try:
-                Notification(DEEP_NOTIF_INFO, "importing cv2", write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_INFO, "importing cv2")
                 global cv2
                 import cv2
             except ImportError as e:
-                Notification(DEEP_NOTIF_ERROR, str(e), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_ERROR, str(e))
         elif cv_library == DEEP_LIB_PIL:
             try:
-                Notification(DEEP_NOTIF_INFO, "importing Image from Pillow", write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_INFO, "importing Image from Pillow")
                 global Image
                 from PIL import Image
             except ImportError as e:
-                Notification(DEEP_NOTIF_ERROR, str(e), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_ERROR, str(e))
         else:
-            Notification(DEEP_NOTIF_ERROR, "Unknown CV library flag %s" % cv_library, write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_ERROR, "Unknown CV library flag %s" % cv_library)
 
     def __getitem__(self, index : int):
 
@@ -139,7 +137,7 @@ class Dataset(object):
             augment = not self.use_raw_data
 
         if index >= self.len_data:
-            Notification(DEEP_NOTIF_FATAL, "The given instance index is too high : " + str(index), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The given instance index is too high : " + str(index))
 
 
         # Extract lists of raw data from the pandas DataFrame for the select index
@@ -187,7 +185,6 @@ class Dataset(object):
         return -> Integer : Length of the dataset
         """
 
-
         # If the lenth of the dataset has never been calculated we compute it
         if self.len_data == None:
             return len(self.data)
@@ -220,7 +217,7 @@ class Dataset(object):
 
         """
 
-        Notification(DEEP_NOTIF_INFO, "Summary of the '" + str(self.name)+ "' dataset : \n" + str(self.data), write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "Summary of the '" + str(self.name)+ "' dataset : \n" + str(self.data))
 
 
 
@@ -276,7 +273,7 @@ class Dataset(object):
         self.len_data = self.__len__()
 
         # Notice the user that the Dataset has been loaded
-        Notification(DEEP_NOTIF_SUCCESS, "The '" + str(self.name) + "' dataset has successfully been loaded !", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_SUCCESS, "The '" + str(self.name) + "' dataset has successfully been loaded !")
 
 
     """
@@ -383,7 +380,7 @@ class Dataset(object):
 
         # Else (neither a file nor a folder)
         else:
-            Notification(DEEP_NOTIF_FATAL, "The source type of the following source path does not exist : " + str(f), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The source type of the following source path does not exist : " + str(f))
 
         return content
 
@@ -456,9 +453,9 @@ class Dataset(object):
             try:
                 self.data = self.data.sample(frac=1).reset_index(drop=True)
             except:
-                Notification(DEEP_NOTIF_ERROR, "Cannot shuffle the dataset", write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_ERROR, "Cannot shuffle the dataset")
         else:
-            Notification(DEEP_NOTIF_ERROR, "The shuffling method does not exist.", write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_ERROR, "The shuffling method does not exist.")
 
         # Reset the TransformManager
         self.reset()
@@ -577,14 +574,13 @@ class Dataset(object):
                 else:
                     Notification(DEEP_NOTIF_FATAL,
                                  "The following data could not be loaded because its type is not recognize : %s.\n"
-                                 "Please check the documentation online to see the supported types" % data,
-                                 write_logs=self.write_logs)
+                                 "Please check the documentation online to see the supported types" % data)
 
                 entry_num = None
 
             # If the data is None
             else:
-                Notification(DEEP_NOTIF_FATAL, "The following data is None : %s" % d, write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following data is None : %s" % d)
 
 
         return loaded_data
@@ -633,8 +629,7 @@ class Dataset(object):
         # Else
         else:
             Notification(DEEP_NOTIF_FATAL,
-                         "The source type of the following source path does not exist : " + str(f),
-                         write_logs=self.write_logs)
+                         "The source type of the following source path does not exist : " + str(f))
 
         return type
 
@@ -676,11 +671,11 @@ class Dataset(object):
             return DEEP_TYPE_VIDEO
 
         # Float
-        elif self.__get_int_or_float(data) == DEEP_TYPE_FLOAT:
+        elif get_int_or_float(data) == DEEP_TYPE_FLOAT:
             return DEEP_TYPE_FLOAT
 
         # Integer
-        elif self.__get_int_or_float(data) == DEEP_TYPE_INTEGER:
+        elif get_int_or_float(data) == DEEP_TYPE_INTEGER:
             return DEEP_TYPE_INTEGER
 
         # List
@@ -689,42 +684,11 @@ class Dataset(object):
 
         # Type not handled
         else:
-            Notification(DEEP_NOTIF_FATAL,
-                         "The type of the following data is not handled : " + str(data),
-                         write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The type of the following data is not handled : " + str(data))
 
 
 
-    @staticmethod
-    def __get_int_or_float(data):
-        """
-        AUTHORS:
-        --------
 
-        author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Check whether the data is an integer or a float
-
-        PARAMETERS:
-        -----------
-
-        :param data: The data to check
-
-        RETURN:
-        -------
-
-        :return:  The integer flag of the corresponding type or False if the data isn't a number
-        """
-
-        try:
-            number_as_float = float(data)
-            number_as_int = int(number_as_float)
-            return DEEP_TYPE_INTEGER if number_as_float == number_as_int else DEEP_TYPE_FLOAT
-        except ValueError:
-            return False
 
     #
     # DATA LOADERS
@@ -739,7 +703,7 @@ class Dataset(object):
             image =  cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
             # Check that the image was correctly loaded
             if image is None:
-                Notification(DEEP_NOTIF_FATAL, "The following image cannot be loaded with OpenCV: " +str(image_path), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following image cannot be loaded with OpenCV: " +str(image_path))
 
             # If the image is not a grayscale (only width + height axis)
             if len(image.shape) > 2:
@@ -751,10 +715,9 @@ class Dataset(object):
             try:
                 image = Image.open(image_path)
             except:
-                Notification(DEEP_NOTIF_FATAL, "The following image cannot be loaded with PIL: " + str(image_path),
-                             write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following image cannot be loaded with PIL: " + str(image_path))
         else:
-            Notification(DEEP_NOTIF_FATAL, "The following image module is not implemented : "+ str(self.cv_library), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The following image module is not implemented : "+ str(self.cv_library))
 
         return image
 
@@ -814,7 +777,7 @@ class Dataset(object):
                     video.append(frame)                 # Add the frame to the sequence
 
             except:
-                Notification(DEEP_NOTIF_FATAL, "The following file could not be loaded : " + str(video_path) + "\n The selected Computer Vision library does not handle the videos. \n Deeplodocus tried to use OpenCV by default without success.", write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following file could not be loaded : " + str(video_path) + "\n The selected Computer Vision library does not handle the videos. \n Deeplodocus tried to use OpenCV by default without success.")
         return  video # Return the sequence of frames loaded
 
 
@@ -825,7 +788,7 @@ class Dataset(object):
         :return: None
         """
         if self.warning_video is None:
-            Notification(DEEP_NOTIF_WARNING, "The video mode is not fully supported. We deeply suggest you to use sequences of images.", write_logs=self.write_logss)
+            Notification(DEEP_NOTIF_WARNING, "The video mode is not fully supported. We deeply suggest you to use sequences of images.")
             self.warning_video = 1
 
     #
@@ -839,7 +802,7 @@ class Dataset(object):
         :return:
         """
 
-        Notification(DEEP_NOTIF_INFO, "Checking the data ...", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "Checking the data ...")
 
 
         # Check the number of data
@@ -855,7 +818,7 @@ class Dataset(object):
         # Check data is available
         # TODO : Add a progress bar
 
-        Notification(DEEP_NOTIF_SUCCESS, "Data checked without any error.", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_SUCCESS, "Data checked without any error.")
 
     def __check_data_num_instances(self):
 
@@ -878,51 +841,49 @@ class Dataset(object):
 
 
             if num_instances != self.number_instances:
-                Notification(DEEP_NOTIF_FATAL, "Number of instances in " + str(self.list_inputs[0]) + " and " + str(f) + " do not match.", write_logs=self.write_logs)
-
-    @staticmethod
-    def __compute_must_be_augmented_list(number_instances, use_raw_data):
-
-        """
-        Authors : Alix Leroy,
-        Return a list to know whether or not we should augment raw data
-        :param number_instances:
-        :param use_raw_data:
-        :return:
-        """
-
-        must_be_augmented_list = []
-
-        for i in range(number_instances):
-            if use_raw_data == True:
-                must_be_augmented_list.append(1)
-            else:
-                must_be_augmented_list.append(0)
-
-        return must_be_augmented_list
+                Notification(DEEP_NOTIF_FATAL, "Number of instances in " + str(self.list_inputs[0]) + " and " + str(f) + " do not match.")
 
 
     def __check_data_type(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check the type of the entries
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
 
         # TODO : Add a progress bar
         # For each file check if we have the same number of row
         for f in self.list_data:
 
             # If the input is a file
-            if self.__type_input(f) == DEEP_TYPE_FILE:
+            if self.__source_path_type(f) == DEEP_TYPE_FILE:
 
                 with open(f) as file:
-                    Notification(DEEP_NOTIF_ERROR, "Check data type not implemented", write_logs=self.write_logs)
-
+                    Notification(DEEP_NOTIF_ERROR, "Check data type not implemented")
 
             # If the input is a folder
-            elif self.__type_input(f) == DEEP_TYPE_FOLDER:
-                Notification(DEEP_NOTIF_FATAL, "Cannot currently check folders", write_logs=self.write_logs)
-
+            elif self.__source_path_type(f) == DEEP_TYPE_FOLDER:
+                Notification(DEEP_NOTIF_FATAL, "Cannot currently check folders")
 
             # If it is not a file neither a folder then BUG :(
             else:
-                Notification(DEEP_NOTIF_FATAL, "The following path is neither a file nor a folder : " + str(f) + ".", write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following path is neither a file nor a folder : " + str(f) + ".")
 
 
 
@@ -953,7 +914,6 @@ class Dataset(object):
 
         return num_instances
 
-
     def __get_number_instances(self, f):
         """
         Authors : Alix Leroy,
@@ -975,7 +935,7 @@ class Dataset(object):
 
         # If it is not a file neither a folder then BUG :(
         else:
-            Notification(DEEP_NOTIF_FATAL, "The following input is neither a file nor a folder :" + str(f), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_FATAL, "The following input is neither a file nor a folder :" + str(f))
 
         return num_instances
 

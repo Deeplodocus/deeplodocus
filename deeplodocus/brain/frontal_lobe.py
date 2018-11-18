@@ -20,6 +20,7 @@ from deeplodocus.core.inference.tester import Tester
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
 from deeplodocus.core.optimizer.optimizer import Optimizer
+from deeplodocus.utils.dict_utils import convert_string_to_number
 
 class FrontalLobe(object):
     """
@@ -45,7 +46,7 @@ class FrontalLobe(object):
         - Display the summaries
 
     """
-    def __init__(self, config, write_logs: bool = True):
+    def __init__(self, config):
         """
         AUTHORS:
         --------
@@ -75,8 +76,8 @@ class FrontalLobe(object):
         self.metrics = None
         self.losses = None
         self.optimizer = None
-        self.write_logs=write_logs
         # Load the attributes
+        self.load()
 
     def train(self):
         """
@@ -104,7 +105,7 @@ class FrontalLobe(object):
         if self.trainer is not None:
             self.trainer.fit()
         else:
-            Notification(DEEP_NOTIF_ERROR, "The trainer is not loaded, please make sure all the config files are correct", write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_ERROR, "The trainer is not loaded, please make sure all the config files are correct")
 
     def evaluate(self):
         """
@@ -167,24 +168,24 @@ class FrontalLobe(object):
 
         # Metrics
         self.metrics = self.__load_metrics()
-        """
+
         self.validator = self.__load_tester(name="Validator",
                                             dataloader=self.config.data.dataloader,
                                             dataset=self.config.data.dataset.validation,
                                             transforms=self.config.transform.validation)
-
-        Notification(DEEP_NOTIF_SUCCESS, "Validator loaded", write_logs=self.write_logs)
+        """
+        Notification(DEEP_NOTIF_SUCCESS, "Validator loaded")
 
         self.tester = self.__load_tester(name="Tester",
                                          dataloader=self.config.data.dataloader,
                                          dataset=self.config.data.dataset.test,
                                          transforms=self.config.transform.test)
 
-        Notification(DEEP_NOTIF_SUCCESS, "Tester loaded", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_SUCCESS, "Tester loaded")
 
         #self.trainer = self.__load_trainer(, tester = self.validator)
 
-        Notification(DEEP_NOTIF_SUCCESS, "Trainer loaded", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_SUCCESS, "Trainer loaded")
         """
 
         self.__summary(model=self.model,
@@ -215,8 +216,7 @@ class FrontalLobe(object):
 
         :return optimizer->torch.nn.Module:
         """
-
-        return Optimizer(params=self.model.parameters(), write_logs=self.write_logs, **self.config.optimizer.get()).get()
+        return Optimizer(params=self.model.parameters(), **convert_string_to_number(self.config.optimizer.get())).get()
 
 
 
@@ -252,8 +252,7 @@ class FrontalLobe(object):
                 exec("from {0} import {1} \nmethod= {2}".format(value.path, value.method, value.method), {}, local)
             except:
                 Notification(DEEP_NOTIF_ERROR,
-                             DEEP_MSG_LOSS_NOT_FOUND % (value.method),
-                             write_logs=self.write_logs)
+                             DEEP_MSG_LOSS_NOT_FOUND % (value.method))
 
             if self.config.losses.check("kwargs", key):
                 method = local["method"](value.kwargs)
@@ -267,9 +266,9 @@ class FrontalLobe(object):
                 is_custom = True
 
             if isinstance(method, torch.nn.Module):
-                loss_functions[str(key)] = Loss(name=str(key), is_custom=is_custom, weight=float(value.weight), loss=method, write_logs=self.write_logs)
+                loss_functions[str(key)] = Loss(name=str(key), is_custom=is_custom, weight=float(value.weight), loss=method)
             else:
-                Notification(DEEP_NOTIF_FATAL, "The loss function %s is not a torch.nn.Module instance" %str(key), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The loss function %s is not a torch.nn.Module instance" %str(key))
 
         return loss_functions
 
@@ -306,15 +305,14 @@ class FrontalLobe(object):
                 exec("from {0} import {1} \nmethod= {2}".format(value.path, value.method, value.method), {}, local)
             except:
                 Notification(DEEP_NOTIF_ERROR,
-                             DEEP_MSG_METRIC_NOT_FOUND % (value.method),
-                             write_logs=self.write_logs)
+                             DEEP_MSG_METRIC_NOT_FOUND % (value.method))
 
             if self.config.metrics.check("kwargs", key):
                 method = local["method"](value.kwargs)
             else:
                 method = local["method"]()
 
-            metric_functions[str(key)] = Metric(name=str(key), method=method, write_logs=self.write_logs)
+            metric_functions[str(key)] = Metric(name=str(key), method=method)
 
         return metric_functions
 
@@ -345,7 +343,7 @@ class FrontalLobe(object):
         try:
             exec("from {0} import {1} \nmodel= {2}".format(self.config.model.module, self.config.model.name, self.config.model.name), {}, local)
         except:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_MODEL_NOT_FOUND %(self.config.model.name, self.config.model.module), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_MODEL_NOT_FOUND %(self.config.model.name, self.config.model.module))
 
 
         if self.config.check("kwargs", "model"):
@@ -396,14 +394,13 @@ class FrontalLobe(object):
 
 
         # Create the transform managers
-        transform_manager = TransformManager(transforms, write_logs=False)
+        transform_manager = TransformManager(transforms)
 
         dataset = Dataset(list_inputs=inputs,
                           list_labels=labels,
                           list_additional_data=additional_data,
                           transform_manager=transform_manager,
                           cv_library=DEEP_LIB_PIL,
-                          write_logs=self.write_logs,
                           name=name)
 
         dataset.load()
@@ -508,10 +505,10 @@ class FrontalLobe(object):
         for h in hooks:
             h.remove()
 
-        Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------', write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
         line_new = '{:>20}  {:>25} {:>15}'.format('Layer (type)', 'Output Shape', 'Param #')
-        Notification(DEEP_NOTIF_INFO, line_new, write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_INFO, '================================================================', write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, line_new)
+        Notification(DEEP_NOTIF_INFO, '================================================================')
         total_params = 0
         total_output = 0
         trainable_params = 0
@@ -524,7 +521,7 @@ class FrontalLobe(object):
             if 'trainable' in summary[layer]:
                 if summary[layer]['trainable'] == True:
                     trainable_params += summary[layer]['nb_params']
-            Notification(DEEP_NOTIF_INFO, line_new, write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_INFO, line_new)
 
         # assume 4 bytes/number (float on cuda).
         total_input_size = abs(np.prod(input_size) * batch_size * 4. / (1024 ** 2.))
@@ -532,32 +529,32 @@ class FrontalLobe(object):
         total_params_size = abs(total_params.numpy() * 4. / (1024 ** 2.))
         total_size = total_params_size + total_output_size + total_input_size
 
-        Notification(DEEP_NOTIF_INFO, '================================================================', write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_INFO, 'Total params: {0:,}'.format(total_params), write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_INFO, 'Trainable params: {0:,}'.format(trainable_params), write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_INFO, 'Non-trainable params: {0:,}'.format(total_params - trainable_params), write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------', write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_INFO, "Input size (MB): %0.2f" % total_input_size, write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_INFO, "Forward/backward pass size (MB): %0.2f" % total_output_size, write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_INFO, "Params size (MB): %0.2f" % total_params_size, write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_INFO, "Estimated Total Size (MB): %0.2f" % total_size, write_logs=self.write_logs)
-        Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, '================================================================')
+        Notification(DEEP_NOTIF_INFO, 'Total params: {0:,}'.format(total_params))
+        Notification(DEEP_NOTIF_INFO, 'Trainable params: {0:,}'.format(trainable_params))
+        Notification(DEEP_NOTIF_INFO, 'Non-trainable params: {0:,}'.format(total_params - trainable_params))
+        Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
+        Notification(DEEP_NOTIF_INFO, "Input size (MB): %0.2f" % total_input_size)
+        Notification(DEEP_NOTIF_INFO, "Forward/backward pass size (MB): %0.2f" % total_output_size)
+        Notification(DEEP_NOTIF_INFO, "Params size (MB): %0.2f" % total_params_size)
+        Notification(DEEP_NOTIF_INFO, "Estimated Total Size (MB): %0.2f" % total_size)
+        Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
 
         # List of metrics
-        Notification(DEEP_NOTIF_INFO, "LIST OF METRICS :", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "LIST OF METRICS :")
         for metric_name, metric in metrics.items():
-            Notification(DEEP_NOTIF_INFO, "%s :" % metric_name, write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_INFO, "%s :" % metric_name)
 
         # List of loss functions
-        Notification(DEEP_NOTIF_INFO, "LIST OF LOSS FUNCTIONS :", write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "LIST OF LOSS FUNCTIONS :")
         for loss_name, loss in losses.items():
-            Notification(DEEP_NOTIF_INFO, "%s :" % loss_name, write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_INFO, "%s :" % loss_name)
 
         # Optimizer
-        Notification(DEEP_NOTIF_INFO, "OPTIMIZER :" + str(self.config.optimizer.name), write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, "OPTIMIZER :" + str(self.config.optimizer.name))
         for key, value in self.config.optimizer.get().items():
             if key != "name":
-                Notification(DEEP_NOTIF_INFO, "%s : %s" %(key, value), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_INFO, "%s : %s" %(key, value))
 
 
     def __model_has_multiple_inputs(self):
