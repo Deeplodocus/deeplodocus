@@ -1,5 +1,5 @@
 """
-Namespace object for storing complex, multi-level data.
+Namespace object for storing multi-level data.
 Data can added on initialisation as a dictionary, a path to a directory and/or a path to a yaml_file
 """
 

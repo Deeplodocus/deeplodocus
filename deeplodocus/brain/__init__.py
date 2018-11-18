@@ -135,7 +135,7 @@ class Brain(object):
                     Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_FILE % config_path)
                 else:
                     Notification(DEEP_NOTIF_ERROR, DEEP_MSG_FILE_NOT_FOUND % config_path)
-            self.check_config()
+            # self.check_config()
             self.store_config()
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
@@ -316,7 +316,6 @@ class Brain(object):
                         item_path = DEEP_CONFIG_DIVIDER.join(this_sub_sapce + [item])
                         Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
         return complete
-
 
     @staticmethod
     def __get_command_flags(commands):
