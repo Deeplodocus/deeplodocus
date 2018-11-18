@@ -60,7 +60,7 @@ class Notification(object):
     Display a custom message to the user
     """
 
-    def __init__(self, notif_type: int, message: str, write: bool=False) -> None:
+    def __init__(self, notif_type: int, message: str, write: bool=True) -> None:
         """
         AUTHORS:
         --------

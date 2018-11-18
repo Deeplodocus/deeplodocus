@@ -57,9 +57,8 @@ class Logs(object):
         """
         try:
             os.remove(self.__get_path())
-            print("%s removed" % self.__get_path())
-        except FileNotFoundError as e:
-            print(e)
+        except FileNotFoundError:
+            pass
 
     def add(self, text: str, write_time=True) -> None:
         """
