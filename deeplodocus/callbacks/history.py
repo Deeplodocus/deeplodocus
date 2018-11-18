@@ -121,7 +121,7 @@ class History(object):
         """
 
         if self.verbose >= DEEP_VERBOSE_BATCH:
-            Notification(DEEP_NOTIF_INFO, EPOCH_START % (epoch_index, num_epochs), write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_INFO, EPOCH_START % (epoch_index, num_epochs))
 
 
     def on_batch_end(self,
