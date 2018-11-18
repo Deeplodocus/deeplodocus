@@ -324,7 +324,7 @@ class Brain(object):
         for log_name, log_folder, log_extension in self.logs:
             # Check if the log is initialized, if not initialize it
             Logs(log_name, log_folder, log_extension).check_init()
-            
+
         Notification(DEEP_NOTIF_SUCCESS, "Log and History files initialized ! ", write_logs=self.write_logs)
 
     @staticmethod

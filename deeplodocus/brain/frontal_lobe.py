@@ -20,10 +20,32 @@ from deeplodocus.core.metrics.metric import Metric
 from deeplodocus.core.inference.tester import Tester
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
-
+from deeplodocus.core.optimizer.optimizer import Optimizer
 
 class FrontalLobe(object):
+    """
+    AUTHORS:
+    --------
 
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    The FrontalLabe class works as a model manager.
+    This class loads :
+        - The model
+        - The optimizer
+        - The trainer
+        - The validator
+        - The tester
+
+    This class also allows to :
+        - Start the training
+        - Evaluate the model on the test dataset
+        - Display the summaries
+
+    """
     def __init__(self, config, write_logs: bool = True):
         """
         AUTHORS:
@@ -53,6 +75,7 @@ class FrontalLobe(object):
         self.tester = None
         self.metrics = None
         self.losses = None
+        self.optimizer = None
         self.write_logs=write_logs
 
         # Load the attributes
@@ -136,8 +159,16 @@ class FrontalLobe(object):
         :return: None
         """
 
+        # Model (always before the optimizer)
         self.model = self.__load_model()
+
+        # Optimizer (always after the Model)
+        self.optimizer = self.__load_optimizer()
+
+        # Losses
         self.losses = self.__load_losses()
+
+        # Metrics
         self.metrics = self.__load_metrics()
         """
         self.validator = self.__load_tester(name="Validator",
@@ -157,14 +188,40 @@ class FrontalLobe(object):
         #self.trainer = self.__load_trainer(, tester = self.validator)
 
         Notification(DEEP_NOTIF_SUCCESS, "Trainer loaded", write_logs=self.write_logs)
-
-
         """
 
         self.__summary(model=self.model,
                        input_size=self.config.model.input_size,
                        losses=self.losses, metrics = self.metrics,
                        batch_size=self.config.data.dataloader.batch_size)
+
+
+    def __load_optimizer(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Load the optimizer
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return optimizer->torch.nn.Module:
+        """
+
+        return Optimizer(params=self.model.parameters(), write_logs=self.write_logs, **self.config.optimizer.get()).get()
+
+
 
     def __load_losses(self):
         """

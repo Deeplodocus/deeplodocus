@@ -99,11 +99,12 @@ class Optimizer(object):
         """
         local = {"optimizer" : None}
         exec("import torch \noptimizer = torch.optim.{0}".format(name), {}, local)
+        print(kwargs)
         optimizer = local["optimizer"](params, **kwargs)
 
         return optimizer
 
-    def get_optimizer(self):
+    def get(self):
         """
         AUTHORS:
         --------
