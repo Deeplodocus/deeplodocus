@@ -3,6 +3,8 @@ import torch
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
+
+
 class Optimizer(object):
 
     def __init__(self, name:str,

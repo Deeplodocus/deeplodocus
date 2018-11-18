@@ -1,4 +1,8 @@
 name: "DeepProject"
+
 cv_library: 1
-write_logs: True
-on_wake: Null
+
+logs:
+  write: True
+
+on_wake: # frontal_lobe.load()
