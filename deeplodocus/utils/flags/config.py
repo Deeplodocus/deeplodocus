@@ -23,10 +23,12 @@ DEEP_CONFIG_SECTIONS = [DEEP_CONFIG_PROJECT,
                         DEEP_CONFIG_LOSS,
                         DEEP_CONFIG_HISTORY]
 
-
 DEEP_CONFIG = {"project": ["name",
                            "cv_library",
-                           {"logs": ["write"]},
+                           {"logs": ["history_train_batches",
+                                     "history_train_epochs",
+                                     "history_validation",
+                                     "notification"]},
                            "on_wake"],
                "model": ["module", "name"],
                "data": [{"dataloader": ["batch_size",
