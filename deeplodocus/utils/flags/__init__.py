@@ -1,15 +1,15 @@
-import os
-import __main__
-
-from deeplodocus.utils.flags.ext import *
+from deeplodocus.utils.flags.cmd import *
 from deeplodocus.utils.flags.config import *
+from deeplodocus.utils.flags.entry import *
+from deeplodocus.utils.flags.exit import *
+from deeplodocus.utils.flags.ext import *
+from deeplodocus.utils.flags.filter import *
+from deeplodocus.utils.flags.lib import *
+from deeplodocus.utils.flags.log import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.entry import *
-from deeplodocus.utils.flags.lib import *
-from deeplodocus.utils.flags.filter import *
+from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.types import *
-
 
 #
 # HISTORY SAVING CONDITION
@@ -54,29 +54,10 @@ DEEP_COMPARE_SMALLER = 0
 DEEP_COMPARE_BIGGER = 1
 
 #
-# ABSOLUTE PATHS TO WORKING DIRECTORIES
-#
-DEEP_PATH_NOTIFICATION = r"%s/logs" % os.path.dirname(os.path.abspath(__main__.__file__))
-DEEP_PATH_RESULTS = r"%s/results" % os.path.dirname(os.path.abspath(__main__.__file__))
-DEEP_PATH_HISTORY = r"%s/results/history" % os.path.dirname(os.path.abspath(__main__.__file__))
-DEEP_PATH_SAVE_MODEL = r"%s/results/models" % os.path.dirname(os.path.abspath(__main__.__file__))
-
-#
 # DEEP_ENCODE_FLAGS
 #
 DEEP_ENCODE_ASCII = "ascii"
 DEEP_ENCODE_UTF8 = "utf-8"
-
-#
-# DEEP_COMMAND_FLAGS
-#
-DEEP_CMD_PRINT = "-p"
-DEEP_CMD_FLAGS = [DEEP_CMD_PRINT]
-
-#
-# DEEP_EXIT_FLAGS
-#
-DEEP_EXIT_FLAGS = ["q", "quit", "exit", "sleep"]
 
 FINISHED_TRAINING = "Finished training"
 SUMMARY = "Summary"

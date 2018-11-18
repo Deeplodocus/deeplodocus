@@ -1,4 +1,5 @@
 from deeplodocus.utils.logs import Logs
+from deeplodocus.utils.flags.log import *
 
 
 class End(object):
@@ -13,27 +14,10 @@ class End(object):
         Terminates the program
         :param error: Whether the program terminated with an error or not
         """
-
-        self.__terminate_logs()
-
         if error is False :
             self.__thanks_master()
-
         # Stop the program
         raise SystemExit(0)
-
-
-
-    def __terminate_logs(self):
-        """
-        Authors : Alix Leroy,
-        Terminate the logs
-        :return: None
-        """
-
-        Logs("notification").close_log()
-        #Logs("database").close_log()
-        #Logs("example").close_log()
 
     def __thanks_master(self):
         """
@@ -46,6 +30,3 @@ class End(object):
         print("Thank you for using Deeplodocus !")
         print("== Made by Humans with deep <3 ==")
         print("=================================\n")
-
-
-

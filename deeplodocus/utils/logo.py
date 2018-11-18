@@ -15,7 +15,7 @@ class Logo(object):
     Display the logo of Deeplodocus containing the version number.
     """
 
-    def __init__(self, version: str, write_logs: bool=True):
+    def __init__(self, version: str, write: bool=True):
         """
         AUTHORS:
         --------
@@ -38,10 +38,10 @@ class Logo(object):
         :return: None
         """
 
-        self.__display(version, write_logs)
+        self.__display(version, write)
 
     @staticmethod
-    def __display(version: str, write_logs: bool):
+    def __display(version: str, write: bool):
         """
         AUTHORS:
         --------
@@ -63,29 +63,29 @@ class Logo(object):
         :return: None
         """
 
-        Notification(DEEP_NOTIF_SUCCESS, "         `.-.````                                                                   ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_SUCCESS, "      ....0.0-....`                                                                 ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_SUCCESS, "      .:----::::s:-.`                                                               ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_SUCCESS, "        `..-::::/:---`                                                              ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_SUCCESS, "             .:/:----.`                                                             ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_SUCCESS, "              ://:----`                                                             ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_SUCCESS, "              :://----`                                                             ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_SUCCESS, "             `////----`                                                             ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_SUCCESS, "             ./:/:---..             `````````````                                   ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_SUCCESS, "             -/:/:---..          ``................``                               ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_SUCCESS, "             -://-----.        `---....------:------...````             `````````   ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_SUCCESS, "             -:/:-----.      `-:::-----------------::---......```..``.``......`     ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_SUCCESS, "             .:/:-.---.`````..---:---------------------:::---------..--.----.`      ", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, "``'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, "``'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,.='````'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, "``'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,.='````'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, ".#####...######..######..#####...##.......####...#####....####....####...##..##...####..", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, ".##..##..##......##......##..##..##......##..##..##..##..##..##..##..##..##..##..##.....", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, ".##..##..####....####....#####...##......##..##..##..##..##..##..##......##..##...####..", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, ".##..##..##......##......##......##......##..##..##..##..##..##..##..##..##..##......##.", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, ".#####...######..######..##......######...####...#####....####....####....####....####..", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, "........................................................................................", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, "....................THE FRAMEWORK KEEPING YOUR HEAD ABOVE WATER.........................", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, "..................................VERSION : " + str(version) + ".......................................", write_logs=write_logs)
-        Notification(DEEP_NOTIF_INFO, "``'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,.='````'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,", write_logs=write_logs)
+        Notification(DEEP_NOTIF_SUCCESS, "         `.-.````                                                                   ", write=write)
+        Notification(DEEP_NOTIF_SUCCESS, "      ....0.0-....`                                                                 ", write=write)
+        Notification(DEEP_NOTIF_SUCCESS, "      .:----::::s:-.`                                                               ", write=write)
+        Notification(DEEP_NOTIF_SUCCESS, "        `..-::::/:---`                                                              ", write=write)
+        Notification(DEEP_NOTIF_SUCCESS, "             .:/:----.`                                                             ", write=write)
+        Notification(DEEP_NOTIF_SUCCESS, "              ://:----`                                                             ", write=write)
+        Notification(DEEP_NOTIF_SUCCESS, "              :://----`                                                             ", write=write)
+        Notification(DEEP_NOTIF_SUCCESS, "             `////----`                                                             ", write=write)
+        Notification(DEEP_NOTIF_SUCCESS, "             ./:/:---..             `````````````                                   ", write=write)
+        Notification(DEEP_NOTIF_SUCCESS, "             -/:/:---..          ``................``                               ", write=write)
+        Notification(DEEP_NOTIF_SUCCESS, "             -://-----.        `---....------:------...````             `````````   ", write=write)
+        Notification(DEEP_NOTIF_SUCCESS, "             -:/:-----.      `-:::-----------------::---......```..``.``......`     ", write=write)
+        Notification(DEEP_NOTIF_SUCCESS, "             .:/:-.---.`````..---:---------------------:::---------..--.----.`      ", write=write)
+        Notification(DEEP_NOTIF_INFO, "``'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'-.,_)`'", write=write)
+        Notification(DEEP_NOTIF_INFO, "``'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,.='````'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,", write=write)
+        Notification(DEEP_NOTIF_INFO, "``'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,.='````'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,", write=write)
+        Notification(DEEP_NOTIF_INFO, ".#####...######..######..#####...##.......####...#####....####....####...##..##...####..", write=write)
+        Notification(DEEP_NOTIF_INFO, ".##..##..##......##......##..##..##......##..##..##..##..##..##..##..##..##..##..##.....", write=write)
+        Notification(DEEP_NOTIF_INFO, ".##..##..####....####....#####...##......##..##..##..##..##..##..##......##..##...####..", write=write)
+        Notification(DEEP_NOTIF_INFO, ".##..##..##......##......##......##......##..##..##..##..##..##..##..##..##..##......##.", write=write)
+        Notification(DEEP_NOTIF_INFO, ".#####...######..######..##......######...####...#####....####....####....####....####..", write=write)
+        Notification(DEEP_NOTIF_INFO, "........................................................................................", write=write)
+        Notification(DEEP_NOTIF_INFO, "....................THE FRAMEWORK KEEPING YOUR HEAD ABOVE WATER.........................", write=write)
+        Notification(DEEP_NOTIF_INFO, "..................................VERSION : " + str(version) + ".......................................", write=write)
+        Notification(DEEP_NOTIF_INFO, "``'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,.='````'-.,_,.-'``'-.,_,.='``'-.,_,.-'``'-.,_,", write=write)
         print("\n")
