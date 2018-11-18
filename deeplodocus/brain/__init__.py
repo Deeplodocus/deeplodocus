@@ -1,4 +1,4 @@
-import os.path
+import os
 import time
 
 from deeplodocus.utils.notification import Notification
@@ -50,17 +50,12 @@ class Brain(object):
 
         :return: None
         """
-        self.write_logs = True   # Initially set to True and updated after the config is loaded
+        self.clear_logs()
         self.config_dir = config_dir
         self.config_is_complete = False
-        self.logs = [["notification", DEEP_PATH_NOTIFICATION, DEEP_EXT_LOGS],
-                     ["history_train_batches", DEEP_PATH_HISTORY, DEEP_EXT_CSV],
-                     ["history_train_epochs", DEEP_PATH_HISTORY, DEEP_EXT_CSV],
-                     ["history_validation", DEEP_PATH_HISTORY, DEEP_EXT_CSV]]
-        self.__init_logs()
-        Logo(version=__version__, write_logs=self.write_logs)
+        Logo(version=__version__, write=True)
         self.user_interface = None
-        time.sleep(0.5)         # Wait for the UI to respond
+        time.sleep(0.5)                     # Wait for the UI to respond
         self.frontal_lobe = None
         self.config = None
         self._config = None
@@ -72,11 +67,11 @@ class Brain(object):
         Main of deeplodocus framework
         :return: None
         """
-        sleep = self.__on_wake()
-        while not sleep:
-            command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION, write_logs=self.write_logs).get()
-            sleep = self.__execute_command(command)
-        self.sleep()
+        # self.frontal_lobe = FrontalLobe(self.config, **self.config.project.notifications.get())
+        self.__on_wake()
+        while True:
+            command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
+            self.__execute_command(command)
 
     def sleep(self):
         """
@@ -84,6 +79,10 @@ class Brain(object):
         """
         if self.user_interface is not None:
             self.user_interface.stop()
+        if self.config.project.logs.keep:
+            self.close_logs()
+        else:
+            self.clear_logs()
         End(error=False)
 
     def save_config(self):
@@ -115,7 +114,7 @@ class Brain(object):
         Function: Checks current config path is valid, if not, user is prompted to give another
         :return: bool: True if a valid config path is set, otherwise, False
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOAD_CONFIG_START % self.config_dir, write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOAD_CONFIG_START % self.config_dir)
         # If the config directory exists
         if os.path.isdir(self.config_dir):
             self.clear_config()
@@ -124,29 +123,42 @@ class Brain(object):
                 config_path = "%s/%s" % (self.config_dir, file_name)
                 if os.path.isfile(config_path):
                     self.config.add({key: Namespace(config_path)})
-                    Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_FILE % config_path,
-                                 write_logs=self.write_logs)
+                    Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_FILE % config_path)
                 else:
-                    Notification(DEEP_NOTIF_ERROR, DEEP_MSG_FILE_NOT_FOUND % config_path, write_logs=self.write_logs)
+                    Notification(DEEP_NOTIF_ERROR, DEEP_MSG_FILE_NOT_FOUND % config_path)
             self.check_config()
             self.store_config()
         else:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir, write_logs=self.write_logs)
-        self.__set_write_logs()
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
+
+    def clear_logs(self):
+        """
+        :return:
+        """
+        for log_type, (directory, ext) in DEEP_LOGS.items():
+            try:
+                Logs(log_type, directory, ext).delete()
+            except FileNotFoundError:
+                pass
+
+    def close_logs(self):
+        """
+        :return:
+        """
+        for log_type, (directory, ext) in DEEP_LOGS.items():
+            Logs(log_type, directory, ext).close()
 
     def check_config(self):
         """
         :return:
         """
         if self.__check_config():
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS, write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS)
             self.config_is_complete = True
-            self.frontal_lobe = FrontalLobe(self.config, write_logs=self.write_logs)
         else:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_LOAD_CONFIG_FAIL, write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_LOAD_CONFIG_FAIL)
             self.config_is_complete = False
         return self.config_is_complete
-
 
     def train(self):
         """
@@ -174,7 +186,7 @@ class Brain(object):
         if self.frontal_lobe is not None:
             self.frontal_lobe.train()
         else:
-            Notification(DEEP_NOTIF_ERROR, "The model is not loaded yet, please feed Deeplodocus with all the required config files.", write_logs=self.write_logs)
+            Notification(DEEP_NOTIF_ERROR, "The model is not loaded yet, please feed Deeplodocus with all the required config files.")
 
     def __on_wake(self):
         """
@@ -184,9 +196,7 @@ class Brain(object):
             if not isinstance(self.config.project.on_wake, list):
                 self.config.project.on_wake = [self.config.project.on_wake]
             for command in self.config.project.on_wake:
-                if self.__execute_command(command):
-                    return True
-        return False
+                self.__execute_command(command)
 
     def __execute_command(self, command):
         """
@@ -196,17 +206,16 @@ class Brain(object):
         commands, flags = self.__preprocess_command(command)
         for command, flag in zip(commands, flags):
             if command in DEEP_EXIT_FLAGS:
-                return True
+                self.sleep()
             else:
-                try:
-                    if flag is None:
-                        exec("self.%s" % command)
-                    elif flag == DEEP_CMD_PRINT:
-                        exec("Notification(DEEP_NOTIF_RESULT, self.%s, write_logs=self.write_logs)" % command)
-                except AttributeError as e:
-                    Notification(DEEP_NOTIF_ERROR, str(e), write_logs=self.write_logs)
+                #try:
+                if flag is None:
+                    exec("self.%s" % command)
+                elif flag == DEEP_CMD_PRINT:
+                    exec("Notification(DEEP_NOTIF_RESULT, self.%s, write_logs=self.write_logs)" % command)
+                #except AttributeError as e:
+                    #Notification(DEEP_NOTIF_ERROR, str(e), **self.config.project.notifications.get())
                 time.sleep(0.5)
-        return False
 
     def __preprocess_command(self, command):
         """
@@ -252,7 +261,7 @@ class Brain(object):
             message = "%s %s" % (message, DEEP_MSG_ALREADY_AWAKE)
         if command == "config.save":
             message = "%s %s" % (message, DEEP_MSG_USE_CONFIG_SAVE)
-        Notification(DEEP_NOTIF_WARNING, message, write_logs=self.write_logs)
+        Notification(DEEP_NOTIF_WARNING, message)
 
     def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
         """
@@ -276,56 +285,9 @@ class Brain(object):
                     if not exists:
                         complete = False
                         item_path = DEEP_CONFIG_DIVIDER.join(this_sub_sapce + [item])
-                        Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path,
-                                     write_logs=self.write_logs)
+                        Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
         return complete
 
-    def __set_write_logs(self):
-        """
-        Author: SW
-        Sets self.write logs if the project configurations have been written
-        :return: None
-        """
-        if self.config.check("write_logs", DEEP_CONFIG_PROJECT):
-            self.write_logs = self.config.project.write_logs
-            if self.write_logs is False:
-                try:
-                    Logs(type="notification",
-                         extension=DEEP_EXT_LOGS,
-                         folder="%s/logs" % os.path.dirname(os.path.abspath(__main__.__file__))).delete()
-                    Notification(DEEP_NOTIF_INFO, DEEP_MSG_REMOVE_LOGS, write_logs=False)
-                except FileNotFoundError:
-                    pass
-
-    def __init_logs(self):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Initialize all logs
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return:None
-        """
-
-        # For each entry in the log list
-        for log_name, log_folder, log_extension in self.logs:
-            # Check if the log is initialized, if not initialize it
-            Logs(log_name, log_folder, log_extension).check_init()
-
-        Notification(DEEP_NOTIF_SUCCESS, "Log and History files initialized ! ", write_logs=self.write_logs)
 
     @staticmethod
     def __get_command_flags(commands):
@@ -353,7 +315,7 @@ if __name__ == "__main__":
         brain.wake()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", type=str, default="../core/project/deep_structure/config",
+    parser.add_argument("-c", type=str, default="core/project/deep_structure/config",
                         help="Path to the config directory")
     arguments = parser.parse_args()
     main(arguments)

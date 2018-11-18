@@ -6,7 +6,6 @@ import torch.nn as nn
 
 from collections import OrderedDict
 
-import cv2
 import copy
 import shutil
 import numpy as np
@@ -77,9 +76,7 @@ class FrontalLobe(object):
         self.losses = None
         self.optimizer = None
         self.write_logs=write_logs
-
         # Load the attributes
-        self.load()
 
     def train(self):
         """

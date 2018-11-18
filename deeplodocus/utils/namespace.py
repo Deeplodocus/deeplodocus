@@ -6,6 +6,9 @@ Data can added on initialisation as a dictionary, a path to a directory and/or a
 import yaml
 import copy
 
+from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.flags.notif import *
+
 
 class Namespace(object):
 
@@ -75,7 +78,9 @@ class Namespace(object):
         :param tab_size:
         :return:
         """
-        print(self.__get_summary(tab_size=tab_size))
+        summary = self.__get_summary(tab_size=tab_size).split("\n")
+        for line in summary:
+            Notification(DEEP_NOTIF_INFO, line)
 
     def check(self, item, sub_space=None):
         """

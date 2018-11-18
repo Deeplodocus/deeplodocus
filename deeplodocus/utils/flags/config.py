@@ -26,7 +26,7 @@ DEEP_CONFIG_SECTIONS = [DEEP_CONFIG_PROJECT,
 
 DEEP_CONFIG = {"project": ["name",
                            "cv_library",
-                           "write_logs",
+                           {"logs": ["write"]},
                            "on_wake"],
                "model": ["module", "name"],
                "data": [{"dataloader": ["batch_size",

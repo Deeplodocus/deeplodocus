@@ -60,7 +60,7 @@ class Notification(object):
     Display a custom message to the user
     """
 
-    def __init__(self, notif_type: int, message: str, write_logs: bool=False) -> None:
+    def __init__(self, notif_type: int, message: str, write: bool=True) -> None:
         """
         AUTHORS:
         --------
@@ -83,7 +83,7 @@ class Notification(object):
 
         :return : result if input required, else None
         """
-        self.write_logs = write_logs            # Whether or not notifications should be written to logs
+        self.write = write                      # Whether or not notifications should be written to logs
         self.response = ""                      # Allocated by self.__input(), returned by self.get()
         if notif_type == DEEP_NOTIF_INFO:
             self.__info(message)
@@ -104,7 +104,7 @@ class Notification(object):
         else:
             raise ValueError("Unknown notification type: %s" % notif_type)
 
-    def __fatal_error(self, message: str)->None:
+    def __fatal_error(self, message: str) -> None:
         """
         AUTHORS:
         --------
@@ -135,7 +135,7 @@ class Notification(object):
         message2 = "DEEP FATAL ERROR : Exiting the program"
         print("%s%s%s" % (CREDBG2, message1, CEND))
         print("%s%s%s" % (CREDBG2, message2, CEND))
-        if self.write_logs is True:
+        if self.write is True:
             self.__add_log(message1)
             self.__add_log(message2)
         End(error=True)
@@ -164,7 +164,7 @@ class Notification(object):
         """
         message = "DEEP ERROR : %s" % message
         print("%s%s%s" % (CRED, message, CEND))
-        if self.write_logs is True:
+        if self.write is True:
             self.__add_log(message)
 
     def __warning(self, message: str)->None:
@@ -191,7 +191,7 @@ class Notification(object):
         """
         message = "DEEP WARNING : %s" % message
         print("%s%s%s" % (CYELLOW2, message, CEND))
-        if self.write_logs is True:
+        if self.write is True:
             self.__add_log(message)
 
     def __debug(self, message: str) -> None:
@@ -218,7 +218,7 @@ class Notification(object):
         """
         message = "DEEP DEBUG : %s" % message
         print("%s%s%s" % (CBEIGE, message, CEND))
-        if self.write_logs is True:
+        if self.write is True:
             self.__add_log(message)
 
     def __success(self, message: str) -> None:
@@ -245,7 +245,7 @@ class Notification(object):
         """
         message = "DEEP SUCCESS : %s" % message
         print("%s%s%s" % (CGREEN, message, CEND))
-        if self.write_logs is True:
+        if self.write is True:
             self.__add_log(message)
 
     def __info(self, message: str) -> None:
@@ -273,7 +273,7 @@ class Notification(object):
 
         message = "DEEP INFO : %s" % message
         print("%s%s%s" % (CBLUE, message, CEND))
-        if self.write_logs is True:
+        if self.write is True:
             self.__add_log(message)
 
     def __result(self, message: str) -> None:
@@ -285,7 +285,7 @@ class Notification(object):
         """
         message = "DEEP RESULT : %s" % message
         print(message)
-        if self.write_logs is True:
+        if self.write is True:
             self.__add_log(message)
 
     def __input(self, message: str) -> None:
@@ -314,7 +314,7 @@ class Notification(object):
         print(CBLINK + CBOLD + str(message) + CEND)
         # Wait for an input from the user
         self.response = input("> ")
-        if self.write_logs is True:
+        if self.write is True:
             # Add the the message to the log
             self.__add_log(message)
             self.__add_log(str(self.response))
@@ -343,8 +343,7 @@ class Notification(object):
         """
         return self.response
 
-    @staticmethod
-    def __add_log(message: str) -> None:
+    def __add_log(self, message: str) -> None:
         """
         AUTHORS:
         --------
@@ -366,5 +365,4 @@ class Notification(object):
 
         :return: None
         """
-        log = Logs("notification", "%s/logs" % os.path.dirname(os.path.abspath(__main__.__file__)), ".logs")
-        log.add(message)
+        Logs("notification", DEEP_PATH_NOTIFICATION, DEEP_EXT_LOGS).add(message)
