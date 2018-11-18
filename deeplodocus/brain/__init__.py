@@ -66,7 +66,7 @@ class Brain(object):
         Deeplodocus terminal commands
         :return: None
         """
-        self.frontal_lobe = FrontalLobe(self.config)
+        # self.frontal_lobe = FrontalLobe(self.config)
         self.__on_wake()
         while True:
             command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
@@ -149,7 +149,7 @@ class Brain(object):
         """
         for log_type, (directory, ext) in DEEP_LOGS.items():
             # If forced or log should not be kept, delete the log
-            if force or not self.config.project.logs.get()[log_type]:
+            if force or not self.config.project.logs.get(log_type):
                 Logs(log_type, directory, ext).delete()
 
     def close_logs(self, force=False):
@@ -161,7 +161,8 @@ class Brain(object):
         """
         for log_type, (directory, ext) in DEEP_LOGS.items():
             # If forced to closer or log should be kept, close the log
-            if force or self.config.project.logs.get()[log_type]:
+            # NB: config does not have to exist if force is True
+            if force or self.config.project.logs.get(log_type):
                 if os.path.isfile("%s/%s%s" % (directory, log_type, ext)):
                     Logs(log_type, directory, ext).close()
             else:
@@ -177,7 +178,6 @@ class Brain(object):
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS)
             return True
         else:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_LOAD_CONFIG_FAIL)
             return False
 
     def train(self):
@@ -283,7 +283,7 @@ class Brain(object):
         :return:
         """
         message = (DEEP_MSG_ILLEGAL_COMMAND % command)
-        if "__" in command or command.startswith("_"):
+        if "__" in command or "._" in command or command.startswith("_"):
             message = "%s %s" % (message, DEEP_MSG_PRIVATE)
         if command == "wake()":
             message = "%s %s" % (message, DEEP_MSG_ALREADY_AWAKE)
@@ -299,23 +299,16 @@ class Brain(object):
         complete = True
         sub_space = [] if sub_space is None else sub_space
         sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
-        for key, items in dictionary.items():
-            this_sub_sapce = sub_space + [key]
-            for item in items:
-                if isinstance(item, dict):
-                    if not self.__check_config(item, this_sub_sapce):
-                        complete = False
-                else:
-                    try:
-                        exists = self.config.check(item, this_sub_sapce)
-                    except (AttributeError, KeyError):
-                        exists = False
-                    if not exists:
-                        complete = False
-                        item_path = DEEP_CONFIG_DIVIDER.join(this_sub_sapce + [item])
-                        Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
+        for key, value in dictionary.items():
+            if isinstance(value, dict):
+                if not self.__check_config(value, sub_space + [key]):
+                    complete = False
+            else:
+                if not self.config.check(key, sub_space):
+                    complete = False
+                    item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
+                    Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
         return complete
-
 
     @staticmethod
     def __get_command_flags(commands):

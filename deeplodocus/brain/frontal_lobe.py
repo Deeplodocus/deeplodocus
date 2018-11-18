@@ -338,14 +338,12 @@ class FrontalLobe(object):
 
         :return model->torch.nn.Module:  The model
         """
-
-        local = {"model" : None}
+        local = {"model": None}
         try:
             exec("from {0} import {1} \nmodel= {2}".format(self.config.model.module, self.config.model.name, self.config.model.name), {}, local)
-        except:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_MODEL_NOT_FOUND %(self.config.model.name, self.config.model.module))
-
-
+        except ImportError:
+            Notification(DEEP_NOTIF_ERROR,
+                         DEEP_MSG_MODEL_NOT_FOUND % (self.config.model.name, self.config.model.module))
         if self.config.check("kwargs", "model"):
             model = local["model"](self.config.model.kwarg)
         else:
