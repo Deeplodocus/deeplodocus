@@ -25,7 +25,7 @@ logs = [["notification", DEEP_PATH_NOTIFICATION, ".logs"],
 
 for log_name, log_folder, log_extension in logs:
     Logs(log_name, log_folder, log_extension).check_init()
-Notification(DEEP_NOTIF_SUCCESS, "Log and History files initialized ! ", write_logs=False)
+Notification(DEEP_NOTIF_SUCCESS, "Log and History files initialized ! ", log=False)
 
 # Model
 model = Net()
@@ -39,7 +39,7 @@ inputs.append([r"data/input1.txt"])
 labels.append([r"data/label1.txt"])
 #inputs.append([r"data/label1.txt"])
 
-train_dataset = Dataset(inputs, labels, additional_data, transform_manager=None,  cv_library=DEEP_LIB_PIL, write_logs=False, name="Test Trainer")
+train_dataset = Dataset(inputs, labels, additional_data, transform_manager=None,  cv_library=DEEP_LIB_PIL, name="Test Trainer")
 train_dataset.load()
 train_dataset.set_len_dataset(7)
 train_dataset.summary()
@@ -59,7 +59,7 @@ accuracy_metric2 = Metric(name="Accuracy2", method=accuracy)
 metrics = {accuracy_metric.get_name() : accuracy_metric, accuracy_metric2.get_name() : accuracy_metric2}
 
 # Optimizer
-optimizer = Optimizer("sgd", model.parameters(), lr=0.01, momentum=0.9).get_optimizer()
+optimizer = Optimizer("sgd", model.parameters(), lr=0.01, momentum=0.9).get()
 
 
 tester = Tester(model=model,
@@ -88,7 +88,6 @@ trainer = Trainer(model=model,
                   num_workers=1,
                   tester=tester,
                   model_name="test-trainer",
-                  overwatch_metric= OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
-                  write_logs=False)
+                  overwatch_metric= OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER))
 
 trainer.fit()
