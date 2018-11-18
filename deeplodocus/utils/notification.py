@@ -56,8 +56,15 @@ CWHITEBG2 = '\33[107m'
 
 class Notification(object):
     """
-    Authors : Alix Leroy
-    Display a custom message to the user
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Display a custom message to the user and save it to the logs if required
     """
 
     def __init__(self, notif_type: int, message: str, log: bool=True) -> None:
@@ -83,7 +90,7 @@ class Notification(object):
 
         :return : result if input required, else None
         """
-        self.write = write                      # Whether or not notifications should be written to logs
+        self.log = log                      # Whether or not notifications should be written to logs
         self.response = ""                      # Allocated by self.__input(), returned by self.get()
         if notif_type == DEEP_NOTIF_INFO:
             self.__info(message)
@@ -135,7 +142,7 @@ class Notification(object):
         message2 = "DEEP FATAL ERROR : Exiting the program"
         print("%s%s%s" % (CREDBG2, message1, CEND))
         print("%s%s%s" % (CREDBG2, message2, CEND))
-        if self.write is True:
+        if self.log is True:
             self.__add_log(message1)
             self.__add_log(message2)
         End(error=True)
@@ -164,7 +171,7 @@ class Notification(object):
         """
         message = "DEEP ERROR : %s" % message
         print("%s%s%s" % (CRED, message, CEND))
-        if self.write is True:
+        if self.log is True:
             self.__add_log(message)
 
     def __warning(self, message: str)->None:
@@ -191,7 +198,7 @@ class Notification(object):
         """
         message = "DEEP WARNING : %s" % message
         print("%s%s%s" % (CYELLOW2, message, CEND))
-        if self.write is True:
+        if self.log is True:
             self.__add_log(message)
 
     def __debug(self, message: str) -> None:
@@ -218,7 +225,7 @@ class Notification(object):
         """
         message = "DEEP DEBUG : %s" % message
         print("%s%s%s" % (CBEIGE, message, CEND))
-        if self.write is True:
+        if self.log is True:
             self.__add_log(message)
 
     def __success(self, message: str) -> None:
@@ -245,7 +252,7 @@ class Notification(object):
         """
         message = "DEEP SUCCESS : %s" % message
         print("%s%s%s" % (CGREEN, message, CEND))
-        if self.write is True:
+        if self.log is True:
             self.__add_log(message)
 
     def __info(self, message: str) -> None:
@@ -273,7 +280,7 @@ class Notification(object):
 
         message = "DEEP INFO : %s" % message
         print("%s%s%s" % (CBLUE, message, CEND))
-        if self.write is True:
+        if self.log is True:
             self.__add_log(message)
 
     def __result(self, message: str) -> None:
@@ -285,7 +292,7 @@ class Notification(object):
         """
         message = "DEEP RESULT : %s" % message
         print(message)
-        if self.write is True:
+        if self.log is True:
             self.__add_log(message)
 
     def __input(self, message: str) -> None:
@@ -314,7 +321,7 @@ class Notification(object):
         print(CBLINK + CBOLD + str(message) + CEND)
         # Wait for an input from the user
         self.response = input("> ")
-        if self.write is True:
+        if self.log is True:
             # Add the the message to the log
             self.__add_log(message)
             self.__add_log(str(self.response))
