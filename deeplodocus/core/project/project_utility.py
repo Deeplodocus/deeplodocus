@@ -1,6 +1,6 @@
 import os.path
 import os
-from distutils.dir_util import copy_tree, remove_tree
+from distutils.dir_util import copy_tree
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
@@ -43,35 +43,52 @@ class ProjectUtility(object):
             if not os.path.exists(deeplodocus_project_path):
                 os.mkdir(deeplodocus_project_path)
         except:
-            Notification(DEEP_NOTIF_FATAL, "An error occured during the generation of the folders. Make sure the desired folder exists.", write_logs=False)
+            Notification(DEEP_NOTIF_FATAL, "An error occured during the generation of the folders. Make sure the desired folder exists.", log=False)
 
         try:
             # Copy the whole structure of a Deeplodocus project
             copy_tree(source_project_structure, deeplodocus_project_path, update= 1)
         except:
-            Notification(DEEP_NOTIF_FATAL, "An error occurred during the copy of the files. Make sure the destination folder exists and check your Deeplodocus installation.", write_logs=False)
+            Notification(DEEP_NOTIF_FATAL, "An error occurred during the copy of the files. Make sure the destination folder exists and check your Deeplodocus installation.", log=False)
 
-        #self.__clean_structure()
+        self.__clean_structure(deeplodocus_project_path)
 
-        Notification(DEEP_NOTIF_SUCCESS, "Project successfully generated ! Have fun <3 ", write_logs=False)
+        Notification(DEEP_NOTIF_SUCCESS, "Project successfully generated ! Have fun <3 ", log=False)
 
-    def __clean_structure(self):
+    def __clean_structure(self, deeplodocus_project_path):
         """
-        Authors : Alix Leroy,
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
         Remove __init__.py files and __pycache__ folders
-        :return:
-        """
-        """
-        for root, dirs, files in os.walk(template_dir):
 
-            for filename in files:
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        for root, dirs, files in os.walk(deeplodocus_project_path):
+
+            # Remove init files
+            for filename in files[:]:
                 if filename == "__init__.py":
-                    
+                    os.remove(root +"/__init__.py")
 
+            # Remove pycache folders
             for dirname in dirs[:]:
                 if dirname.startswith('.') or dirname == '__pycache__':
-                    remove_tree(dirname)
-        """
+                    dirs.remove(dirname)
 
     def __generate_main_path(self):
         """
