@@ -109,7 +109,8 @@ venv.bak/
 /.idea
 
 # Deeplodocus logs
-
+deeplodocus/brain/logs
+deeplodocus/brain/results
 deeplodocus/core/project/deep_structure/logs/*
 test/results/*
 test

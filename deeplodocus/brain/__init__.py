@@ -288,6 +288,7 @@ class Brain(object):
                         Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
         return complete
 
+
     @staticmethod
     def __get_command_flags(commands):
         """
