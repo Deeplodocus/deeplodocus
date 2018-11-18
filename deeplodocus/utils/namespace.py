@@ -80,7 +80,8 @@ class Namespace(object):
         """
         summary = self.__get_summary(tab_size=tab_size).split("\n")
         for line in summary:
-            Notification(DEEP_NOTIF_INFO, line)
+            if line:
+                Notification(DEEP_NOTIF_INFO, line)
 
     def check(self, item, sub_space=None):
         """
