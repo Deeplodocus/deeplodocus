@@ -48,7 +48,6 @@ class Logs(object):
         self.directory = directory
         self.extension = extension
         self.write_time = write_time
-        self.init_time = None
         self.__check_exists()
 
     def delete(self):
@@ -121,15 +120,22 @@ class Logs(object):
         """
         :return:
         """
-        old_path = self.__get_path()
-        self.init_time = datetime.datetime.now().strftime(TIME_FORMAT)
-        shutil.move(old_path, self.__get_path())
+        with open(self.__get_path(), "r") as file:
+            lines = file.readlines()
+        try:
+            last_line = lines[-1]
+            time = last_line.split(".")[0]
+            time = time.replace(" ", ":")
+            time = time.replace("-", ":")
+        except IndexError:
+            time = datetime.datetime.now().strftime(TIME_FORMAT)
+        shutil.move(self.__get_path(), self.__get_path(time))
 
-    def __get_path(self):
+    def __get_path(self, time=None):
         """
         :return:
         """
-        if self.init_time is None:
+        if time is None:
             return "%s/%s%s" % (self.directory, self.type, self.extension)
         else:
-            return "%s/%s_%s%s" % (self.directory, self.type, self.init_time, self.extension)
+            return "%s/%s_%s%s" % (self.directory, self.type, time, self.extension)

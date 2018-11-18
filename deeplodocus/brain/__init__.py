@@ -50,7 +50,7 @@ class Brain(object):
 
         :return: None
         """
-        self.clear_logs()
+        self.close_logs(force=True)
         self.config_dir = config_dir
         self.config_is_complete = False
         Logo(version=__version__, write=True)
@@ -79,10 +79,8 @@ class Brain(object):
         """
         if self.user_interface is not None:
             self.user_interface.stop()
-        if self.config.project.logs.keep:
-            self.close_logs()
-        else:
-            self.clear_logs()
+        self.close_logs()
+        self.clear_logs()
         End(error=False)
 
     def save_config(self):
@@ -131,22 +129,25 @@ class Brain(object):
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
 
-    def clear_logs(self):
+    def clear_logs(self, force=False):
         """
         :return:
         """
         for log_type, (directory, ext) in DEEP_LOGS.items():
-            try:
+            # If forced or log should not be kept, delete the log
+            if force or not self.config.project.logs.get()[log_type]:
                 Logs(log_type, directory, ext).delete()
-            except FileNotFoundError:
-                pass
 
-    def close_logs(self):
+    def close_logs(self, force=False):
         """
+        :param force:
         :return:
         """
         for log_type, (directory, ext) in DEEP_LOGS.items():
-            Logs(log_type, directory, ext).close()
+            # If forced to closer or log should be kept, close the log
+            if force or self.config.project.logs.get()[log_type]:
+                if os.path.isfile("%s/%s%s" % (directory, log_type, ext)):
+                    Logs(log_type, directory, ext).close()
 
     def check_config(self):
         """
