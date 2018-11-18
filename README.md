@@ -145,7 +145,7 @@ The data in Deeplodocus is splitted into 3 different entries:
 - Additional Data (Additional data given to the loss function if required, optional)
 
 
-In order to load the data you have to feed Deeplodocus using the `data_config.yaml` file:
+In order to load the data you have to feed Deeplodocus using the `config/data.yaml` file:
 
 ```yaml
 
@@ -193,6 +193,8 @@ dataset:
 
 Deeplodocus accepts to load data referenced in text files (images path, video path, numbers, text, numpy array path, etc...) and also files inside folder.
 Therefore you can directly give a file path or a folder path.
+
+NOTE: Relative paths are relative to the main file
 
 ```yaml
 
