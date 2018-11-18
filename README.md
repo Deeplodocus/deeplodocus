@@ -16,6 +16,7 @@ Deeplodocus embeds functionalities such as :
 - Training configuration from config files
 - And more !
 
+
 All the Deeplodocus parameters are available in the config files.
 
 Deeplodocus is designed to be crossplatform (Windows, Linux and Mac OS). It uses Python 3.5+.
