@@ -70,7 +70,7 @@ class Brain(object):
         # self.frontal_lobe = FrontalLobe(self.config, **self.config.project.notifications.get())
         self.__on_wake()
         while True:
-            command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION, **self.config.project.logs.get()).get()
+            command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
             self.__execute_command(command)
 
     def sleep(self):
@@ -79,9 +79,10 @@ class Brain(object):
         """
         if self.user_interface is not None:
             self.user_interface.stop()
-        if self.config.project.logs.write:
-            for log_type, (directory, ext) in DEEP_LOGS.items():
-                Logs(log_type, directory, ext).close()
+        if self.config.project.logs.keep:
+            self.close_logs()
+        else:
+            self.clear_logs()
         End(error=False)
 
     def save_config(self):
@@ -113,7 +114,7 @@ class Brain(object):
         Function: Checks current config path is valid, if not, user is prompted to give another
         :return: bool: True if a valid config path is set, otherwise, False
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOAD_CONFIG_START % self.config_dir, write=True)
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOAD_CONFIG_START % self.config_dir)
         # If the config directory exists
         if os.path.isdir(self.config_dir):
             self.clear_config()
@@ -122,16 +123,13 @@ class Brain(object):
                 config_path = "%s/%s" % (self.config_dir, file_name)
                 if os.path.isfile(config_path):
                     self.config.add({key: Namespace(config_path)})
-                    Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_FILE % config_path, write=True)
+                    Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_FILE % config_path)
                 else:
-                    Notification(DEEP_NOTIF_ERROR, DEEP_MSG_FILE_NOT_FOUND % config_path, write=True)
+                    Notification(DEEP_NOTIF_ERROR, DEEP_MSG_FILE_NOT_FOUND % config_path)
             self.check_config()
             self.store_config()
-            if self.config.check("write", ["project", "logs"]):
-                if not self.config.project.logs.write:
-                    self.clear_logs()
         else:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir, write=True)
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
 
     def clear_logs(self):
         """
@@ -139,19 +137,26 @@ class Brain(object):
         """
         for log_type, (directory, ext) in DEEP_LOGS.items():
             try:
-                os.remove("%s/%s%s" % (directory, log_type, ext))
+                Logs(log_type, directory, ext).delete()
             except FileNotFoundError:
                 pass
+
+    def close_logs(self):
+        """
+        :return:
+        """
+        for log_type, (directory, ext) in DEEP_LOGS.items():
+            Logs(log_type, directory, ext).close()
 
     def check_config(self):
         """
         :return:
         """
         if self.__check_config():
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS, **self.config.project.logs.get())
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS)
             self.config_is_complete = True
         else:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_LOAD_CONFIG_FAIL, **self.config.project.logs.get())
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_LOAD_CONFIG_FAIL)
             self.config_is_complete = False
         return self.config_is_complete
 
@@ -181,7 +186,7 @@ class Brain(object):
         if self.frontal_lobe is not None:
             self.frontal_lobe.train()
         else:
-            Notification(DEEP_NOTIF_ERROR, "The model is not loaded yet, please feed Deeplodocus with all the required config files.", write=self.write_logs)
+            Notification(DEEP_NOTIF_ERROR, "The model is not loaded yet, please feed Deeplodocus with all the required config files.")
 
     def __on_wake(self):
         """
@@ -256,7 +261,7 @@ class Brain(object):
             message = "%s %s" % (message, DEEP_MSG_ALREADY_AWAKE)
         if command == "config.save":
             message = "%s %s" % (message, DEEP_MSG_USE_CONFIG_SAVE)
-        Notification(DEEP_NOTIF_WARNING, message, **self.config.project.notifications.get())
+        Notification(DEEP_NOTIF_WARNING, message)
 
     def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
         """
@@ -280,8 +285,7 @@ class Brain(object):
                     if not exists:
                         complete = False
                         item_path = DEEP_CONFIG_DIVIDER.join(this_sub_sapce + [item])
-                        Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path,
-                                     **self.config.project.logs.get())
+                        Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
         return complete
 
     @staticmethod

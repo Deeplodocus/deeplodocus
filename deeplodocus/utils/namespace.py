@@ -79,12 +79,8 @@ class Namespace(object):
         :return:
         """
         summary = self.__get_summary(tab_size=tab_size).split("\n")
-        try:
-            write_logs = self.project.logs.write
-        except AttributeError:
-            write_logs = False
         for line in summary:
-            Notification(DEEP_NOTIF_INFO, line, write=write_logs)
+            Notification(DEEP_NOTIF_INFO, line)
 
     def check(self, item, sub_space=None):
         """

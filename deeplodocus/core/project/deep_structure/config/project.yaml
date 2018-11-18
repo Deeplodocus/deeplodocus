@@ -3,6 +3,6 @@ name: "DeepProject"
 cv_library: 1
 
 logs:
-  write: True
+  keep: False
 
 on_wake: # frontal_lobe.load()
