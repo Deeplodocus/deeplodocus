@@ -5,6 +5,7 @@ import mimetypes
 from deeplodocus.utils.generic_utils import sorted_nicely
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.errors import error_entry_array_size
 from deeplodocus.utils.flags import *
 
 
@@ -82,14 +83,14 @@ class Dataset(object):
 
         if cv_library == DEEP_LIB_OPENCV:
             try:
-                Notification(DEEP_NOTIF_INFO, "importing cv2")
+                Notification(DEEP_NOTIF_INFO, "OPENCV picked as Computer Vision library")
                 global cv2
                 import cv2
             except ImportError as e:
                 Notification(DEEP_NOTIF_ERROR, str(e))
         elif cv_library == DEEP_LIB_PIL:
             try:
-                Notification(DEEP_NOTIF_INFO, "importing Image from Pillow")
+                Notification(DEEP_NOTIF_INFO, "PILLOW picked as Computer Vision library")
                 global Image
                 from PIL import Image
             except ImportError as e:
@@ -267,7 +268,13 @@ class Dataset(object):
 
 
         # Convert the dictionary of data into a panda DataFrame
-        self.data = pd.DataFrame(d)
+        try :
+            self.data = pd.DataFrame(d)
+        except ValueError as e:
+            error_entry_array_size(d, e)
+
+
+
 
         # Update the number of instances in the DataFrame
         self.len_data = self.__len__()
@@ -330,11 +337,15 @@ class Dataset(object):
 
         # Format the data to the format accepted by deeplodocus where final_data[i][j] = data[j][i]
         final_data = []
+
         if len(data) > 0:
             for i in range(len(data[0])):
                 temp_data = []
                 for j in range(len(data)):
-                    temp_data.append(data[j][i])
+                    try:
+                        temp_data.append(data[j][i])
+                    except IndexError as e:
+                        Notification(DEEP_NOTIF_FATAL, "All your entries do not have the same number of instances : " + str(e))
                 final_data.append(temp_data)
         return final_data
 
@@ -913,6 +924,7 @@ class Dataset(object):
             num_instances = self.__get_number_instances(self.list_inputs[0])
 
         return num_instances
+
 
     def __get_number_instances(self, f):
         """

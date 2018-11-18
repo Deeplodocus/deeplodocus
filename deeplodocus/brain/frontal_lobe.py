@@ -76,8 +76,10 @@ class FrontalLobe(object):
         self.metrics = None
         self.losses = None
         self.optimizer = None
-        # Load the attributes
-        self.load()
+
+    #
+    # INFERENCE METHODS
+    #
 
     def train(self):
         """
@@ -134,6 +136,9 @@ class FrontalLobe(object):
             self.tester.fit()
 
 
+    #
+    # LOAD METHODS
+    #
     def load(self):
         """
         AUTHORS:
@@ -173,20 +178,15 @@ class FrontalLobe(object):
                                             dataloader=self.config.data.dataloader,
                                             dataset=self.config.data.dataset.validation,
                                             transforms=self.config.transform.validation)
-        """
-        Notification(DEEP_NOTIF_SUCCESS, "Validator loaded")
 
         self.tester = self.__load_tester(name="Tester",
                                          dataloader=self.config.data.dataloader,
                                          dataset=self.config.data.dataset.test,
                                          transforms=self.config.transform.test)
 
-        Notification(DEEP_NOTIF_SUCCESS, "Tester loaded")
 
         #self.trainer = self.__load_trainer(, tester = self.validator)
 
-        Notification(DEEP_NOTIF_SUCCESS, "Trainer loaded")
-        """
 
         self.__summary(model=self.model,
                        input_size=self.config.model.input_size,
