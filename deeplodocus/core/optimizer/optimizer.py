@@ -97,11 +97,9 @@ class Optimizer(object):
 
         :return optimizer: The optimizer
         """
-        local = {"optimizer" : None}
-        exec("import torch \noptimizer = torch.optim.{0}".format(name), {}, local)
-        optimizer = local["optimizer"](params, **kwargs)
 
-        return optimizer
+        optimizer = getattr(torch.optim, name)
+        return optimizer(params, **kwargs)
 
     def get(self):
         """
