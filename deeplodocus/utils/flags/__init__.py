@@ -12,7 +12,7 @@ from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.types import *
 
 #
-# HISTORY SAVING CONDITION
+# MODEL SAVING CONDITION
 #
 DEEP_SAVE_CONDITION_END_BATCH = 0         # Highly not recommended
 DEEP_SAVE_CONDITION_END_EPOCH = 1
@@ -38,8 +38,8 @@ DEEP_VERBOSE_TRAINING = 0
 # SHUFFLE
 #
 DEEP_SHUFFLE_NONE = 0
-DEEP_SHUFFLE_ALL = 1
-DEEP_SHUFFLE_BATCHES = 2
+DEEP_SHUFFLE_BATCHES = 1
+DEEP_SHUFFLE_ALL = 2
 
 #
 # SAVE NETWORK FORMAT

@@ -188,6 +188,7 @@ class FrontalLobe(object):
 
 
         self.trainer = self.__load_trainer(name= "Trainer",
+                                           history = self.config.history,
                                            dataloader=self.config.data.dataloader,
                                            dataset=self.config.data.dataset.train,
                                            transforms=self.config.transform.train)
@@ -418,7 +419,7 @@ class FrontalLobe(object):
 
         return tester
 
-    def __load_trainer(self, dataloader, dataset, transforms, name):
+    def __load_trainer(self, history, dataloader, dataset, transforms, name):
         """
         AUTHORS:
         --------
@@ -432,6 +433,7 @@ class FrontalLobe(object):
 
         PARAMETERS:
         -----------
+        :param history:
         :param dataloader:
         :param dataset:
         :param transforms:
@@ -483,13 +485,13 @@ class FrontalLobe(object):
                           initial_epoch = self.config.training.initial_epoch,
                           shuffle = self.config.training.shuffle,
                           model_name = self.config.project.name,
-                          verbose = self.config.training.verbose,
+                          verbose = history.verbose,
                           tester = self.tester,
                           num_workers = dataloader.num_workers,
                           batch_size=dataloader.batch_size,
                           overwatch_metric= overwatch_metric,
                           save_condition=self.config.training.save_condition,
-                          memorize=self.config.training.memorize,
+                          memorize=history.memorize,
                           stopping_parameters=None,
                           history_directory = DEEP_PATH_HISTORY,
                           save_directory=DEEP_PATH_SAVE_MODEL)

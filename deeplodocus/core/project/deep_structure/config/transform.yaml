@@ -1,7 +1,7 @@
 train:
   name: "Train Transform Manager"
   inputs:
-   - "../core/project/deep_structure/config/transforms/transform_input1.yaml"
+   - "./config/transforms/transform_input1.yaml"
    - "*input:0"
   labels:
    - Null
@@ -11,7 +11,7 @@ train:
 validation:
   name: "Validation Transform Manager"
   inputs:
-   - "../core/project/deep_structure/config/transforms/transform_input1.yaml"
+   - "./config/transforms/transform_input1.yaml"
    - "*input:0"
   labels:
    - Null

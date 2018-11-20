@@ -1,4 +1,6 @@
 from deeplodocus.utils.flags.ext import DEEP_EXT_YAML
+from deeplodocus.utils.flags import *
+
 #
 # DEEP CONFIG FLAGS
 #
@@ -35,12 +37,12 @@ DEEP_CONFIG = {"project": {"name": "project",
                            "on_wake": None},
                "model": {"name": None,
                          "module": None},
+               "history" : {"verbose" : 2,
+                            "memorize" : 1},
                "training" : {"num_epochs" : 10,
                              "initial_epoch" : 0,
-                             "shuffle",
-                             "verbose" : 2,
-                             "save_condition",
-                             "memorize"},
+                             "shuffle" : 2,
+                             "save_condition" : 1},
                "data": {"dataloader": {"batch_size": 32,
                                        "num_workers": 1},
                         "dataset": {"train": {"inputs": None,

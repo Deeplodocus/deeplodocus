@@ -1,6 +1,6 @@
 name: "DeepProject"
 
-# cv_library: 1
+cv_library: 1
 
 logs:
   history_train_batches: True
