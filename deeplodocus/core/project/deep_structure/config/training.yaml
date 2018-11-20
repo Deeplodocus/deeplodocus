@@ -1,0 +1,8 @@
+num_epochs : 10
+initial_epoch : 0
+shuffle : 1
+verbose : 2
+save_condition : 0
+overwatch_metric : "total loss"
+overwatch_condition : 0
+memorize : 0

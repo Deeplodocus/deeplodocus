@@ -17,8 +17,10 @@ from deeplodocus.utils.flags import *
 from deeplodocus.core.metrics.loss import Loss
 from deeplodocus.core.metrics.metric import Metric
 from deeplodocus.core.inference.tester import Tester
+from deeplodocus.core.inference.trainer import Trainer
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
+from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.core.optimizer.optimizer import Optimizer
 from deeplodocus.utils.dict_utils import convert_string_to_number
 
@@ -76,8 +78,10 @@ class FrontalLobe(object):
         self.metrics = None
         self.losses = None
         self.optimizer = None
-        # Load the attributes
-        self.load()
+
+    #
+    # INFERENCE METHODS
+    #
 
     def train(self):
         """
@@ -134,6 +138,9 @@ class FrontalLobe(object):
             self.tester.fit()
 
 
+    #
+    # LOAD METHODS
+    #
     def load(self):
         """
         AUTHORS:
@@ -173,20 +180,18 @@ class FrontalLobe(object):
                                             dataloader=self.config.data.dataloader,
                                             dataset=self.config.data.dataset.validation,
                                             transforms=self.config.transform.validation)
-        """
-        Notification(DEEP_NOTIF_SUCCESS, "Validator loaded")
 
         self.tester = self.__load_tester(name="Tester",
                                          dataloader=self.config.data.dataloader,
                                          dataset=self.config.data.dataset.test,
                                          transforms=self.config.transform.test)
 
-        Notification(DEEP_NOTIF_SUCCESS, "Tester loaded")
 
-        #self.trainer = self.__load_trainer(, tester = self.validator)
+        self.trainer = self.__load_trainer(name= "Trainer",
+                                           dataloader=self.config.data.dataloader,
+                                           dataset=self.config.data.dataset.train,
+                                           transforms=self.config.transform.train)
 
-        Notification(DEEP_NOTIF_SUCCESS, "Trainer loaded")
-        """
 
         self.__summary(model=self.model,
                        input_size=self.config.model.input_size,
@@ -413,13 +418,92 @@ class FrontalLobe(object):
 
         return tester
 
-    def __summary(self, model, input_size, losses, metrics, batch_size=-1, device="cuda"):
+    def __load_trainer(self, dataloader, dataset, transforms, name):
         """
         AUTHORS:
         --------
 
         :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Load a trainer
+
+        PARAMETERS:
+        -----------
+        :param dataloader:
+        :param dataset:
+        :param transforms:
+
+        RETURN:
+        -------
+
+        :return trainer->Trainer: The loaded trainer
+        """
+
+        # Dataset
+        inputs = []
+        labels = []
+        additional_data = []
+
+        for input in dataset.inputs:
+            inputs.append(input)
+
+        for label in dataset.labels:
+            labels.append(label)
+
+        for add_data in dataset.additional_data:
+            additional_data.append(add_data)
+
+
+        # Create the transform managers
+        transform_manager = TransformManager(transforms)
+
+        # Dataset
+        dataset = Dataset(list_inputs=inputs,
+                          list_labels=labels,
+                          list_additional_data=additional_data,
+                          transform_manager=transform_manager,
+                          cv_library=DEEP_LIB_PIL,
+                          name=name)
+        dataset.load()
+        dataset.summary()
+
+        # Overwatch metric
+        overwatch_metric = OverWatchMetric(name=self.config.training.overwatch_metric, condition=self.config.training.overwatch_condition)
+
+
+        trainer = Trainer(model=self.model,
+                          dataset=dataset,
+                          metrics=self.metrics,
+                          losses=self.losses,
+                          optimizer=self.optimizer,
+                          num_epochs=self.config.training.num_epochs,
+                          initial_epoch = self.config.training.initial_epoch,
+                          shuffle = self.config.training.shuffle,
+                          model_name = self.config.project.name,
+                          verbose = self.config.training.verbose,
+                          tester = self.tester,
+                          num_workers = dataloader.num_workers,
+                          batch_size=dataloader.batch_size,
+                          overwatch_metric= overwatch_metric,
+                          save_condition=self.config.training.save_condition,
+                          memorize=self.config.training.memorize,
+                          stopping_parameters=None,
+                          history_directory = DEEP_PATH_HISTORY,
+                          save_directory=DEEP_PATH_SAVE_MODEL)
+
+        return trainer
+
+    def __summary(self, model, input_size, losses, metrics, batch_size=-1, device="cuda"):
+        """
+        AUTHORS:
+        --------
+
         :author:  https://github.com/sksq96/pytorch-summary
+        :author: Alix Leroy
+
 
         DESCRIPTION:
         ------------

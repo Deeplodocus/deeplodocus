@@ -4,7 +4,9 @@ import mimetypes
 
 from deeplodocus.utils.generic_utils import sorted_nicely
 from deeplodocus.utils.generic_utils import get_int_or_float
+from deeplodocus.utils.generic_utils import is_np_array
 from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.errors import error_entry_array_size
 from deeplodocus.utils.flags import *
 
 
@@ -65,9 +67,9 @@ class Dataset(object):
         :param cv_library: The computer vision library to be used for opening and modifying the images data
         :param name: Name of the dataset
         """
-        self.list_inputs = list_inputs
-        self.list_labels = list_labels
-        self.list_additional_data = list_additional_data
+        self.list_inputs = self.__check_null_entry(list_inputs)
+        self.list_labels = self.__check_null_entry(list_labels)
+        self.list_additional_data = self.__check_null_entry(list_additional_data)
         self.list_data = list_inputs + list_labels + list_additional_data
         self.cv_library = cv_library
         self.transform_manager = transform_manager
@@ -82,14 +84,14 @@ class Dataset(object):
 
         if cv_library == DEEP_LIB_OPENCV:
             try:
-                Notification(DEEP_NOTIF_INFO, "importing cv2")
+                Notification(DEEP_NOTIF_INFO, "OPENCV picked as Computer Vision library")
                 global cv2
                 import cv2
             except ImportError as e:
                 Notification(DEEP_NOTIF_ERROR, str(e))
         elif cv_library == DEEP_LIB_PIL:
             try:
-                Notification(DEEP_NOTIF_INFO, "importing Image from Pillow")
+                Notification(DEEP_NOTIF_INFO, "PILLOW picked as Computer Vision library")
                 global Image
                 from PIL import Image
             except ImportError as e:
@@ -267,7 +269,13 @@ class Dataset(object):
 
 
         # Convert the dictionary of data into a panda DataFrame
-        self.data = pd.DataFrame(d)
+        try :
+            self.data = pd.DataFrame(d)
+        except ValueError as e:
+            error_entry_array_size(d, e)
+
+
+
 
         # Update the number of instances in the DataFrame
         self.len_data = self.__len__()
@@ -330,11 +338,15 @@ class Dataset(object):
 
         # Format the data to the format accepted by deeplodocus where final_data[i][j] = data[j][i]
         final_data = []
+
         if len(data) > 0:
             for i in range(len(data[0])):
                 temp_data = []
                 for j in range(len(data)):
-                    temp_data.append(data[j][i])
+                    try:
+                        temp_data.append(data[j][i])
+                    except IndexError as e:
+                        Notification(DEEP_NOTIF_FATAL, "All your entries do not have the same number of instances : " + str(e))
                 final_data.append(temp_data)
         return final_data
 
@@ -682,6 +694,8 @@ class Dataset(object):
         elif type(data) is list:
             return DEEP_TYPE_SEQUENCE
 
+        if is_np_array(data) is True:
+            return DEEP_TYPE_NP_ARRAY
         # Type not handled
         else:
             Notification(DEEP_NOTIF_FATAL, "The type of the following data is not handled : " + str(data))
@@ -693,10 +707,26 @@ class Dataset(object):
     #
     # DATA LOADERS
     #
-    def __load_image(self, image_path):
+    def __load_image(self, image_path: str):
         """
-        Authors : Alix Leroy,
-        :param image_path: The path of the image to load
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Load the image in the image_path
+
+        PARAMETERS:
+        -----------
+
+        :param image_path->str: The path of the image to load
+
+        RETURN:
+        -------
+
         :return: The loaded image
         """
         if self.cv_library == DEEP_LIB_OPENCV:
@@ -724,9 +754,24 @@ class Dataset(object):
     @staticmethod
     def __convert_bgra2rgba(image):
         """
-        Authors : Alix Leroy,
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
         Convert BGR(alpha) image to RGB(alpha) image
+
+        PARAMETERS:
+        -----------
+
         :param image: image to convert
+
+        RETURN:
+        -------
+
         :return: a RGB(alpha) image
         """
 
@@ -742,10 +787,25 @@ class Dataset(object):
         return image
 
 
-    def __load_video(self, video_path):
+    def __load_video(self, video_path: str):
         """
-        Author : Alix Leroy
-        :param video_path: absolute path to a video
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+        Load a video
+
+        PARAMETERS:
+        -----------
+
+        :param video_path->str: absolute path to a video
+
+        RETURN:
+        -------
+
         :return: a list of frame from the video
         """
         self.__throw_warning_video()
@@ -783,8 +843,24 @@ class Dataset(object):
 
     def __throw_warning_video(self):
         """
-        Authors : Alix Leroy,
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
         Warn the user of the unsupported vidoe mode.
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
         :return: None
         """
         if self.warning_video is None:
@@ -794,6 +870,39 @@ class Dataset(object):
     #
     # DATA CHECKERS
     #
+
+    def __check_null_entry(self, entry):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check if an entry is Null
+
+        PARAMETERS:
+        -----------
+
+        :param entry: The entry to check
+
+        RETURN:
+        -------
+
+        :return ->list: The formatted entry
+        """
+
+        try:
+            if entry is None:
+                return []
+            elif entry[0] is None:
+                return []
+            else:
+                return entry
+        except:
+            Notification(DEEP_NOTIF_ERROR, "Please check the following entry format : " + str(entry))
 
     def __check_data(self):
         """
@@ -914,30 +1023,8 @@ class Dataset(object):
 
         return num_instances
 
-    def __get_number_instances(self, f):
-        """
-        Authors : Alix Leroy,
-        Get the number of instances in a file or a folder
-        :param f: A file or folder path
-        :return: Number of instances in the file or the folder
-        """
 
-        # If the frame input is a file
-        if self.__source_path_type(f) == DEEP_TYPE_FILE:
 
-            with open(f) as f:
-                num_instances = sum(1 for _ in f)
-
-        # If the frame input is a folder
-        elif self.__source_path_type(f) == DEEP_TYPE_FOLDER:
-
-            raise ValueError("Not implemented")
-
-        # If it is not a file neither a folder then BUG :(
-        else:
-            Notification(DEEP_NOTIF_FATAL, "The following input is neither a file nor a folder :" + str(f))
-
-        return num_instances
 
 
     """
@@ -1026,3 +1113,27 @@ class Dataset(object):
     """
 
 
+    def __get_number_instances(self, f):
+        """
+        Authors : Alix Leroy,
+        Get the number of instances in a file or a folder
+        :param f: A file or folder path
+        :return: Number of instances in the file or the folder
+        """
+
+        # If the frame input is a file
+        if self.__source_path_type(f) == DEEP_TYPE_FILE:
+
+            with open(f) as f:
+                num_instances = sum(1 for _ in f)
+
+        # If the frame input is a folder
+        elif self.__source_path_type(f) == DEEP_TYPE_FOLDER:
+
+            raise ValueError("Not implemented")
+
+        # If it is not a file neither a folder then BUG :(
+        else:
+            Notification(DEEP_NOTIF_FATAL, "The following input is neither a file nor a folder :" + str(f))
+
+        return num_instances

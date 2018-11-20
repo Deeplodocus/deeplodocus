@@ -208,6 +208,35 @@ class Brain(object):
         else:
             Notification(DEEP_NOTIF_ERROR, "The model is not loaded yet, please feed Deeplodocus with all the required config files.")
 
+    def load(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Load the content in the Frontal Lobe
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        if self.frontal_lobe is not None:
+            self.frontal_lobe.load()
+        else:
+            Notification(DEEP_NOTIF_ERROR, "The model is not loaded yet, please feed Deeplodocus with all the required config files.")
+
+
     def __on_wake(self):
         """
         Author: SW

@@ -58,3 +58,32 @@ def get_int_or_float(data):
         return DEEP_TYPE_INTEGER if number_as_float == number_as_int else DEEP_TYPE_FLOAT
     except ValueError:
         return False
+
+
+def is_np_array(data):
+    """
+    AUTHORS:
+    --------
+
+    author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Check whether the data is an numpy array or not
+
+    PARAMETERS:
+    -----------
+
+    :param data: The data to check
+
+    RETURN:
+    -------
+
+    :return:  Whether the data is a numpy array or not
+    """
+    try:
+        if data.endswith(DEEP_EXT_NPY) or data.endswith(DEEP_EXT_NPZ):
+            return True
+    except:
+        return False

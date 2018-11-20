@@ -4,28 +4,25 @@ dataloader:
 dataset:
   train:
     inputs:
-      - ['input1-1.txt', 'input1-2.txt']
-      - "input2.txt"
+      - ['./data/input1.txt', './data/input1.txt']
+      - ['./data/input2.txt', './data/input2.txt']
     labels:
-      - "labels1.txt"
-      - "labels2.txt"
+      - ["./data/label1.txt", "./data/label2.txt"]
     additional_data:
-      - "additional.txt"
+      - "./data/additional_data.txt"
   validation:
     inputs:
-      - ['input1-1.txt', 'input1-2.txt']
-      - "input2.txt"
+      - ['./data/input1.txt', './data/input1.txt']
+      - ['./data/input2.txt', './data/input2.txt']
     labels:
-      - "labels1.txt"
-      - "labels2.txt"
+      - ["./data/label1.txt", "./data/label2.txt"]
     additional_data:
-      - "additional.txt"
+      - "./data/additional_data.txt"
   test:
     inputs:
-      - ['input1-1.txt', 'input1-2.txt']
-      - "input2.txt"
+      - ['./data/input1.txt', './data/input1.txt']
+      - ['./data/input2.txt', './data/input2.txt']
     labels:
-      - "labels1.txt"
-      - "labels2.txt"
+      - ["./data/label1.txt", "./data/label2.txt"]
     additional_data:
-      - "additional.txt"
+      - "./data/additional_data.txt"
