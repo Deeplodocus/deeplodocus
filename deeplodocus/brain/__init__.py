@@ -49,7 +49,7 @@ class Brain(object):
 
         :return: None
         """
-        self.clear_logs()
+        self.close_logs(force=True)
         self.config_dir = config_dir
         self.config_is_complete = False
         Logo(version=__version__)
@@ -63,10 +63,10 @@ class Brain(object):
     def wake(self):
         """
         Authors : Alix Leroy, SW
-        Main of deeplodocus framework
+        Deeplodocus terminal commands
         :return: None
         """
-        self.frontal_lobe = FrontalLobe(self.config)
+        # self.frontal_lobe = FrontalLobe(self.config)
         self.__on_wake()
         while True:
             command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
@@ -74,36 +74,46 @@ class Brain(object):
 
     def sleep(self):
         """
-        :return:
+        Author: SW, Alix Leroy
+        Stop the interface, close logs and print good-bye message
+        :return: None
         """
         if self.user_interface is not None:
             self.user_interface.stop()
-        if self.config.project.logs.keep:
-            self.close_logs()
-        else:
-            self.clear_logs()
+        self.close_logs()
         End(error=False)
 
     def save_config(self):
+        """
+        Author: SW
+        Save the config to the config folder
+        :return: None
+        """
         for key, namespace in self.config.get().items():
             if isinstance(namespace, Namespace):
                 namespace.save("%s/%s%s" % (self.config_dir, key, DEEP_EXT_YAML))
 
     def clear_config(self):
         """
-        :return:
+        Author: SW
+        Reset the config to an empty Namespace
+        :return: None
         """
         self.config = Namespace()
 
     def restore_config(self):
         """
+        Author: SW
+        Restore the config to the last stored version
         :return:
         """
         self.config = self._config.copy()
 
     def store_config(self):
         """
-        :return:
+        Author: SW
+        Saves a deep copy of the config as _config. In case the user wants to revert to previous settings
+        :return: None
         """
         self._config = self.config.copy()
 
@@ -130,34 +140,45 @@ class Brain(object):
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
 
-    def clear_logs(self):
+    def clear_logs(self, force=False):
         """
-        :return:
+        Author: SW
+        Deletes logs that are not to be kept, as decided in the config settings
+        :param force: bool Use if you want to force delete all logs
+        :return: None
         """
         for log_type, (directory, ext) in DEEP_LOGS.items():
-            try:
+            # If forced or log should not be kept, delete the log
+            if force or not self.config.project.logs.get(log_type):
                 Logs(log_type, directory, ext).delete()
-            except FileNotFoundError:
-                pass
 
-    def close_logs(self):
+    def close_logs(self, force=False):
         """
-        :return:
+        Author: SW
+        Closes logs that are to be kept and deletes logs that are to be deleted, as decided in the config settings
+        :param force: bool: Use if you want to force all logs to close (use if you don't want logs to be deleted)
+        :return: None
         """
         for log_type, (directory, ext) in DEEP_LOGS.items():
-            Logs(log_type, directory, ext).close()
+            # If forced to closer or log should be kept, close the log
+            # NB: config does not have to exist if force is True
+            if force or self.config.project.logs.get(log_type):
+                if os.path.isfile("%s/%s%s" % (directory, log_type, ext)):
+                    Logs(log_type, directory, ext).close()
+            else:
+                Logs(log_type, directory, ext).delete()
 
     def check_config(self):
         """
-        :return:
+        Author: SW
+        Check the contents of the config namespace against the expecting contents listed in DEEP_CONFIG
+        :return: bool: True if config is complete, False otherwise
         """
         if self.__check_config():
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS)
-            self.config_is_complete = True
+            return True
         else:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_LOAD_CONFIG_FAIL)
-            self.config_is_complete = False
-        return self.config_is_complete
+            return False
 
     def train(self):
         """
@@ -218,7 +239,9 @@ class Brain(object):
 
     def __on_wake(self):
         """
-        :return:
+        Author: SW
+        Execute any commands listed under config/project/on_wake
+        :return: None
         """
         if self.config.project.on_wake is not None:
             if not isinstance(self.config.project.on_wake, list):
@@ -228,8 +251,9 @@ class Brain(object):
 
     def __execute_command(self, command):
         """
-        :param command:
-        :return:
+        Author: SW
+        :param command: str: the command to be executed
+        :return: None
         """
         commands, flags = self.__preprocess_command(command)
         for command, flag in zip(commands, flags):
@@ -279,12 +303,17 @@ class Brain(object):
                 self.__illegal_command_messages(command)
         return self.__get_command_flags(commands)
 
-    def __illegal_command_messages(self, command):
+    @staticmethod
+    def __illegal_command_messages(command):
         """
-        :param command:
+        Author: SW
+        Display reasons why a given command is illegal
+        :param command: str: command to be executed
         :return:
         """
         message = (DEEP_MSG_ILLEGAL_COMMAND % command)
+        if "__" in command or "._" in command or command.startswith("_"):
+            message = "%s %s" % (message, DEEP_MSG_PRIVATE)
         if command == "wake()":
             message = "%s %s" % (message, DEEP_MSG_ALREADY_AWAKE)
         if command == "config.save":
@@ -294,34 +323,29 @@ class Brain(object):
     def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
         """
         Author: SW
-        :return: bool: whether the config has every expected entry or not
+        :return: bool: whether the config has every expected entries or not
         """
         complete = True
         sub_space = [] if sub_space is None else sub_space
         sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
-        for key, items in dictionary.items():
-            this_sub_sapce = sub_space + [key]
-            for item in items:
-                if isinstance(item, dict):
-                    if not self.__check_config(item, this_sub_sapce):
-                        complete = False
-                else:
-                    try:
-                        exists = self.config.check(item, this_sub_sapce)
-                    except (AttributeError, KeyError):
-                        exists = False
-                    if not exists:
-                        complete = False
-                        item_path = DEEP_CONFIG_DIVIDER.join(this_sub_sapce + [item])
-                        Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
+        for key, value in dictionary.items():
+            if isinstance(value, dict):
+                if not self.__check_config(value, sub_space + [key]):
+                    complete = False
+            else:
+                if not self.config.check(key, sub_space):
+                    complete = False
+                    item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
+                    Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
         return complete
-
 
     @staticmethod
     def __get_command_flags(commands):
         """
-        :param commands:
-        :return:
+        Author: SW
+        For separating any flags from given commands
+        :param commands: list of str: commands to be executed
+        :return: commands with any given flags
         """
         flags = [None for _ in range(len(commands))]
         for i, command in enumerate(commands):
