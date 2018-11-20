@@ -66,7 +66,7 @@ class Brain(object):
         Deeplodocus terminal commands
         :return: None
         """
-        # self.frontal_lobe = FrontalLobe(self.config)
+        self.frontal_lobe = FrontalLobe(self.config)
         self.__on_wake()
         while True:
             command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
