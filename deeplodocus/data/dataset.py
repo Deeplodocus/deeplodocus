@@ -545,14 +545,15 @@ class Dataset(object):
                 # Image
                 elif type_data == DEEP_TYPE_IMAGE:
                     image = self.__load_image(d)
+
+                    if self.cv_library == DEEP_LIB_PIL:
+                        image = np.array(image)
+
                     if entry_num is None:
                         entry_num = i
 
                     if augment is True :
                         image = self.transform_manager.transform(data = image, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
-
-                    if self.cv_library == DEEP_LIB_PIL:
-                        image = np.array(image)
 
                     image = np.swapaxes(image, 0, 2)
                     loaded_data.append(image)

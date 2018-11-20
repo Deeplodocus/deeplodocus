@@ -206,7 +206,6 @@ class TransformManager(object):
 
             else:
                 Notification(DEEP_NOTIF_FATAL, "The following type of transformer does not exist : " + str (pointer[0]))
-            print(pointer)
             transformed_data = list_transformers[pointer[1]].transform(data, index, type_data)
 
         return transformed_data
