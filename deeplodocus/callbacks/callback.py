@@ -26,7 +26,7 @@ class Callback(object):
 
                  model_name:str,
                  verbose:int,
-                 data_to_memorize:int,
+                 memorize:int,
                  # Saver
                  save_condition:int = DEEP_SAVE_CONDITION_AUTO,
                  save_model_method:int = DEEP_SAVE_NET_FORMAT_PYTORCH,
@@ -63,7 +63,7 @@ class Callback(object):
 
 
         # History
-        self.__initialize_history(data_to_memorize=data_to_memorize)            # Callback to keep track of the history, display, plot and save it
+        self.__initialize_history(memorize=memorize)            # Callback to keep track of the history, display, plot and save it
 
         # Stopping
         self.stopping = Stopping(stopping_parameters)                                     # Callback to check the condition to stop the training
@@ -170,7 +170,7 @@ class Callback(object):
         self.stopping.on_training_end()
 
 
-    def __initialize_history(self, data_to_memorize:int)->None:
+    def __initialize_history(self, memorize:int)->None:
         """
         Authors : Samuel Westlake, Alix Leroy
         Initialise the history
@@ -191,7 +191,7 @@ class Callback(object):
                                train_epochs_filename=train_epochs_filename,
                                validation_filename=validation_filename,
                                verbose=self.verbose,
-                               data_to_memorize=data_to_memorize,
+                               memorize=memorize,
                                save_condition = self.save_condition)
 
     def update(self):

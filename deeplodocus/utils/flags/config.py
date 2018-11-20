@@ -7,6 +7,7 @@ DEEP_CONFIG_DIVIDER = "/"
 
 DEEP_CONFIG_PROJECT = "project"
 DEEP_CONFIG_MODEL = "model"
+DEEP_CONFIG_TRAINING = "training"
 DEEP_CONFIG_DATA = "data"
 DEEP_CONFIG_TRANSFORM = "transform"
 DEEP_CONFIG_OPTIMIZER = "optimizer"
@@ -16,6 +17,7 @@ DEEP_CONFIG_HISTORY = "history"
 
 DEEP_CONFIG_SECTIONS = [DEEP_CONFIG_PROJECT,
                         DEEP_CONFIG_MODEL,
+                        DEEP_CONFIG_TRAINING,
                         DEEP_CONFIG_DATA,
                         DEEP_CONFIG_TRANSFORM,
                         DEEP_CONFIG_OPTIMIZER,
@@ -26,9 +28,15 @@ DEEP_CONFIG_SECTIONS = [DEEP_CONFIG_PROJECT,
 
 DEEP_CONFIG = {"project": ["name",
                            "cv_library",
-                           {"logs": ["write"]},
+                           {"logs": ["keep"]},
                            "on_wake"],
                "model": ["module", "name"],
+               "training" : ["num_epochs",
+                             "initial_epoch",
+                             "shuffle",
+                             "verbose",
+                             "save_condition",
+                             "memorize"],
                "data": [{"dataloader": ["batch_size",
                                         "num_workers"]},
                         {"dataset": [{"train": ["inputs",

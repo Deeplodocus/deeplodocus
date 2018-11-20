@@ -34,7 +34,7 @@ class History(object):
                  train_epochs_filename: str = "history_epochs_training.csv",
                  validation_filename: str = "history_validation.csv",
                  verbose: int = DEEP_VERBOSE_BATCH,
-                 data_to_memorize: int = DEEP_MEMORIZE_BATCHES,
+                 memorize: int = DEEP_MEMORIZE_BATCHES,
                  save_condition: int = DEEP_SAVE_CONDITION_END_EPOCH, # DEEP_SAVE_CONDITION_END_TRAINING to save at the end of training, DEEP_SAVE_CONDITION_END_EPOCH to save at the end of the epoch,
                  overwatch_metric:OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
                  ):
@@ -42,7 +42,7 @@ class History(object):
         self.verbose = verbose
         self.metrics = metrics
         self.losses = losses
-        self.data_to_memorize = data_to_memorize
+        self.memorize = memorize
         self.save_condition = save_condition
         self.overwatch_metric = overwatch_metric
 
@@ -170,7 +170,7 @@ class History(object):
             Notification(DEEP_NOTIF_RESULT, "[%i/%i] : %s" % (minibatch_index, num_minibatches, print_metrics)).get()
 
         # Save the data in memory
-        if self.data_to_memorize == DEEP_MEMORIZE_BATCHES:
+        if self.memorize == DEEP_MEMORIZE_BATCHES:
             # Save the history in memory
             data = dict([(WALL_TIME, datetime.datetime.now().strftime(TIME_FORMAT)),
                          (RELATIVE_TIME, self.__time()),
@@ -236,7 +236,7 @@ class History(object):
                                          for (metric_name, value) in self.running_metrics.items()])
             Notification(DEEP_NOTIF_RESULT, "%s : %s" % (TRAINING, print_metrics))
             
-            if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
+            if self.memorize >= DEEP_MEMORIZE_BATCHES:
               data = dict([(WALL_TIME, datetime.datetime.now().strftime(TIME_FORMAT)),
                            (RELATIVE_TIME, self.__time()),
                           (EPOCH, epoch_index)] +
@@ -265,7 +265,7 @@ class History(object):
                                              for (metric_name, value) in result_validation_metrics.items()])
                 Notification(DEEP_NOTIF_RESULT, "%s: %s" % (VALIDATION, print_metrics))
 
-            if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
+            if self.memorize >= DEEP_MEMORIZE_BATCHES:
                 data = dict([(WALL_TIME, datetime.datetime.now().strftime(TIME_FORMAT)),
                              (RELATIVE_TIME, self.__time()),
                              (EPOCH, epoch_index)] +
@@ -339,7 +339,7 @@ class History(object):
         """
         os.makedirs(self.log_dir, exist_ok=True)
         # Save train batches history
-        if self.data_to_memorize >= DEEP_MEMORIZE_BATCHES:
+        if self.memorize >= DEEP_MEMORIZE_BATCHES:
             self.train_batches_history.to_csv(self.__get_path(self.train_batches_filename),
                                               header=True, index=True, encoding='utf-8')
         # Save train epochs history

@@ -42,7 +42,7 @@ class Trainer(GenericEvaluator):
                  verbose: int=DEEP_VERBOSE_BATCH,
                  history_directory: str = DEEP_PATH_HISTORY,
                  save_directory: str = DEEP_PATH_SAVE_MODEL,
-                 data_to_memorize: int = DEEP_MEMORIZE_BATCHES,
+                 memorize: int = DEEP_MEMORIZE_BATCHES,
                  save_condition: int=DEEP_SAVE_CONDITION_AUTO,
                  overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
                  stopping_parameters=None,
@@ -73,7 +73,7 @@ class Trainer(GenericEvaluator):
         :param shuffle->int: DEEP_SHUFFLE flag, method of shuffling to use
         :param num_workers->int: Number of processes / threads to use for data loading
         :param verbose->int: DEEP_VERBOSE flag, How verbose the Trainer is
-        :param data_to_memorize->int: DEEP_MEMORIZE flag, what data to save
+        :param memorize->int: DEEP_MEMORIZE flag, what data to save
         :param save_condition->int: DEEP_SAVE flag, when to save the results
         :param stopping_parameters:
         :param tester->Tester: The tester to use for validation
@@ -101,7 +101,7 @@ class Trainer(GenericEvaluator):
                                   save_directory=save_directory,
                                   model_name=model_name,
                                   verbose=verbose,
-                                  data_to_memorize=data_to_memorize,
+                                  memorize=memorize,
                                   save_condition=save_condition,
                                   stopping_parameters=stopping_parameters,
                                   overwatch_metric=overwatch_metric)
@@ -110,7 +110,6 @@ class Trainer(GenericEvaluator):
         self.optimizer = optimizer
         self.initial_epoch = initial_epoch
         self.num_epochs = num_epochs
-        self.overwatch_metric = "total_loss",
 
         if isinstance(tester, Tester):
             self.tester = tester          # Tester for validation
