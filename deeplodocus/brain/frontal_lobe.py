@@ -261,7 +261,7 @@ class FrontalLobe(object):
                              DEEP_MSG_LOSS_NOT_FOUND % (value.method))
 
             if self.config.losses.check("kwargs", key):
-                method = local["method"](value.kwargs)
+                method = local["method"](**value.kwargs)
             else:
                 method = local["method"]()
 

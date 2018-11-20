@@ -2,10 +2,15 @@ import cv2
 import numpy as np
 import random
 from typing import Union
+import pkgutil
 
+import __main__
+
+import deeplodocus.data.transforms as tfm
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
+from deeplodocus.utils.main_utils import *
 
 
 class Transformer(object):
@@ -50,8 +55,6 @@ class Transformer(object):
         self.pointer_to_transformer = None
         self.last_transforms = []
         self.list_transforms = []
-        self.list_custom_transform_methods = self.__fill_list_custom_transform_methods()
-        self.normalize_output = self.__check_normalize_output(config)
         self.__fill_transform_list(config.transforms)
 
     def summary(self):
@@ -159,99 +162,9 @@ class Transformer(object):
             key = list(transform.keys())[0]
             values = list(transform.values())[0]
 
-            if self.__is_default_transform(list(transform.keys())[0]):
-                self.list_transforms.append([key, self.__get_default_transform_method(key), values])
-            elif self.__is_custom_transform(key):
-                self.list_transforms.append([key, self.__get_custom_transform(key), values])
-            else:
-                Notification(DEEP_NOTIF_FATAL, "The following transform does not exist in the default and custom transforms : " + str(key))
+            self.list_transforms.append([key, self.__get_transform(key), values])
 
-    def __fill_list_custom_transform_methods(self)->dict:
-        """
-        AUTHORS:
-        --------
-
-        author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Fill the list of custom transforms by parsing the transform folder
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return custom_transforms-> dict: The dictionary listing all the transform names associated to its corresponding custom method
-        """
-
-        custom_transforms = dict()
-
-        return custom_transforms
-
-
-    def __is_default_transform(self, transform_name:str)->bool:
-        """
-        AUTHORS:
-        --------
-
-        author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Check if the given transform is one of the default available in Deeplodocus
-
-        PARAMETERS:
-        -----------
-
-        :param transform-> str: A transform name
-
-        RETURN:
-        -------
-
-        :return->bool: Whether or not the requested transform is a default one available in Deeplodocus
-        """
-
-        if hasattr(Transformer, transform_name) and callable(getattr(Transformer, transform_name)):
-            #arg= inspect.getargspec(getattr(Transformer, list(transform.keys())[0]))
-            #print(len(arg.args))
-            return True
-        else:
-            return False
-
-    def __is_custom_transform(self, transform_name:str)->bool:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Check if the given transform is an existing custom one
-
-        PARAMETERS:
-        -----------
-
-        :param transform_name-> str: A transform name
-
-        RETURN:
-        -------
-
-        :return-> bool: Whether or not the requested transform is a custom one available in the transform folder
-        """
-        if transform_name in self.list_custom_transform_methods:
-            return True
-        else:
-            False
-
-    def __get_default_transform_method(self, transform_name:str)->callable:
+    def __get_transform(self, transform_name:str)->callable:
         """
         AUTHORS:
         --------
@@ -273,36 +186,37 @@ class Transformer(object):
 
         :return->callable: A callable method of the Transformer class
         """
-        return getattr(self, transform_name)
+
+        local = {"transform": None}
+
+        # Get the transform method among the default ones
+        for importer, modname, ispkg in pkgutil.walk_packages(path=tfm.__path__,
+                                                              prefix=tfm.__name__ + '.',
+                                                              onerror=lambda x: None):
+            try:
+                exec("from {0} import {1} \ntransform= {2}".format(modname, transform_name, transform_name), {}, local)
+            except:
+                pass
+
+        # Get the transform method among the custom ones
+        if local["transform"] is None:
+            for importer, modname, ispkg in pkgutil.walk_packages(path=[get_main_path() + "/modules/transforms"],
+                                                                  prefix = "modules.transforms.",
+                                                                  onerror=lambda x: None):
+                try:
+                    exec("from {0} import {1} \ntransform= {2}".format(modname, transform_name, transform_name), {}, local)
+                except:
+                    pass
+
+        # If neither a standard not a custom transform is loaded
+        if local["transform"] is None:
+            Notification(DEEP_NOTIF_FATAL, "The following transform could not be loaded neither from the standard transforms nor from the custom ones : " + str(transform_name))
+
+        print(local["transform"])
+        return local["transform"]
+        #return getattr(self, transform_name)
 
 
-    def __check_normalize_output(self, config:Namespace)->bool:
-        """
-        AUTHORS:
-        -------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Check if an output normalization is requested y the user
-
-        PARAMETERS:
-        -----------
-
-        :param config-> Namespace: The config namespace instance
-
-        RETURN:
-        -------
-
-        :return->bool: Whether or not the output has to be normalized
-        """
-
-        if hasattr(config, "normalize_output") is True:
-            return True
-        else:
-            return False
 
     def transform(self, data, index, data_type):
         """
@@ -448,7 +362,7 @@ class Transformer(object):
             image = cv2.resize(image, (shape[0], shape[1]), interpolation=interpolation)
         return image.astype(np.float32)
 
-    def pad(self, image, shape, value=0):
+    def pad(image, shape, value=0):
         """
         Author: Samuel Westlake and Alix Leroy
         Pads an image to self.x_size with a given value with the image centred
