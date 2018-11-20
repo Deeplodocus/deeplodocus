@@ -219,7 +219,25 @@ class Trainer(GenericEvaluator):
 
     def __continue_training(self):
         """
-        :return:
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Ask if we want to continue once the training ended
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
         """
         continue_training = ""
         # Ask if the user want to continue the training
@@ -244,7 +262,25 @@ class Trainer(GenericEvaluator):
 
     def __evaluate_epoch(self):
         """
-        :return:
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Evaluate the model using the tester
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: The total_loss, the individual losses and the individual metrics
         """
         total_validation_loss = None
         result_losses = None
@@ -252,3 +288,9 @@ class Trainer(GenericEvaluator):
         if self.tester is not None:
             total_validation_loss, result_losses, result_metrics = self.tester.evaluate()
         return total_validation_loss, result_losses, result_metrics
+
+    def __compute_num_minibatches(self):
+
+        pass
+
+

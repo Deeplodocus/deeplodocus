@@ -212,7 +212,6 @@ class Transformer(object):
         if local["transform"] is None:
             Notification(DEEP_NOTIF_FATAL, "The following transform could not be loaded neither from the standard transforms nor from the custom ones : " + str(transform_name))
 
-        print(local["transform"])
         return local["transform"]
         #return getattr(self, transform_name)
 

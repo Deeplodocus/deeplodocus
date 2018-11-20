@@ -178,19 +178,19 @@ class FrontalLobe(object):
 
         self.validator = self.__load_tester(name="Validator",
                                             dataloader=self.config.data.dataloader,
-                                            dataset=self.config.data.dataset.validation,
+                                            data=self.config.data.dataset.validation,
                                             transforms=self.config.transform.validation)
 
         self.tester = self.__load_tester(name="Tester",
                                          dataloader=self.config.data.dataloader,
-                                         dataset=self.config.data.dataset.test,
+                                         data=self.config.data.dataset.test,
                                          transforms=self.config.transform.test)
 
 
         self.trainer = self.__load_trainer(name= "Trainer",
                                            history = self.config.history,
                                            dataloader=self.config.data.dataloader,
-                                           dataset=self.config.data.dataset.train,
+                                           data=self.config.data.dataset.train,
                                            transforms=self.config.transform.train)
 
 
@@ -358,7 +358,7 @@ class FrontalLobe(object):
         return model
 
 
-    def __load_tester(self, dataloader, dataset, transforms, name):
+    def __load_tester(self, dataloader, data, transforms, name):
         """
         AUTHORS:
         --------
@@ -387,13 +387,13 @@ class FrontalLobe(object):
         labels = []
         additional_data = []
 
-        for input in dataset.inputs:
+        for input in data.inputs:
             inputs.append(input)
 
-        for label in dataset.labels:
+        for label in data.labels:
             labels.append(label)
 
-        for add_data in dataset.additional_data:
+        for add_data in data.additional_data:
             additional_data.append(add_data)
 
 
@@ -419,7 +419,7 @@ class FrontalLobe(object):
 
         return tester
 
-    def __load_trainer(self, history, dataloader, dataset, transforms, name):
+    def __load_trainer(self, history, dataloader, data, transforms, name):
         """
         AUTHORS:
         --------
@@ -449,13 +449,13 @@ class FrontalLobe(object):
         labels = []
         additional_data = []
 
-        for input in dataset.inputs:
+        for input in data.inputs:
             inputs.append(input)
 
-        for label in dataset.labels:
+        for label in data.labels:
             labels.append(label)
 
-        for add_data in dataset.additional_data:
+        for add_data in data.additional_data:
             additional_data.append(add_data)
 
 
@@ -470,6 +470,7 @@ class FrontalLobe(object):
                           cv_library=DEEP_LIB_PIL,
                           name=name)
         dataset.load()
+        dataset.set_len_dataset(data.number)
         dataset.summary()
 
         # Overwatch metric

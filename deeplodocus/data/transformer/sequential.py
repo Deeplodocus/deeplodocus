@@ -59,8 +59,6 @@ class Sequential(Transformer):
 
         # Update the last index
         self.last_index = index
-        print("test")
-
         return transformed_data
 
 

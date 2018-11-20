@@ -3,26 +3,29 @@ dataloader:
   num_workers: 4
 dataset:
   train:
+    number: 100
     inputs:
-      - ['./data/input1.txt', './data/input1.txt']
-      - ['./data/input2.txt', './data/input2.txt']
+      - ['./data/input1.txt']
+      - ['./data/input2.txt']
     labels:
-      - ["./data/label1.txt", "./data/label2.txt"]
+      - ["./data/label1.txt"]
     additional_data:
-      - "./data/additional_data.txt"
+      - Null
   validation:
+    number : 100
     inputs:
-      - ['./data/input1.txt', './data/input1.txt']
-      - ['./data/input2.txt', './data/input2.txt']
+      - ['./data/input1.txt']
+      - ['./data/input2.txt']
     labels:
-      - ["./data/label1.txt", "./data/label2.txt"]
+      - ["./data/label1.txt"]
     additional_data:
-      - "./data/additional_data.txt"
+      - Null
   test:
+    number: 100
     inputs:
-      - ['./data/input1.txt', './data/input1.txt']
-      - ['./data/input2.txt', './data/input2.txt']
+      - ['./data/input1.txt']
+      - ['./data/input2.txt']
     labels:
-      - ["./data/label1.txt", "./data/label2.txt"]
+      - ["./data/label1.txt"]
     additional_data:
-      - "./data/additional_data.txt"
+      - Null
