@@ -3,6 +3,27 @@ from .transformer import Transformer
 class Sequential(Transformer):
 
     def __init__(self, config):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Initialize a Sequential transformer inheriting a Transformer
+
+        PARAMETERS:
+        -----------
+
+        :param config->Namespace: The config
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         Transformer.__init__(self, config)
 
 

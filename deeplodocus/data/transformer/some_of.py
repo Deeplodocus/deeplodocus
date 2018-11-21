@@ -4,6 +4,27 @@ import random
 class SomeOf(Transformer):
 
     def __init__(self, config):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Initialize a SomeOf transformer inheriting a Transformer
+
+        PARAMETERS:
+        -----------
+
+        :param config->Namespace: The config
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         Transformer.__init__(self, config)
 
         if hasattr(config, "number_transformations_min"):
