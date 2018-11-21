@@ -1,6 +1,6 @@
 num_epochs : 10
 initial_epoch : 0
 shuffle : 1
-save_condition : 0
+save_condition : 2
 overwatch_metric : "total loss"
 overwatch_condition : 0
