@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 
 
-def random_blur(image, kernel_size_min, kernel_size_max):
+def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int):
     """
     AUTHORS:
     --------
@@ -19,15 +19,15 @@ def random_blur(image, kernel_size_min, kernel_size_max):
     PARAMETERS:
     -----------
 
-    :param image:
-    :param kernel_size_min:
-    :param kernel_size_max:
+    :param image->np.array: The image to transform
+    :param kernel_size_min->int: Min size of the kernel
+    :param kernel_size_max->int: Max size of the kernel
 
 
     RETURN:
     -------
 
-    :return: The image and the last transform data
+    :return: The blurred image and the last transform data
     """
     kernel_size = (random.randint(kernel_size_min // 2, kernel_size_max // 2)) * 2 + 1
     image, _ = blur(image, kernel_size)
@@ -35,7 +35,7 @@ def random_blur(image, kernel_size_min, kernel_size_max):
     return image, transform
 
 
-def blur(image, kernel_size):
+def blur(image: np.array, kernel_size: int):
     kernel = (int(kernel_size), int(kernel_size))
     image = cv2.blur(image, kernel)
     return image, None

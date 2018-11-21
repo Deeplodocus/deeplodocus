@@ -416,7 +416,7 @@ For more details on each transform please check the corresponding documentation
 
 #### Pointer
 
-The Pointer consists in redirecting the transformation process to another pointer.
+The Pointer consists in redirecting the transformation process to another transformer.
 Using a pointer has two major advantages :
 
 - It avoids creating another transformer config file
@@ -445,15 +445,46 @@ Note : A `Pointer` cannot point to another `Pointer`
 
 
 
+
 #### Offline
 
 Offline data augmentation is not available
 
 #### Custom transforms
 
-Currently not available
+
+Not only Deeplodocus provides a rich list of standard builtin transformation operations, it also allows you to define your own transforms !
+
+The transforms can either be fixed operations or random operations. The following example illustrates two different transforms (blurs).
+The first blur method directly uses the given kernel size whereas the second one computes a blur whose the kernel size is picked between its min and max parameters.
 
 
+```python
+import random
+import numpy as np
+import cv2
 
+def blur(image: np.array, kernel_size: int):
+    kernel = (int(kernel_size), int(kernel_size))
+    image = cv2.blur(image, kernel)
+    
+    # No need to return the info on the current transform operation because there isn't any random parameter here.
+    # Make sure to replace the info of the current transform by None
+    return image, None
+
+def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int):
+    kernel_size = (random.randint(kernel_size_min // 2, kernel_size_max // 2)) * 2 + 1
+    image, _ = blur(image, kernel_size)
+    
+    # Return the info on the last operation used (Required for the Pointer !)
+    # ["Name", method, dictionary of arguments required]
+    transform = ["blur", blur, {"kernel_size": kernel_size}]
+    
+    # Return the result of the transform and the info of the current transform operation
+    return image, transform
+```
+
+
+The custom transforms can be saved inside the `config/modules/transforms` folder in any python file. This architecture allows your to structure your files as you wish.
 
 
