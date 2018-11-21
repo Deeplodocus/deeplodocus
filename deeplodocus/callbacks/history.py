@@ -295,8 +295,24 @@ class History(object):
 
     def on_training_end(self):
         """
-        Authors: Alix Leroy
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
         Actions to perform when the training finishes
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
         :return: None
         """
         #
@@ -321,9 +337,9 @@ class History(object):
         for i in range(self.validation_history_temp_list.qsize()):
             validation_history =  validation_history + ",".join(str(value) for (item, value) in self.validation_history_temp_list.get().items()) + "\n"
 
-        self.__add_logs("history_train_batches", self.log_dir, ".csv", train_batch_history)
-        self.__add_logs("history_train_epochs", self.log_dir, ".csv", train_epochs_history)
-        self.__add_logs("history_validation", self.log_dir, ".csv", validation_history)
+        self.__add_logs("history_train_batches", self.log_dir, DEEP_EXT_CSV, train_batch_history)
+        self.__add_logs("history_train_epochs", self.log_dir, DEEP_EXT_CSV, train_epochs_history)
+        self.__add_logs("history_validation", self.log_dir, DEEP_EXT_CSV, validation_history)
 
     #
     # TO BE REMOVED IN THE NEXT VERSION

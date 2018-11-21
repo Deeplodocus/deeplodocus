@@ -27,6 +27,9 @@ class Saver(object):
         else:
             self.extension = ".model"
 
+        if not os.path.isfile(self.directory):
+            os.makedirs(self.directory, exist_ok=True)
+
     """
     ON BATCH END NOT TO BE IMPLEMENTED FOR EFFICIENCY REASONS
     def on_batch_end(self, model:Module):
@@ -149,6 +152,28 @@ class Saver(object):
 
 
     def __save_model(self, model:Module, input=None)->None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Save the model
+
+        PARAMETERS:
+        -----------
+
+        :param model: The model to save
+        :param input: ###
+
+        RETURN:
+        -------
+
+        :return: None
+        """
 
         filepath = self.directory + self.model_name + self.extension
 
