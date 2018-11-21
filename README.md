@@ -206,7 +206,7 @@ train:
 
 train:
     inputs:
-      - "./path_to_folder/"     # Work as well
+      - "./path_to_folder/"     # Works as well
 ```
 
 
@@ -334,7 +334,6 @@ Here is an example of config file for a `Sequential` transformer:
 
 method: "sequential"
 name: "Sequential example"
-normalize_output: True
 
 transforms:
   - blur :
@@ -364,7 +363,6 @@ Here is an example of config file for a `OneOf` transformer:
 
 method: "oneof"
 name: "OneOf example"
-normalize_output: yes
 
 transforms:
   - blur :
@@ -400,7 +398,6 @@ name: "SomeOf example"
 num_transformations : 3             #If used, comment "num_transformations_min" and  "num_transformations_max"
 #num_transformations_min : 1        #If used, comment "num_transformations"
 #num_transformations_max : 5        #If used, comment "num_transformations"
-normalize_output: yes
 
 transforms:
   - blur :
