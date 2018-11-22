@@ -39,14 +39,17 @@ def convert_string_to_number(dict: dict):
     """
     for key, value in dict.items():
 
+        if isinstance(value, bool):
+            continue
+
         type = get_int_or_float(value)
         # Float
         if type == DEEP_TYPE_FLOAT:
-            dict[key] = float(type)
+            dict[key] = float(value)
 
         # Integer
         elif type == DEEP_TYPE_INTEGER:
-            dict[key] = int(type)
+            dict[key] = int(value)
 
         else:
             # Do nothing
