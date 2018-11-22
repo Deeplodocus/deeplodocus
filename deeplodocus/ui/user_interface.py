@@ -1,6 +1,8 @@
 # Python Modules
 from multiprocessing import Process
 import sys
+import pathlib
+
 
 # Web server Modules
 from aiohttp import web
@@ -11,6 +13,7 @@ import jinja2
 from deeplodocus.utils.notification import Notification
 from deeplodocus.ui.routes import Routes
 from deeplodocus.utils.flags import *
+from deeplodocus.ui.middlewares import setup_middlewares
 
 
 class UserInterface(object):
@@ -68,12 +71,14 @@ class UserInterface(object):
 
         :return: None
         """
+        USER_INTERFACE_ROOT = pathlib.Path(__file__).parent
 
         Notification(DEEP_NOTIF_SUCCESS, "User Interface created")
 
         app = web.Application()                                                                     # Start the web application
         aiohttp_jinja2.setup(app, loader = jinja2.PackageLoader('deeplodocus', 'ui/templates'))     # Load the templates
-        Routes().setup_routes(app=app)                                                              # Define the routes
+        Routes().setup_routes(app=app, project_root=USER_INTERFACE_ROOT)                            # Define the routes
+        setup_middlewares(app)
         web.run_app(app)                                                                            # Run the app
 
         Notification(DEEP_NOTIF_SUCCESS, "User interface closed successfully")
