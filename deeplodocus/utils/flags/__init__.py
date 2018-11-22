@@ -10,6 +10,7 @@ from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.types import *
+from deeplodocus.utils.flags.ui import *
 
 #
 # MODEL SAVING CONDITION

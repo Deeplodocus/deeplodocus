@@ -1,9 +1,9 @@
+import aiohttp
 from aiohttp import web
 
-
-from deeplodocus.ui.views import index
-
-
+from deeplodocus.ui.views import index, test
+from deeplodocus.utils.flags import *
+import deeplodocus.ui as ui
 
 class Routes(object):
 
@@ -11,7 +11,7 @@ class Routes(object):
     def __init__(self):
         self.list_routes = self.__load_routes()
 
-    def setup_routes(self, app):
+    def setup_routes(self, app: aiohttp.web.Application, project_root):
         """
         Authors : Alix Leroy,
         Add the routes to the app
@@ -21,6 +21,8 @@ class Routes(object):
         for route in self.list_routes:
             app.router.add_route(route[0], route[1], route[2], name=route[3])
 
+        # Add static content (css, js, etc...)
+        app.router.add_static("/", path= str(project_root / "static"), name='static')
 
     def __load_routes(self):
         """
@@ -30,7 +32,8 @@ class Routes(object):
         """
 
         routes = [
-            ('GET', '/', index, 'homepage')
+            ('GET', '/', index, 'homepage'),            # Homepage
+            ('GET', "/test", test, "test-page")         # An example page
         ]
 
 

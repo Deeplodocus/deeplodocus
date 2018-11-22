@@ -50,5 +50,5 @@ class Loss(GenericMetric):
             elif arg == "self":
                 continue
             else:
-                Notification(DEEP_NOTIF_FATAL, "The following argument is not handled by the Deeplodocus loss system, please check the documentation : " + str(arg), write_logs=self.write_logs)
+                Notification(DEEP_NOTIF_FATAL, "The following argument is not handled by the Deeplodocus loss system, please check the documentation : " + str(arg))
         return arguments

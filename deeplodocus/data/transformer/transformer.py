@@ -164,7 +164,7 @@ class Transformer(object):
 
             self.list_transforms.append([key, self.__get_transform(key), values])
 
-    def __get_transform(self, transform_name:str)->callable:
+    def __get_transform(self, transform_name: str)->callable:
         """
         AUTHORS:
         --------
@@ -195,6 +195,7 @@ class Transformer(object):
                                                               onerror=lambda x: None):
             try:
                 exec("from {0} import {1} \ntransform= {2}".format(modname, transform_name, transform_name), {}, local)
+                break
             except:
                 pass
 
@@ -205,6 +206,7 @@ class Transformer(object):
                                                                   onerror=lambda x: None):
                 try:
                     exec("from {0} import {1} \ntransform= {2}".format(modname, transform_name, transform_name), {}, local)
+                    break
                 except:
                     pass
 

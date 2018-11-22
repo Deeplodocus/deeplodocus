@@ -237,6 +237,65 @@ class Brain(object):
             Notification(DEEP_NOTIF_ERROR, "The model is not loaded yet, please feed Deeplodocus with all the required config files.")
 
 
+    def ui(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Start the User Interface
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        if self.user_interface is None:
+            self.user_interface = UserInterface()
+        else:
+            Notification(DEEP_NOTIF_ERROR, "The User Interface is already running.")
+
+
+    def stop_ui(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Stop the User Interface
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        if self.user_interface is not None:
+            self.user_interface.stop()
+        else:
+            Notification(DEEP_NOTIF_ERROR, "The User Interface is not currently running.")
+
+
+
+
     def __on_wake(self):
         """
         Author: SW
