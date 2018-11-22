@@ -137,10 +137,6 @@ class FrontalLobe(object):
         if self.tester is not None:
             self.tester.fit()
 
-
-    #
-    # LOAD METHODS
-    #
     def load(self):
         """
         AUTHORS:
@@ -164,18 +160,10 @@ class FrontalLobe(object):
         :return: None
         """
 
-        # Model (always before the optimizer)
-        self.model = self.__load_model()
-
-        # Optimizer (always after the Model)
-        self.optimizer = self.__load_optimizer()
-
-        # Losses
-        self.losses = self.__load_losses()
-
-        # Metrics
-        self.metrics = self.__load_metrics()
-
+        self.model = self.load_model()        # Always load model first
+        self.optimizer = self.load_optimizer()
+        self.losses = self.load_losses()
+        self.metrics = self.load_metrics()
         self.validator = self.__load_tester(name="Validator",
                                             dataloader=self.config.data.dataloader,
                                             data=self.config.data.dataset.validation,
@@ -185,22 +173,17 @@ class FrontalLobe(object):
                                          dataloader=self.config.data.dataloader,
                                          data=self.config.data.dataset.test,
                                          transforms=self.config.transform.test)
-
-
-        self.trainer = self.__load_trainer(name= "Trainer",
-                                           history = self.config.history,
+        self.trainer = self.__load_trainer(name="Trainer",
+                                           history=self.config.history,
                                            dataloader=self.config.data.dataloader,
                                            data=self.config.data.dataset.train,
                                            transforms=self.config.transform.train)
-
-
         self.__summary(model=self.model,
                        input_size=self.config.model.input_size,
-                       losses=self.losses, metrics = self.metrics,
+                       losses=self.losses, metrics=self.metrics,
                        batch_size=self.config.data.dataloader.batch_size)
 
-
-    def __load_optimizer(self):
+    def load_optimizer(self):
         """
         AUTHORS:
         --------
@@ -224,9 +207,7 @@ class FrontalLobe(object):
         """
         return Optimizer(params=self.model.parameters(), **convert_string_to_number(self.config.optimizer.get())).get()
 
-
-
-    def __load_losses(self):
+    def load_losses(self):
         """
         AUTHORS:
         --------
@@ -278,8 +259,7 @@ class FrontalLobe(object):
 
         return loss_functions
 
-
-    def __load_metrics(self):
+    def load_metrics(self):
         """
         AUTHORS:
         --------
@@ -322,7 +302,7 @@ class FrontalLobe(object):
 
         return metric_functions
 
-    def __load_model(self):
+    def load_model(self):
         """
         AUTHORS:
         --------
@@ -354,16 +334,14 @@ class FrontalLobe(object):
             model = local["model"](self.config.model.kwarg)
         else:
             model = local["model"]()
-
         return model
-
 
     def __load_tester(self, dataloader, data, transforms, name):
         """
         AUTHORS:
         --------
 
-        :author: Alix Leroy
+        :author: Alix Leroy and SW
 
         DESCRIPTION:
         ------------
@@ -373,50 +351,33 @@ class FrontalLobe(object):
         PARAMETERS:
         -----------
         :param dataloader:
-        :param dataset:
+        :param data:
         :param transforms:
+        :param name:
 
         RETURN:
         -------
 
         :return tester->Tester: The loaded tester
         """
-
-        # Dataset
-        inputs = []
-        labels = []
-        additional_data = []
-
-        for input in data.inputs:
-            inputs.append(input)
-
-        for label in data.labels:
-            labels.append(label)
-
-        for add_data in data.additional_data:
-            additional_data.append(add_data)
-
-
-        # Create the transform managers
+        inputs = [item for item in data.inputs]
+        labels = [item for item in data.labels]
+        additional_data = [item for item in data.additional_data]
         transform_manager = TransformManager(transforms)
-
         dataset = Dataset(list_inputs=inputs,
                           list_labels=labels,
                           list_additional_data=additional_data,
                           transform_manager=transform_manager,
                           cv_library=DEEP_LIB_PIL,
                           name=name)
-
         dataset.load()
         dataset.summary()
-
-        tester = Tester(model = self.model,
+        tester = Tester(model=self.model,
                         dataset=dataset,
                         metrics=self.metrics,
                         losses=self.losses,
                         batch_size=dataloader.batch_size,
                         num_workers=dataloader.num_workers)
-
         return tester
 
     def __load_trainer(self, history, dataloader, data, transforms, name):

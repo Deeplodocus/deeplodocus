@@ -11,7 +11,6 @@ from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.flags import *
 
 
-
 class TransformManager(object):
     """
     AUTHORS:
