@@ -8,11 +8,42 @@ from deeplodocus.utils.main_utils import *
 
 
 class Optimizer(object):
+    """
+    AUTHORS:
+    --------
 
-    def __init__(self, name:str,
-                 params,
-                 **kwargs):
+    :author: Alix Leroy
 
+    DESCRIPTION:
+    ------------
+
+    Optimizer class which loads the optimizer from a PyTorch module or from a custom module
+    """
+
+    def __init__(self, name: str, params, **kwargs):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Initialize an Optimizer instance
+
+        PARAMETERS:
+        -----------
+
+        :param name->str: The name of the optimizer
+        :param params: Parameters to optimize
+        :param kwargs: Arguments of the optimizer
+
+        RETURN:
+        -------
+
+        :return: None
+        """
 
         if isinstance(name, str):
             name = self.__format_name(name)
@@ -110,7 +141,7 @@ class Optimizer(object):
         # Method3 (accepts custom optimizers)
         local = {"optimizer": None}
 
-        # Get the transform method among the default ones
+        # Get the optimizer among the default ones
         for importer, modname, ispkg in pkgutil.walk_packages(path=torch.optim.__path__,
                                                               prefix=torch.optim.__name__ + '.',
                                                               onerror=lambda x: None):
