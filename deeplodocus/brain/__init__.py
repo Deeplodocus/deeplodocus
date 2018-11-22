@@ -247,8 +247,7 @@ class Brain(object):
         :return:
         """
         self.frontal_lobe.load_optimizer()
-
-
+        
     def ui(self):
         """
         AUTHORS:
@@ -304,9 +303,6 @@ class Brain(object):
             self.user_interface.stop()
         else:
             Notification(DEEP_NOTIF_ERROR, "The User Interface is not currently running.")
-
-
-
 
     def __on_wake(self):
         """

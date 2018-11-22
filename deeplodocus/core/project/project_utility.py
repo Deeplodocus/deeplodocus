@@ -34,7 +34,7 @@ class ProjectUtility(object):
         source_project_structure = "%s/deep_structure" % os.path.abspath(os.path.dirname(__file__))
         if self.__check_exists(project_path):
             copy_tree(source_project_structure, project_path, update=1)
-            self.__init_config()
+            # self.__init_config()
             self.__clean_structure(project_path)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_PROJECT_GENERATED, log=False)
         else:
