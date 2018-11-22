@@ -160,28 +160,14 @@ class FrontalLobe(object):
         :return: None
         """
 
-        self.model = self.load_model()        # Always load model first
-        self.optimizer = self.load_optimizer()
-        self.losses = self.load_losses()
-        self.metrics = self.load_metrics()
-        self.validator = self.__load_tester(name="Validator",
-                                            dataloader=self.config.data.dataloader,
-                                            data=self.config.data.dataset.validation,
-                                            transforms=self.config.transform.validation)
-
-        self.tester = self.__load_tester(name="Tester",
-                                         dataloader=self.config.data.dataloader,
-                                         data=self.config.data.dataset.test,
-                                         transforms=self.config.transform.test)
-        self.trainer = self.__load_trainer(name="Trainer",
-                                           history=self.config.history,
-                                           dataloader=self.config.data.dataloader,
-                                           data=self.config.data.dataset.train,
-                                           transforms=self.config.transform.train)
-        self.__summary(model=self.model,
-                       input_size=self.config.model.input_size,
-                       losses=self.losses, metrics=self.metrics,
-                       batch_size=self.config.data.dataloader.batch_size)
+        self.load_model()        # Always load model first
+        self.load_optimizer()
+        self.load_losses()
+        self.load_metrics()
+        self.load_trainer()
+        self.load_validator()
+        self.load_tester()
+        self.summary()
 
     def load_optimizer(self):
         """
@@ -205,7 +191,8 @@ class FrontalLobe(object):
 
         :return optimizer->torch.nn.Module:
         """
-        return Optimizer(params=self.model.parameters(), **convert_string_to_number(self.config.optimizer.get())).get()
+        self.optimizer = Optimizer(params=self.model.parameters(),
+                                   **convert_string_to_number(self.config.optimizer.get())).get()
 
     def load_losses(self):
         """
@@ -229,10 +216,8 @@ class FrontalLobe(object):
 
         :return loss_functions->dict: The losses
         """
-        loss_functions= {}
-
+        loss_functions = {}
         for key, value in self.config.losses.get().items():
-
             # Get the loss method
             local = {"method": None}
             try:
@@ -240,24 +225,23 @@ class FrontalLobe(object):
             except:
                 Notification(DEEP_NOTIF_ERROR,
                              DEEP_MSG_LOSS_NOT_FOUND % (value.method))
-
             if self.config.losses.check("kwargs", key):
                 method = local["method"](**value.kwargs)
             else:
                 method = local["method"]()
-
             # Check if the loss is custom
             if value.path == "torch.nn":
                 is_custom = False
             else:
                 is_custom = True
-
             if isinstance(method, torch.nn.Module):
-                loss_functions[str(key)] = Loss(name=str(key), is_custom=is_custom, weight=float(value.weight), loss=method)
+                loss_functions[str(key)] = Loss(name=str(key),
+                                                is_custom=is_custom,
+                                                weight=float(value.weight),
+                                                loss=method)
             else:
-                Notification(DEEP_NOTIF_FATAL, "The loss function %s is not a torch.nn.Module instance" %str(key))
-
-        return loss_functions
+                Notification(DEEP_NOTIF_FATAL, "The loss function %s is not a torch.nn.Module instance" % key)
+        self.losses = loss_functions
 
     def load_metrics(self):
         """
@@ -281,10 +265,8 @@ class FrontalLobe(object):
 
         :return loss_functions->dict: The losses
         """
-        metric_functions= {}
-
+        metric_functions = {}
         for key, value in self.config.metrics.get().items():
-
             # Get the metric method
             local = {"method": None}
             try:
@@ -297,10 +279,8 @@ class FrontalLobe(object):
                 method = local["method"](value.kwargs)
             else:
                 method = local["method"]()
-
             metric_functions[str(key)] = Metric(name=str(key), method=method)
-
-        return metric_functions
+        self.metrics = metric_functions
 
     def load_model(self):
         """
@@ -334,7 +314,38 @@ class FrontalLobe(object):
             model = local["model"](self.config.model.kwarg)
         else:
             model = local["model"]()
-        return model
+        self.model = model
+
+    def load_trainer(self):
+        """
+        Author: Alix Leroy and SW
+        :return: None
+        """
+        self.trainer = self.__load_trainer(name="Trainer",
+                                           history=self.config.history,
+                                           dataloader=self.config.data.dataloader,
+                                           data=self.config.data.dataset.train,
+                                           transforms=self.config.transform.train)
+
+    def load_validator(self):
+        """
+        Author: Alix Leroy and SW
+        :return: None
+        """
+        self.validator = self.__load_tester(name="Validator",
+                                            dataloader=self.config.data.dataloader,
+                                            data=self.config.data.dataset.validation,
+                                            transforms=self.config.transform.validation)
+
+    def load_tester(self):
+        """
+        Author: Alix Leroy and SW
+        :return: None
+        """
+        self.tester = self.__load_tester(name="Tester",
+                                         dataloader=self.config.data.dataloader,
+                                         data=self.config.data.dataset.test,
+                                         transforms=self.config.transform.test)
 
     def __load_tester(self, dataloader, data, transforms, name):
         """
@@ -460,6 +471,12 @@ class FrontalLobe(object):
 
         return trainer
 
+    def summary(self):
+        self.__summary(model=self.model,
+                       input_size=self.config.model.input_size,
+                       losses=self.losses, metrics=self.metrics,
+                       batch_size=self.config.data.dataloader.batch_size)
+
     def __summary(self, model, input_size, losses, metrics, batch_size=-1, device="cuda"):
         """
         AUTHORS:
@@ -533,8 +550,6 @@ class FrontalLobe(object):
         if self.__model_has_multiple_inputs() is False:
             input_size = [input_size]
 
-
-
         print(input_size)
         # batch_size of 2 for batchnorm
         x = [torch.rand(2, *in_size).type(dtype) for in_size in input_size]
@@ -602,7 +617,6 @@ class FrontalLobe(object):
             if key != "name":
                 Notification(DEEP_NOTIF_INFO, "%s : %s" %(key, value))
 
-
     def __model_has_multiple_inputs(self):
         """
         AUTHORS:
@@ -630,7 +644,6 @@ class FrontalLobe(object):
             return True
         else:
             return False
-
 
     def patchy(self):
         """
@@ -688,12 +701,6 @@ class FrontalLobe(object):
         plt.savefig("%s/%s_patch.png" % (directory, image_name))
         print("Plot saved to %s/%s_patchy.png" % (directory, image_name))
 
-
-
-
-
-
-
     @staticmethod
     def __set_fit_class_weight(fit_gen_kwargs, generator):
         """
@@ -741,7 +748,6 @@ class FrontalLobe(object):
             if "kwargs" in params:
                 kwargs = params["kwargs"]
         return args, kwargs
-
 
     @staticmethod
     def __apply_patch(image, pos, size):

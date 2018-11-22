@@ -235,18 +235,6 @@ class Brain(object):
             self.frontal_lobe.load()
         else:
             Notification(DEEP_NOTIF_ERROR, "The model is not loaded yet, please feed Deeplodocus with all the required config files.")
-
-    def load_model(self):
-        """
-        :return:
-        """
-        self.frontal_lobe.load_model()
-
-    def load_optimizer(self):
-        """
-        :return:
-        """
-        self.frontal_lobe.load_optimizer()
         
     def ui(self):
         """
