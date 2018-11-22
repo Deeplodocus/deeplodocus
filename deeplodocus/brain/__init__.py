@@ -248,7 +248,6 @@ class Brain(object):
         """
         self.frontal_lobe.load_optimizer()
 
-
     def __on_wake(self):
         """
         Author: SW
