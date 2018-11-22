@@ -5,6 +5,7 @@ __pycache__/
 
 deeplodocus/brain/logs
 deeplodocus/brain/results
+test/core/deeplodocus_project/
 
 # C extensions
 *.so

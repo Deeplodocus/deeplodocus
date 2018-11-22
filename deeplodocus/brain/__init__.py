@@ -236,6 +236,18 @@ class Brain(object):
         else:
             Notification(DEEP_NOTIF_ERROR, "The model is not loaded yet, please feed Deeplodocus with all the required config files.")
 
+    def load_model(self):
+        """
+        :return:
+        """
+        self.frontal_lobe.load_model()
+
+    def load_optimizer(self):
+        """
+        :return:
+        """
+        self.frontal_lobe.load_optimizer()
+
 
     def __on_wake(self):
         """
@@ -367,7 +379,7 @@ if __name__ == "__main__":
         brain.wake()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", type=str, default="../core/project/deep_structure/config",
+    parser.add_argument("-c", type=str, default="config",
                         help="Path to the config directory")
     arguments = parser.parse_args()
     main(arguments)

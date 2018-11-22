@@ -4,6 +4,7 @@ import torch
 
 from deeplodocus.core.project.deep_structure.modules.models.flatten import Flatten
 
+
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()

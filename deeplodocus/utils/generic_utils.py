@@ -6,6 +6,7 @@ import os
 import re
 from deeplodocus.utils.flags import *
 
+
 def sorted_nicely(l):
     """ Sorts the given iterable in the way that is expected.
 
