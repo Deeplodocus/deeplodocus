@@ -1,18 +1,43 @@
+# Python Modules
 from multiprocessing import Process
 import sys
 
+# Web server Modules
 from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 
+# Deeplodocus modules
 from deeplodocus.utils.notification import Notification
 from deeplodocus.ui.routes import Routes
 from deeplodocus.utils.flags import *
 
 
 class UserInterface(object):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    A User Interface accessible via a Web Browser
+    """
 
     def __init__(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Start the user interface in a second Process linked to the main one.
+        """
 
         # Create the web server in a second process
         self.process = Process(target=self.__run, args=())
@@ -23,8 +48,24 @@ class UserInterface(object):
 
     def __run(self):
         """
-        Authors : Alix Leroy,
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
         Run the web server
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
         :return: None
         """
 
@@ -40,6 +81,27 @@ class UserInterface(object):
 
 
     def stop(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Stop the server
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         self.process.terminate() # Terminate the process
 
 
