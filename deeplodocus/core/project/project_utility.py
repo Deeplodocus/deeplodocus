@@ -7,34 +7,90 @@ from deeplodocus.utils.flags.config import DEEP_CONFIG
 from deeplodocus.utils.flags.ext import DEEP_EXT_YAML
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
-
+from deeplodocus.utils.main_utils import *
 
 class ProjectUtility(object):
     """
-    Authors : Alix Leroy,
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
     Generate a project deeplodocus ready to use
     """
 
     def __init__(self, project_name="deeplodocus_project", main_path=None, force_overwrite=False):
         """
-        Authors: Alix Leroy and SW
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Initialize a instance ready to create a new Deeplodocus project
+
+        PARAMETERS:
+        -----------
+
+        :param project_name(str, optional): The name of the project
+        :param main_path(str, optional): The path of the working directory
+        :param force_overwrite(bool, optional): Whether we want to overwrite an existing project or not
+
+        RETURN:
+        -------
+
+        None
         """
         self.project_name = project_name
         self.force_overwrite = force_overwrite
         if main_path is None:
-            self.main_path = os.getcwd()
+            self.main_path = get_main_path()
 
     def generate_structure(self):
         """
-        Authors : Alix Leroy and SW
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
         Generate a Deep Project by copying the default folder to the desired location
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
         :return: None
         """
+        # Path in which the deep structure will be copied
         project_path = "%s/%s" % (self.main_path, self.project_name)
+
+        # Get the path to the original files
         source_project_structure = "%s/deep_structure" % os.path.abspath(os.path.dirname(__file__))
+
+        # Check if the project already exists
         if self.__check_exists(project_path):
+
+            # If we can continue copy the deep structure from original folder to the deep project folder
             copy_tree(source_project_structure, project_path, update=1)
+
+            # Copy the required config files
             # self.__init_config()
+
+            # Clean the structure (remove __pycache__ folder and __ini__.py files)
             self.__clean_structure(project_path)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_PROJECT_GENERATED, log=False)
         else:
@@ -97,6 +153,7 @@ class ProjectUtility(object):
 
         :return: None
         """
+        # Browse inside all files and folders in the new generated project
         for root, dirs, files in os.walk(deeplodocus_project_path):
             # Remove init files
             if os.path.isfile(root + "/__init__.py"):

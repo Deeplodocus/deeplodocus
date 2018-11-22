@@ -1,4 +1,3 @@
-module: "deeplodocus.core.project.deep_structure.modules.models.classification"
 name: "Net"
 input_size : [[3, 216, 384], [3, 216, 384]]
 #kwargs: 1

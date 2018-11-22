@@ -23,6 +23,9 @@ from deeplodocus.data.transform_manager import TransformManager
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.core.optimizer.optimizer import Optimizer
 from deeplodocus.utils.dict_utils import convert_string_to_number
+from deeplodocus.utils.module import get_module
+from deeplodocus.utils.main_utils import get_main_path
+
 
 class FrontalLobe(object):
     """
@@ -161,7 +164,7 @@ class FrontalLobe(object):
         """
 
         self.load_model()        # Always load model first
-        self.load_optimizer()
+        self.load_optimizer()    # Always load the optimizer after the model
         self.load_losses()
         self.load_metrics()
         self.load_trainer()
@@ -266,6 +269,7 @@ class FrontalLobe(object):
         :return loss_functions->dict: The losses
         """
         metric_functions = {}
+
         for key, value in self.config.metrics.get().items():
             # Get the metric method
             local = {"method": None}
@@ -304,17 +308,21 @@ class FrontalLobe(object):
 
         :return model->torch.nn.Module:  The model
         """
-        local = {"model": None}
-        try:
-            exec("from {0} import {1} \nmodel= {2}".format(self.config.model.module, self.config.model.name, self.config.model.name), {}, local)
-        except ImportError:
+
+        # Load the model
+        model =  get_module(path=[get_main_path() + "/modules/models"],
+                            prefix="modules.models",
+                            name=self.config.model.name)
+
+        if model is None:
             Notification(DEEP_NOTIF_ERROR,
                          DEEP_MSG_MODEL_NOT_FOUND % (self.config.model.name, self.config.model.module))
-        if self.config.check("kwargs", "model"):
-            model = local["model"](self.config.model.kwarg)
         else:
-            model = local["model"]()
-        self.model = model
+            if self.config.check("kwargs", "model"):
+                model = model(self.config.model.kwarg)
+            else:
+                model = model()
+            self.model = model
 
     def load_trainer(self):
         """
@@ -352,7 +360,8 @@ class FrontalLobe(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and SW
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -382,6 +391,7 @@ class FrontalLobe(object):
                           cv_library=DEEP_LIB_PIL,
                           name=name)
         dataset.load()
+        dataset.set_len_dataset(data.number)
         dataset.summary()
         tester = Tester(model=self.model,
                         dataset=dataset,
