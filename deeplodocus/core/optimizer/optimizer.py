@@ -1,8 +1,10 @@
 import torch
+import pkgutil
 
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
+from deeplodocus.utils.main_utils import *
 
 
 class Optimizer(object):
@@ -97,11 +99,43 @@ class Optimizer(object):
 
         :return optimizer: The optimizer
         """
+        #Method 1
         #local = {"optimizer" : None}
         #exec("import torch \noptimizer = torch.optim.{0}".format(name), {}, local)
         #optimizer = local["optimizer"](params, **kwargs)
-        optimizer = getattr(torch.optim, name)
-        return optimizer(params, **kwargs)
+
+        #Method2
+        #optimizer = getattr(torch.optim, name)
+
+        # Method3 (accepts custom optimizers)
+        local = {"optimizer": None}
+
+        # Get the transform method among the default ones
+        for importer, modname, ispkg in pkgutil.walk_packages(path=torch.optim.__path__,
+                                                              prefix=torch.optim.__name__ + '.',
+                                                              onerror=lambda x: None):
+            try:
+                exec("from {0} import {1} \noptimizer= {2}".format(modname, name, name), {}, local)
+                break
+            except:
+                pass
+
+        # Get the optimizer among the custom ones
+        if local["optimizer"] is None:
+            for importer, modname, ispkg in pkgutil.walk_packages(path=[get_main_path() + "/modules/optimizers"],
+                                                                  prefix = "modules.optimizers.",
+                                                                  onerror=lambda x: None):
+                try:
+                    exec("from {0} import {1} \noptimizer= {2}".format(modname, name, name), {}, local)
+                    break
+                except:
+                    pass
+
+        # If neither a standard not a custom transform is loaded
+        if local["optimizer"] is None:
+            Notification(DEEP_NOTIF_FATAL, "The following optimizer could not be loaded neither from the standard nor from the custom ones : " + str(name))
+
+        return local["optimizer"](params, **kwargs)
 
     def get(self):
         """

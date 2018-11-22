@@ -1,6 +1,17 @@
 from .transformer import Transformer
 
 class Sequential(Transformer):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Sequential class inheriting from Transformer which compute the list of transforms sequentially
+    """
 
     def __init__(self, config):
         """

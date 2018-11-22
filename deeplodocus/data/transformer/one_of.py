@@ -4,7 +4,17 @@ from deeplodocus.data.transformer.transformer import Transformer
 
 
 class OneOf(Transformer):
+    """
+    AUTHORS:
+    --------
 
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    OneOf class inheriting from Transformer which compute one random transform from the list
+    """
     def __init__(self, config):
         """
         AUTHORS:

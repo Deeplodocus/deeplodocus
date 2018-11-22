@@ -2,6 +2,18 @@ from .transformer import Transformer
 import random
 
 class SomeOf(Transformer):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Sequential class inheriting from Transformer which compute a random number of transforms in the tranforms list.
+    The random number is bounded by a min and max
+    """
 
     def __init__(self, config):
         """
