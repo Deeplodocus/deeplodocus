@@ -4,8 +4,39 @@ from deeplodocus.data.transformer.transformer import Transformer
 
 
 class OneOf(Transformer):
+    """
+    AUTHORS:
+    --------
 
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    OneOf class inheriting from Transformer which compute one random transform from the list
+    """
     def __init__(self, config):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Initialize a OneOf transformer inheriting a Transformer
+
+        PARAMETERS:
+        -----------
+
+        :param config->Namespace: The config
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         Transformer.__init__(self, config)
 
     def transform(self, data, index, data_type):

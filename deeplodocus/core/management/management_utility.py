@@ -13,7 +13,6 @@ from deeplodocus import __version__
 
 class ManagementUtility(object):
 
-
     def __init__(self, argv=None):
 
         self.commands = {"help" : "List the commands available",

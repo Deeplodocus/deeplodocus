@@ -2,8 +2,41 @@ from .transformer import Transformer
 import random
 
 class SomeOf(Transformer):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Sequential class inheriting from Transformer which compute a random number of transforms in the tranforms list.
+    The random number is bounded by a min and max
+    """
 
     def __init__(self, config):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Initialize a SomeOf transformer inheriting a Transformer
+
+        PARAMETERS:
+        -----------
+
+        :param config->Namespace: The config
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         Transformer.__init__(self, config)
 
         if hasattr(config, "number_transformations_min"):

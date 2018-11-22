@@ -10,6 +10,17 @@ from deeplodocus.utils.flags import *
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 
 class Saver(object):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Class to handle the saving of the model
+    """
 
     def __init__(self,
                  model_name:str = "no_name",
