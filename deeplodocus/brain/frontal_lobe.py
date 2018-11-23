@@ -186,8 +186,12 @@ class FrontalLobe(object):
 
         :return optimizer->torch.nn.Module:
         """
-        self.optimizer = Optimizer(params=self.model.parameters(),
-                                   **convert_string_to_number(self.config.optimizer.get())).get()
+        if self.model is not None:
+            self.optimizer = Optimizer(params=self.model.parameters(),
+                                       **convert_string_to_number(self.config.optimizer.get())).get()
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIMIZER_LOADED)
+        else:
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_OPTIMIZER_NOT_LOADED % DEEP_MSG_MODEL_NOT_LOADED)
 
     def load_losses(self):
         """
@@ -290,27 +294,24 @@ class FrontalLobe(object):
         PARAMETERS:
         -----------
 
-        :param config_model->Namespace: The config of the model
+        :param config_model -> Namespace: The config of the model
 
         RETURN:
         -------
 
         :return model->torch.nn.Module:  The model
         """
-
-        # Load the model
-        model = get_module(path=[get_main_path() + "/modules/models"],
-                           prefix="modules.models",
-                           name=self.config.model.name)
-        if model is None:
-            Notification(DEEP_NOTIF_ERROR,
-                         DEEP_MSG_MODEL_NOT_FOUND % (self.config.model.name, self.config.model.module))
-        else:
-            if self.config.check("kwargs", "model"):
-                model = model(self.config.model.kwarg)
-            else:
+        if self.config.check("name", "model"):
+            model = get_module(module="%s.%s" % (DEEP_PATH_MODELS, self.config.model.module),
+                               name=self.config.model.name)
+            try:
+                model = model(self.config.model.kwargs)
+            except AttributeError:
                 model = model()
             self.model = model
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED)
+        else:
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_MODEL_NOT_LOADED)
 
     def load_trainer(self):
         """
@@ -342,6 +343,13 @@ class FrontalLobe(object):
                                          dataloader=self.config.data.dataloader,
                                          data=self.config.data.dataset.test,
                                          transforms=self.config.transform.test)
+
+    def summary(self):
+        self.__summary(model=self.model,
+                       input_size=self.config.model.input_size,
+                       losses=self.losses,
+                       metrics=self.metrics,
+                       batch_size=self.config.data.dataloader.batch_size)
 
     def __load_tester(self, dataloader, data, transforms, name):
         """
@@ -450,13 +458,6 @@ class FrontalLobe(object):
                           history_directory=DEEP_PATH_HISTORY,
                           save_directory=DEEP_PATH_SAVE_MODEL)
         return trainer
-
-    def summary(self):
-        self.__summary(model=self.model,
-                       input_size=self.config.model.input_size,
-                       losses=self.losses,
-                       metrics=self.metrics,
-                       batch_size=self.config.data.dataloader.batch_size)
 
     def __summary(self, model, input_size, losses, metrics, batch_size=-1, device="cuda"):
         """

@@ -333,8 +333,8 @@ class Brain(FrontalLobe):
             else:
                 if not self.config.check(key, sub_space):
                     complete = False
-                    item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
-                    Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
+                    # item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
+                    # Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
         return complete
 
     @staticmethod

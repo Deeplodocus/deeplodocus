@@ -8,6 +8,8 @@ import copy
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.flags.config import *
+from deeplodocus.utils.flags.msg import *
 
 
 class Namespace(object):
@@ -115,6 +117,9 @@ class Namespace(object):
         if key in self.get(sub_space).keys():
             return True
         else:
+            sub_space = [sub_space] if not isinstance(sub_space, list) else sub_space
+            item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
             return False
 
     def __get_summary(self, tab_size=2, tabs=0, line=None):
