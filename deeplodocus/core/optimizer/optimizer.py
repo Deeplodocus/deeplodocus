@@ -3,28 +3,100 @@ from deeplodocus.utils.flags.filter import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.dict_utils import check_kwargs
 from deeplodocus.utils.generic_utils import get_module
+from deeplodocus.utils.namespace import Namespace
 
 
 class Optimizer(object):
+    """
+       AUTHORS:
+       --------
 
-    def __init__(self, params, config):
+       :author: Alix Leroy
+       :author: Samuel Westlake
+
+       DESCRIPTION:
+       ------------
+
+       Optimizer class which loads the optimizer from a PyTorch module or from a custom module
+       """
+
+    def __init__(self, model_parameters, config: Namespace):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Initialize an optimizer by loading it
+
+        PARAMETERS:
+        -----------
+
+        :param model_parameters:
+        :param config(Namespace):
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         self.optimizer = None
-        self.params = params
-        self.config = config
-        self.load_optimizer()
+        self.load(config=config,
+                  model_parameters = model_parameters)
 
-    def load_optimizer(self):
+    def load(self, config, model_parameters):
         """
-        :return:
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Load the optimizer in memory
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
         """
-        optimizer = get_module(module=self.config.module,
-                               name=self.__format_optimizer_name(self.config.name))
-        kwargs = check_kwargs(self.config.kwargs)
-        self.optimizer = optimizer(self.params, **kwargs)
+        optimizer = get_module(module=config.module,
+                               name=self.__format_optimizer_name(config.name))
+        kwargs = check_kwargs(config.kwargs)
+        self.optimizer = optimizer(model_parameters, **kwargs)
 
     def get(self):
         """
-        :return:
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the optimizer
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: The optimizer
         """
         return self.optimizer
 
