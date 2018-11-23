@@ -9,6 +9,7 @@ from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.main_utils import *
 
+
 class ProjectUtility(object):
     """
     AUTHORS:
