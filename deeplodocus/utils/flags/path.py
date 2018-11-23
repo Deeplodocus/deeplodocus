@@ -1,6 +1,3 @@
-import os
-import __main__
-
 from deeplodocus.utils.main_utils import get_main_path
 
 DEEP_PATH_NOTIFICATION = r"%s/logs" % get_main_path()

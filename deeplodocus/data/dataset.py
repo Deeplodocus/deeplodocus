@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import mimetypes
+import os
 
 from deeplodocus.utils.generic_utils import sorted_nicely
 from deeplodocus.utils.generic_utils import get_int_or_float

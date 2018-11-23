@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
+# Back-end imports
 from torch import *
 import torch
 import torch.nn as nn
 import torch.nn.functional
 
+# Python imports
 from collections import OrderedDict
 import numpy as np
 
-
+# Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
 from deeplodocus.core.metrics.loss import Loss
@@ -561,7 +563,7 @@ class FrontalLobe(object):
             dtype = torch.FloatTensor
 
         # Multiple inputs to the network
-        if self.__model_has_multiple_inputs() is False:
+        if self.__model_has_multiple_inputs(self.config.data.dataset.train.inputs) is False:
             input_size = [input_size]
 
         # Batch_size of 2 for batchnorm
@@ -618,21 +620,27 @@ class FrontalLobe(object):
 
         # List of metrics
         Notification(DEEP_NOTIF_INFO, "LIST OF METRICS :")
+        Notification(DEEP_NOTIF_INFO, '================================================================')
         for metric_name, metric in metrics.items():
-            Notification(DEEP_NOTIF_INFO, "%s :" % metric_name)
+            Notification(DEEP_NOTIF_INFO, "%s : " % metric_name)
 
         # List of loss functions
+        Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
         Notification(DEEP_NOTIF_INFO, "LIST OF LOSS FUNCTIONS :")
+        Notification(DEEP_NOTIF_INFO, '================================================================')
         for loss_name, loss in losses.items():
             Notification(DEEP_NOTIF_INFO, "%s :" % loss_name)
 
         # Optimizer
+        Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
         Notification(DEEP_NOTIF_INFO, "OPTIMIZER :" + str(self.config.optimizer.name))
+        Notification(DEEP_NOTIF_INFO, '================================================================')
         for key, value in self.config.optimizer.get().items():
             if key != "name":
                 Notification(DEEP_NOTIF_INFO, "%s : %s" %(key, value))
 
-    def __model_has_multiple_inputs(self):
+    @staticmethod
+    def __model_has_multiple_inputs(list_inputs):
         """
         AUTHORS:
         --------
@@ -647,14 +655,14 @@ class FrontalLobe(object):
         PARAMETERS:
         -----------
 
-        None
+        :param list_inputs(list): The list of inputs in the network
 
         RETURN:
         -------
 
         :return->bool: Whether the model has multiple inputs or not
         """
-        if len(self.config.data.dataset.train.inputs) >= 2:
+        if len(list_inputs) >= 2:
             return True
         else:
             return False
