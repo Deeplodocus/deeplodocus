@@ -1,7 +1,21 @@
 import operator
 from collections import defaultdict
+
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.flags import *
+
+
+def check_kwargs(namespace):
+    """
+    Author: Samuel Westlake
+    :param namespace: Namespace object
+    :return: prepare namespace.kwargs for use
+    """
+    if namespace.kwargs is None:
+        return {}
+    else:
+        return convert_string_to_number(namespace.kwargs.get())
+
 
 def append(item1, item2):
     """
@@ -15,7 +29,8 @@ def append(item1, item2):
     item1.append(item2)
     return item1
 
-def convert_string_to_number(dict: dict):
+
+def convert_string_to_number(dictionary: dict):
     """
     AUTHORS:
     --------
@@ -25,37 +40,29 @@ def convert_string_to_number(dict: dict):
     DESCRIPTION:
     ------------
 
-    Convert strings in a dictionnary to float or integers
+    Convert strings in a dictionary to float or integers
 
     PARAMETERS:
     -----------
 
-    :param dict->dict: The dictionnary to convert
+    :param dictionary -> dictionary: The dictionary to convert
 
     RETURN:
     -------
 
-    :return dict->dict: The converted dictionnary
+    :return dict->dict: The converted dictionary
     """
-    for key, value in dict.items():
-
+    for key, value in dictionary.items():
         if isinstance(value, bool):
             continue
-
-        type = get_int_or_float(value)
+        dtype = get_int_or_float(value)
         # Float
-        if type == DEEP_TYPE_FLOAT:
-            dict[key] = float(value)
-
+        if dtype == DEEP_TYPE_FLOAT:
+            dictionary[key] = float(value)
         # Integer
-        elif type == DEEP_TYPE_INTEGER:
-            dict[key] = int(value)
-
-        else:
-            # Do nothing
-            pass
-
-    return dict
+        elif dtype == DEEP_TYPE_INTEGER:
+            dictionary[key] = int(value)
+    return dictionary
 
 
 def merge_sum_dict(*dicts):
@@ -87,6 +94,7 @@ def merge_sum_dict(*dicts):
         for k, v in d.items():
             ret[k] += v
     return dict(ret)
+
 
 def sum_dict(dictionary: dict):
     """

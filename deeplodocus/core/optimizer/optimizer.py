@@ -4,8 +4,7 @@ import pkgutil
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
-from deeplodocus.utils.main_utils import *
-from deeplodocus.utils.module import get_module
+from deeplodocus.utils.generic_utils import get_module
 
 
 class Optimizer(object):
@@ -21,7 +20,7 @@ class Optimizer(object):
     Optimizer class which loads the optimizer from a PyTorch module or from a custom module
     """
 
-    def __init__(self, name: str, params, **kwargs):
+    def __init__(self, name: str, model_params, **kwargs):
         """
         AUTHORS:
         --------
@@ -48,7 +47,7 @@ class Optimizer(object):
 
         if isinstance(name, str):
             name = self.__format_name(name)
-            self.optimizer = self.__select_optimizer(name, params,  **kwargs)
+            self.optimizer = self.__select_optimizer(name, model_params,  **kwargs)
         else:
             Notification(DEEP_NOTIF_FATAL, "The following name is not a string : " + str(name))
 
@@ -104,7 +103,7 @@ class Optimizer(object):
         return name
 
     @staticmethod
-    def __select_optimizer(name: str, params, **kwargs):
+    def __select_optimizer(name: str, model_params, **kwargs):
         """
         AUTHORS:
         --------
@@ -120,7 +119,7 @@ class Optimizer(object):
         -----------
 
         :param name->str: The name of the optimizer
-        :param params: The parameters of the model
+        :param model_params: The parameters of the model
         :param kwargs: The arguments of the optimizer
 
         RETURN:
@@ -135,7 +134,7 @@ class Optimizer(object):
                                    name=name)
         if optimizer is None:
             Notification(DEEP_NOTIF_FATAL, "The following optimizer could not be loaded neither from the standard nor from the custom ones : " + str(name))
-        return optimizer(params, **kwargs)
+        return optimizer(model_params, **kwargs)
 
     def get(self):
         """

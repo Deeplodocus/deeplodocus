@@ -12,19 +12,20 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags import *
-from deeplodocus.core.metrics.loss import Loss
-from deeplodocus.core.metrics.metric import Metric
 from deeplodocus.core.inference.tester import Tester
 from deeplodocus.core.inference.trainer import Trainer
+from deeplodocus.core.metrics.loss import Loss
+from deeplodocus.core.metrics.metric import Metric
+from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
-from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
-from deeplodocus.core.optimizer.optimizer import Optimizer
-from deeplodocus.utils.dict_utils import convert_string_to_number
-from deeplodocus.utils.module import get_module
-from deeplodocus.utils.main_utils import get_main_path
+from deeplodocus.utils.generic_utils import get_module
+from deeplodocus.utils.dict_utils import check_kwargs
+from deeplodocus.utils.flags.filter import *
+from deeplodocus.utils.flags.msg import *
+from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.flags.path import *
+from deeplodocus.utils.notification import Notification
 
 
 class FrontalLobe(object):
@@ -166,32 +167,23 @@ class FrontalLobe(object):
 
     def load_optimizer(self):
         """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Load the optimizer
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return optimizer->torch.nn.Module:
+        Author: Samuel Westlake
+        Author: Alix Leroy
+        :return: None
         """
         if self.model is not None:
-            self.optimizer = Optimizer(params=self.model.parameters(),
-                                       **convert_string_to_number(self.config.optimizer.get())).get()
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIMIZER_LOADED)
+            if self.config.check("module", "optimizer") \
+                    and self.config.check("name", "optimizer") \
+                    and self.config.check("kwargs", "optimizer"):
+                optimizer = get_module(module=self.config.optimizer.module,
+                                       name=self.config.optimizer.name)
+                kwargs = check_kwargs(self.config.optimizer)
+                self.optimizer = optimizer(self.model.parameters(), **kwargs)
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIMIZER_LOADED)
+            else:
+                Notification(DEEP_NOTIF_ERROR, DEEP_MSG_OPTIMIZER_NOT_LOADED % "")
         else:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_OPTIMIZER_NOT_LOADED % DEEP_MSG_MODEL_NOT_LOADED)
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_OPTIMIZER_NOT_LOADED % DEEP_MSG_MODEL_LOADED)
 
     def load_losses(self):
         """
@@ -285,6 +277,7 @@ class FrontalLobe(object):
         --------
 
         :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -301,14 +294,13 @@ class FrontalLobe(object):
 
         :return model->torch.nn.Module:  The model
         """
-        if self.config.check("name", "model"):
+        if self.config.check("name", "model") \
+                and self.config.check("module", "model")\
+                and self.config.check("kwargs", "model"):
             model = get_module(module="%s.%s" % (DEEP_PATH_MODELS, self.config.model.module),
                                name=self.config.model.name)
-            try:
-                model = model(self.config.model.kwargs)
-            except AttributeError:
-                model = model()
-            self.model = model
+            kwargs = check_kwargs(self.config.model)
+            self.model = model(**kwargs)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED)
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_MODEL_NOT_LOADED)
@@ -624,3 +616,54 @@ class FrontalLobe(object):
             return True
         else:
             return False
+
+    @staticmethod
+    def __format_optimizer_name(name: str):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Format the name of the optimizer
+
+        PARAMETERS:
+        -----------
+
+        :param name->str: The name of the optimizer
+
+        RETURN:
+        -------
+
+        :return name->str: The formatted name of the optimizer
+        """
+
+        # Filter illegal optimizers
+        if name.lower() in DEEP_FILTER_OPTIMIZERS:
+            Notification(DEEP_NOTIF_FATAL, "The following optimizer is not allowed : %s" % name)
+        # Format already known
+        if name.lower() == "sgd":
+            name = "SGD"
+        elif name.lower == "adam":
+            name = "Adam"
+        elif name.lower() == "adamax":
+            name = "Adamax"
+        # Averaged Stochastic Gradient Descent
+        elif name.lower == "asgd":
+            name = "ASGD"
+        elif name.lower() == "lbfgs":
+            name = "LBFGS"
+        elif name.lower() == "sparseadam":
+            name = "SparseAdam"
+        elif name.lower() == "rmsprop":
+            name = "RMSprop"
+        elif name.lower() == "rprop":
+            name = "Rprop"
+        elif name.lower() == "adagrad":
+            name = "Adagrad"
+        elif name.lower == "adadelta":
+            name = "Adadelta"
+        return name
