@@ -15,10 +15,11 @@ from deeplodocus.core.inference.trainer import Trainer
 from deeplodocus.core.metrics.loss import Loss
 from deeplodocus.core.metrics.metric import Metric
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
+from deeplodocus.core.model.model import Model
+from deeplodocus.core.optimizer.optimizer import Optimizer
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
 from deeplodocus.utils.dict_utils import check_kwargs
-from deeplodocus.utils.flags.filter import *
 from deeplodocus.utils.flags.lib import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
@@ -166,6 +167,32 @@ class FrontalLobe(object):
         self.load_tester()
         self.summary()
 
+    def load_model(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Load the model into the Frontal Lobe
+
+        PARAMETERS:
+        -----------
+
+        :param config_model -> Namespace: The config of the model
+
+        RETURN:
+        -------
+
+        :return model->torch.nn.Module:  The model
+        """
+        self.model = Model(self.config.model).get()
+        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED)
+
     def load_optimizer(self):
         """
         Author: Samuel Westlake
@@ -173,19 +200,28 @@ class FrontalLobe(object):
         :return: None
         """
         if self.model is not None:
-            if self.config.check("module", "optimizer") \
-                    and self.config.check("name", "optimizer") \
-                    and self.config.check("kwargs", "optimizer"):
-                optimizer = get_module(module=self.config.optimizer.module,
-                                       name=self.config.optimizer.name)
-                # Check kwargs makes kwargs = {} if kwargs is None
-                kwargs = check_kwargs(self.config.optimizer)
-                self.optimizer = optimizer(self.model.parameters(), **kwargs)
-                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIMIZER_LOADED)
-            else:
-                Notification(DEEP_NOTIF_ERROR, DEEP_MSG_OPTIMIZER_NOT_LOADED % "")
+            self.optimizer = Optimizer(self.model.parameters(), self.config.optimizer).get()
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIMIZER_LOADED)
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_OPTIMIZER_NOT_LOADED % DEEP_MSG_MODEL_LOADED)
+
+    def load_losses_dev(self):
+        losses = {}
+        for key, value in self.config.losses.get().items():
+            loss = get_module(module=self.config.losses.get([key, "module"]),
+                              name=self.config.losses.get([key, "name"]))
+            kwargs = check_kwargs(self.config.losses.get(key))
+            method = loss(**kwargs)
+
+            # Create the loss
+            if isinstance(method, torch.nn.Module):
+                losses[key] = Loss(name=str(key),
+                                   is_custom=is_custom,
+                                   weight=float(value.weight),
+                                   loss=method)
+            else:
+                Notification(DEEP_NOTIF_FATAL, "The loss function %s is not a torch.nn.Module instance" % key)
+            self.losses = losses
 
     def load_losses(self):
         """
@@ -309,41 +345,6 @@ class FrontalLobe(object):
                 method = metric()
             metric_functions[str(key)] = Metric(name=str(key), method=method)
         self.metrics = metric_functions
-
-    def load_model(self):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-
-        Load the model into the Frontal Lobe
-
-        PARAMETERS:
-        -----------
-
-        :param config_model -> Namespace: The config of the model
-
-        RETURN:
-        -------
-
-        :return model->torch.nn.Module:  The model
-        """
-        if self.config.check("name", "model") \
-                and self.config.check("module", "model")\
-                and self.config.check("kwargs", "model"):
-            model = get_module(module="%s.%s" % (DEEP_PATH_MODELS, self.config.model.module),
-                               name=self.config.model.name)
-            # Make kwargs = {} if kwargs is None
-            kwargs = check_kwargs(self.config.model)
-            self.model = model(**kwargs)
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED)
-        else:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_MODEL_NOT_LOADED)
 
     def load_trainer(self):
         """
@@ -661,54 +662,3 @@ class FrontalLobe(object):
             return True
         else:
             return False
-
-    @staticmethod
-    def __format_optimizer_name(name: str):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Format the name of the optimizer
-
-        PARAMETERS:
-        -----------
-
-        :param name->str: The name of the optimizer
-
-        RETURN:
-        -------
-
-        :return name->str: The formatted name of the optimizer
-        """
-
-        # Filter illegal optimizers
-        if name.lower() in DEEP_FILTER_OPTIMIZERS:
-            Notification(DEEP_NOTIF_FATAL, "The following optimizer is not allowed : %s" % name)
-        # Format already known
-        if name.lower() == "sgd":
-            name = "SGD"
-        elif name.lower == "adam":
-            name = "Adam"
-        elif name.lower() == "adamax":
-            name = "Adamax"
-        # Averaged Stochastic Gradient Descent
-        elif name.lower == "asgd":
-            name = "ASGD"
-        elif name.lower() == "lbfgs":
-            name = "LBFGS"
-        elif name.lower() == "sparseadam":
-            name = "SparseAdam"
-        elif name.lower() == "rmsprop":
-            name = "RMSprop"
-        elif name.lower() == "rprop":
-            name = "Rprop"
-        elif name.lower() == "adagrad":
-            name = "Adagrad"
-        elif name.lower == "adadelta":
-            name = "Adadelta"
-        return name
