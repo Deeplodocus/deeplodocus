@@ -26,6 +26,7 @@ from deeplodocus.core.optimizer.optimizer import Optimizer
 from deeplodocus.utils.dict_utils import convert_string_to_number
 from deeplodocus.utils.module import get_module
 from deeplodocus.utils.main_utils import get_main_path
+from deeplodocus.utils.generic_utils import get_int_or_float
 
 
 class FrontalLobe(object):
@@ -244,6 +245,14 @@ class FrontalLobe(object):
             else:
                 method = loss()
 
+            # Check the weight
+            if self.config.losses.check("weight", key):
+                if get_int_or_float(value.weight) not in (DEEP_TYPE_INTEGER, DEEP_TYPE_FLOAT):
+                    Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have a correct weight argument" % key)
+            else:
+                Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have any weight argument" % key)
+
+            # Create the loss
             if isinstance(method, torch.nn.Module):
                 loss_functions[str(key)] = Loss(name=str(key),
                                                 is_custom=is_custom,
@@ -495,7 +504,6 @@ class FrontalLobe(object):
 
         :author:  https://github.com/sksq96/pytorch-summary
         :author: Alix Leroy
-
 
         DESCRIPTION:
         ------------
