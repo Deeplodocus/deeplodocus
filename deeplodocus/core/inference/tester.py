@@ -20,6 +20,7 @@ from deeplodocus.utils import dict_utils
 from deeplodocus.utils.flags import *
 from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 
+
 class Tester(GenericEvaluator):
     """
     AUTHORS:

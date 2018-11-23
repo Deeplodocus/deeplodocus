@@ -1,4 +1,4 @@
-from deeplodocus.utils.main_utils import get_main_path
+from deeplodocus.utils import get_main_path
 
 DEEP_PATH_NOTIFICATION = r"%s/logs" % get_main_path()
 DEEP_PATH_HISTORY = r"%s/results/history" % get_main_path()
