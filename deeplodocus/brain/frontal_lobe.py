@@ -3,6 +3,7 @@
 from torch import *
 import torch
 import torch.nn as nn
+import torch.nn.functional
 
 from collections import OrderedDict
 
@@ -213,22 +214,36 @@ class FrontalLobe(object):
         """
         loss_functions = {}
         for key, value in self.config.losses.get().items():
-            # Get the loss method
-            local = {"method": None}
-            try:
-                exec("from {0} import {1} \nmethod= {2}".format(value.path, value.method, value.method), {}, local)
-            except ImportError:
-                Notification(DEEP_NOTIF_ERROR,
-                             DEEP_MSG_LOSS_NOT_FOUND % (value.method))
-            if self.config.losses.check("kwargs", key):
-                method = local["method"](**value.kwargs)
+
+            is_custom = True
+            # Get loss from torch.nn
+            loss = get_module(path=torch.nn.__path__,
+                                prefix=torch.nn.__name__,
+                                name=value.method)
+
+            # Get from torch.nn.functional
+            if loss is None:
+                loss = get_module(path=torch.nn.functional.__path__,
+                                    prefix=torch.nn.functional.__name__,
+                                    name=value.method)
+
+            # Get from custom ones
+            if loss is None:
+                loss = get_module(path=[get_main_path() + "/modules/losses"],
+                                    prefix="modules.losses",
+                                    name=value.method)
             else:
-                method = local["method"]()
-            # Check if the loss is custom
-            if value.path == "torch.nn":
                 is_custom = False
+
+            # If neither a standard not a custom loss is loaded
+            if loss is None:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_LOSS_NOT_FOUND % str(value.method))
+
+            if self.config.losses.check("kwargs", key):
+                method = loss(**value.kwargs)
             else:
-                is_custom = True
+                method = loss()
+
             if isinstance(method, torch.nn.Module):
                 loss_functions[str(key)] = Loss(name=str(key),
                                                 is_custom=is_custom,
@@ -258,20 +273,35 @@ class FrontalLobe(object):
         RETURN:
         -------
 
-        :return loss_functions->dict: The losses
+        :return loss_functions->dict: The metrics
         """
         metric_functions = {}
         for key, value in self.config.metrics.get().items():
-            # Get the metric method
-            local = {"method": None}
-            try:
-                exec("from {0} import {1} \nmethod= {2}".format(value.path, value.method, value.method), {}, local)
-            except ImportError:
-                Notification(DEEP_NOTIF_ERROR, DEEP_MSG_METRIC_NOT_FOUND % value.method)
+
+            # Get metric from torch.nn
+            metric = get_module(path=torch.nn.__path__,
+                                   prefix=torch.nn.__name__,
+                                   name=value.method)
+
+            # Get from torch.nn.functional
+            if metric is None:
+                metric = get_module(path=torch.nn.functional.__path__,
+                                   prefix=torch.nn.functional.__name__,
+                                   name=value.method)
+            # Get from custom ones
+            if metric is None:
+                metric = get_module(path=[get_main_path() + "/modules/metrics"],
+                                   prefix="modules.metrics",
+                                   name=value.method)
+
+            # If neither a standard not a custom metric is loaded
+            if metric is None:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_METRIC_NOT_FOUND % str(value.method))
+
             if self.config.metrics.check("kwargs", key):
-                method = local["method"](value.kwargs)
+                method = metric(value.kwargs)
             else:
-                method = local["method"]()
+                method = metric()
             metric_functions[str(key)] = Metric(name=str(key), method=method)
         self.metrics = metric_functions
 

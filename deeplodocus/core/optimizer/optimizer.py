@@ -153,7 +153,6 @@ class Optimizer(object):
         # If neither a standard not a custom transform is loaded
         if optimizer is None:
             Notification(DEEP_NOTIF_FATAL, "The following optimizer could not be loaded neither from the standard nor from the custom ones : " + str(name))
-        print(kwargs)
         return optimizer(params, **kwargs)
 
     def get(self):
