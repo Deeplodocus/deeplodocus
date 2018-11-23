@@ -1,20 +1,25 @@
 import operator
 from collections import defaultdict
 
+from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.flags import *
 
 
-def check_kwargs(namespace):
+def check_kwargs(kwargs):
     """
     Author: Samuel Westlake
-    :param namespace: Namespace object
+    :param kwargs: dict: a dictionary of keyword arguments
     :return: prepare namespace.kwargs for use
     """
-    if namespace.kwargs is None:
+    if kwargs is None:
         return {}
+    elif isinstance(kwargs, Namespace):
+        return convert_string_to_number(kwargs.get())
+    elif isinstance(kwargs, dict):
+        return convert_string_to_number(kwargs)
     else:
-        return convert_string_to_number(namespace.kwargs.get())
+        print("Ths should not be printed : Unknown case : Go to check_kwargs and fix")
 
 
 def append(item1, item2):
