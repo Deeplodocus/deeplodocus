@@ -4,7 +4,6 @@ import pkgutil
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
-from deeplodocus.utils.main_utils import *
 from deeplodocus.utils.module import get_module
 
 

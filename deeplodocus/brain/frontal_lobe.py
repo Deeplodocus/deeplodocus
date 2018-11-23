@@ -6,12 +6,8 @@ import torch.nn as nn
 import torch.nn.functional
 
 from collections import OrderedDict
-
-import copy
-import shutil
 import numpy as np
 
-import matplotlib.pyplot as plt
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
