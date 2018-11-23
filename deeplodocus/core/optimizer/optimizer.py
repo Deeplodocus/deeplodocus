@@ -129,10 +129,12 @@ class Optimizer(object):
         :return optimizer: The optimizer
         """
         optimizer = get_module(module=torch.optim.__name__,
-                               name=name)
+                               name=name,
+                               silence=True)
         if optimizer is None:
             optimizer = get_module(module=DEEP_PATH_OPTIMIZERS,
-                                   name=name)
+                                   name=name,
+                                   silence=True)
         if optimizer is None:
             Notification(DEEP_NOTIF_FATAL, "The following optimizer could not be loaded neither from the standard nor from the custom ones : " + str(name))
         return optimizer(params, **kwargs)

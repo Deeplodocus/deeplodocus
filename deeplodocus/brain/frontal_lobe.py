@@ -24,7 +24,7 @@ from deeplodocus.data.transform_manager import TransformManager
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.core.optimizer.optimizer import Optimizer
 from deeplodocus.utils.dict_utils import convert_string_to_number
-from deeplodocus.utils.module import get_module
+from deeplodocus.utils.module import get_module, get_module_browse
 from deeplodocus.utils.main_utils import get_main_path
 from deeplodocus.utils.generic_utils import get_int_or_float
 
@@ -222,19 +222,19 @@ class FrontalLobe(object):
 
             is_custom = True
             # Get loss from torch.nn
-            loss = get_module(path=torch.nn.__path__,
+            loss = get_module_browse(path=torch.nn.__path__,
                                 prefix=torch.nn.__name__,
                                 name=value.method)
 
             # Get from torch.nn.functional
             if loss is None:
-                loss = get_module(path=torch.nn.functional.__path__,
+                loss = get_module_browse(path=torch.nn.functional.__path__,
                                     prefix=torch.nn.functional.__name__,
                                     name=value.method)
 
             # Get from custom ones
             if loss is None:
-                loss = get_module(path=[get_main_path() + "/modules/losses"],
+                loss = get_module_browse(path=[get_main_path() + "/modules/losses"],
                                     prefix="modules.losses",
                                     name=value.method)
             else:
@@ -292,18 +292,18 @@ class FrontalLobe(object):
         for key, value in self.config.metrics.get().items():
 
             # Get metric from torch.nn
-            metric = get_module(path=torch.nn.__path__,
+            metric = get_module_browse(path=torch.nn.__path__,
                                    prefix=torch.nn.__name__,
                                    name=value.method)
 
             # Get from torch.nn.functional
             if metric is None:
-                metric = get_module(path=torch.nn.functional.__path__,
+                metric = get_module_browse(path=torch.nn.functional.__path__,
                                    prefix=torch.nn.functional.__name__,
                                    name=value.method)
             # Get from custom ones
             if metric is None:
-                metric = get_module(path=[get_main_path() + "/modules/metrics"],
+                metric = get_module_browse(path=[get_main_path() + "/modules/metrics"],
                                    prefix="modules.metrics",
                                    name=value.method)
 
