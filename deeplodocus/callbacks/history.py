@@ -4,6 +4,7 @@ import datetime
 from typing import Union
 from queue import Queue
 import copy
+import os
 
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.notification import Notification
