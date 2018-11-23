@@ -9,7 +9,7 @@ import __main__
 from deeplodocus.utils.flags.ext import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.msg import *
-from deeplodocus.utils.flags.type import *
+from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.notification import Notification
 
 
