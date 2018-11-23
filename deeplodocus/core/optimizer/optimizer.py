@@ -52,7 +52,8 @@ class Optimizer(object):
         else:
             Notification(DEEP_NOTIF_FATAL, "The following name is not a string : " + str(name))
 
-    def __format_name(self, name:str):
+    @staticmethod
+    def __format_name(name: str):
         """
         AUTHORS:
         --------
@@ -77,8 +78,7 @@ class Optimizer(object):
 
         # Filter illegal optimizers
         if name.lower() in DEEP_FILTER_OPTIMIZERS:
-            Notification(DEEP_NOTIF_FATAL, "The following optimizer is not allowed : " + str(name))
-
+            Notification(DEEP_NOTIF_FATAL, "The following optimizer is not allowed : %s" % name)
         # Format already known
         if name.lower() == "sgd":
             name = "SGD"
@@ -91,7 +91,7 @@ class Optimizer(object):
             name = "ASGD"
         elif name.lower() == "lbfgs":
             name = "LBFGS"
-        elif name.lower() =="sparseadam":
+        elif name.lower() == "sparseadam":
             name = "SparseAdam"
         elif name.lower() == "rmsprop":
             name = "RMSprop"
@@ -100,14 +100,11 @@ class Optimizer(object):
         elif name.lower() == "adagrad":
             name = "Adagrad"
         elif name.lower == "adadelta":
-            name ="Adadelta"
-        else:
-            # Keep the given entry
-            pass
+            name = "Adadelta"
         return name
 
-
-    def __select_optimizer(self, name:str, params, **kwargs):
+    @staticmethod
+    def __select_optimizer(name: str, params, **kwargs):
         """
         AUTHORS:
         --------
@@ -131,29 +128,13 @@ class Optimizer(object):
 
         :return optimizer: The optimizer
         """
-        #Method 1
-        #local = {"optimizer" : None}
-        #exec("import torch \noptimizer = torch.optim.{0}".format(name), {}, local)
-        #optimizer = local["optimizer"](params, **kwargs)
-
-        #Method2
-        #optimizer = getattr(torch.optim, name)
-
-        # Method3 (accepts custom optimizers)
-        optimizer = get_module(path = torch.optim.__path__,
-                               prefix = torch.optim.__name__,
+        optimizer = get_module(module=torch.optim.__name__,
                                name=name)
-
-        # Get the optimizer among the custom ones
         if optimizer is None:
-            optimizer = get_module(path=[get_main_path() + "/modules/optimizers"],
-                                   prefix="modules.optimizers",
+            optimizer = get_module(module=DEEP_PATH_OPTIMIZERS,
                                    name=name)
-
-        # If neither a standard not a custom transform is loaded
         if optimizer is None:
             Notification(DEEP_NOTIF_FATAL, "The following optimizer could not be loaded neither from the standard nor from the custom ones : " + str(name))
-        print(kwargs)
         return optimizer(params, **kwargs)
 
     def get(self):

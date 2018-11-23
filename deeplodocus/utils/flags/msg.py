@@ -9,17 +9,23 @@ DEEP_MSG_FILE_NOT_FOUND = "File not found : %s"
 DEEP_MSG_DIR_NOT_FOUND = "Directory not found : %s"
 DEEP_MSG_ILLEGAL_COMMAND = "Illegal command : %s"
 DEEP_MSG_CONFIG_NOT_FOUND = "Configuration not found : %s"
-DEEP_MSG_MODEL_NOT_FOUND = "Model %s not found in %s."
+DEEP_MSG_MODEL_NOT_LOADED = "Model not loaded"
+DEEP_MSG_MODULE_NOT_FOUND = "Module %s not found in %s"
 DEEP_MSG_LOSS_NOT_FOUND = "Loss not found : %s"
 DEEP_MSG_METRIC_NOT_FOUND = "Metric not found : %s"
 DEEP_MSG_NO_TESTER = "Cannot evaluate : Tester not loaded"
 DEEP_MSG_NO_TRAINER = "Cannot evaluate : Trainer not loaded"
 DEEP_MSG_INVALID_DEVICE = "%s is not a valid input device : Please specify 'cuda' or 'cpu'"
+DEEP_MSG_OPTIMIZER_NOT_LOADED = "Could not load optimizer : %s"
 
 # Deep Success
 DEEP_MSG_LOAD_CONFIG_FILE = "File loaded : %s"
 DEEP_MSG_LOAD_CONFIG_SUCCESS = "All necessary configurations have been imported"
 DEEP_MSG_PROJECT_GENERATED = "Project successfully generated ! Have fun <3"
+
+DEEP_MSG_MODULE_LOADED = "Module loaded : %s from %s"
+DEEP_MSG_MODEL_LOADED = "Model loaded"
+DEEP_MSG_OPTIMIZER_LOADED = "Optimizer loaded"
 
 # Deep Warning
 DEEP_MSG_ALREADY_AWAKE = ": I am already awake !"
