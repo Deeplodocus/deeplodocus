@@ -3,6 +3,7 @@ This script contains useful generic functions
 """
 import re
 import os
+import pkgutil
 import __main__
 
 from deeplodocus.utils.flags.ext import *
@@ -95,13 +96,6 @@ def is_np_array(data):
         return False
 
 
-def get_main_path():
-    """
-    :return:
-    """
-    return os.path.dirname(os.path.abspath(__main__.__file__))
-
-
 def get_module(module, name, silence=False):
     """
     Author: Samuel Westlake
@@ -119,3 +113,44 @@ def get_module(module, name, silence=False):
             Notification(DEEP_NOTIF_ERROR, e)
     return local["module"]
 
+
+def get_module_browse(path, prefix, name):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Load the desired module
+    Works with any python module, deeplodocus module or custom module
+
+    NOTE: Consider the name of the callable to be unique to avoid conflict
+
+    PARAMETERS:
+    -----------
+
+    :param path(path): The path to the module
+    :param prefix: The prefix to output in front of the module name
+    :param name: The name of the callable
+
+    RETURN:
+    -------
+
+    :return: The module if loaded, None else
+    """
+    local = {"module": None}
+
+    # Get the optimizer among the default ones
+    for importer, modname, ispkg in pkgutil.walk_packages(path=path,
+                                                          prefix=prefix + '.',
+                                                          onerror=lambda x: None):
+        try:
+            exec("from {0} import {1} \nmodule= {2}".format(modname, name, name), {}, local)
+            break
+        except:
+            pass
+
+    return local["module"]

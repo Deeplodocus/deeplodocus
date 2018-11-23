@@ -10,7 +10,7 @@ import deeplodocus.data.transforms as tfm
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
-from deeplodocus.utils.generic_utils import get_main_path
+from deeplodocus.utils import get_main_path
 
 
 class Transformer(object):

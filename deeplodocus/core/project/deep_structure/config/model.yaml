@@ -1,3 +1,4 @@
+module: "classification"
 name: "Net"
 module:
 kwargs:

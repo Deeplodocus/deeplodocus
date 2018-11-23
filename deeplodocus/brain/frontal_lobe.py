@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 
+# Back-end imports
 from torch import *
 import torch
 import torch.nn as nn
+import torch.nn.functional
 
+# Python imports
 from collections import OrderedDict
-
-import copy
-import shutil
 import numpy as np
-
-import matplotlib.pyplot as plt
 
 from deeplodocus.core.inference.tester import Tester
 from deeplodocus.core.inference.trainer import Trainer
@@ -19,12 +17,15 @@ from deeplodocus.core.metrics.metric import Metric
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
-from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.dict_utils import check_kwargs
 from deeplodocus.utils.flags.filter import *
+from deeplodocus.utils.flags.lib import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
+from deeplodocus.utils.flags.type import *
+from deeplodocus.utils.generic_utils import get_module, get_module_browse
+from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
 
 
@@ -177,6 +178,7 @@ class FrontalLobe(object):
                     and self.config.check("kwargs", "optimizer"):
                 optimizer = get_module(module=self.config.optimizer.module,
                                        name=self.config.optimizer.name)
+                # Check kwargs makes kwargs = {} if kwargs is None
                 kwargs = check_kwargs(self.config.optimizer)
                 self.optimizer = optimizer(self.model.parameters(), **kwargs)
                 Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIMIZER_LOADED)
@@ -209,22 +211,44 @@ class FrontalLobe(object):
         """
         loss_functions = {}
         for key, value in self.config.losses.get().items():
-            # Get the loss method
-            local = {"method": None}
-            try:
-                exec("from {0} import {1} \nmethod= {2}".format(value.path, value.method, value.method), {}, local)
-            except ImportError:
-                Notification(DEEP_NOTIF_ERROR,
-                             DEEP_MSG_LOSS_NOT_FOUND % (value.method))
-            if self.config.losses.check("kwargs", key):
-                method = local["method"](**value.kwargs)
+
+            is_custom = True
+            # Get loss from torch.nn
+            loss = get_module_browse(path=torch.nn.__path__,
+                                prefix=torch.nn.__name__,
+                                name=value.method)
+
+            # Get from torch.nn.functional
+            if loss is None:
+                loss = get_module_browse(path=torch.nn.functional.__path__,
+                                    prefix=torch.nn.functional.__name__,
+                                    name=value.method)
+
+            # Get from custom ones
+            if loss is None:
+                loss = get_module_browse(path=[get_main_path() + "/modules/losses"],
+                                    prefix="modules.losses",
+                                    name=value.method)
             else:
-                method = local["method"]()
-            # Check if the loss is custom
-            if value.path == "torch.nn":
                 is_custom = False
+
+            # If neither a standard not a custom loss is loaded
+            if loss is None:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_LOSS_NOT_FOUND % str(value.method))
+
+            if self.config.losses.check("kwargs", key):
+                method = loss(**value.kwargs)
             else:
-                is_custom = True
+                method = loss()
+
+            # Check the weight
+            if self.config.losses.check("weight", key):
+                if get_int_or_float(value.weight) not in (DEEP_TYPE_INTEGER, DEEP_TYPE_FLOAT):
+                    Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have a correct weight argument" % key)
+            else:
+                Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have any weight argument" % key)
+
+            # Create the loss
             if isinstance(method, torch.nn.Module):
                 loss_functions[str(key)] = Loss(name=str(key),
                                                 is_custom=is_custom,
@@ -254,20 +278,35 @@ class FrontalLobe(object):
         RETURN:
         -------
 
-        :return loss_functions->dict: The losses
+        :return loss_functions->dict: The metrics
         """
         metric_functions = {}
         for key, value in self.config.metrics.get().items():
-            # Get the metric method
-            local = {"method": None}
-            try:
-                exec("from {0} import {1} \nmethod= {2}".format(value.path, value.method, value.method), {}, local)
-            except ImportError:
-                Notification(DEEP_NOTIF_ERROR, DEEP_MSG_METRIC_NOT_FOUND % value.method)
+
+            # Get metric from torch.nn
+            metric = get_module_browse(path=torch.nn.__path__,
+                                   prefix=torch.nn.__name__,
+                                   name=value.method)
+
+            # Get from torch.nn.functional
+            if metric is None:
+                metric = get_module_browse(path=torch.nn.functional.__path__,
+                                   prefix=torch.nn.functional.__name__,
+                                   name=value.method)
+            # Get from custom ones
+            if metric is None:
+                metric = get_module_browse(path=[get_main_path() + "/modules/metrics"],
+                                   prefix="modules.metrics",
+                                   name=value.method)
+
+            # If neither a standard not a custom metric is loaded
+            if metric is None:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_METRIC_NOT_FOUND % str(value.method))
+
             if self.config.metrics.check("kwargs", key):
-                method = local["method"](value.kwargs)
+                method = metric(value.kwargs)
             else:
-                method = local["method"]()
+                method = metric()
             metric_functions[str(key)] = Metric(name=str(key), method=method)
         self.metrics = metric_functions
 
@@ -299,6 +338,7 @@ class FrontalLobe(object):
                 and self.config.check("kwargs", "model"):
             model = get_module(module="%s.%s" % (DEEP_PATH_MODELS, self.config.model.module),
                                name=self.config.model.name)
+            # Make kwargs = {} if kwargs is None
             kwargs = check_kwargs(self.config.model)
             self.model = model(**kwargs)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED)
@@ -436,14 +476,14 @@ class FrontalLobe(object):
                           losses=self.losses,
                           optimizer=self.optimizer,
                           num_epochs=self.config.training.num_epochs,
-                          initial_epoch = self.config.training.initial_epoch,
-                          shuffle = self.config.training.shuffle,
-                          model_name = self.config.project.name,
-                          verbose = history.verbose,
-                          tester = self.tester,
-                          num_workers = dataloader.num_workers,
+                          initial_epoch=self.config.training.initial_epoch,
+                          shuffle=self.config.training.shuffle,
+                          model_name=self.config.project.name,
+                          verbose=history.verbose,
+                          tester=self.tester,
+                          num_workers=dataloader.num_workers,
                           batch_size=dataloader.batch_size,
-                          overwatch_metric= overwatch_metric,
+                          overwatch_metric=overwatch_metric,
                           save_condition=self.config.training.save_condition,
                           memorize=history.memorize,
                           stopping_parameters=None,
@@ -458,7 +498,6 @@ class FrontalLobe(object):
 
         :author:  https://github.com/sksq96/pytorch-summary
         :author: Alix Leroy
-
 
         DESCRIPTION:
         ------------
@@ -519,7 +558,7 @@ class FrontalLobe(object):
             dtype = torch.FloatTensor
 
         # Multiple inputs to the network
-        if self.__model_has_multiple_inputs() is False:
+        if self.__model_has_multiple_inputs(self.config.data.dataset.train.inputs) is False:
             input_size = [input_size]
 
         # Batch_size of 2 for batchnorm
@@ -576,21 +615,27 @@ class FrontalLobe(object):
 
         # List of metrics
         Notification(DEEP_NOTIF_INFO, "LIST OF METRICS :")
+        Notification(DEEP_NOTIF_INFO, '================================================================')
         for metric_name, metric in metrics.items():
-            Notification(DEEP_NOTIF_INFO, "%s :" % metric_name)
+            Notification(DEEP_NOTIF_INFO, "%s : " % metric_name)
 
         # List of loss functions
+        Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
         Notification(DEEP_NOTIF_INFO, "LIST OF LOSS FUNCTIONS :")
+        Notification(DEEP_NOTIF_INFO, '================================================================')
         for loss_name, loss in losses.items():
             Notification(DEEP_NOTIF_INFO, "%s :" % loss_name)
 
         # Optimizer
+        Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
         Notification(DEEP_NOTIF_INFO, "OPTIMIZER :" + str(self.config.optimizer.name))
+        Notification(DEEP_NOTIF_INFO, '================================================================')
         for key, value in self.config.optimizer.get().items():
             if key != "name":
                 Notification(DEEP_NOTIF_INFO, "%s : %s" %(key, value))
 
-    def __model_has_multiple_inputs(self):
+    @staticmethod
+    def __model_has_multiple_inputs(list_inputs):
         """
         AUTHORS:
         --------
@@ -605,14 +650,14 @@ class FrontalLobe(object):
         PARAMETERS:
         -----------
 
-        None
+        :param list_inputs(list): The list of inputs in the network
 
         RETURN:
         -------
 
         :return->bool: Whether the model has multiple inputs or not
         """
-        if len(self.config.data.dataset.train.inputs) >= 2:
+        if len(list_inputs) >= 2:
             return True
         else:
             return False
