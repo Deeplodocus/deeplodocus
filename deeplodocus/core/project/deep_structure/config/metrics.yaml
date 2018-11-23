@@ -1,14 +1,10 @@
 CrossEntropyLoss1:
-  path : torch.nn
   method : CrossEntropyLoss
-  weight : 0.6
   #kwargs:
     #class_weights: [0, 1]
 
 
 CrossEntropyLoss2:
-  path: torch.nn
   method : CrossEntropyLoss
-  weight : 0.5
   #kwargs:
     #class_weights: [0, 1]

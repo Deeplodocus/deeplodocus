@@ -3,6 +3,7 @@
 from torch import *
 import torch
 import torch.nn as nn
+import torch.nn.functional
 
 from collections import OrderedDict
 
@@ -25,6 +26,7 @@ from deeplodocus.core.optimizer.optimizer import Optimizer
 from deeplodocus.utils.dict_utils import convert_string_to_number
 from deeplodocus.utils.module import get_module
 from deeplodocus.utils.main_utils import get_main_path
+from deeplodocus.utils.generic_utils import get_int_or_float
 
 
 class FrontalLobe(object):
@@ -217,22 +219,44 @@ class FrontalLobe(object):
         """
         loss_functions = {}
         for key, value in self.config.losses.get().items():
-            # Get the loss method
-            local = {"method": None}
-            try:
-                exec("from {0} import {1} \nmethod= {2}".format(value.path, value.method, value.method), {}, local)
-            except ImportError:
-                Notification(DEEP_NOTIF_ERROR,
-                             DEEP_MSG_LOSS_NOT_FOUND % (value.method))
-            if self.config.losses.check("kwargs", key):
-                method = local["method"](**value.kwargs)
+
+            is_custom = True
+            # Get loss from torch.nn
+            loss = get_module(path=torch.nn.__path__,
+                                prefix=torch.nn.__name__,
+                                name=value.method)
+
+            # Get from torch.nn.functional
+            if loss is None:
+                loss = get_module(path=torch.nn.functional.__path__,
+                                    prefix=torch.nn.functional.__name__,
+                                    name=value.method)
+
+            # Get from custom ones
+            if loss is None:
+                loss = get_module(path=[get_main_path() + "/modules/losses"],
+                                    prefix="modules.losses",
+                                    name=value.method)
             else:
-                method = local["method"]()
-            # Check if the loss is custom
-            if value.path == "torch.nn":
                 is_custom = False
+
+            # If neither a standard not a custom loss is loaded
+            if loss is None:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_LOSS_NOT_FOUND % str(value.method))
+
+            if self.config.losses.check("kwargs", key):
+                method = loss(**value.kwargs)
             else:
-                is_custom = True
+                method = loss()
+
+            # Check the weight
+            if self.config.losses.check("weight", key):
+                if get_int_or_float(value.weight) not in (DEEP_TYPE_INTEGER, DEEP_TYPE_FLOAT):
+                    Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have a correct weight argument" % key)
+            else:
+                Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have any weight argument" % key)
+
+            # Create the loss
             if isinstance(method, torch.nn.Module):
                 loss_functions[str(key)] = Loss(name=str(key),
                                                 is_custom=is_custom,
@@ -262,20 +286,35 @@ class FrontalLobe(object):
         RETURN:
         -------
 
-        :return loss_functions->dict: The losses
+        :return loss_functions->dict: The metrics
         """
         metric_functions = {}
         for key, value in self.config.metrics.get().items():
-            # Get the metric method
-            local = {"method": None}
-            try:
-                exec("from {0} import {1} \nmethod= {2}".format(value.path, value.method, value.method), {}, local)
-            except ImportError:
-                Notification(DEEP_NOTIF_ERROR, DEEP_MSG_METRIC_NOT_FOUND % value.method)
+
+            # Get metric from torch.nn
+            metric = get_module(path=torch.nn.__path__,
+                                   prefix=torch.nn.__name__,
+                                   name=value.method)
+
+            # Get from torch.nn.functional
+            if metric is None:
+                metric = get_module(path=torch.nn.functional.__path__,
+                                   prefix=torch.nn.functional.__name__,
+                                   name=value.method)
+            # Get from custom ones
+            if metric is None:
+                metric = get_module(path=[get_main_path() + "/modules/metrics"],
+                                   prefix="modules.metrics",
+                                   name=value.method)
+
+            # If neither a standard not a custom metric is loaded
+            if metric is None:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_METRIC_NOT_FOUND % str(value.method))
+
             if self.config.metrics.check("kwargs", key):
-                method = local["method"](value.kwargs)
+                method = metric(value.kwargs)
             else:
-                method = local["method"]()
+                method = metric()
             metric_functions[str(key)] = Metric(name=str(key), method=method)
         self.metrics = metric_functions
 
@@ -466,7 +505,6 @@ class FrontalLobe(object):
 
         :author:  https://github.com/sksq96/pytorch-summary
         :author: Alix Leroy
-
 
         DESCRIPTION:
         ------------
