@@ -51,7 +51,7 @@ class FrontalLobe(object):
         - Display the summaries
 
     """
-    def __init__(self, config):
+    def __init__(self):
         """
         AUTHORS:
         --------
@@ -73,7 +73,7 @@ class FrontalLobe(object):
 
         :return: None
         """
-        self.config = config
+        self.config = None
         self.model = None
         self.trainer = None
         self.validator = None
@@ -82,16 +82,13 @@ class FrontalLobe(object):
         self.losses = None
         self.optimizer = None
 
-    #
-    # INFERENCE METHODS
-    #
-
     def train(self):
         """
         AUTHORS:
         --------
 
         :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -109,10 +106,7 @@ class FrontalLobe(object):
         :return: None
         """
 
-        if self.trainer is not None:
-            self.trainer.fit()
-        else:
-            Notification(DEEP_NOTIF_ERROR, "The trainer is not loaded, please make sure all the config files are correct")
+        self.trainer.fit if self. trainer is not None else Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TRAINER)
 
     def evaluate(self):
         """
@@ -120,6 +114,7 @@ class FrontalLobe(object):
         --------
 
         :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -136,9 +131,7 @@ class FrontalLobe(object):
 
         :return: None
         """
-
-        if self.tester is not None:
-            self.tester.fit()
+        self.tester.fit() if self.tester is not None else Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TESTER)
 
     def load(self):
         """
@@ -162,7 +155,6 @@ class FrontalLobe(object):
 
         :return: None
         """
-
         self.load_model()        # Always load model first
         self.load_optimizer()    # Always load the optimizer after the model
         self.load_losses()
@@ -225,7 +217,7 @@ class FrontalLobe(object):
             local = {"method": None}
             try:
                 exec("from {0} import {1} \nmethod= {2}".format(value.path, value.method, value.method), {}, local)
-            except:
+            except ImportError:
                 Notification(DEEP_NOTIF_ERROR,
                              DEEP_MSG_LOSS_NOT_FOUND % (value.method))
             if self.config.losses.check("kwargs", key):
@@ -269,16 +261,13 @@ class FrontalLobe(object):
         :return loss_functions->dict: The losses
         """
         metric_functions = {}
-
         for key, value in self.config.metrics.get().items():
             # Get the metric method
             local = {"method": None}
             try:
                 exec("from {0} import {1} \nmethod= {2}".format(value.path, value.method, value.method), {}, local)
-            except:
-                Notification(DEEP_NOTIF_ERROR,
-                             DEEP_MSG_METRIC_NOT_FOUND % (value.method))
-
+            except ImportError:
+                Notification(DEEP_NOTIF_ERROR, DEEP_MSG_METRIC_NOT_FOUND % value.method)
             if self.config.metrics.check("kwargs", key):
                 method = local["method"](value.kwargs)
             else:
@@ -310,10 +299,9 @@ class FrontalLobe(object):
         """
 
         # Load the model
-        model =  get_module(path=[get_main_path() + "/modules/models"],
-                            prefix="modules.models",
-                            name=self.config.model.name)
-
+        model = get_module(path=[get_main_path() + "/modules/models"],
+                           prefix="modules.models",
+                           name=self.config.model.name)
         if model is None:
             Notification(DEEP_NOTIF_ERROR,
                          DEEP_MSG_MODEL_NOT_FOUND % (self.config.model.name, self.config.model.module))
@@ -407,6 +395,7 @@ class FrontalLobe(object):
         --------
 
         :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -417,34 +406,19 @@ class FrontalLobe(object):
         -----------
         :param history:
         :param dataloader:
-        :param dataset:
+        :param data:
         :param transforms:
+        :param name:
 
         RETURN:
         -------
 
         :return trainer->Trainer: The loaded trainer
         """
-
-        # Dataset
-        inputs = []
-        labels = []
-        additional_data = []
-
-        for input in data.inputs:
-            inputs.append(input)
-
-        for label in data.labels:
-            labels.append(label)
-
-        for add_data in data.additional_data:
-            additional_data.append(add_data)
-
-
-        # Create the transform managers
+        inputs = [item for item in data.inputs]
+        labels = [item for item in data.labels]
+        additional_data = [item for item in data.additional_data]
         transform_manager = TransformManager(transforms)
-
-        # Dataset
         dataset = Dataset(list_inputs=inputs,
                           list_labels=labels,
                           list_additional_data=additional_data,
@@ -454,11 +428,8 @@ class FrontalLobe(object):
         dataset.load()
         dataset.set_len_dataset(data.number)
         dataset.summary()
-
-        # Overwatch metric
-        overwatch_metric = OverWatchMetric(name=self.config.training.overwatch_metric, condition=self.config.training.overwatch_condition)
-
-
+        overwatch_metric = OverWatchMetric(name=self.config.training.overwatch_metric,
+                                           condition=self.config.training.overwatch_condition)
         trainer = Trainer(model=self.model,
                           dataset=dataset,
                           metrics=self.metrics,
@@ -476,15 +447,15 @@ class FrontalLobe(object):
                           save_condition=self.config.training.save_condition,
                           memorize=history.memorize,
                           stopping_parameters=None,
-                          history_directory = DEEP_PATH_HISTORY,
+                          history_directory=DEEP_PATH_HISTORY,
                           save_directory=DEEP_PATH_SAVE_MODEL)
-
         return trainer
 
     def summary(self):
         self.__summary(model=self.model,
                        input_size=self.config.model.input_size,
-                       losses=self.losses, metrics=self.metrics,
+                       losses=self.losses,
+                       metrics=self.metrics,
                        batch_size=self.config.data.dataloader.batch_size)
 
     def __summary(self, model, input_size, losses, metrics, batch_size=-1, device="cuda"):
@@ -517,19 +488,15 @@ class FrontalLobe(object):
             def hook(module, input, output):
                 class_name = str(module.__class__).split(".")[-1].split("'")[0]
                 module_idx = len(summary)
-
                 m_key = "%s-%i" % (class_name, module_idx + 1)
                 summary[m_key] = OrderedDict()
                 summary[m_key]["input_shape"] = list(input[0].size())
                 summary[m_key]["input_shape"][0] = batch_size
                 if isinstance(output, (list, tuple)):
-                    summary[m_key]["output_shape"] = [
-                        [-1] + list(o.size())[1:] for o in output
-                    ]
+                    summary[m_key]["output_shape"] = [[-1] + list(o.size())[1:] for o in output]
                 else:
                     summary[m_key]["output_shape"] = list(output.size())
                     summary[m_key]["output_shape"][0] = batch_size
-
                 params = 0
                 if hasattr(module, "weight") and hasattr(module.weight, "size"):
                     params += torch.prod(torch.LongTensor(list(module.weight.size())))
@@ -545,34 +512,37 @@ class FrontalLobe(object):
             ):
                 hooks.append(module.register_forward_hook(hook))
 
+        # Check device
         device = device.lower()
-        assert device in [
-            "cuda",
-            "cpu",
-        ], "Input device is not valid, please specify 'cuda' or 'cpu'"
+        try:
+            assert device in ["cuda", "cpu"]
+        except AssertionError:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_INVALID_DEVICE % device)
 
+        # Set data type depending on device
         if device == "cuda" and torch.cuda.is_available():
             dtype = torch.cuda.FloatTensor
         else:
             dtype = torch.FloatTensor
 
-        # multiple inputs to the network
+        # Multiple inputs to the network
         if self.__model_has_multiple_inputs() is False:
             input_size = [input_size]
 
-        print(input_size)
-        # batch_size of 2 for batchnorm
+        # Batch_size of 2 for batchnorm
         x = [torch.rand(2, *in_size).type(dtype) for in_size in input_size]
 
-        # print(type(x[0]))
-        # create properties
+        # Create properties
         summary = OrderedDict()
         hooks = []
-        # register hook
+
+        # Register hook
         model.apply(register_hook)
-        # make a forward pass
+
+        # Make a forward pass
         model(*x)
-        # remove these hooks
+
+        # Remove these hooks
         for h in hooks:
             h.remove()
 
@@ -584,7 +554,7 @@ class FrontalLobe(object):
         total_output = 0
         trainable_params = 0
         for layer in summary:
-            # input_shape, output_shape, trainable, nb_params
+            # Input_shape, output_shape, trainable, nb_params
             line_new = '{:>20}  {:>25} {:>15}'.format(layer, str(summary[layer]['output_shape']),
                                                       '{0:,}'.format(summary[layer]['nb_params']))
             total_params += summary[layer]['nb_params']
@@ -594,7 +564,7 @@ class FrontalLobe(object):
                     trainable_params += summary[layer]['nb_params']
             Notification(DEEP_NOTIF_INFO, line_new)
 
-        # assume 4 bytes/number (float on cuda).
+        # Assume 4 bytes/number (float on cuda).
         total_input_size = abs(np.prod(input_size) * batch_size * 4. / (1024 ** 2.))
         total_output_size = abs(2. * total_output * 4. / (1024 ** 2.))  # x2 for gradients
         total_params_size = abs(total_params.numpy() * 4. / (1024 ** 2.))
@@ -649,140 +619,7 @@ class FrontalLobe(object):
 
         :return->bool: Whether the model has multiple inputs or not
         """
-
         if len(self.config.data.dataset.train.inputs) >= 2:
             return True
         else:
             return False
-
-    def patchy(self):
-        """
-        Author: Samuel Westlake
-        This method slides a patch over the image and makes a prediction for each patch position
-        The 1 - prediction score for the given ground truth is saved in an output matrix
-        :return:
-        """
-        # Get settings from config
-        shape = self.config["data_gen"]["common"]["x_shape"]
-        show = self.config["patchyt"]["show"]
-        scale = self.config["patchy"]["scale"]
-        bias = self.config["patchy"]["bias"]
-        keep_aspect = self.config["patchy"]["keep_aspect"]
-        path = self.config["patchy"]["path"]
-        patch_size = self.config["patchy"]["patch_size"]
-        ground_truth = self.config["patchy"]["ground_truth"]
-        directory = "%s/%s" % (self.config["working_dir"], self.config["name"])
-
-        # If path is an image_path, make it a list, if path is a dir_path, get all files
-        if not os.path.isfile(path):
-            print("Error: %s not found" % path)
-            return
-
-        image = cv2.imread(path)
-        image = image_aug.resize(image, shape, keep_aspect).astype(np.float32)
-        image = image * scale + bias
-        image_name = path.split("/")[-1].split(".")[0]
-
-        # Initialise output, batches and indexes
-        output = np.empty((shape[0], shape[1]), dtype=np.float32)
-        batch = np.empty([shape[1]] + list(shape), dtype=np.float32)
-        for j in range(shape[0]):
-            for i in range(shape[1]):
-                patched = self.__apply_patch(copy.deepcopy(image), (i, j), patch_size)
-                batch[i] = patched
-                if show:
-                    cv2.imshow("patch", patched)
-                    cv2.waitKey(1)
-            y_hat = self.net.predict_on_batch(batch)
-            for i, prediction in enumerate(y_hat):
-                output[j][i] = 1 - prediction[ground_truth]
-        if show:
-            cv2.destroyWindow("patch")
-
-        # Plot graphs
-        plt.subplot(2, 1, 1)
-        plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), cmap="seismic")
-        plt.title("Input")
-        plt.grid()
-        plt.subplot(2, 1, 2)
-        plt.imshow(output, cmap="seismic")
-        plt.title("Prediction")
-        plt.grid()
-        plt.savefig("%s/%s_patch.png" % (directory, image_name))
-        print("Plot saved to %s/%s_patchy.png" % (directory, image_name))
-
-    @staticmethod
-    def __set_fit_class_weight(fit_gen_kwargs, generator):
-        """
-        Compute class weights before training using method specified
-        :param fit_gen_kwargs: the dictionary of key word arguments for training
-        :param generator: the date generator to be used
-        :return:
-        """
-        class_weight = fit_gen_kwargs["class_weight"]
-        if isinstance(class_weight, str):
-            fit_gen_kwargs["class_weight"] = generator.class_weights(class_weight)
-        return fit_gen_kwargs
-
-    @staticmethod
-    def __build_from_list(architecture):
-        model = Sequential()
-        layer_names = set([layer_name for layer in architecture for layer_name in layer])
-        for layer_name in layer_names:
-            exec("from tensorflow.python.keras.layers import %s" % layer_name)
-        for layer in architecture:
-            for layer_name, kwargs in layer.items():
-                kwargs = kwargs if kwargs is not None else {}
-                exec("model.add(%s(**%s))" % (layer_name, kwargs))
-        return model
-
-    @staticmethod
-    def __build_from_module(module_name, args, kwargs):
-            exec("import sys")
-            exec('sys.path.append("..")')                                       # Adds higher directory to python modules path.
-            exec("from modules.models import %s" % module_name)
-            exec("model = %s.build(**%s)" % (module_name, kwargs))
-            return locals()["model"]
-
-    @staticmethod
-    def __get_args_and_kwargs(params):
-        """
-        Returns a list and dict of args and kwargs from a given dict
-        :param params: a dict
-        :return: args, a list of arguments; kwargs, a dict or keyword arguments
-        """
-        args, kwargs = [], {}
-        if params is not None:
-            if "args" in params:
-                args = params["args"]
-            if "kwargs" in params:
-                kwargs = params["kwargs"]
-        return args, kwargs
-
-    @staticmethod
-    def __apply_patch(image, pos, size):
-        i, j = pos
-        shape = image.shape
-        lj = int(max(0, int(j - size / 2)))
-        uj = int(min(np.ceil(j + size / 2), shape[0]))
-        li = int(max(0, int(i - size / 2)))
-        ui = int(min(np.ceil(i + size / 2), shape[0]))
-        image[lj:uj, li:ui, :] = 0
-        return image
-
-    @staticmethod
-    def __copy_incorrect(src, destination, ground_truth, prediction):
-        """
-        Copies an image in src destination/ground_truth/prediction
-        :param src: string, path to image
-        :param destination: string, path to destination directory
-        :param ground_truth: int, ground truth of image
-        :param prediction: int, predicted class of image
-        :return: None
-        """
-        image_name = src.split("/")[-1]
-        new_dir = "/".join([destination, str(ground_truth), str(prediction)])
-        os.makedirs(new_dir, exist_ok=True)
-        shutil.copyfile(src, "/".join([new_dir, image_name]))
-
-

@@ -12,6 +12,9 @@ DEEP_MSG_CONFIG_NOT_FOUND = "Configuration not found : %s"
 DEEP_MSG_MODEL_NOT_FOUND = "Model %s not found in %s."
 DEEP_MSG_LOSS_NOT_FOUND = "Loss not found : %s"
 DEEP_MSG_METRIC_NOT_FOUND = "Metric not found : %s"
+DEEP_MSG_NO_TESTER = "Cannot evaluate : Tester not loaded"
+DEEP_MSG_NO_TRAINER = "Cannot evaluate : Trainer not loaded"
+DEEP_MSG_INVALID_DEVICE = "%s is not a valid input device : Please specify 'cuda' or 'cpu'"
 
 # Deep Success
 DEEP_MSG_LOAD_CONFIG_FILE = "File loaded : %s"
