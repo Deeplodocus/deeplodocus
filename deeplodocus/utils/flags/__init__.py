@@ -9,7 +9,7 @@ from deeplodocus.utils.flags.log import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
-from deeplodocus.utils.flags.type import *
+from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.ui import *
 
 #

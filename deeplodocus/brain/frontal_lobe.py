@@ -23,7 +23,7 @@ from deeplodocus.utils.flags.lib import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
-from deeplodocus.utils.flags.type import *
+from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.generic_utils import get_module, get_module_browse
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
