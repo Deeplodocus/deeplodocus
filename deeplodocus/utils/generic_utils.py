@@ -26,6 +26,27 @@ def sorted_nicely(l):
 
 
 def is_string_an_integer(string: str) -> bool:
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Check whether a string is an integer or not
+
+    PARAMETERS:
+    -----------
+
+    :param string(str): The string to analyze
+
+    RETURN:
+    -------
+
+    :return (bool): Whether the string is an integer or not
+    """
     try:
         int(string)
         return True
