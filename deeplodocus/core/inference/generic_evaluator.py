@@ -2,6 +2,7 @@
 # Common imports
 #
 from typing import Union
+import inspect
 
 #
 # Backend imports
@@ -15,7 +16,7 @@ from torch import tensor
 from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
-
+from deeplodocus.utils.notification import Notification
 
 class GenericEvaluator(GenericInferer):
     """
@@ -111,9 +112,18 @@ class GenericEvaluator(GenericInferer):
         # Temporary variable for saving the output
         temp_metric_result = None
 
-        for metric in list(metrics.values()):
+        for key, metric in metrics.items():
             metric_args = metric.get_arguments()
             metric_method = metric.get_method()
+
+            # TODO : Check the number of arguments before compute the metric
+            #if metric.is_loss() is True:
+            #   num_required_args = len(inspect.getfullargspec(metric_method.forward)[0])
+            #   num_given_args = len(metric_args + 1)
+            #else:
+            #   num_required_args = len(inspect.getfullargspec(metric_method)[0])
+            #if num_required_args != len(metric_args + 1):
+            #    Notification(DEEP_NOTIF_FATAL, "The metric %s takes %i positional arguments but %i were given" %(metric_method, len(num_required_args), len(metric_args)))
 
             #
             # Select the good type of input

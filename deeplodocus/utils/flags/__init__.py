@@ -11,6 +11,7 @@ from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.ui import *
+from deeplodocus.utils.flags.backend import *
 
 #
 # MODEL SAVING CONDITION
