@@ -193,7 +193,7 @@ class FrontalLobe(object):
         :return model->torch.nn.Module:  The model
         """
         self.model = Model(self.config.model).get()
-        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED)
+        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED %(self.config.model.name, self.model.__module__))
 
     def load_optimizer(self):
         """
@@ -220,7 +220,7 @@ class FrontalLobe(object):
         """
         if self.model is not None:
             self.optimizer = Optimizer(self.model.parameters(), self.config.optimizer).get()
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIMIZER_LOADED)
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIMIZER_LOADED %(self.config.optimizer.name, self.optimizer.__module__))
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_OPTIMIZER_NOT_LOADED % DEEP_MSG_MODEL_LOADED)
 
@@ -268,6 +268,7 @@ class FrontalLobe(object):
                 losses[str(key)] = Loss(name=str(key),
                                         weight=float(value.weight),
                                         loss=method)
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOSS_LOADED %(key, value.name, loss.__module__))
             else:
                 Notification(DEEP_NOTIF_FATAL, "The loss function %s is not a torch.nn.Module instance" % key)
         self.losses = losses
@@ -302,6 +303,8 @@ class FrontalLobe(object):
             method = metric(**kwargs)
 
             metrics[str(key)] = Metric(name=str(key), method=method)
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, value.name, metric.__module__))
+
         self.metrics = metrics
 
     def load_trainer(self):
