@@ -4,7 +4,7 @@ from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.dict_utils import check_kwargs
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.namespace import Namespace
-
+from deeplodocus.utils.flags.module import *
 
 class Optimizer(object):
     """
@@ -44,11 +44,10 @@ class Optimizer(object):
 
         :return: None
         """
-        self.optimizer = None
-        self.load(config=config,
-                  model_parameters = model_parameters)
-
-    def load(self, config, model_parameters):
+        self.optimizer = self.load(config=config,
+                                   model_parameters = model_parameters)
+    @staticmethod
+    def load(config, model_parameters):
         """
         AUTHORS:
         --------
@@ -71,10 +70,10 @@ class Optimizer(object):
 
         :return: None
         """
-        optimizer = get_module(module=config.module,
-                               name=self.__format_optimizer_name(config.name))
+        optimizer = get_module(config=config,
+                               modules=DEEP_MODULE_OPTIMIZERS)
         kwargs = check_kwargs(config.kwargs)
-        self.optimizer = optimizer(model_parameters, **kwargs)
+        return optimizer(model_parameters, **kwargs)
 
     def get(self):
         """
@@ -98,6 +97,7 @@ class Optimizer(object):
 
         :return: The optimizer
         """
+        print(self.optimizer)
         return self.optimizer
 
     @staticmethod

@@ -95,8 +95,7 @@ def is_np_array(data):
     except:
         return False
 
-
-def get_module(module, name, silence=False):
+def get_specific_module(module, name, silence=False):
     """
     Author: Samuel Westlake
     :param module: str: path to the module (separated by '.')
@@ -113,8 +112,41 @@ def get_module(module, name, silence=False):
             Notification(DEEP_NOTIF_ERROR, e)
     return local["module"]
 
+def get_module(config, modules):
+    """
+    AUTHORS:
+    --------
 
-def get_module_browse(path, prefix, name):
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Get a module from either a direct import or a folder browsing
+
+    PARAMETERS:
+    -----------
+
+    :param name:
+    :param config:
+
+    RETURN:
+    -------
+
+    :return module(callable): The loaded module
+    """
+
+    # If we want a specific model
+    if  config.check("module", None):
+        module = get_specific_module(module=config.module,
+                           name=config.name)
+    else:
+        # Browse in custom models
+        module = browse_module(modules=modules,
+                                  name=config.name)
+    return module
+
+def browse_module(modules: dict, name: str):
     """
     AUTHORS:
     --------
@@ -141,16 +173,70 @@ def get_module_browse(path, prefix, name):
 
     :return: The module if loaded, None else
     """
-    local = {"module": None}
+    list_modules = []
+    # For all the given modules
+    for key, value in modules.items():
+        # For all the sub-modules available in the main module
+        for importer, modname, ispkg in pkgutil.walk_packages(path=value["path"],
+                                                              prefix=value["prefix"] + '.',
+                                                              onerror=lambda x: None):
+            # Try to get the module
+            module = get_specific_module(modname, name, silence=True)
 
-    # Get the optimizer among the default ones
-    for importer, modname, ispkg in pkgutil.walk_packages(path=path,
-                                                          prefix=prefix + '.',
-                                                          onerror=lambda x: None):
-        try:
-            exec("from {0} import {1} \nmodule= {2}".format(modname, name, name), {}, local)
-            break
-        except:
-            pass
+            # If the module exists add it to the list
+            if module is not None:
+                list_modules.append(module)
 
-    return local["module"]
+    list_modules = remove_duplicates(list_modules=list_modules)
+
+    if len(list_modules) == 0:
+        Notification(DEEP_NOTIF_FATAL, "Couldn't find the module '%s' anywhere.")
+    elif len(list_modules) == 1:
+        return list_modules[0]
+    else:
+        return select_module(list_modules, name)
+
+def remove_duplicates(list_modules: list):
+
+    return list(set(list_modules))
+
+def select_module(list_modules: list, name: str):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Select the desired module among a list of similar names
+
+    PARAMETERS:
+    -----------
+
+    :param list_modules(list): List containing the similar modules
+    :param name(str): Name of the module
+
+    RETURN:
+    -------
+
+    :return: The desired module
+    """
+    Notification(DEEP_NOTIF_WARNING, "The module '%s' was found in multiple locations :" % name)
+    # Print the list of modules and their corresponding indices
+    for i, module in enumerate(list_modules):
+        Notification(DEEP_NOTIF_WARNING, "%i : %s" % (i, module))
+
+    # Prompt the user to pick on from the list
+    response = -1
+    while (response < 0 or response >= len(list_modules)):
+        response = Notification(DEEP_NOTIF_INPUT, "Which one would you prefer to use ? (Pick a number)").get()
+
+        # Check if the response is an integer
+        if is_string_an_integer(response) is False:
+            response = -1
+        else:
+            response = int(response)
+
+    return list_modules[response]

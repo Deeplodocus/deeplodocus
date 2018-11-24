@@ -21,6 +21,13 @@ def check_kwargs(kwargs):
     else:
         print("Ths should not be printed : Unknown case : Go to check_kwargs and fix")
 
+def get_kwargs(dictionary : dict):
+    for key, value in dictionary.items():
+        if key == "kwargs":
+            return value
+
+    return None
+
 
 def append(item1, item2):
     """

@@ -20,12 +20,14 @@ from deeplodocus.core.optimizer.optimizer import Optimizer
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
 from deeplodocus.utils.dict_utils import check_kwargs
+from deeplodocus.utils.dict_utils import get_kwargs
 from deeplodocus.utils.flags.lib import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.dtype import *
-from deeplodocus.utils.generic_utils import get_module, get_module_browse
+from deeplodocus.utils.flags.module import *
+from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
 
@@ -109,7 +111,7 @@ class FrontalLobe(object):
         :return: None
         """
 
-        self.trainer.fit if self. trainer is not None else Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TRAINER)
+        self.trainer.fit() if self.trainer is not None else Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TRAINER)
 
     def evaluate(self):
         """
@@ -195,8 +197,25 @@ class FrontalLobe(object):
 
     def load_optimizer(self):
         """
-        Author: Samuel Westlake
-        Author: Alix Leroy
+        AUTHORS:
+        --------
+
+        :author: Samuel Westlake
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Load the optimizer with the adequate parameters
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
         :return: None
         """
         if self.model is not None:
@@ -205,23 +224,7 @@ class FrontalLobe(object):
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_OPTIMIZER_NOT_LOADED % DEEP_MSG_MODEL_LOADED)
 
-    def load_losses_dev(self):
-        losses = {}
-        for key, value in self.config.losses.get().items():
-            loss = get_module(module=self.config.losses.get([key, "module"]),
-                              name=self.config.losses.get([key, "name"]))
-            kwargs = check_kwargs(self.config.losses.get(key))
-            method = loss(**kwargs)
 
-            # Create the loss
-            if isinstance(method, torch.nn.Module):
-                losses[key] = Loss(name=str(key),
-                                   is_custom=is_custom,
-                                   weight=float(value.weight),
-                                   loss=method)
-            else:
-                Notification(DEEP_NOTIF_FATAL, "The loss function %s is not a torch.nn.Module instance" % key)
-            self.losses = losses
 
     def load_losses(self):
         """
@@ -245,37 +248,13 @@ class FrontalLobe(object):
 
         :return loss_functions->dict: The losses
         """
-        loss_functions = {}
+        losses = {}
         for key, value in self.config.losses.get().items():
 
-            is_custom = True
-            # Get loss from torch.nn
-            loss = get_module_browse(path=torch.nn.__path__,
-                                prefix=torch.nn.__name__,
-                                name=value.method)
-
-            # Get from torch.nn.functional
-            if loss is None:
-                loss = get_module_browse(path=torch.nn.functional.__path__,
-                                    prefix=torch.nn.functional.__name__,
-                                    name=value.method)
-
-            # Get from custom ones
-            if loss is None:
-                loss = get_module_browse(path=[get_main_path() + "/modules/losses"],
-                                    prefix="modules.losses",
-                                    name=value.method)
-            else:
-                is_custom = False
-
-            # If neither a standard not a custom loss is loaded
-            if loss is None:
-                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_LOSS_NOT_FOUND % str(value.method))
-
-            if self.config.losses.check("kwargs", key):
-                method = loss(**value.kwargs)
-            else:
-                method = loss()
+            loss = get_module(config=value,
+                              modules=DEEP_MODULE_LOSSES)
+            kwargs = check_kwargs(get_kwargs(self.config.losses.get(key)))
+            method = loss(**kwargs)
 
             # Check the weight
             if self.config.losses.check("weight", key):
@@ -284,15 +263,16 @@ class FrontalLobe(object):
             else:
                 Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have any weight argument" % key)
 
+            # TODO : Check the is_custom correctly
             # Create the loss
             if isinstance(method, torch.nn.Module):
-                loss_functions[str(key)] = Loss(name=str(key),
-                                                is_custom=is_custom,
-                                                weight=float(value.weight),
-                                                loss=method)
+                losses[str(key)] = Loss(name=str(key),
+                                        is_custom=None,
+                                        weight=float(value.weight),
+                                        loss=method)
             else:
                 Notification(DEEP_NOTIF_FATAL, "The loss function %s is not a torch.nn.Module instance" % key)
-        self.losses = loss_functions
+        self.losses = losses
 
     def load_metrics(self):
         """
@@ -316,41 +296,22 @@ class FrontalLobe(object):
 
         :return loss_functions->dict: The metrics
         """
-        metric_functions = {}
+        metrics = {}
         for key, value in self.config.metrics.get().items():
+            metric = get_module(config=value,
+                               modules=DEEP_MODULE_METRICS)
+            kwargs = check_kwargs(get_kwargs(self.config.metrics.get(key)))
+            method = metric(**kwargs)
 
-            # Get metric from torch.nn
-            metric = get_module_browse(path=torch.nn.__path__,
-                                   prefix=torch.nn.__name__,
-                                   name=value.method)
-
-            # Get from torch.nn.functional
-            if metric is None:
-                metric = get_module_browse(path=torch.nn.functional.__path__,
-                                   prefix=torch.nn.functional.__name__,
-                                   name=value.method)
-            # Get from custom ones
-            if metric is None:
-                metric = get_module_browse(path=[get_main_path() + "/modules/metrics"],
-                                   prefix="modules.metrics",
-                                   name=value.method)
-
-            # If neither a standard not a custom metric is loaded
-            if metric is None:
-                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_METRIC_NOT_FOUND % str(value.method))
-
-            if self.config.metrics.check("kwargs", key):
-                method = metric(value.kwargs)
-            else:
-                method = metric()
-            metric_functions[str(key)] = Metric(name=str(key), method=method)
-        self.metrics = metric_functions
+            metrics[str(key)] = Metric(name=str(key), method=method)
+        self.metrics = metrics
 
     def load_trainer(self):
         """
         Author: Alix Leroy and SW
         :return: None
         """
+        print(self.optimizer)
         self.trainer = self.__load_trainer(name="Trainer",
                                            history=self.config.history,
                                            dataloader=self.config.data.dataloader,
@@ -631,7 +592,7 @@ class FrontalLobe(object):
         Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
         Notification(DEEP_NOTIF_INFO, "OPTIMIZER :" + str(self.config.optimizer.name))
         Notification(DEEP_NOTIF_INFO, '================================================================')
-        for key, value in self.config.optimizer.get().items():
+        for key, value in self.config.optimizer.kwargs.get().items():
             if key != "name":
                 Notification(DEEP_NOTIF_INFO, "%s : %s" %(key, value))
 

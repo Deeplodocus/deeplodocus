@@ -2,6 +2,7 @@
 from deeplodocus.utils.dict_utils import check_kwargs
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.namespace import Namespace
+from deeplodocus.utils.flags.module import *
 
 class Model(object):
     """
@@ -18,7 +19,7 @@ class Model(object):
     """
 
     def __init__(self, config: Namespace):
-        self.model = self.load_model(config)
+        self.model = self.load(config)
 
     @staticmethod
     def load(config: Namespace):
@@ -44,8 +45,8 @@ class Model(object):
 
         :return: None
         """
-        model = get_module(module=config.module,
-                           name=config.name)
+        model = get_module(config=config,
+                           modules=DEEP_MODULE_MODELS)
         kwargs = check_kwargs(config.kwargs)
         return model(**kwargs)
 
