@@ -24,8 +24,11 @@ DEEP_MSG_LOAD_CONFIG_SUCCESS = "All necessary configurations have been imported"
 DEEP_MSG_PROJECT_GENERATED = "Project successfully generated ! Have fun <3"
 
 DEEP_MSG_MODULE_LOADED = "Module loaded : %s from %s"
-DEEP_MSG_MODEL_LOADED = "Model loaded"
-DEEP_MSG_OPTIMIZER_LOADED = "Optimizer loaded"
+DEEP_MSG_MODEL_LOADED = "Model loaded : %s from %s"
+DEEP_MSG_OPTIMIZER_LOADED = "Optimizer loaded : %s from %s"
+DEEP_MSG_LOSS_LOADED = "Loss loaded : %s (%s) from %s"
+DEEP_MSG_METRIC_LOADED = "Metric loaded : %s (%s) from %s"
+
 
 # Deep Warning
 DEEP_MSG_ALREADY_AWAKE = ": I am already awake !"
