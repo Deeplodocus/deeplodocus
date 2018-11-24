@@ -1,8 +1,12 @@
+# Import python modules
 import inspect
 from typing import Union
+
+# Import back-end modules
 from torch.nn import Module
 import torch
 
+# Import Deeplodocus modules
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.notification import Notification
 from deeplodocus.core.metrics.generic_metric import GenericMetric
@@ -10,32 +14,130 @@ from deeplodocus.core.metrics.generic_metric import GenericMetric
 Num = Union[int, float]
 
 class Loss(GenericMetric):
+    """
+    AUTHORS:
+    --------
 
-    def __init__(self, name:str, loss:Module, is_custom=False, weight:Num=1.0, write_logs:bool = True):
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Loss class which stores, analyses
+
+    """
+
+    def __init__(self, name:str, loss:Module, weight:Num=1.0, write_logs:bool = True):
         super().__init__(name=name, method=loss, write_logs=write_logs)
-        if is_custom == None:
-            self.is_custom = self.check_custom(loss)
-        else:
-            self.is_custom = is_custom
+        self.is_custom = self.check_custom(loss)
         self.weight = weight
-        self.arguments = self.__check_arguments(loss.forward)
+        self.arguments = self.__check_arguments(loss.forward) # loss.forward will be called automatically, but keep loss as function to call
 
     def check_custom(self, loss: torch.nn.Module):
+        """
+        AUTHORS:
+        --------
 
-        print(loss)
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check whether the loss function is a custom one or not
+
+        PARAMETERS:
+        -----------
+
+        :param loss(torch.nn.Module):
+
+        RETURN:
+        -------
+
+        :return (bool): Whether the loss function is a custom one or not
+        """
+        # Get the main module's name
+        main_module = loss.__module__.split(".")[0]
+
+        if main_module in DEEP_BACKEND_ALL:
+            return False
+        else:
+            return True
 
     def get_weight(self)->Num:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the weight of the loss function
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return(Num): self.weight
+        """
         return self.weight
 
     @staticmethod
     def is_loss():
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Return whether the generic metric is a loss or not
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return (bool): True
+        """
         return True
 
-    def __check_arguments(self, loss)->list:
+    def __check_arguments(self, loss: callable)->list:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check the arguments required for the loss function
+
+        PARAMETERS:
+        -----------
+
+        :param loss(callable): The method to analyze
+
+        RETURN:
+        -------
+
+        :return arguments(list): The list of arguments DEEP flags
+        """
 
         arguments = []
 
-        arguments_list =  inspect.getargspec(loss)[0]
+        arguments_list = inspect.getfullargspec(loss)[0]
 
         input_list= ["input", "x", "inputs"]
         output_list = ["out", "y_pred", "y_predicted", "output", "outputs"]

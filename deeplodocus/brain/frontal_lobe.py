@@ -263,11 +263,9 @@ class FrontalLobe(object):
             else:
                 Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have any weight argument" % key)
 
-            # TODO : Check the is_custom correctly
             # Create the loss
             if isinstance(method, torch.nn.Module):
                 losses[str(key)] = Loss(name=str(key),
-                                        is_custom=None,
                                         weight=float(value.weight),
                                         loss=method)
             else:
@@ -311,7 +309,6 @@ class FrontalLobe(object):
         Author: Alix Leroy and SW
         :return: None
         """
-        print(self.optimizer)
         self.trainer = self.__load_trainer(name="Trainer",
                                            history=self.config.history,
                                            dataloader=self.config.data.dataloader,

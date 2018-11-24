@@ -138,8 +138,13 @@ def get_module(config, modules):
 
     # If we want a specific model
     if  config.check("module", None):
-        module = get_specific_module(module=config.module,
-                           name=config.name)
+        if config.module != None:
+            module = get_specific_module(module=config.module,
+                               name=config.name)
+        else:
+            # Browse in custom models
+            module = browse_module(modules=modules,
+                                   name=config.name)
     else:
         # Browse in custom models
         module = browse_module(modules=modules,
@@ -187,7 +192,7 @@ def browse_module(modules: dict, name: str):
             if module is not None:
                 list_modules.append(module)
 
-    list_modules = remove_duplicates(list_modules=list_modules)
+    list_modules = remove_duplicates(items=list_modules)
 
     if len(list_modules) == 0:
         Notification(DEEP_NOTIF_FATAL, "Couldn't find the module '%s' anywhere.")
@@ -196,9 +201,30 @@ def browse_module(modules: dict, name: str):
     else:
         return select_module(list_modules, name)
 
-def remove_duplicates(list_modules: list):
+def remove_duplicates(items: list):
+    """
+    AUTHORS:
+    --------
 
-    return list(set(list_modules))
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Remove the duplicate items in a list
+
+    PARAMETERS:
+    -----------
+
+    :param items(list): The list of items
+
+    RETURN:
+    -------
+
+    :return (list): The lis of items without the duplicates
+    """
+
+    return list(set(items))
 
 def select_module(list_modules: list, name: str):
     """

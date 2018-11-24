@@ -97,7 +97,6 @@ class Optimizer(object):
 
         :return: The optimizer
         """
-        print(self.optimizer)
         return self.optimizer
 
     @staticmethod
