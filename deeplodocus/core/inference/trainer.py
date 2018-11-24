@@ -84,7 +84,6 @@ class Trainer(GenericEvaluator):
 
         :return: None
         """
-
         # Initialize the GenericEvaluator par
         super().__init__(model=model,
                          dataset=dataset,
@@ -156,7 +155,7 @@ class Trainer(GenericEvaluator):
         else:
             self.callbacks.unpause()
 
-        for epoch in range(self.initial_epoch, self.num_epochs+1):  # loop over the dataset multiple times
+        for epoch in range(self.initial_epoch+1, self.num_epochs+1):  # loop over the dataset multiple times
             self.callbacks.on_epoch_start(epoch_index=epoch, num_epochs=self.num_epochs)
             for minibatch_index, minibatch in enumerate(self.dataloader):
 

@@ -1,10 +1,10 @@
 CrossEntropyLoss1:
-  method : CrossEntropyLoss
+  name : CrossEntropyLoss
   #kwargs:
     #class_weights: [0, 1]
 
 
 CrossEntropyLoss2:
-  method : CrossEntropyLoss
+  name : CrossEntropyLoss
   #kwargs:
     #class_weights: [0, 1]

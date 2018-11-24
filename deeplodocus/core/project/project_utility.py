@@ -7,8 +7,7 @@ from deeplodocus.utils.flags.config import DEEP_CONFIG
 from deeplodocus.utils.flags.ext import DEEP_EXT_YAML
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.main_utils import *
-
+from deeplodocus.utils import get_main_path
 
 class ProjectUtility(object):
     """

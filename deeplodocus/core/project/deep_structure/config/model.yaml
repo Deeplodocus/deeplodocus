@@ -1,4 +1,4 @@
-module: "classification"
+module: "modules.models.classification"
+input_size : [[3, 216, 384], [3, 216, 384]]
 name: "Net"
-module:
-kwargs:
+kwargs: Null

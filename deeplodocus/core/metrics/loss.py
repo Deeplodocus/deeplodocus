@@ -1,6 +1,7 @@
 import inspect
 from typing import Union
 from torch.nn import Module
+import torch
 
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.notification import Notification
@@ -12,10 +13,16 @@ class Loss(GenericMetric):
 
     def __init__(self, name:str, loss:Module, is_custom=False, weight:Num=1.0, write_logs:bool = True):
         super().__init__(name=name, method=loss, write_logs=write_logs)
-        self.is_custom = is_custom
+        if is_custom == None:
+            self.is_custom = self.check_custom(loss)
+        else:
+            self.is_custom = is_custom
         self.weight = weight
         self.arguments = self.__check_arguments(loss.forward)
 
+    def check_custom(self, loss: torch.nn.Module):
+
+        print(loss)
 
     def get_weight(self)->Num:
         return self.weight
