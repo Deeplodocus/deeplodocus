@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 
+# Python imports
+from collections import OrderedDict
+import numpy as np
+import inspect
+
 # Back-end imports
 from torch import *
 import torch
 import torch.nn as nn
 import torch.nn.functional
 
-# Python imports
-from collections import OrderedDict
-import numpy as np
-
+# Deeplodocus import
 from deeplodocus.core.inference.tester import Tester
 from deeplodocus.core.inference.trainer import Trainer
 from deeplodocus.core.metrics.loss import Loss
@@ -300,7 +302,12 @@ class FrontalLobe(object):
             metric = get_module(config=value,
                                modules=DEEP_MODULE_METRICS)
             kwargs = check_kwargs(get_kwargs(self.config.metrics.get(key)))
-            method = metric(**kwargs)
+            if inspect.isclass(metric):
+                method = metric(**kwargs)
+            else:
+                method = metric
+
+
 
             metrics[str(key)] = Metric(name=str(key), method=method)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, value.name, metric.__module__))
@@ -339,6 +346,28 @@ class FrontalLobe(object):
                                          transforms=self.config.transform.test)
 
     def summary(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Summarise the model
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         self.__summary(model=self.model,
                        input_size=self.config.model.input_size,
                        losses=self.losses,

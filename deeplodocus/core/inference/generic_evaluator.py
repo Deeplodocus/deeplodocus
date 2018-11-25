@@ -9,6 +9,7 @@ import inspect
 #
 from torch.nn import Module
 from torch import tensor
+import torch
 
 #
 # Deeplodocus imports
@@ -122,7 +123,7 @@ class GenericEvaluator(GenericInferer):
             #   num_given_args = len(metric_args + 1)
             #else:
             #   num_required_args = len(inspect.getfullargspec(metric_method)[0])
-            #if num_required_args != len(metric_args + 1):
+            #if num_required_args != num_given_args:
             #    Notification(DEEP_NOTIF_FATAL, "The metric %s takes %i positional arguments but %i were given" %(metric_method, len(num_required_args), len(metric_args)))
 
             #
@@ -161,6 +162,9 @@ class GenericEvaluator(GenericInferer):
                 # Do not call ".item()" in order to be able to achieve back propagation on the total_loss
                 result_metrics[metric.get_name()] = temp_metric_result
             else:
+                # If it is a Loss function we detach the tensor from the graph
+                if isinstance(temp_metric_result, torch.nn.Module):
+                    temp_metric_result = temp_metric_result.detach()
                 result_metrics[metric.get_name()] = temp_metric_result.item()
 
         return result_metrics
