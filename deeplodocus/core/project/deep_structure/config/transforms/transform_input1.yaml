@@ -1,20 +1,37 @@
 # _________________________________
 #
-# ---- TRANSFORM ONEOF EXAMPLE ----
+# ---- TRANSFORM SEQUENTIAL EXAMPLE ----
 # _________________________________
 #
 
-method: "oneof"
-name: "OneOf example"
-normalize_output: yes
+method: "sequential"
+name: "Sequential example"
+
+mandatory_transforms:
+#    #  - resize :
+#    #      shape : [512, 512, 3]
+#    #      keep_aspect : True
+#    #      padding : 0
+  normalize_image:
+      name: "normalize_image"
+      kwargs:
+        mean: [128.0, 128.0, 128.0]
+        standard_deviation: 255
 
 transforms:
-#  - resize :
-#      shape : [512, 512, 3]
-#      keep_aspect : True
-#      padding : 0
-  - blur :
+  blur :
+    # module: "" #optional
+    name: "blur"
+    kwargs:
       kernel_size : 3
-  - random_blur:
+  random blur :
+    # module :"" # optional
+    name : "random_blur"
+    kwargs:
       kernel_size_min: 15
       kernel_size_max : 21
+  example_function:
+    # module : "" # optional
+    name : "example_function"
+    kwargs :
+      parameters : 1

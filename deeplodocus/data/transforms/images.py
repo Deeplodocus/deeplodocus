@@ -291,7 +291,7 @@ def rotate(image: np.array, angle: float):
     return cv2.warpAffine(image, m, (cols, rows)).astype(np.float32), None
 
 
-def normalize_image(image, mean:Union[None, list, int], standard_deviation:int, cv_library: int = DEEP_LIB_OPENCV):
+def normalize_image(image, mean:Union[None, list, int], standard_deviation: float, cv_library: int = DEEP_LIB_OPENCV):
     """
     AUTHORS:
     --------
