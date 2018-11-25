@@ -164,9 +164,9 @@ class FrontalLobe(object):
         self.load_optimizer()    # Always load the optimizer after the model
         self.load_losses()
         self.load_metrics()
-        self.load_trainer()
-        self.load_validator()
         self.load_tester()
+        self.load_validator()
+        self.load_trainer()
         self.summary()
 
     def load_model(self):
@@ -442,7 +442,7 @@ class FrontalLobe(object):
                           shuffle=self.config.training.shuffle,
                           model_name=self.config.project.name,
                           verbose=history.verbose,
-                          tester=self.tester,
+                          tester=self.validator,
                           num_workers=dataloader.num_workers,
                           batch_size=dataloader.batch_size,
                           overwatch_metric=overwatch_metric,

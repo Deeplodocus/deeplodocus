@@ -1,10 +1,12 @@
 CrossEntropyLoss1:
+  #module: "torch.nn"  Optional line
   name : CrossEntropyLoss
   #kwargs:
     #class_weights: [0, 1]
 
 
 CrossEntropyLoss2:
+  #module: "torch.nn"  Optional line
   name : CrossEntropyLoss
   #kwargs:
     #class_weights: [0, 1]

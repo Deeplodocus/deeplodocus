@@ -12,7 +12,7 @@ dataset:
     additional_data:
       - Null
   validation:
-    number : 100
+    number : 7
     inputs:
       - ['./data/input1.txt']
       - ['./data/input2.txt']
@@ -21,7 +21,7 @@ dataset:
     additional_data:
       - Null
   test:
-    number: 100
+    number: 7
     inputs:
       - ['./data/input1.txt']
       - ['./data/input2.txt']

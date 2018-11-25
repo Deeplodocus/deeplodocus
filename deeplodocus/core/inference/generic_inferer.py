@@ -99,7 +99,7 @@ class GenericInferer(object):
         return cleaned_minibatch
 
     @staticmethod
-    def compute_num_minibatches(batch_size:int, length_dataset:int):
+    def compute_num_minibatches(length_dataset: int, batch_size: int):
         """
         AUTHORS:
         --------
@@ -109,23 +109,24 @@ class GenericInferer(object):
         DESCRIPTION:
         ------------
 
-        Calculate the number of mini batches for one epoch
+        Calculate the number of batches for each epoch
 
         PARAMETERS:
         -----------
 
-        :param batch_size->int: Number of instance in one mini batch
-        :param length_dataset->int: Number of instance in the whole data set
+        :param length_dataset(int): The length of the dataset
+        :param batch_size(int): The number of instances in one mini-batch
 
         RETURN:
         -------
 
-        :return num_minibatches->int: Number of mini batches per epoch
+        :return: None
         """
-        num_minibatches = length_dataset//batch_size
+        if length_dataset % batch_size == 0:
+            num_minibatches = length_dataset // batch_size
+        else:
+            num_minibatches = (length_dataset // batch_size) + 1
 
-        if num_minibatches != length_dataset*batch_size:
-            num_minibatches += 1
         return num_minibatches
 
 
@@ -152,3 +153,4 @@ class GenericInferer(object):
         :return self.num_minibatches->int: The number of mini batches in the Inferer instance
         """
         return self.num_minibatches
+

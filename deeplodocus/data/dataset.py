@@ -1060,11 +1060,11 @@ class Dataset(object):
 
         # If the given length is smaller than the number of instances already available in the dataset
         if length_data < len(self.data):
-            res = None
+            res = ""
 
             # Ask the user to confirm the given length
-            while res.lower() != "y" or res != "n":
-                res = Notification(DEEP_NOTIF_INPUT, "Dataset contains {0} instances, are you sure you want to only use {1} instances ? (Y/N) ".format(len(self.data), length_data))
+            while res.lower() not in ["y", "yes", "no", "n"]:
+                res = Notification(DEEP_NOTIF_INPUT, "Dataset contains {0} instances, are you sure you want to only use {1} instances ? (Y/N) ".format(len(self.data), length_data)).get()
 
             if res.lower() == "y":
                 self.len_data = length_data

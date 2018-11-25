@@ -19,7 +19,7 @@ validation:
   additional_data:
    - Null
 test:
-  name: "Validation Transform Manager"
+  name: "Test Transform Manager"
   inputs:
    - Null
    - Null

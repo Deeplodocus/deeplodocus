@@ -3,7 +3,6 @@ import inspect
 from typing import Union
 
 # Import back-end modules
-from torch.nn import Module
 import torch
 
 # Import Deeplodocus modules
@@ -12,6 +11,7 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.core.metrics.generic_metric import GenericMetric
 
 Num = Union[int, float]
+
 
 class Loss(GenericMetric):
     """
@@ -23,12 +23,37 @@ class Loss(GenericMetric):
     DESCRIPTION:
     ------------
 
-    Loss class which stores, analyses
+    Loss class which stores, analyses a loss function
 
     """
 
-    def __init__(self, name:str, loss:Module, weight:Num=1.0, write_logs:bool = True):
-        super().__init__(name=name, method=loss, write_logs=write_logs)
+    def __init__(self, name:str, loss: torch.nn.Module, weight: Num=1.0):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Initialize a Loss instance.
+        Check if it is a custom loss
+        Check the arguments the forward method contains
+
+        PARAMETERS:
+        -----------
+
+        :param name(str): The name of the loss function
+        :param loss(torch.nn.Module): The loss callable
+        :param weight(float): The weight of the loss in the total loss function
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        super().__init__(name=name, method=loss)
         self.is_custom = self.check_custom(loss)
         self.weight = weight
         self.arguments = self.__check_arguments(loss.forward) # loss.forward will be called automatically, but keep loss as function to call

@@ -1,9 +1,5 @@
-import inspect
 from typing import Union
 from torch.nn import Module
-
-from deeplodocus.utils.flags import *
-from deeplodocus.utils.notification import Notification
 
 Num = Union[int, float]
 
@@ -20,7 +16,7 @@ class GenericMetric(object):
     Generic class for Metric and Loss
     """
 
-    def __init__(self, name: str, method:Union[callable, Module], write_logs: bool = True):
+    def __init__(self, name: str, method:Union[callable, Module]):
         """
         AUTHORS:
         --------
@@ -37,7 +33,6 @@ class GenericMetric(object):
 
         :param name->str:
         :param method->Union[callable, Module]: Either a method for a Metric or a torch.nn.Module for a Metric or a Loss
-        :param write_logs->bool: Whether ro write the logs or not
 
         RETURN:
         -------
@@ -45,7 +40,6 @@ class GenericMetric(object):
         :return:None
         """
         self.name = name
-        self.write_logs = write_logs
         self.method = method
         self.arguments = []
 

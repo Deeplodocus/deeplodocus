@@ -350,7 +350,8 @@ class Notification(object):
         """
         return self.response
 
-    def __add_log(self, message: str) -> None:
+    @staticmethod
+    def __add_log(message: str) -> None:
         """
         AUTHORS:
         --------
