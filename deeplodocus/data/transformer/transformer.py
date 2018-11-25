@@ -1,16 +1,15 @@
 import cv2
 import numpy as np
 import random
-from typing import Union
-import pkgutil
 
 import __main__
 
-import deeplodocus.data.transforms as tfm
-from deeplodocus.utils.namespace import Namespace
+from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
-from deeplodocus.utils import get_main_path
+from deeplodocus.utils.namespace import Namespace
+from deeplodocus.utils.dict_utils import get_kwargs
+from deeplodocus.utils.dict_utils import check_kwargs
 
 
 class Transformer(object):
@@ -54,8 +53,16 @@ class Transformer(object):
         self.last_index = None
         self.pointer_to_transformer = None
         self.last_transforms = []
+
+        # List of transforms
         self.list_transforms = []
-        self.__fill_transform_list(config.transforms)
+        self.list_mandatory_transforms = []
+
+        if config.check("mandatory_transforms", None):
+            self.list_mandatory_transforms = self.__fill_transform_list(config.mandatory_transforms)
+
+        if config.check("transforms", None):
+            self.list_transforms = self.__fill_transform_list(config.transforms)
 
     def summary(self):
         """
@@ -82,8 +89,15 @@ class Transformer(object):
 
         Notification(DEEP_NOTIF_INFO, "Transformer '" + str(self.name) + "' summary :")
 
-        for t in self.list_transforms:
-            Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t[0]) + " , Args : " + str(t[2]) + ", Method : " + str(t[1]))
+        if len(self.list_mandatory_transforms) > 0:
+            Notification(DEEP_NOTIF_INFO, " Mandatory transforms :")
+            for t in self.list_mandatory_transforms:
+                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t[0]) + " , Args : " + str(t[2]) + ", Method : " + str(t[1]))
+
+        if len(self.list_transforms) > 0:
+            Notification(DEEP_NOTIF_INFO, " Transforms :")
+            for t in self.list_transforms:
+                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t[0]) + " , Args : " + str(t[2]) + ", Method : " + str(t[1]))
 
     def get_pointer(self):
         """
@@ -135,7 +149,7 @@ class Transformer(object):
         self.last_index = None
         self.last_transforms = []
 
-    def __fill_transform_list(self, transforms):
+    def __fill_transform_list(self, config_transforms: Namespace):
         """
         AUTHORS:
         --------
@@ -157,65 +171,14 @@ class Transformer(object):
 
         :return: None
         """
+        list_transforms = []
 
-        for i, transform in enumerate(transforms):
-            key = list(transform.keys())[0]
-            values = list(transform.values())[0]
+        for key, value in config_transforms.get().items():
+            list_transforms.append([key,
+                                    get_module(value, modules=DEEP_MODULE_TRANSFORMS),
+                                    check_kwargs(get_kwargs(value.get()))])
+        return list_transforms
 
-            self.list_transforms.append([key, self.__get_transform(key), values])
-
-    def __get_transform(self, transform_name: str)->callable:
-        """
-        AUTHORS:
-        --------
-
-        author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Get the transform method of an existing default one
-
-        PARAMETERS:
-        -----------
-
-        :param transform-> str: A transform name
-
-        RETURN:
-        -------
-
-        :return->callable: A callable method of the Transformer class
-        """
-
-        local = {"transform": None}
-
-        # Get the transform method among the default ones
-        for importer, modname, ispkg in pkgutil.walk_packages(path=tfm.__path__,
-                                                              prefix=tfm.__name__ + '.',
-                                                              onerror=lambda x: None):
-            try:
-                exec("from {0} import {1} \ntransform= {2}".format(modname, transform_name, transform_name), {}, local)
-                break
-            except:
-                pass
-
-        # Get the transform method among the custom ones
-        if local["transform"] is None:
-            for importer, modname, ispkg in pkgutil.walk_packages(path=[get_main_path() + "/modules/transforms"],
-                                                                  prefix = "modules.transforms.",
-                                                                  onerror=lambda x: None):
-                try:
-                    exec("from {0} import {1} \ntransform= {2}".format(modname, transform_name, transform_name), {}, local)
-                    break
-                except:
-                    pass
-
-        # If neither a standard not a custom transform is loaded
-        if local["transform"] is None:
-            Notification(DEEP_NOTIF_FATAL, "The following transform could not be loaded neither from the standard transforms nor from the custom ones : " + str(transform_name))
-
-        return local["transform"]
-        #return getattr(self, transform_name)
 
 
 
@@ -229,8 +192,44 @@ class Transformer(object):
         """
         pass # Will be overridden
 
+    def apply_transforms(self, transformed_data, transforms):
+        """
+        AUTHORS:
+        --------
 
+        :author: Alix Leroy
 
+        DESCRIPTION:
+        ------------
+
+        Apply the list of transforms to the data
+
+        PARAMETERS:
+        -----------
+
+        :param transformed_data:
+        :param transforms:
+
+        RETURN:
+        -------
+
+        :return transformed_data: The transformed data
+        """
+
+        # Apply the transforms
+        for transform in transforms:
+
+            transform_name = transform[0]
+            transform_method = transform[1]  # Create a generic alias for the transform method
+            transform_args = transform[2]  # Dictionary of arguments
+            transformed_data, last_method_used = transform_method(transformed_data, **transform_args)       # Apply the transform
+
+            # Update the last transforms used and the last index
+            if last_method_used is None:
+                self.last_transforms.append([transform_name, transform_method, transform_args])
+
+            else:
+                self.last_transforms.append(last_method_used)
 
     def __transform_image(self, image, key):
 

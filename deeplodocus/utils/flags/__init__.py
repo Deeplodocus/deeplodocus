@@ -12,6 +12,7 @@ from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.ui import *
 from deeplodocus.utils.flags.backend import *
+from deeplodocus.utils.flags.module import *
 
 #
 # MODEL SAVING CONDITION
