@@ -1,11 +1,10 @@
-from torch.utils.data import DataLoader
 from torch.nn import Module
 from torch import Tensor
 
 from deeplodocus.data.dataset import Dataset
+from deeplodocus.core.inference.generic_inferer import GenericInferer
 
-
-class Predictor(object):
+class Predictor(GenericInferer):
     """
     AUTHORS:
     --------
@@ -27,13 +26,13 @@ class Predictor(object):
                  num_workers: int = 4,
                  verbose: int=2):
 
+        super().__init__(model=model,
+                         dataset=dataset,
+                         batch_size=batch_size,
+                         num_workers=num_workers)
 
-        self.model = model
         self.verbose = verbose
-        self.dataloader = DataLoader(dataset=dataset,
-                                          batch_size=batch_size,
-                                          shuffle=False,
-                                          num_workers=num_workers)
+
 
     def predict(self):
         """
@@ -61,10 +60,10 @@ class Predictor(object):
         # Initialise an empty tensor to store outputs
         outputs = Tensor()
         for minibatch_index, minibatch in enumerate(self.dataloader, 0):
-            inputs, labels, additional_data = self.__clean_single_element_list(minibatch)
+            inputs, labels, additional_data = self.clean_single_element_list(minibatch)
             # Infer the outputs from the model over the given mini batch
             minibatch_output = self.model(*inputs)
             # Append mini_batch output to the output tensor
-            outputs.cat(minibatch_output)
+            outputs.cat(minibatch_output.detach())
         return outputs
 

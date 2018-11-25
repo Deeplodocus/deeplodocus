@@ -2,15 +2,11 @@
 # COMMON IMPORTS
 #
 
-
-import os
-import __main__
-
 #
 # BACKEND IMPORTS
 #
 from torch.nn import Module
-
+from torch import Tensor
 #
 # DEEPLODOCUS IMPORTS
 #
@@ -22,7 +18,6 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.dict_utils import apply_weight
 from deeplodocus.utils.dict_utils import sum_dict
 from deeplodocus.utils.flags import *
-from deeplodocus.utils.generic_utils import is_string_an_integer
 from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 
@@ -157,7 +152,7 @@ class Trainer(GenericEvaluator):
 
         for epoch in range(self.initial_epoch+1, self.num_epochs+1):  # loop over the dataset multiple times
             self.callbacks.on_epoch_start(epoch_index=epoch, num_epochs=self.num_epochs)
-            for minibatch_index, minibatch in enumerate(self.dataloader):
+            for minibatch_index, minibatch in enumerate(self.dataloader, 0):
 
                 # Clean the given data
                 inputs, labels, additional_data = self.clean_single_element_list(minibatch)
@@ -174,7 +169,7 @@ class Trainer(GenericEvaluator):
 
                 # Add weights to losses
                 result_losses = apply_weight(result_losses, self.losses)
-
+                # TODO : total_loss.detach()
                 # Sum all the result of the losses
                 total_loss = sum_dict(result_losses)
 
@@ -183,6 +178,10 @@ class Trainer(GenericEvaluator):
 
                 # Performs a parameter update based on the current gradient (stored in .grad attribute of a parameter) and the update rule
                 self.optimizer.step()
+
+                total_loss, result_losses, result_metrics = self.detach(total_loss=total_loss,
+                                                                        result_losses=result_losses,
+                                                                        result_metrics=result_metrics)
 
                 # Mini batch callback
                 self.callbacks.on_batch_end(minibatch_index=minibatch_index+1,
@@ -215,6 +214,45 @@ class Trainer(GenericEvaluator):
         self.callbacks.on_training_end(model=self.model)
         # Pause callbacks which compute time
         self.callbacks.pause()
+
+    def detach(self, total_loss, result_losses, result_metrics):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Detach the tensors from the graph
+
+        PARAMETERS:
+        -----------
+
+        :param total_loss:
+        :param result_losses:
+        :param result_metrics:
+
+        RETURN:
+        -------
+
+        :return total_loss:
+        :return result_losses:
+        :return result_metrics:
+        """
+
+        total_loss = total_loss.detach()
+
+        for key, value in result_losses.items():
+            result_losses[key] = value.detach()
+
+        for key, value in result_metrics.items():
+            if isinstance(value, Tensor):
+                result_metrics[key] = value.detach()
+
+        return total_loss, result_losses, result_metrics
+
 
     def __continue_training(self):
         """
@@ -285,7 +323,7 @@ class Trainer(GenericEvaluator):
         result_losses = None
         result_metrics = None
         if self.tester is not None:
-            total_validation_loss, result_losses, result_metrics = self.tester.evaluate()
+            total_validation_loss, result_losses, result_metrics = self.tester.evaluate(model=self.model)
         return total_validation_loss, result_losses, result_metrics
 
     def __compute_num_minibatches(self):

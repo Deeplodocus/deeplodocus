@@ -168,28 +168,25 @@ class History(object):
                                          for (loss_name, value) in result_losses.items()]
                                       + ["%s :%f " % (metric_name, value)
                                          for (metric_name, value) in result_metrics.items()])
-            Notification(DEEP_NOTIF_RESULT, "[%i/%i] : %s" % (minibatch_index, num_minibatches, print_metrics)).get()
+            Notification(DEEP_NOTIF_RESULT, "[%i/%i] : %s" % (minibatch_index, num_minibatches, print_metrics))
 
         # Save the data in memory
         if self.memorize == DEEP_MEMORIZE_BATCHES:
             # Save the history in memory
-            data = dict([(WALL_TIME, datetime.datetime.now().strftime(TIME_FORMAT)),
-                         (RELATIVE_TIME, self.__time()),
-                         (EPOCH, epoch_index),
-                         (BATCH, minibatch_index)] +
-                        [(TOTAL_LOSS, total_loss)] +
-                        [(loss_name, value.item()) for (loss_name, value) in result_losses.items()] +
-                        [(metric_name, value) for (metric_name, value) in result_metrics.items()])
+            data = [datetime.datetime.now().strftime(TIME_FORMAT),
+                    self.__time(),
+                    epoch_index,
+                    minibatch_index,
+                    total_loss] + \
+                    [value.item() for (loss_name, value) in result_losses.items()] + \
+                    [value for (metric_name, value) in result_metrics.items()]
 
-            self.train_batches_history = self.train_batches_history.append(data, ignore_index=True)
             self.train_batches_history_temp_list.put(data)
 
-
-
         # Save the history
-        # Not available for a batch
-        # Please do not uncomment
-        # self.save()
+        if self.train_batches_history_temp_list.qsize() > 10:
+            print(self.train_batches_history_temp_list.qsize())
+            self.save(only_batches=True)
 
     def on_epoch_end(self,
                      epoch_index: int,
@@ -238,15 +235,12 @@ class History(object):
             Notification(DEEP_NOTIF_RESULT, "%s : %s" % (TRAINING, print_metrics))
             
             if self.memorize >= DEEP_MEMORIZE_BATCHES:
-              data = dict([(WALL_TIME, datetime.datetime.now().strftime(TIME_FORMAT)),
-                           (RELATIVE_TIME, self.__time()),
-                          (EPOCH, epoch_index)] +
-                          [(TOTAL_LOSS, self.running_total_loss / num_minibatches)] +
-                          [(loss_name, value.item() / num_minibatches) for (loss_name, value) in
-                           self.running_losses.items()] +
-                          [(metric_name, value / num_minibatches) for (metric_name, value) in
-                           self.running_metrics.items()])
-            self.train_epochs_history = self.train_epochs_history.append(data, ignore_index=True)
+              data = [datetime.datetime.now().strftime(TIME_FORMAT),
+                      self.__time(),
+                      epoch_index,
+                      self.running_total_loss / num_minibatches] + \
+                     [value.item() / num_minibatches for (loss_name, value) in self.running_losses.items()] + \
+                     [value  / num_minibatches for (metric_name, value) in self.running_metrics.items()]
             self.train_epochs_history_temp_list.put(data)
 
 
@@ -267,14 +261,13 @@ class History(object):
                 Notification(DEEP_NOTIF_RESULT, "%s: %s" % (VALIDATION, print_metrics))
 
             if self.memorize >= DEEP_MEMORIZE_BATCHES:
-                data = dict([(WALL_TIME, datetime.datetime.now().strftime(TIME_FORMAT)),
-                             (RELATIVE_TIME, self.__time()),
-                             (EPOCH, epoch_index)] +
-                             [(TOTAL_LOSS, total_validation_loss / num_minibatches_validation)] +
-                            [(loss_name, value.item() / num_minibatches_validation) for (loss_name, value) in result_validation_losses.items()] +
-                            [(metric_name, value / num_minibatches_validation) for (metric_name, value) in result_validation_metrics.items()])
+                data = [datetime.datetime.now().strftime(TIME_FORMAT),
+                        self.__time(),
+                        epoch_index,
+                        total_validation_loss / num_minibatches_validation] + \
+                       [value.item() / num_minibatches_validation for (loss_name, value) in result_validation_losses.items()] + \
+                       [value / num_minibatches_validation for (metric_name, value) in result_validation_metrics.items()]
 
-                self.validation_history = self.validation_history.append(data, ignore_index=True)
                 self.validation_history_temp_list.put(data)
 
         self.__compute_overwatch_metric(num_minibatches_training = num_minibatches,
@@ -287,12 +280,6 @@ class History(object):
         Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs))
 
         self.save()
-
-        #
-        # TO BE REMOVE IN THE NEXT VERSION
-        #
-        if self.__do_saving():
-            self.__save_history()
 
     def on_training_end(self):
         """
@@ -316,55 +303,27 @@ class History(object):
 
         :return: None
         """
-        #
-        # TO BE REMOVED IN THE NEXT VERSION
-        #
-        self.__save_history()
-
-
         Notification(DEEP_NOTIF_SUCCESS, HISTORY_SAVED % self.log_dir)
 
-    def save(self):
+    def save(self, only_batches=False):
         train_batch_history = ""
         train_epochs_history = ""
         validation_history = ""
 
         for i in range(self.train_batches_history_temp_list.qsize()):
-            train_batch_history =  train_batch_history + ",".join(str(value) for (item, value) in self.train_batches_history_temp_list.get().items()) + "\n"
-
-        for i in range(self.train_epochs_history_temp_list.qsize()):
-            train_epochs_history =  train_epochs_history + ",".join(str(value) for (item, value) in self.train_epochs_history_temp_list.get().items()) + "\n"
-
-        for i in range(self.validation_history_temp_list.qsize()):
-            validation_history =  validation_history + ",".join(str(value) for (item, value) in self.validation_history_temp_list.get().items()) + "\n"
-
+            train_batch_history =  train_batch_history + ",".join(str(value) for value in self.train_batches_history_temp_list.get()) + "\n"
         self.__add_logs("history_train_batches", self.log_dir, DEEP_EXT_CSV, train_batch_history)
-        self.__add_logs("history_train_epochs", self.log_dir, DEEP_EXT_CSV, train_epochs_history)
-        self.__add_logs("history_validation", self.log_dir, DEEP_EXT_CSV, validation_history)
 
-    #
-    # TO BE REMOVED IN THE NEXT VERSION
-    #
-    def __do_saving(self):
-        pass
+        if only_batches is False:
+            for i in range(self.train_epochs_history_temp_list.qsize()):
+                train_epochs_history =  train_epochs_history + ",".join(str(value) for value in self.train_epochs_history_temp_list.get()) + "\n"
+            self.__add_logs("history_train_epochs", self.log_dir, DEEP_EXT_CSV, train_epochs_history)
 
-    def __save_history(self):
-        """
-        Authors: Alix Leroy
-        Save the history into a CSV file
-        :return: None
-        """
-        os.makedirs(self.log_dir, exist_ok=True)
-        # Save train batches history
-        if self.memorize >= DEEP_MEMORIZE_BATCHES:
-            self.train_batches_history.to_csv(self.__get_path(self.train_batches_filename),
-                                              header=True, index=True, encoding='utf-8')
-        # Save train epochs history
-        self.train_epochs_history.to_csv(self.__get_path(self.train_epochs_filename),
-                                         header=True, index=True, encoding='utf-8')
-        # Save validation history
-        self.validation_history.to_csv(self.__get_path(self.validation_filename),
-                                       header=True, index=True, encoding='utf-8')
+            for i in range(self.validation_history_temp_list.qsize()):
+                validation_history =  validation_history + ",".join(str(value) for  value in self.validation_history_temp_list.get()) + "\n"
+            self.__add_logs("history_validation", self.log_dir, DEEP_EXT_CSV, validation_history)
+
+
 
     def __load_histories(self):
         """
@@ -398,7 +357,6 @@ class History(object):
         # Load Validation history
         if os.path.isfile(self.__get_path(self.validation_filename)):
             self.validation_history = pd.read_csv(self.__get_path(self.validation_filename))
-        # TODO: Load test history
 
     def __get_path(self, file_name):
         """
@@ -484,8 +442,8 @@ class History(object):
         """
         self.paused = True
 
-
-    def __add_logs(self, log_type: str, log_folder: str, log_extension: str, message: str)->None:
+    @staticmethod
+    def __add_logs(log_type: str, log_folder: str, log_extension: str, message: str)->None:
         """
         AUTHORS:
         --------
@@ -510,8 +468,8 @@ class History(object):
 
         :return: None
         """
-        l = Logs(log_type, log_folder, log_extension)
-        l.add(message)
+        Logs(log_type, log_folder, log_extension).add(message)
+
 
     def __compute_overwatch_metric(self, num_minibatches_training,
                                         running_total_loss,
@@ -521,7 +479,7 @@ class History(object):
                                         result_validation_losses,
                                         result_validation_metrics)->None:
 
-        # If the validaiton loss is None (No validation) we take the metric from the training as overwatch metric
+        # If the validation loss is None (No validation) we take the metric from the training as overwatch metric
         if total_validation_loss is None:
             data = dict([(TOTAL_LOSS, running_total_loss / num_minibatches_training)] +
                         [(loss_name, value.item() / num_minibatches_training) for (loss_name, value) in running_losses.items()] +

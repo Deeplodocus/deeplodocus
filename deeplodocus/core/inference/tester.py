@@ -61,8 +61,8 @@ class Tester(GenericEvaluator):
         :param model->torch.nn.Module: The model which has to be trained
         :param dataset->Dataset: The dataset to be trained on
         :param metrics->dict: The metrics to analyze
-        :param losses->dict: The losses to use for the backpropagation
-        :param batch_size->int: Size a minibatch
+        :param losses->dict: The losses to use for the back-propagation
+        :param batch_size->int: Size a mini-batch
         :param num_workers->int: Number of processes / threads to use for data loading
         :param verbose->int: DEEP_VERBOSE flag, How verbose the Trainer is
 
@@ -82,7 +82,7 @@ class Tester(GenericEvaluator):
                          verbose=verbose)
 
 
-    def evaluate(self):
+    def evaluate(self, model):
         """
         AUTHORS:
         --------
@@ -93,7 +93,7 @@ class Tester(GenericEvaluator):
         DESCRIPTION:
         ------------
 
-        Initialize a Tester instance
+        Evaluate the model on the full dataset
 
         PARAMETERS:
         -----------
@@ -126,7 +126,10 @@ class Tester(GenericEvaluator):
             inputs, labels, additional_data = self.clean_single_element_list(minibatch)
 
             # Infer the outputs from the model over the given mini batch
-            outputs = self.model(*inputs)
+            outputs = model(*inputs)
+
+            # Detach the tensor from the graph (avoid leaking memory)
+            outputs = outputs.detach()
 
             # Compute the losses and metrics
             batch_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)

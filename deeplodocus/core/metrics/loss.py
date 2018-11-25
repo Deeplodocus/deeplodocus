@@ -3,7 +3,6 @@ import inspect
 from typing import Union
 
 # Import back-end modules
-from torch.nn import Module
 import torch
 
 # Import Deeplodocus modules
@@ -12,6 +11,7 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.core.metrics.generic_metric import GenericMetric
 
 Num = Union[int, float]
+
 
 class Loss(GenericMetric):
     """
@@ -23,11 +23,11 @@ class Loss(GenericMetric):
     DESCRIPTION:
     ------------
 
-    Loss class which stores, analyses
+    Loss class which stores, analyses a loss function
 
     """
 
-    def __init__(self, name:str, loss:Module, weight:Num=1.0):
+    def __init__(self, name:str, loss: torch.nn.Module, weight: Num=1.0):
         """
         AUTHORS:
         --------
