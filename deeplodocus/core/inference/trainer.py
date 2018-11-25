@@ -326,8 +326,5 @@ class Trainer(GenericEvaluator):
             total_validation_loss, result_losses, result_metrics = self.tester.evaluate(model=self.model)
         return total_validation_loss, result_losses, result_metrics
 
-    def __compute_num_minibatches(self):
-
-        pass
 
 
