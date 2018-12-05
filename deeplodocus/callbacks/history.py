@@ -11,6 +11,9 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.dict_utils import merge_sum_dict
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.utils.logs import Logs
+from deeplodocus.utils.flags.event import *
+
+from deeplodocus.brain.signal import Signal
 Num = Union[int, float]
 
 
@@ -68,7 +71,6 @@ class History(object):
         train_epochs_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys())) + "\n"
         validation_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys())) + "\n"
 
-        print("test")
         self.__add_logs("history_train_batches", log_dir, ".csv", train_batches_headers)
         self.__add_logs("history_train_epochs", log_dir, ".csv", train_epochs_headers)
         self.__add_logs("history_validation", log_dir, ".csv", validation_headers)
@@ -187,6 +189,9 @@ class History(object):
         if self.train_batches_history_temp_list.qsize() > 10:
             print(self.train_batches_history_temp_list.qsize())
             self.save(only_batches=True)
+
+        global brain
+        brain.add_signal(Signal(DEEP_EVENT_ON_BATCH_END))
 
     def on_epoch_end(self,
                      epoch_index: int,

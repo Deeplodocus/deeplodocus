@@ -3,7 +3,6 @@ from multiprocessing import Process
 import sys
 import pathlib
 
-
 # Web server Modules
 from aiohttp import web
 import aiohttp_jinja2
@@ -11,12 +10,12 @@ import jinja2
 
 # Deeplodocus modules
 from deeplodocus.utils.notification import Notification
-from deeplodocus.ui.routes import Routes
+from deeplodocus.brain.visual_cortex.routes import Routes
 from deeplodocus.utils.flags import *
-from deeplodocus.ui.middlewares import setup_middlewares
+from deeplodocus.brain.visual_cortex.middlewares import setup_middlewares
 
 
-class UserInterface(object):
+class VisualCortex(object):
     """
     AUTHORS:
     --------
@@ -44,10 +43,10 @@ class UserInterface(object):
 
         # Create the web server in a second process
         self.process = Process(target=self.__run, args=())
-
-        self.process.daemon = True # Allow to kill the child with the parent
+        self.process.daemon = True  # Allow to kill the child with the parent
         self.process.start()
-        #self.process.join()
+        # self.process.join()
+
 
     def __run(self):
         """
@@ -71,18 +70,21 @@ class UserInterface(object):
 
         :return: None
         """
-        USER_INTERFACE_ROOT = pathlib.Path(__file__).parent
 
-        Notification(DEEP_NOTIF_SUCCESS, "User Interface created")
-
+        VISUAL_CORTEX_ROOT = pathlib.Path(__file__).parent
+        host = "0.0.0.0"
+        port = 8080
+        Notification(DEEP_NOTIF_SUCCESS, "Brain : Visual Cortex running on : http://%s:%i" %(host, port))
         app = web.Application()                                                                     # Start the web application
-        aiohttp_jinja2.setup(app, loader = jinja2.PackageLoader('deeplodocus', 'ui/templates'))     # Load the templates
-        Routes().setup_routes(app=app, project_root=USER_INTERFACE_ROOT)                            # Define the routes
-        setup_middlewares(app)
-        web.run_app(app)                                                                            # Run the app
+        aiohttp_jinja2.setup(app, loader = jinja2.PackageLoader('deeplodocus', 'brain/visual_cortex/templates'))     # Load the templates
+        Routes().setup_routes(app=app, project_root=VISUAL_CORTEX_ROOT)                            # Define the routes
+        setup_middlewares(app)                                                                      # Define the middlewares
 
-        Notification(DEEP_NOTIF_SUCCESS, "User interface closed successfully")
+        web.run_app(app=app, print=None, host=host, port=port)                                      # Run the app
+
+        Notification(DEEP_NOTIF_SUCCESS, "Visual Cortex sleeping.")
         sys.exit(0)  # kill the child process
+
 
 
     def stop(self):
@@ -108,6 +110,7 @@ class UserInterface(object):
         :return: None
         """
         self.process.terminate() # Terminate the process
+
 
 
 

@@ -230,6 +230,7 @@ class Transformer(object):
 
             else:
                 self.last_transforms.append(last_method_used)
+        print(transformed_data)
         return transformed_data
 
     def __transform_image(self, image, key):
