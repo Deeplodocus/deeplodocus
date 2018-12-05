@@ -47,7 +47,6 @@ class VisualCortex(object):
         self.process.start()
         # self.process.join()
 
-
     def __run(self):
         """
         AUTHORS:
@@ -84,8 +83,6 @@ class VisualCortex(object):
 
         Notification(DEEP_NOTIF_SUCCESS, "Visual Cortex sleeping.")
         sys.exit(0)  # kill the child process
-
-
 
     def stop(self):
         """
