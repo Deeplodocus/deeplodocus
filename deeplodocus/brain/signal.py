@@ -36,6 +36,9 @@ class Signal(object):
         self.arguments = args
 
     def get_event(self):
+        """
+        :return:
+        """
         return self.event
 
     def get_arguments(self):
