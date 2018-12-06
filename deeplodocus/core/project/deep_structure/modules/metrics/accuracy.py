@@ -1,7 +1,7 @@
 import numpy as np
 import torch
-def accuracy(out, labels):
 
+def accuracy(out, labels):
   out = out.detach().numpy()
   labels = labels.detach().numpy()
   outputs = np.argmax(out, axis=1)

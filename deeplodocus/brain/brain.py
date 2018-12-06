@@ -1,17 +1,18 @@
 import os
 import time
+import __main__
 
 from deeplodocus import __version__
 from deeplodocus.brain.frontal_lobe import FrontalLobe
-from deeplodocus.ui.user_interface import UserInterface
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.end import End
 from deeplodocus.utils.logs import Logs
-import __main__
-
+from deeplodocus.brain.visual_cortex import VisualCortex
+from deeplodocus.brain.thalamus import Thalamus
+from deeplodocus.brain.signal import Signal
 
 class Brain(FrontalLobe):
     """
@@ -49,17 +50,19 @@ class Brain(FrontalLobe):
 
         :return: None
         """
-        FrontalLobe.__init__(self)
+        FrontalLobe.__init__(self)  # Model Manager
         self.close_logs(force=True)
         self.config_dir = config_dir
         self.config_is_complete = False
         Logo(version=__version__)
-        self.user_interface = None
+        self.visual_cortex = None
         time.sleep(0.5)                     # Wait for the UI to respond
         self.frontal_lobe = None
         self.config = None
         self._config = None
         self.load_config()
+        Thalamus()                  # Initialize the Thalamus
+
 
     def wake(self):
         """
@@ -68,9 +71,11 @@ class Brain(FrontalLobe):
         :return: None
         """
         self.__on_wake()
+
         while True:
             command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
             self.__execute_command(command)
+
 
     def sleep(self):
         """
@@ -78,8 +83,10 @@ class Brain(FrontalLobe):
         Stop the interface, close logs and print good-bye message
         :return: None
         """
-        if self.user_interface is not None:
-            self.user_interface.stop()
+        # Stop the visual cortex
+        if self.visual_cortex is not None:
+            self.visual_cortex.stop()
+
         self.close_logs()
         End(error=False)
 
@@ -183,7 +190,8 @@ class Brain(FrontalLobe):
     def ui(self):
         """
         AUTHORS:
-        --------
+        --------AttributeError: module 'asyncio' has no attribute 'create_task'
+
 
         :author: Alix Leroy
 
@@ -192,7 +200,9 @@ class Brain(FrontalLobe):
 
         Start the User Interface
 
-        PARAMETERS:
+        PARAMETERS:AttributeError: module 'asyncio' has no attribute 'create_tasAttributeError: module 'asyncio' has no attribute 'create_task'
+k'
+
         -----------
 
         None
@@ -202,10 +212,11 @@ class Brain(FrontalLobe):
 
         :return: None
         """
-        if self.user_interface is None:
-            self.user_interface = UserInterface()
+
+        if self.visual_cortex is None:
+             self.visual_cortex = VisualCortex()
         else:
-            Notification(DEEP_NOTIF_ERROR, "The User Interface is already running.")
+            Notification(DEEP_NOTIF_ERROR, "The Visual Cortex is already running.")
 
     def stop_ui(self):
         """
@@ -230,10 +241,11 @@ class Brain(FrontalLobe):
         :return: None
         """
 
-        if self.user_interface is not None:
-            self.user_interface.stop()
+        if self.visual_cortex is not None:
+            self.visual_cortex.stop()
+            self.visual_cortex = None
         else:
-            Notification(DEEP_NOTIF_ERROR, "The User Interface is not currently running.")
+            Notification(DEEP_NOTIF_ERROR, "The Visual Cortex is already asleep.")
 
     def __on_wake(self):
         """
@@ -355,6 +367,16 @@ class Brain(FrontalLobe):
                     flags[i] = None
         return commands, flags
 
+    #
+    # ALIASES
+    #
+
+    visual_cortex = ui
+    vc = ui
+    user_interface = ui
+
+
+brain = None
 
 if __name__ == "__main__":
     import argparse
@@ -369,3 +391,6 @@ if __name__ == "__main__":
                         help="Path to the config directory")
     arguments = parser.parse_args()
     main(arguments)
+
+
+

@@ -1,9 +1,8 @@
 import aiohttp
 from aiohttp import web
 
-from deeplodocus.ui.views import index, test
+from deeplodocus.brain.visual_cortex.views import index, test
 from deeplodocus.utils.flags import *
-import deeplodocus.ui as ui
 
 class Routes(object):
 

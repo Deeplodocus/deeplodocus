@@ -84,6 +84,9 @@ class SomeOf(Transformer):
             transforms = self.last_transforms
 
         else:
+            # Add the mandatory transforms
+            transforms += self.list_mandatory_transforms
+
             if self.number_transformation is not None:
                 number_transforms_applied = self.number_transformation
             else:
@@ -97,27 +100,14 @@ class SomeOf(Transformer):
         # Reinitialize the last transforms
         self.last_transforms = []
 
-
         # Apply the transforms
-        for transform in transforms:
-
-            transform_name = transform[0]
-            transform_method = transform[1]  # Create a generic alias for the transform method
-            transform_args = transform[2]  # Dictionary of arguments
-            transformed_data, last_method_used = transform_method(transformed_data, **transform_args)       # Apply the transform
-
-            # Update the last transforms used and the last index
-            if last_method_used is None:
-                self.last_transforms.append([transform_name, transform_method, transform_args])
-
-            else:
-                self.last_transforms.append(last_method_used)
+        transformed_data = self.apply_transforms(transformed_data, transforms)
 
         # Update the last index
         self.last_index = index
-
-
         return transformed_data
+
+
 
 
 

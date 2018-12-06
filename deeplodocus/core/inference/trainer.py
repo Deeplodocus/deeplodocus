@@ -20,9 +20,21 @@ from deeplodocus.utils.dict_utils import sum_dict
 from deeplodocus.utils.flags import *
 from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
+from deeplodocus.brain.thalamus import Thalamus
+from deeplodocus.brain.signal import Signal
 
 class Trainer(GenericEvaluator):
+    """
+    AUTHORS:
+    --------
 
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Trainer instance to train a model
+    """
     def __init__(self,
                  model: Module,
                  dataset: Dataset,
@@ -114,8 +126,25 @@ class Trainer(GenericEvaluator):
 
     def fit(self, first_training: bool = True)->None:
         """
-        :param first_training:
-        :return:
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Fit the model to the dataset
+
+        PARAMETERS:
+        -----------
+
+        :param first_training(bool, optional): Whether it is the first training on the model or not
+
+        RETURN:
+        -------
+
+        :return: None
         """
         self.__train(first_training=first_training)
         Notification(DEEP_NOTIF_SUCCESS, FINISHED_TRAINING)
@@ -169,7 +198,7 @@ class Trainer(GenericEvaluator):
 
                 # Add weights to losses
                 result_losses = apply_weight(result_losses, self.losses)
-                # TODO : total_loss.detach()
+
                 # Sum all the result of the losses
                 total_loss = sum_dict(result_losses)
 
@@ -179,9 +208,10 @@ class Trainer(GenericEvaluator):
                 # Performs a parameter update based on the current gradient (stored in .grad attribute of a parameter) and the update rule
                 self.optimizer.step()
 
-                total_loss, result_losses, result_metrics = self.detach(total_loss=total_loss,
-                                                                        result_losses=result_losses,
-                                                                        result_metrics=result_metrics)
+                outputs, total_loss, result_losses, result_metrics = self.detach(outputs=outputs,
+                                                                                 total_loss=total_loss,
+                                                                                 result_losses=result_losses,
+                                                                                 result_metrics=result_metrics)
 
                 # Mini batch callback
                 self.callbacks.on_batch_end(minibatch_index=minibatch_index+1,
@@ -190,6 +220,16 @@ class Trainer(GenericEvaluator):
                                             total_loss=total_loss.item(),
                                             result_losses=result_losses,
                                             result_metrics=result_metrics)
+
+                # Send signal batch end
+                Thalamus().add_signal(Signal(event= DEEP_EVENT_ON_BATCH_END,
+                                             args={"minibatch_index" : minibatch_index+1,
+                                                   "num_minibatches" : self.num_minibatches,
+                                                   "epoch_index" : epoch,
+                                                   "total_loss" : total_loss.item(),
+                                                   "result_losses" : result_losses,
+                                                   "result_metrics" : result_metrics
+                                                   }))
 
             # Shuffle the data if required
             if self.shuffle is not None:
@@ -210,12 +250,30 @@ class Trainer(GenericEvaluator):
                                         result_validation_losses=result_validation_losses,
                                         result_validation_metrics=result_validation_metrics,
                                         num_minibatches_validation=self.tester.get_num_minibatches())
+
+            # Send signal epoch end
+            Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_BATCH_END,
+                                         args={"epoch_index": epoch,
+                                                "num_epochs" : self.num_epochs,
+                                                "model" : self.model,
+                                                "num_minibatches" : self.num_minibatches,
+                                                "total_validation_loss" : total_validation_loss.item(),
+                                                "result_validation_losses" : result_validation_losses,
+                                                "result_validation_metrics" : result_validation_metrics,
+                                                "num_minibatches_validation" : self.tester.get_num_minibatches()
+                                               }))
+
         # End of training callback
         self.callbacks.on_training_end(model=self.model)
+        # Send signal end training
+        Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_TRAINING_END,
+                                     args={"model" : self.model}))
+
         # Pause callbacks which compute time
         self.callbacks.pause()
 
-    def detach(self, total_loss, result_losses, result_metrics):
+
+    def detach(self, outputs, total_loss, result_losses, result_metrics):
         """
         AUTHORS:
         --------
@@ -230,6 +288,7 @@ class Trainer(GenericEvaluator):
         PARAMETERS:
         -----------
 
+        :param outputs:
         :param total_loss:
         :param result_losses:
         :param result_metrics:
@@ -237,21 +296,24 @@ class Trainer(GenericEvaluator):
         RETURN:
         -------
 
+        :return outputs:
         :return total_loss:
         :return result_losses:
         :return result_metrics:
         """
 
         total_loss = total_loss.detach()
+        outputs = outputs.detach()
 
         for key, value in result_losses.items():
             result_losses[key] = value.detach()
 
-        for key, value in result_metrics.items():
-            if isinstance(value, Tensor):
-                result_metrics[key] = value.detach()
+        # Tensors already detached in compute metrics for more efficiency
+        # for key, value in result_metrics.items():
+        #     if isinstance(value, Tensor):
+        #         result_metrics[key] = value.detach()
 
-        return total_loss, result_losses, result_metrics
+        return outputs, total_loss, result_losses, result_metrics
 
 
     def __continue_training(self):

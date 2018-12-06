@@ -46,7 +46,7 @@ class Callback(object):
         self.metrics = metrics
         self.losses = losses
         self.history_directory = history_directory
-        self.dave_directory = save_directory
+        self.save_directory = save_directory
         self.model_name = model_name
         self.verbose = verbose
         self.save_condition = save_condition

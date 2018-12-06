@@ -2,7 +2,7 @@ import pandas as pd
 import time
 import datetime
 from typing import Union
-from queue import Queue
+import multiprocessing.managers
 import copy
 import os
 
@@ -11,6 +11,10 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.dict_utils import merge_sum_dict
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.utils.logs import Logs
+from deeplodocus.utils.flags.event import *
+from deeplodocus.brain.thalamus import Thalamus
+from deeplodocus.brain.signal import Signal
+
 Num = Union[int, float]
 
 
@@ -52,23 +56,16 @@ class History(object):
         self.running_losses = {}
         self.running_metrics = {}
 
-        self.metrics = metrics
-        self.train_batches_history = pd.DataFrame(columns=[WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
-        self.train_epochs_history = pd.DataFrame(columns=[WALL_TIME, RELATIVE_TIME, EPOCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
-        self.validation_history = pd.DataFrame(columns=[WALL_TIME, RELATIVE_TIME, EPOCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
+        self.train_batches_history = multiprocessing.Manager().Queue()
+        self.train_epochs_history = multiprocessing.Manager().Queue()
+        self.validation_history = multiprocessing.Manager().Queue()
 
-        self.train_batches_history_temp_list = Queue()
-        self.train_epochs_history_temp_list = Queue()
-        self.validation_history_temp_list = Queue()
 
-        #
-        # TEST NEW HISTORY SYSTEM
-        #
+        # Add headers to history files
         train_batches_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys())) + "\n"
         train_epochs_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys())) + "\n"
         validation_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys())) + "\n"
 
-        print("test")
         self.__add_logs("history_train_batches", log_dir, ".csv", train_batches_headers)
         self.__add_logs("history_train_epochs", log_dir, ".csv", train_epochs_headers)
         self.__add_logs("history_validation", log_dir, ".csv", validation_headers)
@@ -84,6 +81,13 @@ class History(object):
 
         # Load histories
         self.__load_histories()
+
+
+        # Connect to signals
+        Thalamus().connect(receiver=self.on_batch_end, event=DEEP_EVENT_ON_BATCH_END)
+        Thalamus().connect(receiver=self.on_epoch_end, event=DEEP_EVENT_ON_EPOCH_END)
+        Thalamus().connect(receiver=self.on_train_begin, event=DEEP_EVENT_ON_TRAINING_STARTS)
+        Thalamus().connect(receiver=self.on_training_end, event=DEEP_EVENT_ON_TRAINING_END)
 
     def on_train_begin(self):
         """
@@ -181,12 +185,14 @@ class History(object):
                     [value.item() for (loss_name, value) in result_losses.items()] + \
                     [value for (metric_name, value) in result_metrics.items()]
 
-            self.train_batches_history_temp_list.put(data)
+            self.train_batches_history.put(data)
 
         # Save the history
-        if self.train_batches_history_temp_list.qsize() > 10:
-            print(self.train_batches_history_temp_list.qsize())
+        if self.train_batches_history.qsize() > 10:
+            print(self.train_batches_history.qsize())
             self.save(only_batches=True)
+
+
 
     def on_epoch_end(self,
                      epoch_index: int,
@@ -235,13 +241,13 @@ class History(object):
             Notification(DEEP_NOTIF_RESULT, "%s : %s" % (TRAINING, print_metrics))
             
             if self.memorize >= DEEP_MEMORIZE_BATCHES:
-              data = [datetime.datetime.now().strftime(TIME_FORMAT),
+                data = [datetime.datetime.now().strftime(TIME_FORMAT),
                       self.__time(),
                       epoch_index,
                       self.running_total_loss / num_minibatches] + \
                      [value.item() / num_minibatches for (loss_name, value) in self.running_losses.items()] + \
                      [value  / num_minibatches for (metric_name, value) in self.running_metrics.items()]
-            self.train_epochs_history_temp_list.put(data)
+                self.train_epochs_history.put(data)
 
 
         self.running_total_loss = 0
@@ -268,7 +274,7 @@ class History(object):
                        [value.item() / num_minibatches_validation for (loss_name, value) in result_validation_losses.items()] + \
                        [value / num_minibatches_validation for (metric_name, value) in result_validation_metrics.items()]
 
-                self.validation_history_temp_list.put(data)
+                self.validation_history.put(data)
 
         self.__compute_overwatch_metric(num_minibatches_training = num_minibatches,
                                         running_total_loss=self.running_total_loss,
@@ -310,17 +316,17 @@ class History(object):
         train_epochs_history = ""
         validation_history = ""
 
-        for i in range(self.train_batches_history_temp_list.qsize()):
-            train_batch_history =  train_batch_history + ",".join(str(value) for value in self.train_batches_history_temp_list.get()) + "\n"
+        for i in range(self.train_batches_history.qsize()):
+            train_batch_history =  train_batch_history + ",".join(str(value) for value in self.train_batches_history.get()) + "\n"
         self.__add_logs("history_train_batches", self.log_dir, DEEP_EXT_CSV, train_batch_history)
 
         if only_batches is False:
-            for i in range(self.train_epochs_history_temp_list.qsize()):
-                train_epochs_history =  train_epochs_history + ",".join(str(value) for value in self.train_epochs_history_temp_list.get()) + "\n"
+            for i in range(self.train_epochs_history.qsize()):
+                train_epochs_history =  train_epochs_history + ",".join(str(value) for value in self.train_epochs_history.get()) + "\n"
             self.__add_logs("history_train_epochs", self.log_dir, DEEP_EXT_CSV, train_epochs_history)
 
-            for i in range(self.validation_history_temp_list.qsize()):
-                validation_history =  validation_history + ",".join(str(value) for  value in self.validation_history_temp_list.get()) + "\n"
+            for i in range(self.validation_history.qsize()):
+                validation_history =  validation_history + ",".join(str(value) for  value in self.validation_history.get()) + "\n"
             self.__add_logs("history_validation", self.log_dir, DEEP_EXT_CSV, validation_history)
 
 
@@ -498,6 +504,9 @@ class History(object):
                 if key == self.overwatch_metric.get_name():
                     self.overwatch_metric.set_value(value)
                     break
+
+        Thalamus().add_signal(Signal(event=DEEP_EVENT_OVERWATCH_METRIC_COMPUTED,
+                                     args={"current_overwatch_metric" : copy.deepcopy(self.overwatch_metric)}))
 
     def get_overwatch_metric(self):
         return copy.deepcopy(self.overwatch_metric)
