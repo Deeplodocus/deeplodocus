@@ -14,6 +14,7 @@ from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.flags.event import *
 from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.brain.signal import Signal
+
 Num = Union[int, float]
 
 
@@ -503,6 +504,9 @@ class History(object):
                 if key == self.overwatch_metric.get_name():
                     self.overwatch_metric.set_value(value)
                     break
+
+        Thalamus().add_signal(Signal(event=DEEP_EVENT_OVERWATCH_METRIC_COMPUTED,
+                                     args={"current_overwatch_metric" : copy.deepcopy(self.overwatch_metric)}))
 
     def get_overwatch_metric(self):
         return copy.deepcopy(self.overwatch_metric)

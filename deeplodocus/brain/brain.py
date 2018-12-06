@@ -11,7 +11,8 @@ from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.end import End
 from deeplodocus.utils.logs import Logs
 from deeplodocus.brain.visual_cortex import VisualCortex
-
+from deeplodocus.brain.thalamus import Thalamus
+from deeplodocus.brain.signal import Signal
 
 class Brain(FrontalLobe):
     """
@@ -60,8 +61,8 @@ class Brain(FrontalLobe):
         self.config = None
         self._config = None
         self.load_config()
-        global brain
-        brain = self
+        Thalamus()                  # Initialize the Thalamus
+
 
     def wake(self):
         """
@@ -244,7 +245,7 @@ k'
             self.visual_cortex.stop()
             self.visual_cortex = None
         else:
-            Notification(DEEP_NOTIF_ERROR, "The Visual Cortex is already alsleep.")
+            Notification(DEEP_NOTIF_ERROR, "The Visual Cortex is already asleep.")
 
     def __on_wake(self):
         """

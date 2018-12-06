@@ -8,6 +8,8 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.end import End
 from deeplodocus.utils.flags import *
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
+from deeplodocus.brain.signal import Signal
+from deeplodocus.brain.thalamus import Thalamus
 
 class Saver(object):
     """
@@ -40,6 +42,11 @@ class Saver(object):
 
         if not os.path.isfile(self.directory):
             os.makedirs(self.directory, exist_ok=True)
+
+        # Connect the save to the computation of the overwatched metric
+        Thalamus().connect(receiver=self.__is_saving_required,
+                           event=DEEP_EVENT_OVERWATCH_METRIC_COMPUTED,
+                           expected_arguments=["current_overwatch_metric"])
 
     """
     ON BATCH END NOT TO BE IMPLEMENTED FOR EFFICIENCY REASONS
