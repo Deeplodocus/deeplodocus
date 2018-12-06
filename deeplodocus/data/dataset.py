@@ -556,7 +556,8 @@ class Dataset(object):
                     if augment is True :
                         image = self.transform_manager.transform(data = image, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
 
-                    image = np.swapaxes(image, 0, 2)
+
+                    image = np.swapaxes(image, 0, 2).astype(float)
                     loaded_data.append(image)
 
                 # TODO : Check how video behaves

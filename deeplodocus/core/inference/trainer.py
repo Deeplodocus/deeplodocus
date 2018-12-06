@@ -252,7 +252,7 @@ class Trainer(GenericEvaluator):
                                         num_minibatches_validation=self.tester.get_num_minibatches())
 
             # Send signal epoch end
-            Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_BATCH_END,
+            Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_EPOCH_END,
                                          args={"epoch_index": epoch,
                                                 "num_epochs" : self.num_epochs,
                                                 "model" : self.model,
@@ -265,6 +265,7 @@ class Trainer(GenericEvaluator):
 
         # End of training callback
         self.callbacks.on_training_end(model=self.model)
+
         # Send signal end training
         Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_TRAINING_END,
                                      args={"model" : self.model}))

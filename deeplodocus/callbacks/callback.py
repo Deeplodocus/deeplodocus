@@ -130,12 +130,12 @@ class Callback(object):
 
         :return: None
         """
-        self.history.on_batch_end(minibatch_index=minibatch_index,
-                                  num_minibatches=num_minibatches,
-                                  epoch_index=epoch_index,
-                                  total_loss=total_loss,
-                                  result_losses= result_losses,
-                                  result_metrics=result_metrics)
+        # self.history.on_batch_end(minibatch_index=minibatch_index,
+        #                           num_minibatches=num_minibatches,
+        #                           epoch_index=epoch_index,
+        #                           total_loss=total_loss,
+        #                           result_losses= result_losses,
+        #                           result_metrics=result_metrics)
 
 
 
@@ -146,13 +146,13 @@ class Callback(object):
         :return: None
         """
 
-        self.history.on_epoch_end(epoch_index=epoch_index,
-                                  num_epochs=num_epochs,
-                                  num_minibatches=num_minibatches,
-                                  total_validation_loss=total_validation_loss,
-                                  result_validation_losses=result_validation_losses,
-                                  result_validation_metrics=result_validation_metrics,
-                                  num_minibatches_validation=num_minibatches_validation)
+        # self.history.on_epoch_end(epoch_index=epoch_index,
+        #                           num_epochs=num_epochs,
+        #                           num_minibatches=num_minibatches,
+        #                           total_validation_loss=total_validation_loss,
+        #                           result_validation_losses=result_validation_losses,
+        #                           result_validation_metrics=result_validation_metrics,
+        #                           num_minibatches_validation=num_minibatches_validation)
         current_overwatch_metric = self.history.get_overwatch_metric()
         self.saver.on_epoch_end(model, current_overwatch_metric=current_overwatch_metric)
         self.stopping.on_epoch_end()
@@ -165,7 +165,7 @@ class Callback(object):
         :return: None
         """
 
-        self.history.on_training_end()
+        #self.history.on_training_end()
         self.saver.on_training_end(model=model)
         self.stopping.on_training_end()
 
