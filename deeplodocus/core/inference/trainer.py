@@ -124,6 +124,8 @@ class Trainer(GenericEvaluator):
         else:
             self.tester = None
 
+        Thalamus().connect(receiver=self.saving_required, event=DEEP_EVENT_SAVING_REQUIRED, expected_arguments=["saving_required"])
+
     def fit(self, first_training: bool = True)->None:
         """
         AUTHORS:
@@ -175,12 +177,15 @@ class Trainer(GenericEvaluator):
         """
 
         if first_training is True:
-            self.callbacks.on_train_begin()
+            Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_TRAINING_START, args={}))
         else:
             self.callbacks.unpause()
 
         for epoch in range(self.initial_epoch+1, self.num_epochs+1):  # loop over the dataset multiple times
-            self.callbacks.on_epoch_start(epoch_index=epoch, num_epochs=self.num_epochs)
+
+            Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_EPOCH_START, args={"epoch_index": epoch,
+                                                                                       "num_epochs": self.num_epochs}))
+
             for minibatch_index, minibatch in enumerate(self.dataloader, 0):
 
                 # Clean the given data
@@ -213,14 +218,6 @@ class Trainer(GenericEvaluator):
                                                                                  result_losses=result_losses,
                                                                                  result_metrics=result_metrics)
 
-                # Mini batch callback
-                self.callbacks.on_batch_end(minibatch_index=minibatch_index+1,
-                                            num_minibatches=self.num_minibatches,
-                                            epoch_index=epoch,
-                                            total_loss=total_loss.item(),
-                                            result_losses=result_losses,
-                                            result_metrics=result_metrics)
-
                 # Send signal batch end
                 Thalamus().add_signal(Signal(event= DEEP_EVENT_ON_BATCH_END,
                                              args={"minibatch_index" : minibatch_index+1,
@@ -241,16 +238,6 @@ class Trainer(GenericEvaluator):
             # Evaluate the model
             total_validation_loss, result_validation_losses, result_validation_metrics = self.__evaluate_epoch()
 
-            # Epoch callback
-            self.callbacks.on_epoch_end(epoch_index=epoch,
-                                        num_epochs=self.num_epochs,
-                                        model=self.model,
-                                        num_minibatches=self.num_minibatches,
-                                        total_validation_loss=total_validation_loss.item(),
-                                        result_validation_losses=result_validation_losses,
-                                        result_validation_metrics=result_validation_metrics,
-                                        num_minibatches_validation=self.tester.get_num_minibatches())
-
             # Send signal epoch end
             Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_EPOCH_END,
                                          args={"epoch_index": epoch,
@@ -263,8 +250,6 @@ class Trainer(GenericEvaluator):
                                                 "num_minibatches_validation" : self.tester.get_num_minibatches()
                                                }))
 
-        # End of training callback
-        self.callbacks.on_training_end(model=self.model)
 
         # Send signal end training
         Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_TRAINING_END,
@@ -391,3 +376,12 @@ class Trainer(GenericEvaluator):
 
 
 
+    def saving_required(self, saving_required: bool):
+        """
+
+        :param saving_required:
+        :return:
+        """
+
+        if saving_required is True:
+            Thalamus().add_signal(signal= Signal(event=DEEP_EVENT_SAVE_MODEL, args={"model": self.model}))

@@ -92,8 +92,10 @@ class History(object):
                                                                                                           "result_validation_losses",
                                                                                                           "result_validation_metrics",
                                                                                                           "num_minibatches_validation"])
-        Thalamus().connect(receiver=self.on_train_begin, event=DEEP_EVENT_ON_TRAINING_STARTS, expected_arguments=[])
-        Thalamus().connect(receiver=self.on_training_end, event=DEEP_EVENT_ON_TRAINING_END, expected_arguments=[])
+        Thalamus().connect(receiver=self.on_train_begin, event=DEEP_EVENT_ON_TRAINING_START, expected_arguments=[])
+        Thalamus().connect(receiver=self.on_train_end, event=DEEP_EVENT_ON_TRAINING_END, expected_arguments=[])
+        Thalamus().connect(receiver=self.on_epoch_start, event=DEEP_EVENT_ON_EPOCH_START, expected_arguments=["epoch_index",
+                                                                                                                "num_epochs"])
 
     def on_train_begin(self):
         """
@@ -291,7 +293,7 @@ class History(object):
 
         self.save()
 
-    def on_training_end(self):
+    def on_train_end(self):
         """
         AUTHORS:
         --------
