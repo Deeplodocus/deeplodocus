@@ -2,7 +2,6 @@
 This script contains useful generic functions
 """
 import re
-import os
 import pkgutil
 import __main__
 
@@ -147,15 +146,14 @@ def get_module(config, modules):
     PARAMETERS:
     -----------
 
-    :param name:
     :param config:
+    :param module:
 
     RETURN:
     -------
 
     :return module(callable): The loaded module
     """
-
     # If we want a specific model
     if  config.check("module", None):
         if config.module != None:
@@ -189,8 +187,7 @@ def browse_module(modules: dict, name: str):
     PARAMETERS:
     -----------
 
-    :param path(path): The path to the module
-    :param prefix: The prefix to output in front of the module name
+    :param modules(dict):
     :param name: The name of the callable
 
     RETURN:
@@ -205,15 +202,18 @@ def browse_module(modules: dict, name: str):
         for importer, modname, ispkg in pkgutil.walk_packages(path=value["path"],
                                                               prefix=value["prefix"] + '.',
                                                               onerror=lambda x: None):
+
+            # Fix the loading a of useless torch module(temporary)
+            if modname == "torch.nn.parallel.distributed_c10d":
+                continue
+
             # Try to get the module
             module = get_specific_module(modname, name, silence=True)
-
             # If the module exists add it to the list
             if module is not None:
                 list_modules.append(module)
 
     list_modules = remove_duplicates(items=list_modules)
-
     if len(list_modules) == 0:
         Notification(DEEP_NOTIF_FATAL, "Couldn't find the module '%s' anywhere.")
     elif len(list_modules) == 1:
@@ -243,7 +243,6 @@ def remove_duplicates(items: list):
 
     :return (list): The lis of items without the duplicates
     """
-
     return list(set(items))
 
 def select_module(list_modules: list, name: str):

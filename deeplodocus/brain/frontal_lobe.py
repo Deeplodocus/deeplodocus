@@ -169,7 +169,7 @@ class FrontalLobe(object):
         self.load_tester()
         self.load_validator()
         self.load_trainer()
-        self.summary()
+        #self.summary()
 
     def load_model(self):
         """
@@ -252,12 +252,10 @@ class FrontalLobe(object):
         """
         losses = {}
         for key, value in self.config.losses.get().items():
-
             loss = get_module(config=value,
                               modules=DEEP_MODULE_LOSSES)
             kwargs = check_kwargs(get_kwargs(self.config.losses.get(key)))
             method = loss(**kwargs)
-
             # Check the weight
             if self.config.losses.check("weight", key):
                 if get_int_or_float(value.weight) not in (DEEP_TYPE_INTEGER, DEEP_TYPE_FLOAT):
@@ -306,8 +304,6 @@ class FrontalLobe(object):
                 method = metric(**kwargs)
             else:
                 method = metric
-
-
 
             metrics[str(key)] = Metric(name=str(key), method=method)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, value.name, metric.__module__))
