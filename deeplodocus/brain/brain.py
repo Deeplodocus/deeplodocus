@@ -12,7 +12,7 @@ from deeplodocus.utils.end import End
 from deeplodocus.utils.logs import Logs
 from deeplodocus.brain.visual_cortex import VisualCortex
 from deeplodocus.brain.thalamus import Thalamus
-from deeplodocus.brain.signal import Signal
+
 
 class Brain(FrontalLobe):
     """

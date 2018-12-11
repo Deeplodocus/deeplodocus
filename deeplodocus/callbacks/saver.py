@@ -25,17 +25,18 @@ class Saver(object):
     """
 
     def __init__(self,
-                 model_name:str = "no_name",
-                 save_condition:int = DEEP_SAVE_CONDITION_AUTO,
-                 save_model_method = DEEP_SAVE_NET_FORMAT_PYTORCH):
+                 name: str = "no__model_name",
+                 save_directory: str = DEEP_PATH_SAVE_MODEL,
+                 save_condition: int = DEEP_SAVE_CONDITION_AUTO,
+                 save_method = DEEP_SAVE_NET_FORMAT_PYTORCH):
 
-        self.save_model_method = save_model_method
+        self.save_method = save_method
         self.save_condition = save_condition
-        self.directory = os.path.dirname(os.path.abspath(__main__.__file__))+ "/results/models/"
-        self.model_name = model_name
+        self.directory =save_directory
+        self.name = name
         self.best_overwatch_metric = None
 
-        if self.save_model_method == DEEP_SAVE_NET_FORMAT_ONNX:
+        if self.save_method == DEEP_SAVE_NET_FORMAT_ONNX:
             self.extension = ".onnx"
         else:
             self.extension = ".model"
@@ -85,7 +86,7 @@ class Saver(object):
 
         # If we want to save the model only if we had an improvement over a metric
         elif self.save_condition == DEEP_SAVE_CONDITION_AUTO:
-            if self.__is_saving_required(current_overwatch_metric=current_overwatch_metric) is True:
+            if self.is_saving_required(current_overwatch_metric=current_overwatch_metric) is True:
                 self.save_model(model)
 
     def on_training_end(self, model: Module)->None:
@@ -115,7 +116,7 @@ class Saver(object):
 
 
 
-    def is_saving_required(self, current_overwatch_metric:OverWatchMetric)->bool:
+    def is_saving_required(self, current_overwatch_metric:OverWatchMetric)-> bool:
         """
         AUTHORS:
         --------
@@ -198,10 +199,10 @@ class Saver(object):
         :return: None
         """
 
-        filepath = self.directory + self.model_name + self.extension
+        filepath = self.directory + self.name + self.extension
 
         # If we want to save to the pytorch format
-        if self.save_model_method == DEEP_SAVE_NET_FORMAT_PYTORCH:
+        if self.save_method == DEEP_SAVE_NET_FORMAT_PYTORCH:
             try:
                 torch.save(model.state_dict(), filepath)
             except:
@@ -209,7 +210,7 @@ class Saver(object):
                 self.__handle_error_saving(model)
 
         # If we want to save to the ONNX format
-        elif self.save_model_method == DEEP_SAVE_NET_FORMAT_ONNX:
+        elif self.save_method == DEEP_SAVE_NET_FORMAT_ONNX:
             try:
                 torch.onnx._export(model, input, filepath, export_params=True, verbose=True, input_names=input_names, output_names=output_names)
             except:
@@ -218,7 +219,7 @@ class Saver(object):
 
         Notification(DEEP_NOTIF_SUCCESS, "Model and weights saved")
 
-    def __handle_error_saving(self, model_name:str, model:Module)->None:
+    def __handle_error_saving(self, name:str, model:Module)->None:
         """
         AUTHORS:
         --------
@@ -241,7 +242,7 @@ class Saver(object):
 
         :return: None
         """
-        Notification(DEEP_NOTIF_ERROR, "Please make sure you have the permission to write for this following file : " + str(model_name))
+        Notification(DEEP_NOTIF_ERROR, "Please make sure you have the permission to write for this following file : " + str(name))
         response = ""
 
         while response.lower() != ("y" or "n"):

@@ -4,6 +4,8 @@ This script contains useful generic functions
 import re
 import pkgutil
 import __main__
+import random
+import string
 
 from deeplodocus.utils.flags.ext import *
 from deeplodocus.utils.flags.notif import *
@@ -285,3 +287,29 @@ def select_module(list_modules: list, name: str):
             response = int(response)
 
     return list_modules[response]
+
+def generate_random_alphanumeric(size: int = 16):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Generate a string of alphanumeric characters of a specific size
+    The default size is 16 characters
+
+    PARAMETERS:
+    -----------
+
+    :param size(int): The size of the alphanumeric string
+
+    RETURN:
+    -------
+
+    :return (string): The random alphanumeric string
+    """
+
+    return''.join(random.choices(string.ascii_letters + string.digits, k=size))
