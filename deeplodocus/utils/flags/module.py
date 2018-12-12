@@ -29,10 +29,10 @@ DEEP_MODULE_LOSSES = {"pytorch":
 DEEP_MODULE_METRICS = {"pytorch":
                              {"path" : torch.nn.__path__,
                               "prefix" : torch.nn.__name__},
-                      "custom":
+                       "custom":
                              {"path": [get_main_path() + "/modules/metrics"],
                               "prefix": "modules.metrics"}
-                      }
+                       }
 
 DEEP_MODULE_TRANSFORMS = {"deeplodocus":
                              {"path" : tfm.__path__,

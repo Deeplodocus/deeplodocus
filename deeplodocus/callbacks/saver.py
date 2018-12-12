@@ -25,17 +25,18 @@ class Saver(object):
     """
 
     def __init__(self,
-                 model_name:str = "no_name",
-                 save_condition:int = DEEP_SAVE_CONDITION_AUTO,
-                 save_model_method = DEEP_SAVE_NET_FORMAT_PYTORCH):
+                 name: str = "no__model_name",
+                 save_directory: str = DEEP_PATH_SAVE_MODEL,
+                 save_condition: int = DEEP_SAVE_CONDITION_AUTO,
+                 save_method = DEEP_SAVE_NET_FORMAT_PYTORCH):
 
-        self.save_model_method = save_model_method
+        self.save_method = save_method
         self.save_condition = save_condition
-        self.directory = os.path.dirname(os.path.abspath(__main__.__file__))+ "/results/models/"
-        self.model_name = model_name
+        self.directory =save_directory
+        self.name = name
         self.best_overwatch_metric = None
 
-        if self.save_model_method == DEEP_SAVE_NET_FORMAT_ONNX:
+        if self.save_method == DEEP_SAVE_NET_FORMAT_ONNX:
             self.extension = ".onnx"
         else:
             self.extension = ".model"
@@ -44,9 +45,11 @@ class Saver(object):
             os.makedirs(self.directory, exist_ok=True)
 
         # Connect the save to the computation of the overwatched metric
-        Thalamus().connect(receiver=self.__is_saving_required,
+        Thalamus().connect(receiver=self.is_saving_required,
                            event=DEEP_EVENT_OVERWATCH_METRIC_COMPUTED,
                            expected_arguments=["current_overwatch_metric"])
+        Thalamus().connect(receiver=self.on_training_end, event=DEEP_EVENT_ON_TRAINING_END, expected_arguments=["model"])
+        Thalamus().connect(receiver=self.save_model, event=DEEP_EVENT_SAVE_MODEL, expected_arguments=["model"])
 
     """
     ON BATCH END NOT TO BE IMPLEMENTED FOR EFFICIENCY REASONS
@@ -54,7 +57,7 @@ class Saver(object):
         pass
     """
 
-    def on_epoch_end(self, model:Module, current_overwatch_metric:OverWatchMetric)->None:
+    def on_overwatch_metric_computed(self, model:Module, current_overwatch_metric:OverWatchMetric)->None:
         """
         AUTHORS:
         --------
@@ -79,14 +82,14 @@ class Saver(object):
 
         # If we want to save the model at each epoch
         if self.save_condition == DEEP_SAVE_CONDITION_END_EPOCH:
-            self.__save_model(model)
+            self.save_model(model)
 
         # If we want to save the model only if we had an improvement over a metric
         elif self.save_condition == DEEP_SAVE_CONDITION_AUTO:
-            if self.__is_saving_required(current_overwatch_metric=current_overwatch_metric) is True:
-                self.__save_model(model)
+            if self.is_saving_required(current_overwatch_metric=current_overwatch_metric) is True:
+                self.save_model(model)
 
-    def on_training_end(self, model:Module)->None:
+    def on_training_end(self, model: Module)->None:
         """
         AUTHORS:
         --------
@@ -109,11 +112,11 @@ class Saver(object):
         :return: None
         """
         if self.save_condition == DEEP_SAVE_CONDITION_END_TRAINING:
-            self.__save_model(model)
+            self.save_model(model)
 
 
 
-    def __is_saving_required(self, current_overwatch_metric:OverWatchMetric)->bool:
+    def is_saving_required(self, current_overwatch_metric:OverWatchMetric)-> bool:
         """
         AUTHORS:
         --------
@@ -135,41 +138,44 @@ class Saver(object):
 
         :return->bool: Whether the model should be saved or not
         """
+        save = False
 
         # Do not save at the first epoch
         if self.best_overwatch_metric is None:
             self.best_overwatch_metric = current_overwatch_metric
-            return False
+            save = False
 
         # If  the new metric has to be smaller than the best one
         if current_overwatch_metric.get_condition() == DEEP_COMPARE_SMALLER:
             # If the model improved since last batch => Save
             if self.best_overwatch_metric.get_value() > current_overwatch_metric.get_value():
                 self.best_overwatch_metric = current_overwatch_metric
-                return True
+                save = True
 
             # No improvement => Return False
             else:
-                return False
+                save = False
 
         # If the new metric has to be bigger than the best one (e.g. The accuracy of a classification)
         elif current_overwatch_metric.get_condition() == DEEP_COMPARE_BIGGER:
             # If the model improved since last batch => Save
             if self.best_overwatch_metric.get_value() < current_overwatch_metric.get_value():
                 self.best_overwatch_metric = current_overwatch_metric
-                return True
+                save = True
 
             # No improvement => Return False
             else:
-                return False
+                save = False
 
         else:
             Notification(DEEP_NOTIF_FATAL, "The following saving condition does not exist : " + str("test"))
 
+        Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_SAVING_REQUIRED, args={"saving_required" : save}))
 
 
 
-    def __save_model(self, model:Module, input=None)->None:
+
+    def save_model(self, model:Module, input=None)->None:
         """
         AUTHORS:
         --------
@@ -193,10 +199,10 @@ class Saver(object):
         :return: None
         """
 
-        filepath = self.directory + self.model_name + self.extension
+        filepath = self.directory + self.name + self.extension
 
         # If we want to save to the pytorch format
-        if self.save_model_method == DEEP_SAVE_NET_FORMAT_PYTORCH:
+        if self.save_method == DEEP_SAVE_NET_FORMAT_PYTORCH:
             try:
                 torch.save(model.state_dict(), filepath)
             except:
@@ -204,7 +210,7 @@ class Saver(object):
                 self.__handle_error_saving(model)
 
         # If we want to save to the ONNX format
-        elif self.save_model_method == DEEP_SAVE_NET_FORMAT_ONNX:
+        elif self.save_method == DEEP_SAVE_NET_FORMAT_ONNX:
             try:
                 torch.onnx._export(model, input, filepath, export_params=True, verbose=True, input_names=input_names, output_names=output_names)
             except:
@@ -213,7 +219,7 @@ class Saver(object):
 
         Notification(DEEP_NOTIF_SUCCESS, "Model and weights saved")
 
-    def __handle_error_saving(self, model_name:str, model:Module)->None:
+    def __handle_error_saving(self, name:str, model:Module)->None:
         """
         AUTHORS:
         --------
@@ -236,7 +242,7 @@ class Saver(object):
 
         :return: None
         """
-        Notification(DEEP_NOTIF_ERROR, "Please make sure you have the permission to write for this following file : " + str(model_name))
+        Notification(DEEP_NOTIF_ERROR, "Please make sure you have the permission to write for this following file : " + str(name))
         response = ""
 
         while response.lower() != ("y" or "n"):
@@ -244,7 +250,7 @@ class Saver(object):
                                     "Would you try to try again to save? (y/n)").get()
 
         if response.lower() == "y":
-            self.__save_model(model)
+            self.save_model(model)
         else:
             response = ""
 
@@ -273,5 +279,5 @@ class Saver(object):
                 elif response.lower() == "onnx":
                     self.save_model_method = DEEP_SAVE_NET_FORMAT_ONNX
 
-                self.__save_model(model)
+                self.save_model(model)
 

@@ -32,6 +32,7 @@ from deeplodocus.utils.flags.module import *
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
+from deeplodocus.brain.memory.hippocampus import Hippocampus
 
 
 class FrontalLobe(object):
@@ -88,6 +89,7 @@ class FrontalLobe(object):
         self.metrics = None
         self.losses = None
         self.optimizer = None
+        self.hippocampus = None
 
     def train(self):
         """
@@ -169,7 +171,8 @@ class FrontalLobe(object):
         self.load_tester()
         self.load_validator()
         self.load_trainer()
-        self.summary()
+        self.load_memory()
+        #self.summary()
 
     def load_model(self):
         """
@@ -252,12 +255,10 @@ class FrontalLobe(object):
         """
         losses = {}
         for key, value in self.config.losses.get().items():
-
             loss = get_module(config=value,
                               modules=DEEP_MODULE_LOSSES)
             kwargs = check_kwargs(get_kwargs(self.config.losses.get(key)))
             method = loss(**kwargs)
-
             # Check the weight
             if self.config.losses.check("weight", key):
                 if get_int_or_float(value.weight) not in (DEEP_TYPE_INTEGER, DEEP_TYPE_FLOAT):
@@ -307,8 +308,6 @@ class FrontalLobe(object):
             else:
                 method = metric
 
-
-
             metrics[str(key)] = Metric(name=str(key), method=method)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, value.name, metric.__module__))
 
@@ -344,6 +343,44 @@ class FrontalLobe(object):
                                          dataloader=self.config.data.dataloader,
                                          data=self.config.data.dataset.test,
                                          transforms=self.config.transform.test)
+
+
+    def load_memory(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Load the memory
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        if self.losses is not None and self.metrics is not None:
+
+            overwatch_metric = OverWatchMetric(name=self.config.training.overwatch_metric,
+                                               condition=self.config.training.overwatch_condition)
+            self.hippocampus = Hippocampus(losses=self.losses,
+                                           metrics = self.metrics,
+                                           model_name = self.config.model.name,
+                                           verbose = self.config.history.verbose,
+                                             memorize = self.config.history.memorize,
+                                             history_directory=DEEP_PATH_HISTORY,
+                                             overwatch_metric= overwatch_metric,
+                                             save_model_condition=self.config.training.save_condition,
+                                             save_model_directory=DEEP_PATH_SAVE_MODEL,
+                                             save_model_method=self.config.training.save_method)
 
     def summary(self):
         """
@@ -459,8 +496,7 @@ class FrontalLobe(object):
         dataset.load()
         dataset.set_len_dataset(data.number)
         dataset.summary()
-        overwatch_metric = OverWatchMetric(name=self.config.training.overwatch_metric,
-                                           condition=self.config.training.overwatch_condition)
+
         trainer = Trainer(model=self.model,
                           dataset=dataset,
                           metrics=self.metrics,
@@ -469,17 +505,10 @@ class FrontalLobe(object):
                           num_epochs=self.config.training.num_epochs,
                           initial_epoch=self.config.training.initial_epoch,
                           shuffle=self.config.training.shuffle,
-                          model_name=self.config.project.name,
                           verbose=history.verbose,
                           tester=self.validator,
                           num_workers=dataloader.num_workers,
-                          batch_size=dataloader.batch_size,
-                          overwatch_metric=overwatch_metric,
-                          save_condition=self.config.training.save_condition,
-                          memorize=history.memorize,
-                          stopping_parameters=None,
-                          history_directory=DEEP_PATH_HISTORY,
-                          save_directory=DEEP_PATH_SAVE_MODEL)
+                          batch_size=dataloader.batch_size)
         return trainer
 
     def __summary(self, model, input_size, losses, metrics, batch_size=-1, device="cuda"):

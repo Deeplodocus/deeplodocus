@@ -62,9 +62,9 @@ class History(object):
 
 
         # Add headers to history files
-        train_batches_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys())) + "\n"
-        train_epochs_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys())) + "\n"
-        validation_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys())) + "\n"
+        train_batches_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
+        train_epochs_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
+        validation_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
 
         self.__add_logs("history_train_batches", log_dir, ".csv", train_batches_headers)
         self.__add_logs("history_train_epochs", log_dir, ".csv", train_epochs_headers)
@@ -85,9 +85,17 @@ class History(object):
 
         # Connect to signals
         Thalamus().connect(receiver=self.on_batch_end, event=DEEP_EVENT_ON_BATCH_END)
-        Thalamus().connect(receiver=self.on_epoch_end, event=DEEP_EVENT_ON_EPOCH_END)
-        Thalamus().connect(receiver=self.on_train_begin, event=DEEP_EVENT_ON_TRAINING_STARTS)
-        Thalamus().connect(receiver=self.on_training_end, event=DEEP_EVENT_ON_TRAINING_END)
+        Thalamus().connect(receiver=self.on_epoch_end, event=DEEP_EVENT_ON_EPOCH_END, expected_arguments=["epoch_index",
+                                                                                                          "num_epochs",
+                                                                                                          "num_minibatches",
+                                                                                                          "total_validation_loss",
+                                                                                                          "result_validation_losses",
+                                                                                                          "result_validation_metrics",
+                                                                                                          "num_minibatches_validation"])
+        Thalamus().connect(receiver=self.on_train_begin, event=DEEP_EVENT_ON_TRAINING_START, expected_arguments=[])
+        Thalamus().connect(receiver=self.on_train_end, event=DEEP_EVENT_ON_TRAINING_END, expected_arguments=[])
+        Thalamus().connect(receiver=self.on_epoch_start, event=DEEP_EVENT_ON_EPOCH_START, expected_arguments=["epoch_index",
+                                                                                                                "num_epochs"])
 
     def on_train_begin(self):
         """
@@ -125,7 +133,6 @@ class History(object):
 
         if self.verbose >= DEEP_VERBOSE_BATCH:
             Notification(DEEP_NOTIF_INFO, EPOCH_START % (epoch_index, num_epochs))
-
 
     def on_batch_end(self,
                      minibatch_index: int,
@@ -189,7 +196,6 @@ class History(object):
 
         # Save the history
         if self.train_batches_history.qsize() > 10:
-            print(self.train_batches_history.qsize())
             self.save(only_batches=True)
 
 
@@ -287,7 +293,7 @@ class History(object):
 
         self.save()
 
-    def on_training_end(self):
+    def on_train_end(self):
         """
         AUTHORS:
         --------
@@ -312,22 +318,19 @@ class History(object):
         Notification(DEEP_NOTIF_SUCCESS, HISTORY_SAVED % self.log_dir)
 
     def save(self, only_batches=False):
-        train_batch_history = ""
-        train_epochs_history = ""
-        validation_history = ""
 
         for i in range(self.train_batches_history.qsize()):
-            train_batch_history =  train_batch_history + ",".join(str(value) for value in self.train_batches_history.get()) + "\n"
-        self.__add_logs("history_train_batches", self.log_dir, DEEP_EXT_CSV, train_batch_history)
+            train_batch_history = ",".join(str(value) for value in self.train_batches_history.get())
+            self.__add_logs("history_train_batches", self.log_dir, DEEP_EXT_CSV, train_batch_history)
 
         if only_batches is False:
             for i in range(self.train_epochs_history.qsize()):
-                train_epochs_history =  train_epochs_history + ",".join(str(value) for value in self.train_epochs_history.get()) + "\n"
-            self.__add_logs("history_train_epochs", self.log_dir, DEEP_EXT_CSV, train_epochs_history)
+                train_epochs_history = ",".join(str(value) for value in self.train_epochs_history.get())
+                self.__add_logs("history_train_epochs", self.log_dir, DEEP_EXT_CSV, train_epochs_history)
 
             for i in range(self.validation_history.qsize()):
-                validation_history =  validation_history + ",".join(str(value) for  value in self.validation_history.get()) + "\n"
-            self.__add_logs("history_validation", self.log_dir, DEEP_EXT_CSV, validation_history)
+                validation_history = ",".join(str(value) for  value in self.validation_history.get())
+                self.__add_logs("history_validation", self.log_dir, DEEP_EXT_CSV, validation_history)
 
 
 
