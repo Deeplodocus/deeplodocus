@@ -116,4 +116,4 @@ deeplodocus/core/project/deep_structure/logs/*
 test/results/*
 test
 deeplodocus/server/*
-deeplodocus/brain/thalamus/*
+deeplodocus/brain/thalamus/hypothalamus.py
