@@ -10,3 +10,9 @@ CrossEntropyLoss2:
   name : CrossEntropyLoss
   #kwargs:
     #class_weights: [0, 1]
+
+Accuracy:
+  #module: "modules.metrics.accuracy" # Optional line
+  name : accuracy
+  #kwargs:
+    #class_weights: [0, 1]

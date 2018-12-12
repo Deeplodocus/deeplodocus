@@ -1,5 +1,5 @@
-from deeplodocus.brain.thalamus import Thalamus
-from deeplodocus.utils.flags.event import *
+#from deeplodocus.brain.thalamus import Thalamus
+#from deeplodocus.utils.flags.event import *
 
 
 class Stopping(object):
