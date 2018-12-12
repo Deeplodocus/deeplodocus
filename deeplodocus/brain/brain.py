@@ -14,6 +14,7 @@ from deeplodocus.brain.visual_cortex import VisualCortex
 from deeplodocus.brain.thalamus import Thalamus
 
 
+
 class Brain(FrontalLobe):
     """
     AUTHORS:
@@ -142,10 +143,11 @@ class Brain(FrontalLobe):
                     Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_FILE % config_path)
                 else:
                     Notification(DEEP_NOTIF_ERROR, DEEP_MSG_FILE_NOT_FOUND % config_path)
-            self.check_config()
             self.store_config()
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
+        self.__check_config()
+        self.config.summary()
 
     def clear_logs(self, force=False):
         """
@@ -214,7 +216,7 @@ k'
         """
 
         if self.visual_cortex is None:
-             self.visual_cortex = VisualCortex()
+            self.visual_cortex = VisualCortex()
         else:
             Notification(DEEP_NOTIF_ERROR, "The Visual Cortex is already running.")
 
@@ -246,6 +248,97 @@ k'
             self.visual_cortex = None
         else:
             Notification(DEEP_NOTIF_ERROR, "The Visual Cortex is already asleep.")
+
+    def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
+        """
+        :param dictionary:
+        :param sub_space:
+        :return:
+        """
+        sub_space = [] if sub_space is None else sub_space
+        sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
+        for key, value in dictionary.items():
+            if isinstance(value, dict):
+                if "dtype" in value and "default" in value:
+                    default = value["default"]
+                    if self.config.check(key, sub_space=sub_space):
+                        d_type = value["dtype"]
+                        current = self.config.get(sub_space)[key]
+                        path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
+                        self.config.get(sub_space)[key] = self.__convert_dtype(current,
+                                                                               d_type,
+                                                                               default,
+                                                                               path)
+                    else:
+                        item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
+                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_ADDED % (item_path, default))
+                        self.config.get(sub_space)[key] = default
+                else:
+                    self.__check_config(value, sub_space=sub_space + [key])
+
+    def __convert_dtype(self, current, d_type, default, path):
+        """
+        :param current:
+        :param d_type:
+        :param default:
+        :return:
+        """
+        if current is None:
+            return None
+        else:
+            try:
+                len(d_type)
+                d_type = d_type[0]
+                is_list = True
+            except TypeError:
+                is_list = False
+            if is_list:
+                new_values = []
+                current = current if isinstance(current, list) else [current]
+                for item in current:
+                    new_value = self.__convert(item, d_type)
+                    if new_value is not None:
+                        new_values.append(new_value)
+                    else:
+                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (path, new_values, d_type, default))
+                        new_values = default
+                        break
+                return new_values
+            else:
+                if d_type == dict:
+                    if isinstance(current, Namespace) or current is None:
+                        return current
+                    else:
+                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (path, current, d_type, default))
+                        return Namespace(default)
+                else:
+                    new_value = self.__convert(current, d_type)
+                    if new_value is None:
+                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (path, current, d_type, default))
+                        return default
+                    else:
+                        return new_value
+
+    @staticmethod
+    def __convert(value, d_type):
+        """
+        :param value:
+        :param d_type:
+        :return:
+        """
+        if isinstance(dtype, int) or isinstance(dtype, float):
+            try:
+                return d_type(eval(value))
+            except NameError:
+                try:
+                    return d_type(value)
+                except TypeError:
+                    return None
+        else:
+            try:
+                return d_type(value)
+            except TypeError:
+                return None
 
     def __on_wake(self):
         """
@@ -330,7 +423,7 @@ k'
             message = "%s %s" % (message, DEEP_MSG_USE_CONFIG_SAVE)
         Notification(DEEP_NOTIF_WARNING, message)
 
-    def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
+    def __check_config_old(self, dictionary=DEEP_CONFIG, sub_space=None):
         """
         Author: SW
         :return: bool: whether the config has every expected entries or not
