@@ -8,7 +8,6 @@ from deeplodocus.utils.flags.config import DEEP_CONFIG_DIVIDER, DEEP_CONFIG_PROJ
 DEEP_MSG_FILE_NOT_FOUND = "File not found : %s"
 DEEP_MSG_DIR_NOT_FOUND = "Directory not found : %s"
 DEEP_MSG_ILLEGAL_COMMAND = "Illegal command : %s"
-DEEP_MSG_CONFIG_NOT_FOUND = "Configuration not found : %s"
 DEEP_MSG_MODEL_NOT_LOADED = "Model not loaded"
 DEEP_MSG_MODULE_NOT_FOUND = "Module %s not found in %s"
 DEEP_MSG_LOSS_NOT_FOUND = "Loss not found : %s"
@@ -29,12 +28,14 @@ DEEP_MSG_OPTIMIZER_LOADED = "Optimizer loaded : %s from %s"
 DEEP_MSG_LOSS_LOADED = "Loss loaded : %s (%s) from %s"
 DEEP_MSG_METRIC_LOADED = "Metric loaded : %s (%s) from %s"
 
-
 # Deep Warning
 DEEP_MSG_ALREADY_AWAKE = ": I am already awake !"
 DEEP_MSG_USE_CONFIG_SAVE = ": Please use 'save_config()' instead"
 DEEP_MSG_PRIVATE = ": Please don't interfere with my private parts"
 DEEP_MSG_PROJECT_ALREADY_EXISTS = ": Project %s already exists !"
+DEEP_MSG_NOT_CONVERTED = "At %s : Could not convert %s to type %s : Using default value : %s"
+DEEP_MSG_CONFIG_ADDED = "Configuration added : %s : Using default value : %s"
+DEEP_MSG_CONFIG_NOT_FOUND = "Configuration not found : %s"
 
 # Deep Input
 DEEP_MSG_INSTRUCTRION = "Awaiting instruction ..."
