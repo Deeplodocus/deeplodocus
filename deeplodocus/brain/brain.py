@@ -146,7 +146,7 @@ class Brain(FrontalLobe):
             self.store_config()
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
-        self.__check_config()
+        #self.__check_config()
         self.config.summary()
 
     def clear_logs(self, force=False):
