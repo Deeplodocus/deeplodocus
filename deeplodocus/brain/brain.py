@@ -14,7 +14,6 @@ from deeplodocus.brain.visual_cortex import VisualCortex
 from deeplodocus.brain.thalamus import Thalamus
 
 
-
 class Brain(FrontalLobe):
     """
     AUTHORS:
@@ -27,6 +26,31 @@ class Brain(FrontalLobe):
     ------------
 
     A Brain class that manages the commands of the user and allows to start the training
+    PUBLIC METHODS:
+    ---------------
+    :method wake:
+    :method sleep:
+    :method save_config: Save all configuration files into self.config_dir.
+    :method clear_config: Reset self.config to an empty Namespace.
+    :method store_config: Store a copy of self.config in self._config.
+    :method restore_config: Set self.config to a copy of self._config.
+    :method load_config: Load self.config from self.config_dir.
+    :method check_config: Check self.config for missing parameters and set data types accordingly.
+    :method clear_logs: Deletes logs that are not to be kept, as decided in the config settings.
+    :method close_logs: Closes logs that are to be kept and deletes logs that are to be deleted, see config settings.
+    :method ui:
+
+    PRIVATE METHODS:
+    ----------------
+    :method __init__:
+    :method __check_config:
+    :method __convert_dtype:
+    :method __convert:
+    :method __on_wake:
+    :method __execute_command:
+    :method __preprocess_command:
+    :method __illegal_command_messages:
+    :method __get_command_flags:
     """
 
     def __init__(self, config_dir):
@@ -64,7 +88,6 @@ class Brain(FrontalLobe):
         self.load_config()
         Thalamus()                  # Initialize the Thalamus
 
-
     def wake(self):
         """
         Authors : Alix Leroy, SW
@@ -76,7 +99,6 @@ class Brain(FrontalLobe):
         while True:
             command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
             self.__execute_command(command)
-
 
     def sleep(self):
         """
@@ -146,8 +168,27 @@ class Brain(FrontalLobe):
             self.store_config()
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
+        self.check_config()
+
+    def check_config(self):
+        """
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION SHORT:
+        ------------
+        Checks self.config by auto-completing missing parameters with default values and converting values to the
+        required data type.
+        Once check_config has been run, it can be assumed that self.config is complete.
+        See self.__check_config for more details.
+
+        RETURN:
+        -------
+        :return: None
+        """
         self.__check_config()
-        self.config.summary()
+        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_CONFIG_COMPLETE)
 
     def clear_logs(self, force=False):
         """
@@ -176,18 +217,6 @@ class Brain(FrontalLobe):
                     Logs(log_type, directory, ext).close()
             else:
                 Logs(log_type, directory, ext).delete()
-
-    def check_config(self):
-        """
-        Author: SW
-        Check the contents of the config namespace against the expecting contents listed in DEEP_CONFIG
-        :return: bool: True if config is complete, False otherwise
-        """
-        if self.__check_config():
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS)
-            return True
-        else:
-            return False
 
     def ui(self):
         """
@@ -251,9 +280,27 @@ k'
 
     def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
         """
-        :param dictionary:
-        :param sub_space:
-        :return:
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        If a parameter is missing, the user is notified by a DEEP_NOTIF_WARNING with DEEP_MSG_CONFIG_NOT_FOUND.
+        The missing parameter is added with the default value specified by DEEP_CONFIG and user is notified of the
+        addition of the parameter by a DEEP_NOTIF_WARNING with DEE_MSG_CONFIG_ADDED.
+        If a parameter is found successfully, it is converted to the data type specified by 'dtype' in DEEP_CONFIG.
+        If a parameter cannot be converted to the required data type, it is replaced with the default from DEEP_CONFIG.
+
+        PARAMETERS:
+        -----------
+        NB: Both parameters are only for use when check_config calls itself.
+        :param dictionary: dictionary to compare self.config with.
+        :param sub_space: list of strings defining the path to the current sub-space.
+
+        RETURN:
+        -------
+        :return: None
         """
         sub_space = [] if sub_space is None else sub_space
         sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
@@ -264,11 +311,10 @@ k'
                     if self.config.check(key, sub_space=sub_space):
                         d_type = value["dtype"]
                         current = self.config.get(sub_space)[key]
-                        path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
                         self.config.get(sub_space)[key] = self.__convert_dtype(current,
                                                                                d_type,
                                                                                default,
-                                                                               path)
+                                                                               sub_space=sub_space + [key])
                     else:
                         item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
                         Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_ADDED % (item_path, default))
@@ -276,14 +322,32 @@ k'
                 else:
                     self.__check_config(value, sub_space=sub_space + [key])
 
-    def __convert_dtype(self, current, d_type, default, path):
+    def __convert_dtype(self, value, d_type, default, sub_space=None):
         """
-        :param current:
-        :param d_type:
-        :param default:
-        :return:
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Converts a given value to a given data type, and returns the result.
+        If the value can not be converted, the given default value is returned.
+        NB: If d_type is given in a list, e.g. [str], it is assume that value should be a list and each item in value
+        will be converted to the given data type. If any item in the list cannot be converted, None will be returned.
+
+        PARAMETERS:
+        -----------
+        :param value: the value to be converted
+        :param d_type: the data type to convert the value to
+        :param default: the default value to return if the current value
+        :param sub_space: the list of strings that defines the current sub-space
+
+        RETURN:
+        -------
+        :return: new_value
         """
-        if current is None:
+        sub_space = [] if sub_space is None else sub_space
+        if value is None:
             return None
         else:
             try:
@@ -294,27 +358,28 @@ k'
                 is_list = False
             if is_list:
                 new_values = []
-                current = current if isinstance(current, list) else [current]
-                for item in current:
-                    new_value = self.__convert(item, d_type)
-                    if new_value is not None:
-                        new_values.append(new_value)
+                value = value if isinstance(value, list) else [value]
+                for item in value:
+                    new_item = self.__convert(item, d_type)
+                    if new_item is not None:
+                        new_values.append(new_item)
                     else:
-                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (path, new_values, d_type, default))
-                        new_values = default
-                        break
+                        Notification(DEEP_NOTIF_WARNING,
+                                     DEEP_MSG_NOT_CONVERTED
+                                     % (DEEP_CONFIG_DIVIDER.join(sub_space), new_values, d_type, default))
+                        return default
                 return new_values
             else:
                 if d_type == dict:
-                    if isinstance(current, Namespace) or current is None:
-                        return current
+                    if isinstance(value, Namespace) or value is None:
+                        return value
                     else:
-                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (path, current, d_type, default))
+                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space, value, d_type, default))
                         return Namespace(default)
                 else:
-                    new_value = self.__convert(current, d_type)
+                    new_value = self.__convert(value, d_type)
                     if new_value is None:
-                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (path, current, d_type, default))
+                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space, value, d_type, default))
                         return default
                     else:
                         return new_value
@@ -322,9 +387,23 @@ k'
     @staticmethod
     def __convert(value, d_type):
         """
-        :param value:
-        :param d_type:
-        :return:
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Converts a given value to a given data type, and returns the result.
+        If the value can not be converted, None is returned.
+
+        PARAMETERS:
+        -----------
+        :param value: the value to be converted.
+        :param d_type: the data type to convert the value to.
+
+        RETURN:
+        -------
+        :return: new_value
         """
         if isinstance(dtype, int) or isinstance(dtype, float):
             try:
@@ -342,8 +421,16 @@ k'
 
     def __on_wake(self):
         """
-        Author: SW
-        Execute any commands listed under config/project/on_wake
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Executes the list of commands in self.config.project.on_wake
+
+        RETURN:
+        -------
         :return: None
         """
         if self.config.project.on_wake is not None:
@@ -354,8 +441,20 @@ k'
 
     def __execute_command(self, command):
         """
-        Author: SW
-        :param command: str: the command to be executed
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Calls exec for the given command
+
+        PARAMETERS:
+        -----------
+        :param command: str: the command to execute
+
+        RETURN:
+        -------
         :return: None
         """
         commands, flags = self.__preprocess_command(command)
@@ -374,9 +473,21 @@ k'
 
     def __preprocess_command(self, command):
         """
-        Author: SW
-        :param command: str: raw command input from user
-        :return: list of str: split and filtered commands for sequential execution
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Pre-processes a given command for execuution.
+
+        PARAMETERS:
+        -----------
+        :param command: str: the command to process.
+
+        RETURN:
+        -------
+        :return: str: the command, str: any flags associated with the command.
         """
         commands = command.split(" & ")
         for command in commands:
@@ -409,10 +520,21 @@ k'
     @staticmethod
     def __illegal_command_messages(command):
         """
-        Author: SW
-        Display reasons why a given command is illegal
-        :param command: str: command to be executed
-        :return:
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Explains why a given command is illegal.
+
+        PARAMETERS:
+        -----------
+        :param command: str: the illegal command.
+
+        RETURN:
+        -------
+        :return: None
         """
         message = (DEEP_MSG_ILLEGAL_COMMAND % command)
         if "__" in command or "._" in command or command.startswith("_"):
@@ -423,32 +545,24 @@ k'
             message = "%s %s" % (message, DEEP_MSG_USE_CONFIG_SAVE)
         Notification(DEEP_NOTIF_WARNING, message)
 
-    def __check_config_old(self, dictionary=DEEP_CONFIG, sub_space=None):
-        """
-        Author: SW
-        :return: bool: whether the config has every expected entries or not
-        """
-        complete = True
-        sub_space = [] if sub_space is None else sub_space
-        sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
-        for key, value in dictionary.items():
-            if isinstance(value, dict):
-                if not self.__check_config(value, sub_space + [key]):
-                    complete = False
-            else:
-                if not self.config.check(key, sub_space):
-                    complete = False
-                    # item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
-                    # Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
-        return complete
-
     @staticmethod
     def __get_command_flags(commands):
         """
-        Author: SW
-        For separating any flags from given commands
-        :param commands: list of str: commands to be executed
-        :return: commands with any given flags
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Extracts any flags from each command in a list of commands.
+
+        PARAMETERS:
+        -----------
+        :param commands: list of str: the commands to extract flags from.
+
+        RETURN:
+        -------
+        :return: None
         """
         flags = [None for _ in range(len(commands))]
         for i, command in enumerate(commands):
