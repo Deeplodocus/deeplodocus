@@ -27,6 +27,24 @@ class Brain(FrontalLobe):
     ------------
 
     A Brain class that manages the commands of the user and allows to start the training
+    PUBLIC METHODS:
+    ---------------
+    :method wake:
+    :method sleep:
+    :method save_config:
+    :method clear_config:
+    :method store_config:
+    :method restore_config:
+    :method load_config:
+    :method check_config:
+
+
+    PRIVATE METHODS:
+    ----------------
+
+    :method __init__():
+    :method __check_config():
+
     """
 
     def __init__(self, config_dir):
@@ -64,7 +82,6 @@ class Brain(FrontalLobe):
         self.load_config()
         Thalamus()                  # Initialize the Thalamus
 
-
     def wake(self):
         """
         Authors : Alix Leroy, SW
@@ -76,7 +93,6 @@ class Brain(FrontalLobe):
         while True:
             command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
             self.__execute_command(command)
-
 
     def sleep(self):
         """
@@ -146,8 +162,72 @@ class Brain(FrontalLobe):
             self.store_config()
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
+        self.check_config()
+
+    def check_config(self):
+        """
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION SHORT:
+        ------------
+        Checks self.config by auto-completing missing parameters with default values and converting values to the
+        required data type.
+        Once check_config has been run, it can be assumed that self.config is complete.
+        See self.__check_config for more details.
+
+        RETURN:
+        -------
+        :return: None
+        """
         self.__check_config()
-        self.config.summary()
+        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_CONFIG_COMPLETE)
+
+    def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
+        """
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        If a parameter is missing, the user is notified by a DEEP_NOTIF_WARNING with DEEP_MSG_CONFIG_NOT_FOUND.
+        The missing parameter is added with the default value specified by DEEP_CONFIG and user is notified of the
+        addition of the parameter by a DEEP_NOTIF_WARNING with DEE_MSG_CONFIG_ADDED.
+        If a parameter is found successfully, it is converted to the data type specified by 'dtype' in DEEP_CONFIG.
+        If a parameter cannot be converted to the required data type, it is replaced with the default from DEEP_CONFIG.
+
+        PARAMETERS:
+        -----------
+        NB: Both parameters are only for use when check_config calls itself.
+        :param dictionary: dictionary to compare self.config with.
+        :param sub_space: list of strings defining the path to the current sub-space.
+
+        RETURN:
+        -------
+        :return: None
+        """
+        sub_space = [] if sub_space is None else sub_space
+        sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
+        for key, value in dictionary.items():
+            if isinstance(value, dict):
+                if "dtype" in value and "default" in value:
+                    default = value["default"]
+                    if self.config.check(key, sub_space=sub_space):
+                        d_type = value["dtype"]
+                        current = self.config.get(sub_space)[key]
+                        path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
+                        self.config.get(sub_space)[key] = self.__convert_dtype(current,
+                                                                               d_type,
+                                                                               default,
+                                                                               path)
+                    else:
+                        item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
+                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_ADDED % (item_path, default))
+                        self.config.get(sub_space)[key] = default
+                else:
+                    self.__check_config(value, sub_space=sub_space + [key])
 
     def clear_logs(self, force=False):
         """
@@ -176,18 +256,6 @@ class Brain(FrontalLobe):
                     Logs(log_type, directory, ext).close()
             else:
                 Logs(log_type, directory, ext).delete()
-
-    def check_config(self):
-        """
-        Author: SW
-        Check the contents of the config namespace against the expecting contents listed in DEEP_CONFIG
-        :return: bool: True if config is complete, False otherwise
-        """
-        if self.__check_config():
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_SUCCESS)
-            return True
-        else:
-            return False
 
     def ui(self):
         """
@@ -248,33 +316,6 @@ k'
             self.visual_cortex = None
         else:
             Notification(DEEP_NOTIF_ERROR, "The Visual Cortex is already asleep.")
-
-    def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
-        """
-        :param dictionary:
-        :param sub_space:
-        :return:
-        """
-        sub_space = [] if sub_space is None else sub_space
-        sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
-        for key, value in dictionary.items():
-            if isinstance(value, dict):
-                if "dtype" in value and "default" in value:
-                    default = value["default"]
-                    if self.config.check(key, sub_space=sub_space):
-                        d_type = value["dtype"]
-                        current = self.config.get(sub_space)[key]
-                        path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
-                        self.config.get(sub_space)[key] = self.__convert_dtype(current,
-                                                                               d_type,
-                                                                               default,
-                                                                               path)
-                    else:
-                        item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
-                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_ADDED % (item_path, default))
-                        self.config.get(sub_space)[key] = default
-                else:
-                    self.__check_config(value, sub_space=sub_space + [key])
 
     def __convert_dtype(self, current, d_type, default, path):
         """
@@ -422,25 +463,6 @@ k'
         if command == "config.save":
             message = "%s %s" % (message, DEEP_MSG_USE_CONFIG_SAVE)
         Notification(DEEP_NOTIF_WARNING, message)
-
-    def __check_config_old(self, dictionary=DEEP_CONFIG, sub_space=None):
-        """
-        Author: SW
-        :return: bool: whether the config has every expected entries or not
-        """
-        complete = True
-        sub_space = [] if sub_space is None else sub_space
-        sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
-        for key, value in dictionary.items():
-            if isinstance(value, dict):
-                if not self.__check_config(value, sub_space + [key]):
-                    complete = False
-            else:
-                if not self.config.check(key, sub_space):
-                    complete = False
-                    # item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
-                    # Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
-        return complete
 
     @staticmethod
     def __get_command_flags(commands):

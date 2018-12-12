@@ -19,9 +19,8 @@ DEEP_MSG_OPTIMIZER_NOT_LOADED = "Could not load optimizer : %s"
 
 # Deep Success
 DEEP_MSG_LOAD_CONFIG_FILE = "File loaded : %s"
-DEEP_MSG_LOAD_CONFIG_SUCCESS = "All necessary configurations have been imported"
+DEEP_MSG_CONFIG_COMPLETE = "Project configuration is complete"
 DEEP_MSG_PROJECT_GENERATED = "Project successfully generated ! Have fun <3"
-
 DEEP_MSG_MODULE_LOADED = "Module loaded : %s from %s"
 DEEP_MSG_MODEL_LOADED = "Model loaded : %s from %s"
 DEEP_MSG_OPTIMIZER_LOADED = "Optimizer loaded : %s from %s"
