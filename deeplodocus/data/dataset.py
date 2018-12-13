@@ -449,6 +449,7 @@ class Dataset(object):
                     try:
                         temp_data.append(data[j][i])
                     except IndexError as e:
+                        # TODO : Have a more explicit notification
                         Notification(DEEP_NOTIF_FATAL, "All your entries do not have the same number of instances : " + str(e))
                 final_data.append(temp_data)
         return final_data

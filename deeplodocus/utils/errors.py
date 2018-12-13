@@ -3,6 +3,28 @@ from deeplodocus.utils.flags import *
 
 
 def error_entry_array_size(d: dict, error_type):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Print the details of the data dictionary when raising an issue of array size
+
+    PARAMETERS:
+    -----------
+
+    :param d (dict): The data dictionary
+    :param error_type: The error type
+
+    RETURN:
+    -------
+
+    :return: None
+    """
 
     text = "All your entries do not have the same number of instances : \n"
 
