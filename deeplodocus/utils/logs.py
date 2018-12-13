@@ -74,7 +74,8 @@ class Logs(object):
         PARAMETERS:
         -----------
 
-        :param text -> str: The text to add
+        :param text: str: The text to add
+        :param write_time: Whether or now to name the file with a time stamp
 
         RETURN:
         -------
@@ -129,7 +130,6 @@ class Logs(object):
             time = time.replace("-", ":")
         except IndexError:
             time = datetime.datetime.now().strftime(TIME_FORMAT)
-        print(self.__get_path(), self.__get_path(time))
         shutil.move(self.__get_path(), self.__get_path(time))
 
     def __get_path(self, time=None):
