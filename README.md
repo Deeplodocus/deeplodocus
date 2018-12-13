@@ -23,22 +23,35 @@ Deeplodocus is designed to be crossplatform (Windows, Linux and Mac OS). It uses
 
 ## Installation
 
+The current version of Deeplodocus relies on PyTorch as backend. Please install the adequate version of PyTorch available [HERE](https://pytorch.org/).
+
 ### PIP
+
+Once PyTorch is installed, you can install Deeplodocus using a PIP command :
 
 `pip install deeplodocus`
 
 
-
 ### Required packages
 
-* PyTorch (v0.4.0+)
-* cv2 (3.1.4+)
+* PyTorch (v1.0.0+)
+
+#### Automatically installed
+* numpy (v1.15.1+)
+* pyyaml (3.13+)
+* pandas (0.23.1+)
+* matplotlib (2.2.2+)
+* aiohttp (3.4.0+)
+* psutil (5-4.8+)
+
+### Recommended packages
+* cv2 (3.1.4+) (For fast image transformation)
 
 
-##Roadmap : 
+## Functionalities : 
 
 * User friendly notifications [✓]
-* User interface on browser
+* User interface on browser [Under construction]
 * Logs [✓]
 * Automatic trainer [✓]
 * Automatic tester/validator [✓]
@@ -47,11 +60,11 @@ Deeplodocus is designed to be crossplatform (Windows, Linux and Mac OS). It uses
 * Saving the model [✓]
 * Smart saving [✓]
 * Dataset Loader [✓]
-* Data checker
+* Data checker [Under construction]
 * Data Augmentation
 * Transformations [✓]
 * Filters
-* Augmentation modes
+* Augmentation modes [Under construction]
 
 ## Check version
 
@@ -88,7 +101,7 @@ This command will generate the following structure in the current folder :
 
 # Structure :
 
-The current structure of Deepldocus is as described by this schema :
+The current structure of Deeplodocus is as described by this schema :
 
 INSERT FIGURE
 
@@ -132,6 +145,8 @@ Deeplodocus comes with a notification system. The current system is composed of 
 - Warning (yellow) : Display a warning
 - Error (red) : Display a no-blocking error to the user
 - Fatal error (white with red background) : Display a blocking error to the user. Stops the brain
+- Result (white) : Display a training result
+- Input (Blanking white) : Ask the user for an keyboard input
 
 All notifications are saved into a log file in `logs/notification-datetime.logs`
 
@@ -222,7 +237,7 @@ train:
       - "input2.txt"            # Input 2
 ```
 
-If one entry is splitted in to different location, you can merge these to sources in one using brackets:
+If one entry is split in to different location, you can merge these to sources in one using brackets:
 ```yaml
 
 # Example
@@ -248,7 +263,7 @@ The `Dataset` has two main objectives :
 
 ### Dataloader
 
-The `Dataloader` can call the `Dataset` in parralel of the training using the CPU.
+The `Dataloader` can call the `Dataset` in parallel of the training using the CPU.
 The data are assembled into batches and then sent to the `Trainer` or the `Tester`
 
 NOTE : Currently the Dataloader is provided by the PyTorch's Dataloader.

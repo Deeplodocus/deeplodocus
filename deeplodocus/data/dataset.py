@@ -449,6 +449,7 @@ class Dataset(object):
                     try:
                         temp_data.append(data[j][i])
                     except IndexError as e:
+                        # TODO : Have a more explicit notification
                         Notification(DEEP_NOTIF_FATAL, "All your entries do not have the same number of instances : " + str(e))
                 final_data.append(temp_data)
         return final_data
@@ -680,12 +681,10 @@ class Dataset(object):
 
         :return: The integer flag of the corresponding type
         """
-        try:
-            mime = mimetypes.guess_type(data)
+        mime = mimetypes.guess_type(data)
+        if mime[0] != None:
             mime = mime[0].split("/")[0]
-            # TODO: Please make this except a specific error(s) IndexError?
-        except:
-            mime = None
+
         # Image
         if mime == "image":
             return DEEP_TYPE_IMAGE
@@ -1021,7 +1020,7 @@ class Dataset(object):
         AUTHORS:
         --------
 
-        author: Alix Leroy
+        :author: Alix Leroy
 
         DESCRIPTION:
         ------------
@@ -1031,13 +1030,13 @@ class Dataset(object):
         PARAMETERS:
         -----------
 
-        :param use_raw_data -> bool : Whether to use or not the raw data in the training
+        :param use_raw_data (bool) : Whether to use or not the raw data in the training
 
 
         RETURN:
         -------
 
-        None
+        return: None
         """
         self.use_raw_data = use_raw_data
 
@@ -1049,10 +1048,25 @@ class Dataset(object):
 
     def __get_number_instances(self, f):
         """
-        Authors : Alix Leroy,
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
         Get the number of instances in a file or a folder
+
+        PARAMETERS:
+        ------------
+
         :param f: A file or folder path
-        :return: Number of instances in the file or the folder
+
+        RETURN:
+        -------
+
+        :return num_instances(int): Number of instances in the file or the folder
         """
 
         # If the frame input is a file

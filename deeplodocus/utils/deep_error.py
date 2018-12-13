@@ -1,0 +1,4 @@
+
+
+class DeepError(Exception):
+    pass
