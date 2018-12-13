@@ -1020,7 +1020,7 @@ class Dataset(object):
         AUTHORS:
         --------
 
-        author: Alix Leroy
+        :author: Alix Leroy
 
         DESCRIPTION:
         ------------
@@ -1030,13 +1030,13 @@ class Dataset(object):
         PARAMETERS:
         -----------
 
-        :param use_raw_data -> bool : Whether to use or not the raw data in the training
+        :param use_raw_data (bool) : Whether to use or not the raw data in the training
 
 
         RETURN:
         -------
 
-        None
+        return: None
         """
         self.use_raw_data = use_raw_data
 
@@ -1048,10 +1048,25 @@ class Dataset(object):
 
     def __get_number_instances(self, f):
         """
-        Authors : Alix Leroy,
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
         Get the number of instances in a file or a folder
+
+        PARAMETERS:
+        ------------
+
         :param f: A file or folder path
-        :return: Number of instances in the file or the folder
+
+        RETURN:
+        -------
+
+        :return num_instances(int): Number of instances in the file or the folder
         """
 
         # If the frame input is a file
