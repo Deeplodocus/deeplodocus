@@ -1,8 +1,8 @@
-from deeplodocus.utils.flags.config import DEEP_CONFIG_DIVIDER, DEEP_CONFIG_PROJECT
-
-#
 # DEEP MESSAGES / TEXT / STATEMENTS
-#
+
+###################
+# DEEP_MSG_CONFIG #
+###################
 
 # Deep Error
 DEEP_MSG_FILE_NOT_FOUND = "File not found : %s"
@@ -43,4 +43,28 @@ DEEP_MSG_CONTINUE = "Do you wish to continue ? (y/n)"
 # Deep Info
 DEEP_MSG_LOAD_CONFIG_START = "Loading configurations from %s"
 DEEP_MSG_PROJECT_NOT_GENERATED = "Project not generated"
+
+#################
+# DEEP_MSG_DATA #
+#################
+
+# DEEP_FATAL
+DEEP_MSG_DATA_CANNOT_IDENTIFY_IMAGE = "%s could not identify image file : %s"
+DEEP_MSG_DATA_CANNOT_FIND_IMAGE = "Image not found : %s"
+DEEP_MSG_DATA_CANNOT_LOAD_IMAGE = "%s could not open image file %s"
+DEEP_MSG_DATA_NOT_HANDLED = "The type of the following data is not handled : %s"
+DEEP_MSG_DATA_SOURCE_NOT_FOUND = "Source path not found : %s"
+DEEP_MSG_DATA_IS_NONE = "The following data is None : %s"
+
+# DEEP_INFO
+DEEP_MSG_DATA_SUMMARY = "Summary of the '%s' dataset :\n%s"
+
+# DEEP_SUCCESS
+DEEP_MSG_DATA_LOADED = "The '%s' dataset has been successfully loaded"
+
+#######################
+# DEEP_MSG_CV_LIBRARY #
+#######################
+DEEP_MSG_CV_LIBRARY_SET = "Set cv library to : %s"
+DEEP_MSG_CV_LIBRARY_NOT_IMPLEMENTED = "The following image module is not implemented : %s"
 
