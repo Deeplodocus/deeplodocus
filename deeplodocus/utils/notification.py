@@ -2,8 +2,13 @@ import os
 import __main__
 
 from deeplodocus.utils.logs import Logs
-from deeplodocus.utils.end import End
+# from deeplodocus.utils.end import End
 from deeplodocus.utils.flags import *
+
+
+class DeepError(Exception):
+    pass
+
 #
 # List of color codes
 # Found at : https://stackoverflow.com/questions/287871/print-in-terminal-with-colors
@@ -139,13 +144,14 @@ class Notification(object):
         Close Deeplodocus Brain
         """
         message1 = "DEEP FATAL ERROR : %s" % message
-        message2 = "DEEP FATAL ERROR : Exiting the program"
+        # message2 = "DEEP FATAL ERROR : Exiting the program"
         print("%s%s%s" % (CREDBG2, message1, CEND))
-        print("%s%s%s" % (CREDBG2, message2, CEND))
+        # print("%s%s%s" % (CREDBG2, message2, CEND))
         if self.log is True:
             self.__add_log(message1)
-            self.__add_log(message2)
-        End(error=True)
+            # self.__add_log(message2)
+        # End(error=True)
+        raise DeepError
 
     def __error(self, message: str) -> None:
         """

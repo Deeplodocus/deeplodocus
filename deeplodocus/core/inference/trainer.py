@@ -195,7 +195,8 @@ class Trainer(GenericEvaluator):
                 # Accumulates the gradient (by addition) for each parameter
                 total_loss.backward()
 
-                # Performs a parameter update based on the current gradient (stored in .grad attribute of a parameter) and the update rule
+                # Performs a parameter update based on the current gradient (stored in .grad attribute of a parameter)
+                # and the update rule
                 self.optimizer.step()
 
                 outputs, total_loss, result_losses, result_metrics = self.detach(outputs=outputs,
@@ -205,12 +206,12 @@ class Trainer(GenericEvaluator):
 
                 # Send signal batch end
                 Thalamus().add_signal(Signal(event= DEEP_EVENT_ON_BATCH_END,
-                                             args={"minibatch_index" : minibatch_index+1,
-                                                   "num_minibatches" : self.num_minibatches,
-                                                   "epoch_index" : epoch,
-                                                   "total_loss" : total_loss.item(),
-                                                   "result_losses" : result_losses,
-                                                   "result_metrics" : result_metrics
+                                             args={"minibatch_index": minibatch_index+1,
+                                                   "num_minibatches": self.num_minibatches,
+                                                   "epoch_index": epoch,
+                                                   "total_loss": total_loss.item(),
+                                                   "result_losses": result_losses,
+                                                   "result_metrics": result_metrics
                                                    }))
 
             # Shuffle the data if required
