@@ -129,6 +129,7 @@ class Logs(object):
             time = time.replace("-", ":")
         except IndexError:
             time = datetime.datetime.now().strftime(TIME_FORMAT)
+        print(self.__get_path(), self.__get_path(time))
         shutil.move(self.__get_path(), self.__get_path(time))
 
     def __get_path(self, time=None):
