@@ -55,7 +55,7 @@ DEEP_MSG_DATA_CANNOT_LOAD_IMAGE = "%s could not open image file %s"
 DEEP_MSG_DATA_NOT_HANDLED = "The type of the following data is not handled : %s"
 DEEP_MSG_DATA_SOURCE_NOT_FOUND = "Source path not found : %s"
 DEEP_MSG_DATA_IS_NONE = "The following data is None : %s"
-
+DEEP_MSG_DATA_ENTRY = "Please check the following entry format : %s"
 # DEEP_INFO
 DEEP_MSG_DATA_SUMMARY = "Summary of the '%s' dataset :\n%s"
 

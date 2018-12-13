@@ -4,7 +4,7 @@ import __main__
 
 from deeplodocus import __version__
 from deeplodocus.brain.frontal_lobe import FrontalLobe
-from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.notification import Notification, DeepError
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.logo import Logo
@@ -98,7 +98,10 @@ class Brain(FrontalLobe):
 
         while True:
             command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
-            self.__execute_command(command)
+            try:
+                self.__execute_command(command)
+            except DeepError:
+                time.sleep(0.5)
 
     def sleep(self):
         """
