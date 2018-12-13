@@ -16,7 +16,7 @@ class Dataset(object):
     AUTHORS:
     --------
 
-    author : Alix Leroy
+    author : Alix Leroy and Samuel Westlake
 
 
     DESCRIPTION:
@@ -64,7 +64,7 @@ class Dataset(object):
         :param list_labels: A list of label files/folders/list of files/folders
         :param list_additional_data: A list of additional data files/folders/list of files/folders
         :param use_raw_data: Boolean : Whether to feed the network with raw data or always apply transforms on it
-        :param transform: A transform object
+        :param transform_manager: A transform object
         :param cv_library: The computer vision library to be used for opening and modifying the images data
         :param name: Name of the dataset
         """
@@ -72,7 +72,6 @@ class Dataset(object):
         self.list_labels = self.__check_null_entry(list_labels)
         self.list_additional_data = self.__check_null_entry(list_additional_data)
         self.list_data = list_inputs + list_labels + list_additional_data
-        self.cv_library = cv_library
         self.transform_manager = transform_manager
         self.number_raw_instances = self.__compute_number_raw_instances()
         self.data = None
@@ -82,25 +81,10 @@ class Dataset(object):
         # Check that the given data are in a correct format before any training
         # self.__check_data()
         self.warning_video = None
+        self.cv_library = None
+        self.set_cv_library(cv_library)
 
-        if cv_library == DEEP_LIB_OPENCV:
-            try:
-                Notification(DEEP_NOTIF_INFO, "OPENCV picked as Computer Vision library")
-                global cv2
-                import cv2
-            except ImportError as e:
-                Notification(DEEP_NOTIF_ERROR, str(e))
-        elif cv_library == DEEP_LIB_PIL:
-            try:
-                Notification(DEEP_NOTIF_INFO, "PILLOW picked as Computer Vision library")
-                global Image
-                from PIL import Image
-            except ImportError as e:
-                Notification(DEEP_NOTIF_ERROR, str(e))
-        else:
-            Notification(DEEP_NOTIF_ERROR, "Unknown CV library flag %s" % cv_library)
-
-    def __getitem__(self, index : int):
+    def __getitem__(self, index: int):
 
         """
         AUTHORS:
@@ -116,7 +100,7 @@ class Dataset(object):
         PARAMETERS:
         -----------
 
-        :param index -> Integer : Index of the instance to load
+        :param index: Int: Index of the instance to load
 
 
         RETURN:
@@ -127,42 +111,62 @@ class Dataset(object):
         inputs = []
         labels = []
         additional_data = []
-
-        # Index of the raw data is used only to get the path to original data. Real index is used for data transformation
+        # Index of the raw data is used only to get the path to original data.
+        # Real index is used for data transformation
         index_raw_data = index % self.number_raw_instances
-
         # If we ask for a not existing index we use the modulo and consider the data to have to be augmented
         if index >= self.number_raw_instances:
             augment = True
-
         # If we ask for a raw data, augment it only if required by the user
         else:
             augment = not self.use_raw_data
-
         if index >= self.len_data:
             Notification(DEEP_NOTIF_FATAL, "The given instance index is too high : " + str(index))
-
-
         # Extract lists of raw data from the pandas DataFrame for the select index
         if not self.list_labels:
             if not self.list_additional_data:
                 inputs = self.data.iloc[index_raw_data]
-                inputs = self.__load_data(data=inputs[0], augment=augment, index=index, entry_type=DEEP_ENTRY_INPUT)         #Keep key == 0 else the datafram  also returns the name of the column (issue only on single column dataframe)
+                # Keep key == 0 else the data frame  also returns the name of the column
+                # issue only on single column data frame
+                inputs = self.__load_data(data=inputs[0],
+                                          augment=augment,
+                                          index=index,
+                                          entry_type=DEEP_ENTRY_INPUT)
             else:
                 inputs, additional_data = self.data.iloc[index_raw_data]
-                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_ENTRY_INPUT)
-                additional_data = self.__load_data(data=additional_data, augment=augment, index=index, entry_type=DEEP_ENTRY_ADDITIONAL_DATA)
+                inputs = self.__load_data(data=inputs,
+                                          augment=augment,
+                                          index=index,
+                                          entry_type=DEEP_ENTRY_INPUT)
+                additional_data = self.__load_data(data=additional_data,
+                                                   augment=augment,
+                                                   index=index,
+                                                   entry_type=DEEP_ENTRY_ADDITIONAL_DATA)
         else:
             if not self.list_additional_data:
                 inputs, labels = self.data.iloc[index_raw_data]
-                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_ENTRY_INPUT)
-                labels = self.__load_data(data=labels, augment=augment, index=index, entry_type=DEEP_ENTRY_LABEL)
+                inputs = self.__load_data(data=inputs,
+                                          augment=augment,
+                                          index=index,
+                                          entry_type=DEEP_ENTRY_INPUT)
+                labels = self.__load_data(data=labels,
+                                          augment=augment,
+                                          index=index,
+                                          entry_type=DEEP_ENTRY_LABEL)
             else:
                 inputs, labels, additional_data = self.data.iloc[index_raw_data]
-                inputs = self.__load_data(data=inputs, augment=augment, index=index, entry_type=DEEP_ENTRY_INPUT)
-                labels = self.__load_data(data=labels, augment=augment, index=index, entry_type=DEEP_ENTRY_LABEL)
-                additional_data = self.__load_data(data=additional_data, augment=augment, index=index,  entry_type=DEEP_ENTRY_ADDITIONAL_DATA)
-
+                inputs = self.__load_data(data=inputs,
+                                          augment=augment,
+                                          index=index,
+                                          entry_type=DEEP_ENTRY_INPUT)
+                labels = self.__load_data(data=labels,
+                                          augment=augment,
+                                          index=index,
+                                          entry_type=DEEP_ENTRY_LABEL)
+                additional_data = self.__load_data(data=additional_data,
+                                                   augment=augment,
+                                                   index=index,
+                                                   entry_type=DEEP_ENTRY_ADDITIONAL_DATA)
         return inputs, labels, additional_data
 
     def __len__(self) -> int:
@@ -187,21 +191,25 @@ class Dataset(object):
 
         return -> Integer : Length of the dataset
         """
-
-        # If the lenth of the dataset has never been calculated we compute it
-        if self.len_data == None:
+        # If the length of the dataset has never been calculated we compute it
+        if self.len_data is None:
             return len(self.data)
-
         # Else, if the length of the dataset has been specified by an external demand (specific number of instance) we return this number
         else:
             return self.len_data
+
+    """
+    "
+    " PUBLIC METHODS
+    "
+    """
 
     def summary(self) -> None:
         """
         AUTHORS:
         --------
 
-        author: Alix Leroy
+        author: Alix Leroy and Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -220,12 +228,30 @@ class Dataset(object):
 
         """
 
-        Notification(DEEP_NOTIF_INFO, "Summary of the '" + str(self.name)+ "' dataset : \n" + str(self.data))
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_SUMMARY % (self.name, self.data))
 
+    def set_cv_library(self, cv_library):
+        """
+         AUTHORS:
+         --------
+         author: Samuel Westlake
 
+         DESCRIPTION:
+         ------------
+         Set self.cv_library to the given value and import the corresponding cv library
 
+         PARAMETERS:
+         -----------
+         None
 
-    def load(self)-> None:
+         RETURN:
+         -------
+         None
+         """
+        self.cv_library = cv_library
+        self.__import_cv_library()
+
+    def load(self) -> None:
         """
         AUTHORS:
         --------
@@ -249,8 +275,6 @@ class Dataset(object):
 
         :return:
         """
-
-
         # Read the data given as input
         inputs = self.__read_data(self.list_inputs)
         labels = self.__read_data(self.list_labels)
@@ -267,180 +291,17 @@ class Dataset(object):
                 d = {'inputs': inputs, 'labels': labels}
             else:
                 d = {'inputs': inputs, 'labels': labels, 'additional_data': additional_data}
-
-
         # Convert the dictionary of data into a panda DataFrame
-        try :
+        try:
             self.data = pd.DataFrame(d)
         except ValueError as e:
             error_entry_array_size(d, e)
-
-
-
-
         # Update the number of instances in the DataFrame
         self.len_data = self.__len__()
-
         # Notice the user that the Dataset has been loaded
-        Notification(DEEP_NOTIF_SUCCESS, "The '" + str(self.name) + "' dataset has successfully been loaded !")
+        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_DATA_LOADED % self.name)
 
-
-    """
-    "
-    " PRIVATE METHODS
-    "
-    """
-
-
-    def __read_data(self, list_f_data):
-        """
-        AUTHORS:
-        --------
-
-        author: Alix Leroy
-        author:  Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-
-        Read the content given in the input files or folders
-
-        PARAMETERS:
-        -----------
-
-        :param list_f_data : List of files or folders
-
-        RETURN:
-        -------
-
-        :return final_data: The content of the files and folder given as input. The list is formatted to fit a pandas Dataframe columns
-        """
-
-
-        data = []
-
-        # For all the files/folder given as input
-        for i, f_data in enumerate(list_f_data):
-            content = []
-
-            # If the input given is a list of inputs to extend
-            if type(f_data) is list:
-
-                # For each input in the list we collect the data and extend the list
-                for j, f in enumerate(f_data):
-                    content.extend(self.__get_content(f))
-                data.append(content)
-
-
-            # If the input given is a single input
-            else:
-                content = self.__get_content(f_data)
-                data.append(content)  # Add the new content to the list of data
-
-        # Format the data to the format accepted by deeplodocus where final_data[i][j] = data[j][i]
-        final_data = []
-
-        if len(data) > 0:
-            for i in range(len(data[0])):
-                temp_data = []
-                for j in range(len(data)):
-                    try:
-                        temp_data.append(data[j][i])
-                    except IndexError as e:
-                        Notification(DEEP_NOTIF_FATAL, "All your entries do not have the same number of instances : " + str(e))
-                final_data.append(temp_data)
-        return final_data
-
-
-    def __get_content(self, f):
-        """
-        AUTHORS:
-        --------
-
-        author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        List all the data from a file or from a folder
-
-        PARAMETERS:
-        -----------
-        :param f: A file or a folder
-
-        RETURN:
-        -------
-
-        :return content: Content of the file/folder in a list
-        """
-
-        # Get the source path type
-        source_type = self.__source_path_type(f)
-
-        content = None
-
-        # If f is a file
-        if source_type == DEEP_TYPE_FILE:
-
-            with open(f) as f:  # Read the file and get the data
-                content = f.readlines()
-
-            content = [x.strip() for x in content]  # Remove the end of line \n
-
-        # If f is a folder
-        elif source_type == DEEP_TYPE_FOLDER:  # If it is a folder given as input
-            content = self.__get_file_paths(f)
-
-        # Else (neither a file nor a folder)
-        else:
-            Notification(DEEP_NOTIF_FATAL, "The source type of the following source path does not exist : " + str(f))
-
-        return content
-
-
-    def __get_file_paths(self, directory):
-        """
-        AUTHORS:
-        --------
-
-        author: Samuel Westlake
-        author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Get the list of paths to every file within the given directories
-
-        PARAMETERS:
-        -----------
-
-        :param directory: str or list of str: path to directories to get paths from
-
-        RETURN:
-        -------
-
-        :return list of str: list of paths to every file within the given directories
-
-        """
-
-        paths = []
-
-        # For each item in the directory
-        for item in os.listdir(directory):
-            sub_path = "%s/%s" % (directory, item)
-
-            # If the subpath of the item is a directory we apply the self function recursively
-            if os.path.isdir(sub_path):
-                paths.extend(self.__get_file_paths(sub_path))
-
-            # Else we add the path of the file to the list of files
-            else:
-                paths.extend([sub_path])
-
-        return sorted_nicely(paths)
-
-
-    def shuffle(self, method:int) -> None:
+    def shuffle(self, method: int) -> None:
         """
         AUTHORS:
         --------
@@ -465,6 +326,7 @@ class Dataset(object):
         if method == DEEP_SHUFFLE_ALL:
             try:
                 self.data = self.data.sample(frac=1).reset_index(drop=True)
+            # TODO: Please can this except a specific error(s)
             except:
                 Notification(DEEP_NOTIF_ERROR, "Cannot shuffle the dataset")
         else:
@@ -472,7 +334,6 @@ class Dataset(object):
 
         # Reset the TransformManager
         self.reset()
-
 
     def reset(self)->None:
         """
@@ -499,6 +360,172 @@ class Dataset(object):
         if self.transform_manager is not None:
             self.transform_manager.reset()
 
+    """
+    "
+    " PRIVATE METHODS
+    "
+    """
+
+    def __import_cv_library(self):
+        """
+        AUTHORS:
+        --------
+        author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Imports either cv2 or PIL.Image dependant on the value of self.cv_library
+
+        PARAMETERS:
+        -----------
+        None
+
+        RETURN:
+        -------
+        None
+        """
+        if self.cv_library == DEEP_LIB_OPENCV:
+            try:
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_CV_LIBRARY_SET % "OPENCV")
+                global cv2
+                import cv2
+            except ImportError as e:
+                Notification(DEEP_NOTIF_ERROR, str(e))
+        elif self.cv_library == DEEP_LIB_PIL:
+            try:
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_CV_LIBRARY_SET % "PILLOW")
+                global Image
+                from PIL import Image
+            except ImportError as e:
+                Notification(DEEP_NOTIF_ERROR, str(e))
+        else:
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CV_LIBRARY_NOT_IMPLEMENTED % self.cv_library)
+
+    def __read_data(self, list_f_data):
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+        author:  Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Read the content given in the input files or folders
+
+        PARAMETERS:
+        -----------
+
+        :param list_f_data : List of files or folders
+
+        RETURN:
+        -------
+
+        :return final_data: The content of the files and folder given as input. The list is formatted to fit a pandas Dataframe columns
+        """
+        data = []
+        # For all the files/folder given as input
+        for i, f_data in enumerate(list_f_data):
+            content = []
+
+            # If the input given is a list of inputs to extend
+            if type(f_data) is list:
+
+                # For each input in the list we collect the data and extend the list
+                for j, f in enumerate(f_data):
+                    content.extend(self.__get_content(f))
+                data.append(content)
+            # If the input given is a single input
+            else:
+                content = self.__get_content(f_data)
+                data.append(content)  # Add the new content to the list of data
+        # Format the data to the format accepted by deeplodocus where final_data[i][j] = data[j][i]
+        final_data = []
+        if len(data) > 0:
+            for i in range(len(data[0])):
+                temp_data = []
+                for j in range(len(data)):
+                    try:
+                        temp_data.append(data[j][i])
+                    except IndexError as e:
+                        Notification(DEEP_NOTIF_FATAL, "All your entries do not have the same number of instances : " + str(e))
+                final_data.append(temp_data)
+        return final_data
+
+    def __get_content(self, f):
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        List all the data from a file or from a folder
+
+        PARAMETERS:
+        -----------
+        :param f: A file or a folder
+
+        RETURN:
+        -------
+
+        :return content: Content of the file/folder in a list
+        """
+
+        # Get the source path type
+        source_type = self.__source_path_type(f)
+        content = None
+        # If f is a file
+        if source_type == DEEP_TYPE_FILE:
+            with open(f) as f:  # Read the file and get the data
+                content = f.readlines()
+            content = [x.strip() for x in content]  # Remove the end of line \n
+        # If f is a folder
+        elif source_type == DEEP_TYPE_FOLDER:  # If it is a folder given as input
+            content = self.__get_file_paths(f)
+        # Else (neither a file nor a folder)
+        else:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_SOURCE_NOT_FOUND % f)
+        return content
+
+    def __get_file_paths(self, directory):
+        """
+        AUTHORS:
+        --------
+
+        author: Samuel Westlake
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the list of paths to every file within the given directories
+
+        PARAMETERS:
+        -----------
+
+        :param directory: str or list of str: path to directories to get paths from
+
+        RETURN:
+        -------
+
+        :return list of str: list of paths to every file within the given directories
+
+        """
+        paths = []
+        # For each item in the directory
+        for item in os.listdir(directory):
+            sub_path = "%s/%s" % (directory, item)
+            # If the subpath of the item is a directory we apply the self function recursively
+            if os.path.isdir(sub_path):
+                paths.extend(self.__get_file_paths(sub_path))
+            # Else we add the path of the file to the list of files
+            else:
+                paths.extend([sub_path])
+        return sorted_nicely(paths)
 
     def __load_data(self, data, augment, index, entry_type, entry_num = None):
         """
@@ -526,89 +553,78 @@ class Dataset(object):
 
         :return loaded_data: The loaded (and transformed if required) data
         """
-
-
-
         loaded_data = []
-
         for i, d in enumerate(data):            # For each data given in the list (list = one instance of each file)
             if d is not None:
                 type_data = self.__data_type(d)
-
                 # TODO : Check how sequence behaves
                 # If data is a sequence we use the function in a recursive fashion
                 if type_data == DEEP_TYPE_SEQUENCE:
                     if entry_num is None:
                         entry_num = i
-                    sequence_raw_data = d.split() # Generate a list from the sequence
-                    loaded_data.append(self.__load_data(data=sequence_raw_data, augment=augment, index=index, entry_type=entry_type, entry_num=entry_num)) # Get the content of the list
-
+                    sequence_raw_data = d.split()  # Generate a list from the sequence
+                    loaded_data.append(self.__load_data(data=sequence_raw_data,
+                                                        augment=augment,
+                                                        index=index,
+                                                        entry_type=entry_type,
+                                                        entry_num=entry_num))  # Get the content of the list
                 # Image
                 elif type_data == DEEP_TYPE_IMAGE:
                     image = self.__load_image(d)
-
                     if self.cv_library == DEEP_LIB_PIL:
                         image = np.array(image)
-
                     if entry_num is None:
                         entry_num = i
-
-                    if augment is True :
-                        image = self.transform_manager.transform(data = image, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
-
-
+                    if augment is True:
+                        image = self.transform_manager.transform(data=image,
+                                                                 index=index,
+                                                                 type_data=type_data,
+                                                                 entry_type=entry_type,
+                                                                 entry_num=entry_num)
                     image = np.swapaxes(image, 0, 2).astype(float)
                     loaded_data.append(image)
-
                 # TODO : Check how video behaves
                 # Video
                 elif type_data == DEEP_TYPE_VIDEO:
                     video = self.__load_video(d)
                     if entry_num is None:
                         entry_num = i
-
                     if augment is True:
-                        video = self.transform_manager.transform(data = video, index=index, type_data = type_data, entry_type = entry_type, entry_num = entry_num)
+                        video = self.transform_manager.transform(data=video,
+                                                                 index=index,
+                                                                 type_data=type_data,
+                                                                 entry_type=entry_type,
+                                                                 entry_num=entry_num)
                     loaded_data.append(video)
-
                 # Integer
                 elif type_data == DEEP_TYPE_INTEGER:
                     integer = int(d)
                     loaded_data.append(integer)
-
                 # Float
                 elif type_data == DEEP_TYPE_FLOAT:
                     floating = float(d)
                     loaded_data.append(floating)
-
                 # Numpy array
                 elif type_data == DEEP_TYPE_NP_ARRAY:
                     loaded_data.append(np.load(d))
-
                 # Data type not recognized
                 else:
                     Notification(DEEP_NOTIF_FATAL,
                                  "The following data could not be loaded because its type is not recognize : %s.\n"
                                  "Please check the documentation online to see the supported types" % data)
-
                 entry_num = None
-
             # If the data is None
             else:
-                Notification(DEEP_NOTIF_FATAL, "The following data is None : %s" % d)
-
-
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_IS_NONE % d)
         return loaded_data
-
-
-
     """
     "
     " DATA TYPE ANALYZERS
     "
     """
 
-    def __source_path_type(self, f)->int:
+    @staticmethod
+    def __source_path_type(f):
         """
         AUTHORS:
         --------
@@ -628,27 +644,21 @@ class Dataset(object):
         RETURN:
         -------
 
-        :return type-> int: A type flag
+        :return type -> int: A type flag
         """
-
         # If the source path is a file
         if os.path.isfile(f):
-            type = DEEP_TYPE_FILE
-
+            return DEEP_TYPE_FILE
         # If the source path is a directory
         elif os.path.isdir(f):
-            type = DEEP_TYPE_FOLDER
-
+            return DEEP_TYPE_FOLDER
         # TODO: Add database as source path
-
-        # Else
         else:
-            Notification(DEEP_NOTIF_FATAL,
-                         "The source type of the following source path does not exist : " + str(f))
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_SOURCE_NOT_FOUND % f)
+            return None
 
-        return type
-
-    def __data_type(self, data)-> int:
+    @staticmethod
+    def __data_type(data) -> int:
         """
         AUTHORS:
         --------
@@ -670,42 +680,32 @@ class Dataset(object):
 
         :return: The integer flag of the corresponding type
         """
-
         try:
             mime = mimetypes.guess_type(data)
             mime = mime[0].split("/")[0]
+            # TODO: Please make this except a specific error(s) IndexError?
         except:
             mime = None
-
         # Image
         if mime == "image":
             return DEEP_TYPE_IMAGE
-
         # Video
         elif mime == "video":
             return DEEP_TYPE_VIDEO
-
         # Float
         elif get_int_or_float(data) == DEEP_TYPE_FLOAT:
             return DEEP_TYPE_FLOAT
-
         # Integer
         elif get_int_or_float(data) == DEEP_TYPE_INTEGER:
             return DEEP_TYPE_INTEGER
-
         # List
         elif type(data) is list:
             return DEEP_TYPE_SEQUENCE
-
         if is_np_array(data) is True:
             return DEEP_TYPE_NP_ARRAY
         # Type not handled
         else:
-            Notification(DEEP_NOTIF_FATAL, "The type of the following data is not handled : " + str(data))
-
-
-
-
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_NOT_HANDLED % data)
 
     #
     # DATA LOADERS
@@ -733,26 +733,23 @@ class Dataset(object):
         :return: The loaded image
         """
         if self.cv_library == DEEP_LIB_OPENCV:
-            image =  cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+            image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
             # Check that the image was correctly loaded
             if image is None:
-                Notification(DEEP_NOTIF_FATAL, "The following image cannot be loaded with OpenCV: " +str(image_path))
-
-            # If the image is not a grayscale (only width + height axis)
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_LOAD_IMAGE% image_path)
+            # If the image is not grayscale
             if len(image.shape) > 2:
                 # Convert to RGB(a)
-                image = self.__convert_bgra2rgba(image)
-
-
+                return self.__convert_bgra2rgba(image)
         elif self.cv_library == DEEP_LIB_PIL:
             try:
-                image = Image.open(image_path)
-            except:
-                Notification(DEEP_NOTIF_FATAL, "The following image cannot be loaded with PIL: " + str(image_path))
+                return Image.open(image_path)
+            except FileNotFoundError:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_FIND_IMAGE % image_path)
+            except OSError:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_IDENTIFY_IMAGE % ("PIL", image_path))
         else:
-            Notification(DEEP_NOTIF_FATAL, "The following image module is not implemented : "+ str(self.cv_library))
-
-        return image
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_CV_LIBRARY_NOT_IMPLEMENTED % self.cv_library)
 
     @staticmethod
     def __convert_bgra2rgba(image):
@@ -780,15 +777,12 @@ class Dataset(object):
 
         # Convert BGR(A) to RGB(A)
         _, _, channels = image.shape
-
         # Handle BGR and BGRA images
         if channels == 3:
             image = image[:, :, (2, 1, 0)]
         elif channels == 4:
             image = image[:, :, (2, 1, 0, 3)]
-
         return image
-
 
     def __load_video(self, video_path: str):
         """
@@ -813,22 +807,21 @@ class Dataset(object):
         """
         self.__throw_warning_video()
         video = []
-
         # If the computer vision library selected is OpenCV
         if self.cv_library == DEEP_LIB_OPENCV:
-
             # try to load the file
             try:
-                cap = cv2.VideoCapture(video_path)      #Open the video
-
-                while (cap.isOpened()):                 # While there is another frame
-                    ret, frame = cap.read()
+                cap = cv2.VideoCapture(video_path)      # Open the video
+                while cap.isOpened():                   # While there is another frame
+                    _, frame = cap.read()
+                    if frame is None:
+                        break
                     video.append(frame)                 # Add the frame to the sequence
-
             # If there is any problem during the opening of the file
+            # TODO: no more general excepts
             except:
-                raise ValueError("An error occured while loading the following vidoe : " + str(video_path))
-
+                # TODO : needs to be a notification
+                Notification(DEEP_NOTIF_FATAL, "An error occured while loading the following video : " + str(video_path))
         # If the selected computer vision library is not compatible with we still try to open the video using OpenCV (Not optimized)
         else:
             try:
@@ -838,11 +831,9 @@ class Dataset(object):
                 while (cap.isOpened()):                 # While there is another frame
                     ret, frame = cap.read()
                     video.append(frame)                 # Add the frame to the sequence
-
             except:
                 Notification(DEEP_NOTIF_FATAL, "The following file could not be loaded : " + str(video_path) + "\n The selected Computer Vision library does not handle the videos. \n Deeplodocus tried to use OpenCV by default without success.")
-        return  video # Return the sequence of frames loaded
-
+        return video  # Return the sequence of frames loaded
 
     def __throw_warning_video(self):
         """
