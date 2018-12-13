@@ -335,7 +335,7 @@ class Dataset(object):
         # Reset the TransformManager
         self.reset()
 
-    def reset(self)->None:
+    def reset(self) -> None:
         """
         AUTHORS:
         --------
@@ -527,7 +527,7 @@ class Dataset(object):
                 paths.extend([sub_path])
         return sorted_nicely(paths)
 
-    def __load_data(self, data, augment, index, entry_type, entry_num = None):
+    def __load_data(self, data, augment, index, entry_type, entry_num=None):
         """
         AUTHORS:
         --------
@@ -736,7 +736,7 @@ class Dataset(object):
             image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
             # Check that the image was correctly loaded
             if image is None:
-                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_LOAD_IMAGE% image_path)
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_LOAD_IMAGE % image_path)
             # If the image is not grayscale
             if len(image.shape) > 2:
                 # Convert to RGB(a)
@@ -810,30 +810,14 @@ class Dataset(object):
         # If the computer vision library selected is OpenCV
         if self.cv_library == DEEP_LIB_OPENCV:
             # try to load the file
-            try:
-                cap = cv2.VideoCapture(video_path)      # Open the video
-                while cap.isOpened():                   # While there is another frame
-                    _, frame = cap.read()
-                    if frame is None:
-                        break
-                    video.append(frame)                 # Add the frame to the sequence
-            # If there is any problem during the opening of the file
-            # TODO: no more general excepts
-            except:
-                # TODO : needs to be a notification
-                Notification(DEEP_NOTIF_FATAL, "An error occured while loading the following video : " + str(video_path))
-        # If the selected computer vision library is not compatible with we still try to open the video using OpenCV (Not optimized)
-        else:
-            try:
-                import cv2
-                cap = cv2.VideoCapture(video_path)      #Open the video
-
-                while (cap.isOpened()):                 # While there is another frame
-                    ret, frame = cap.read()
-                    video.append(frame)                 # Add the frame to the sequence
-            except:
-                Notification(DEEP_NOTIF_FATAL, "The following file could not be loaded : " + str(video_path) + "\n The selected Computer Vision library does not handle the videos. \n Deeplodocus tried to use OpenCV by default without success.")
-        return video  # Return the sequence of frames loaded
+            cap = cv2.VideoCapture(video_path)
+            while True:
+                _, frame = cap.read()
+                if frame is None:
+                    break
+                video.append(self.__convert_bgra2rgba(frame))
+            cap.release()
+        return video
 
     def __throw_warning_video(self):
         """
@@ -861,11 +845,8 @@ class Dataset(object):
             Notification(DEEP_NOTIF_WARNING, "The video mode is not fully supported. We deeply suggest you to use sequences of images.")
             self.warning_video = 1
 
-    #
-    # DATA CHECKERS
-    #
-
-    def __check_null_entry(self, entry):
+    @staticmethod
+    def __check_null_entry(entry):
         """
         AUTHORS:
         --------
@@ -895,8 +876,8 @@ class Dataset(object):
                 return []
             else:
                 return entry
-        except:
-            Notification(DEEP_NOTIF_ERROR, "Please check the following entry format : " + str(entry))
+        except IndexError:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_ENTRY % entry)
 
     def __check_data(self):
         """
@@ -904,48 +885,33 @@ class Dataset(object):
         Check the validity of the data given as inputs
         :return:
         """
-
         Notification(DEEP_NOTIF_INFO, "Checking the data ...")
-
-
         # Check the number of data
         self.__check_data_num_instances()
-
-
         # Check the type of the data
         # TODO : Add a progress bar
-
-
-
-
         # Check data is available
         # TODO : Add a progress bar
-
         Notification(DEEP_NOTIF_SUCCESS, "Data checked without any error.")
 
     def __check_data_num_instances(self):
-
+        """
+        :return:
+        """
         # TODO : Add a progress bar
         # For each file check if we have the same number of row
         for f_data in self.list_data:
-
             num_instances = 0
-
             # If the input given is a list of inputs
             if type(f_data) is list:
-
                 # For each input in the list we collect the data and extend the list
                 for j, f in enumerate(f_data):
                     num_instances += self.__compute_number_instances(f)
-
             # If the input given is a single input
             else:
                 num_instances = self.__compute_number_instances(f_data)
-
-
             if num_instances != self.number_instances:
                 Notification(DEEP_NOTIF_FATAL, "Number of instances in " + str(self.list_inputs[0]) + " and " + str(f) + " do not match.")
-
 
     def __check_data_type(self):
         """
@@ -973,24 +939,16 @@ class Dataset(object):
         # TODO : Add a progress bar
         # For each file check if we have the same number of row
         for f in self.list_data:
-
             # If the input is a file
             if self.__source_path_type(f) == DEEP_TYPE_FILE:
-
                 with open(f) as file:
                     Notification(DEEP_NOTIF_ERROR, "Check data type not implemented")
-
             # If the input is a folder
             elif self.__source_path_type(f) == DEEP_TYPE_FOLDER:
                 Notification(DEEP_NOTIF_FATAL, "Cannot currently check folders")
-
             # If it is not a file neither a folder then BUG :(
             else:
                 Notification(DEEP_NOTIF_FATAL, "The following path is neither a file nor a folder : " + str(f) + ".")
-
-
-
-
     #
     # DATA UTILS
     #
@@ -1003,22 +961,16 @@ class Dataset(object):
         :return: theoretical number of instances in each epoch
         """
         num_instances = 0
-
         # If the input given is a list of inputs
         if type(self.list_inputs[0]) is list:
 
             # For each input in the list we collect the data and extend the list
             for j, f in enumerate(self.list_inputs[0]):
                 num_instances += self.__get_number_instances(f)
-
         # If the input given is a single input
         else:
             num_instances = self.__get_number_instances(self.list_inputs[0])
-
         return num_instances
-
-
-
 
 
     """
@@ -1049,29 +1001,20 @@ class Dataset(object):
 
         None
         """
-
         # If the given length is smaller than the number of instances already available in the dataset
         if length_data < len(self.data):
             res = ""
-
             # Ask the user to confirm the given length
             while res.lower() not in ["y", "yes", "no", "n"]:
                 res = Notification(DEEP_NOTIF_INPUT, "Dataset contains {0} instances, are you sure you want to only use {1} instances ? (Y/N) ".format(len(self.data), length_data)).get()
-
             if res.lower() == "y":
                 self.len_data = length_data
-
             # If not confirmed, keep the current size of the dataset as default
             else:
                 self.len_data = len(self.data)
-
-
         # If there isn't any issue of length set the length given as argument
         else:
             self.len_data = length_data
-
-
-
 
     def set_use_raw_data(self, use_raw_data: bool) -> None:
         """
@@ -1096,16 +1039,13 @@ class Dataset(object):
 
         None
         """
-
         self.use_raw_data = use_raw_data
-
 
     """
     "
     " GETTERS
     "
     """
-
 
     def __get_number_instances(self, f):
         """
@@ -1117,17 +1057,12 @@ class Dataset(object):
 
         # If the frame input is a file
         if self.__source_path_type(f) == DEEP_TYPE_FILE:
-
             with open(f) as f:
                 num_instances = sum(1 for _ in f)
-
         # If the frame input is a folder
         elif self.__source_path_type(f) == DEEP_TYPE_FOLDER:
-
             raise ValueError("Not implemented")
-
         # If it is not a file neither a folder then BUG :(
         else:
             Notification(DEEP_NOTIF_FATAL, "The following input is neither a file nor a folder :" + str(f))
-
         return num_instances
