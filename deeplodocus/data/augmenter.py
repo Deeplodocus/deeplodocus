@@ -1,15 +1,32 @@
+# Import python modules
 import os
 import __main__
 import random
 import string
 import datetime
 
-
+# Import deeplodocus modules
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags import *
 
 class Augmenter(object):
+    """
+    AUTHORS:
+    --------
 
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Offline augmentation of the dataset
+    All the data are saved on the hard drive
+    """
+
+    # TODO : Very old file,
+    # TODO : Make sure the Augmentation class uses a Dataset instance and a TransformManager instance.
+    # TODO : Most of the functions here are deprecated (Currently not a priority in Deeplodocus development)
+    # TODO : Try to make it available through the Visual Cortex
 
     def __init__(self, dataset, nb_augmentations, save_path = None):
 
