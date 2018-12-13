@@ -680,12 +680,10 @@ class Dataset(object):
 
         :return: The integer flag of the corresponding type
         """
-        try:
-            mime = mimetypes.guess_type(data)
+        mime = mimetypes.guess_type(data)
+        if mime[0] != None:
             mime = mime[0].split("/")[0]
-            # TODO: Please make this except a specific error(s) IndexError?
-        except:
-            mime = None
+
         # Image
         if mime == "image":
             return DEEP_TYPE_IMAGE
