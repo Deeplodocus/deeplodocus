@@ -5,6 +5,8 @@ Data can added on initialisation as a dictionary, a path to a directory and/or a
 
 import yaml
 import copy
+import re
+
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags.notif import *
@@ -201,9 +203,37 @@ class Namespace(object):
                 self.get()[sub_space].__add(dictionary)
 
 
+
+# this is to convert the string written as a tuple into a python tuple
+def yml_tuple_constructor(loader, node):
+    # this little parse is really just for what I needed, feel free to change it!
+    def parse_tup_el(el):
+        # try to convert into int or float else keep the string
+        if el.isdigit():
+            return int(el)
+        try:
+            return float(el)
+        except ValueError:
+            return el
+
+    value = loader.construct_scalar(node)
+    # remove the ( ) from the string
+    tup_elements = value[1:-1].split(',')
+    # remove the last element if the tuple was written as (x,b,)
+    if tup_elements[-1] == '':
+        tup_elements.pop(-1)
+    tup = tuple(map(parse_tup_el, tup_elements))
+    return tup
+
+# Add tuples to PyYaml
+yaml.add_constructor(u'!tuple', yml_tuple_constructor)
+# this is to spot the strings written as tuple in the yaml
+yaml.add_implicit_resolver(u'!tuple', re.compile(r"\(([^,\W]{,},){,}[^,\W]*\)"))
+
+
 if __name__ == "__main__":
     namespace = Namespace({"a": 1, "b": 2, "c": {"d": 5, "e": 6}})
-    a = {"project": "../yaml1", "network": {"gv": 56, "you": 90}}
+    a = {"project": "../yaml1", "network": {"gv": 56, "you": 90}, "test" : (1, "a", 1.2)}
     namespace.add(a, ["c", "main", "moop"])
     namespace.summary()
 
