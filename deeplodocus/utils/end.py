@@ -1,3 +1,7 @@
+from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.flags.notif import *
+
+
 class End(object):
     """
     AUTHORS:
@@ -61,7 +65,7 @@ class End(object):
         :return: Universal Love <3
         """
 
-        print("\n=================================")
-        print("Thank you for using Deeplodocus !")
-        print("== Made by Humans with deep <3 ==")
-        print("=================================\n")
+        Notification(DEEP_NOTIF_INFO, "=================================")
+        Notification(DEEP_NOTIF_INFO, "Thank you for using Deeplodocus !")
+        Notification(DEEP_NOTIF_INFO, "== Made by Humans with deep <3 ==")
+        Notification(DEEP_NOTIF_INFO, "=================================")

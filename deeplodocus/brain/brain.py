@@ -466,14 +466,13 @@ k'
             if command in DEEP_EXIT_FLAGS:
                 self.sleep()
             else:
-                #try:
-                if flag is None:
-                    exec("self.%s" % command)
-                elif flag == DEEP_CMD_PRINT:
-                    exec("Notification(DEEP_NOTIF_RESULT, self.%s)" % command)
-                #except AttributeError as e:
-                    #Notification(DEEP_NOTIF_ERROR, str(e), **self.config.project.notifications.get())
-                time.sleep(0.5)
+                try:
+                    if flag is None:
+                        exec("self.%s" % command)
+                    elif flag == DEEP_CMD_PRINT:
+                        exec("Notification(DEEP_NOTIF_RESULT, self.%s)" % command)
+                except DeepError:
+                    time.sleep(0.1)
 
     def __preprocess_command(self, command):
         """
