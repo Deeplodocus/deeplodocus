@@ -98,10 +98,7 @@ class Brain(FrontalLobe):
 
         while True:
             command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
-            try:
-                self.__execute_command(command)
-            except DeepError:
-                time.sleep(0.5)
+            self.__execute_command(command)
 
     def sleep(self):
         """
@@ -171,8 +168,7 @@ class Brain(FrontalLobe):
             self.store_config()
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
-        #self.check_config()
-        self.config.summary()
+        self.check_config()
 
     def check_config(self):
         """
@@ -307,6 +303,7 @@ k'
         :return: None
         """
         sub_space = [] if sub_space is None else sub_space
+        # Ensure that sub_space is a list
         sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
         for key, value in dictionary.items():
             if isinstance(value, dict):
@@ -351,42 +348,98 @@ k'
         :return: new_value
         """
         sub_space = [] if sub_space is None else sub_space
-        if value is None:
-            return None
-        else:
-            try:
-                len(d_type)
-                d_type = d_type[0]
-                is_list = True
-            except TypeError:
-                is_list = False
-            if is_list:
-                new_values = []
-                value = value if isinstance(value, list) else [value]
-                for item in value:
-                    new_item = self.__convert(item, d_type)
-                    if new_item is not None:
-                        new_values.append(new_item)
-                    else:
-                        Notification(DEEP_NOTIF_WARNING,
-                                     DEEP_MSG_NOT_CONVERTED
-                                     % (DEEP_CONFIG_DIVIDER.join(sub_space), new_values, d_type, default))
-                        return default
-                return new_values
-            else:
-                if d_type == dict:
-                    if isinstance(value, Namespace) or value is None:
-                        return value
-                    else:
-                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space, value, d_type, default))
-                        return Namespace(default)
+        sub_space = DEEP_CONFIG_DIVIDER.join(sub_space)
+        # If the length of d_type can be determined, d_type is a list of values.
+        if isinstance(d_type, list):
+            while True:
+                # Convert list (of lists of lists ... ) to the specified d_type.
+                new_value = self.__convert_list(value, d_type)
+                # If this fails
+                if new_value is None:
+                    # Reduce the order of lists.
+                    d_type = d_type[0]
                 else:
-                    new_value = self.__convert(value, d_type)
-                    if new_value is None:
-                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space, value, d_type, default))
-                        return default
+                    return new_value
+                # If d_type is no longer a list, go with the default value.
+                if not isinstance(d_type, list):
+                    Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
+                                                                               value,
+                                                                               d_type.__name__,
+                                                                               default))
+                    return default
+        else:
+            # If d_type is dict, it get's interesting... Because we really want it to be a Namespace instead.
+            if d_type == dict:
+                # If the value is a Namespace or None, leave it alone.
+                if isinstance(value, Namespace) or value is None:
+                    return value
+                # If not, we should replace it with a Namespace of the default values.
+                else:
+                    Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
+                                                                               value,
+                                                                               d_type.__name__,
+                                                                               default))
+                    return Namespace(default)
+            else:
+                # For any other data type, try to convert, if None is given, go with the default.
+                new_value = self.__convert(value, d_type)
+                if new_value is None:
+                    Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
+                                                                               value,
+                                                                               d_type.__name__,
+                                                                               default))
+                    return default
+                else:
+                    return new_value
+
+    def __convert_list(self, values, d_type):
+        """
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Converts each value in a list to the given d_type.
+        The method is recursive and will convert items in a list of lists of lists ...
+        The order of the lists that contain the data type dictate the expected order.
+        So... d_type=[[str]] will cause the method to try and convert values into a list of lists of strings
+
+        PARAMETERS:
+        -----------
+        :param values: the value to be converted
+        :param d_type: the data type to convert the value to
+
+        RETURN:
+        -------
+        :return: values with each item converted to the given data type (None will be returned if the method failed)
+        """
+        # Reduce the list order of the given d_type by one.
+        d_type = d_type[0]
+        # If values are not a list, we cannot convert each item in values... something is wrong.
+        if isinstance(values, list):
+            # If d_type is still a list, then values is a multi-level list and must call this method again.
+            if isinstance(d_type, list):
+                for i, value in enumerate(values):
+                    # Convert each item in the list
+                    new_values = self.__convert_list(value, d_type)
+                    # Return None if the conversion failed, there is no more you can do here.
+                    if new_values is None:
+                        return None
                     else:
-                        return new_value
+                        values[i] = new_values
+            else:
+                for i, value in enumerate(values):
+                    new_value = self.__convert(value, d_type)
+                    # Return None if the conversion failed.
+                    if new_value is None:
+                        return None
+                    else:
+                        values[i] = new_value
+            # If you get this far, everything must be going well.
+            return values
+        else:
+            return None
 
     @staticmethod
     def __convert(value, d_type):
@@ -409,6 +462,10 @@ k'
         -------
         :return: new_value
         """
+        # None is special, we don't try to convert None.
+        if value is None:
+            return None
+        # If the data type is numerical, try to do an eval, then try a straight conversion, then just go with None.
         if isinstance(dtype, int) or isinstance(dtype, float):
             try:
                 return d_type(eval(value))
@@ -417,6 +474,7 @@ k'
                     return d_type(value)
                 except TypeError:
                     return None
+        # For any other data type, just try a straight conversion to the required type.
         else:
             try:
                 return d_type(value)
