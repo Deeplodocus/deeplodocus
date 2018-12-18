@@ -40,11 +40,10 @@ class Dataset(object):
         - OpenCV (usage recommended for efficiency)
     """
 
-    def __init__(self, list_inputs, list_labels, list_additional_data,
+    def __init__(self, inputs=None, labels=None, additional_data=None, number=None, name="Default",
                  use_raw_data=True,
                  transform_manager=None,
-                 cv_library=DEEP_LIB_OPENCV,
-                 name="Default"):
+                 cv_library=DEEP_LIB_OPENCV):
         """
         AUTHORS:
         --------
@@ -60,29 +59,27 @@ class Dataset(object):
         PARAMETERS:
         -----------
 
-        :param list_inputs: A list of input files/folders/list of files/folders
-        :param list_labels: A list of label files/folders/list of files/folders
-        :param list_additional_data: A list of additional data files/folders/list of files/folders
+        :param inputs: A list of input files/folders/list of files/folders
+        :param labels: A list of label files/folders/list of files/folders
+        :param additional_data: A list of additional data files/folders/list of files/folders
         :param use_raw_data: Boolean : Whether to feed the network with raw data or always apply transforms on it
         :param transform_manager: A transform object
         :param cv_library: The computer vision library to be used for opening and modifying the images data
         :param name: Name of the dataset
         """
-        self.list_inputs = self.__check_null_entry(list_inputs)
-        self.list_labels = self.__check_null_entry(list_labels)
-        self.list_additional_data = self.__check_null_entry(list_additional_data)
-        self.list_data = list_inputs + list_labels + list_additional_data
+        self.inputs = self.__check_null_entry(inputs)
+        self.labels = self.__check_null_entry(labels)
+        self.additional_data = self.__check_null_entry(additional_data)
+        self.number = number
+        self.name = name
         self.transform_manager = transform_manager
         self.number_raw_instances = self.__compute_number_raw_instances()
-        self.data = None
         self.use_raw_data = use_raw_data
-        self.len_data = None
-        self.name = name
-        # Check that the given data are in a correct format before any training
-        # self.__check_data()
-        self.warning_video = None
+        self._data = self.inputs + self.labels + self.additional_data
+        self.data = None
         self.cv_library = None
         self.set_cv_library(cv_library)
+        self.load()
 
     def __getitem__(self, index: int):
 
@@ -191,12 +188,10 @@ class Dataset(object):
 
         return -> Integer : Length of the dataset
         """
-        # If the length of the dataset has never been calculated we compute it
-        if self.len_data is None:
+        if self.number is None:
             return len(self.data)
-        # Else, if the length of the dataset has been specified by an external demand (specific number of instance) we return this number
         else:
-            return self.len_data
+            return self.number
 
     """
     "
@@ -208,27 +203,22 @@ class Dataset(object):
         """
         AUTHORS:
         --------
-
         author: Alix Leroy and Samuel Westlake
 
         DESCRIPTION:
         ------------
-
         Print the summary of the dataset
 
         PARAMETERS:
         -----------
-
         None
 
         RETURN:
         -------
-
-        None
-
+        :return: None
         """
-
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_SUMMARY % (self.name, self.data))
+        for row in str(self.data.iloc[0:self.__len__()]).split("\n"):
+            Notification(DEEP_NOTIF_INFO, row)
 
     def set_cv_library(self, cv_library):
         """
@@ -255,30 +245,24 @@ class Dataset(object):
         """
         AUTHORS:
         --------
-
         author: Alix Leroy
 
         DESCRIPTION:
         ------------
-
         Load the dataset into memory
 
         PARAMETERS:
         -----------
-
         None
 
         RETURN:
         -------
-
-        None
-
-        :return:
+        :return: None
         """
         # Read the data given as input
-        inputs = self.__read_data(self.list_inputs)
-        labels = self.__read_data(self.list_labels)
-        additional_data = self.__read_data(self.list_additional_data)
+        inputs = self.__read_data(self.inputs)
+        labels = self.__read_data(self.labels)
+        additional_data = self.__read_data(self.additional_data)
 
         # Create a dictionary containing inputs, labels and additional data
         if not labels:
@@ -296,21 +280,17 @@ class Dataset(object):
             self.data = pd.DataFrame(d)
         except ValueError as e:
             error_entry_array_size(d, e)
-        # Update the number of instances in the DataFrame
-        self.len_data = self.__len__()
-        # Notice the user that the Dataset has been loaded
+        self.__set_number()
         Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_DATA_LOADED % self.name)
 
     def shuffle(self, method: int) -> None:
         """
         AUTHORS:
         --------
-
         author: Alix Leroy
 
         DESCRIPTION:
         ------------
-
         Shuffle the dataframe containing the data
 
         PARAMETERS:
@@ -319,8 +299,7 @@ class Dataset(object):
 
         RETURN:
         -------
-
-        :return None:
+        :return: None
         """
 
         if method == DEEP_SHUFFLE_ALL:
@@ -339,22 +318,18 @@ class Dataset(object):
         """
         AUTHORS:
         --------
-
         :author: Alix Leroy
 
         DESCRIPTION:
         ------------
-
         Reset the transform_manager
 
         PARAMETERS:
         -----------
-
         None
 
         RETURN:
         -------
-
         :return: None
         """
         if self.transform_manager is not None:
@@ -365,6 +340,30 @@ class Dataset(object):
     " PRIVATE METHODS
     "
     """
+
+    def __set_number(self) -> None:
+        """
+        AUTHORS:
+        --------
+        author: Samuel Westlake, Alix Leroy
+
+        DESCRIPTION:
+        ------------
+        Set the length of the dataset
+
+        RETURN:
+        -------
+        :return: None
+        """
+        if self.number is None:
+            self.number = len(self.data)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_NO_LENGTH % len(self.data))
+        else:
+            if self.number > len(self.data):
+                self.number = len(self.data)
+                Notification(DEEP_NOTIF_WARNING, DEEP_MSG_DATA_TOO_LONG % len(self.data))
+            else:
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_LENGTH % (len(self.data), self.number))
 
     def __import_cv_library(self):
         """
@@ -618,6 +617,7 @@ class Dataset(object):
             else:
                 Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_IS_NONE % d)
         return loaded_data
+
     """
     "
     " DATA TYPE ANALYZERS
@@ -961,59 +961,21 @@ class Dataset(object):
         """
         num_instances = 0
         # If the input given is a list of inputs
-        if type(self.list_inputs[0]) is list:
+        if type(self.inputs[0]) is list:
 
             # For each input in the list we collect the data and extend the list
-            for j, f in enumerate(self.list_inputs[0]):
+            for j, f in enumerate(self.inputs[0]):
                 num_instances += self.__get_number_instances(f)
         # If the input given is a single input
         else:
-            num_instances = self.__get_number_instances(self.list_inputs[0])
+            num_instances = self.__get_number_instances(self.inputs[0])
         return num_instances
-
 
     """
     "
     " SETTERS
     "
     """
-
-    def set_len_dataset(self, length_data : int) -> None:
-        """
-        AUTHORS:
-        --------
-
-        author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Set the length of the dataset
-
-        PARAMETERS:
-        -----------
-
-        :param length_data -> Integer:  Desired length of the dataset
-
-        RETURN:
-        -------
-
-        None
-        """
-        # If the given length is smaller than the number of instances already available in the dataset
-        if length_data < len(self.data):
-            res = ""
-            # Ask the user to confirm the given length
-            while res.lower() not in ["y", "yes", "no", "n"]:
-                res = Notification(DEEP_NOTIF_INPUT, "Dataset contains {0} instances, are you sure you want to only use {1} instances ? (Y/N) ".format(len(self.data), length_data)).get()
-            if res.lower() == "y":
-                self.len_data = length_data
-            # If not confirmed, keep the current size of the dataset as default
-            else:
-                self.len_data = len(self.data)
-        # If there isn't any issue of length set the length given as argument
-        else:
-            self.len_data = length_data
 
     def set_use_raw_data(self, use_raw_data: bool) -> None:
         """
@@ -1030,7 +992,7 @@ class Dataset(object):
         PARAMETERS:
         -----------
 
-        :param use_raw_data (bool) : Whether to use or not the raw data in the training
+        :param use_raw_data: Bool : Whether to use or not the raw data in the training
 
 
         RETURN:

@@ -34,8 +34,6 @@ class TransformManager(object):
     This method is very efficient and allows to have exactly the same output on mulitple inputs (e.g. left and right image of stereo vision)
     """
 
-
-
     def __init__(self, parameters)->None:
         """
         AUTHORS:
@@ -58,8 +56,6 @@ class TransformManager(object):
 
         None
         """
-
-
         self.parameters = parameters
 
         # Handle name
@@ -85,9 +81,7 @@ class TransformManager(object):
             self.list_additional_data_transformers = self.__load_transformers(parameters.additional_data)
         else:
             self.list_additional_data_transformers = []
-
-        # Print summary of the transformer
-        self.__summary()
+        self.summary()
 
     def update(self, parameters) -> None:
         """
@@ -141,7 +135,6 @@ class TransformManager(object):
         except:
             Notification(DEEP_NOTIF_ERROR,
                          "An error occurred while updating the TransformManager '" + str(self.name) +"'. Please check the given configuration")
-
 
     def transform(self, data, index, type_data, entry_type , entry_num):
         """
@@ -247,8 +240,7 @@ class TransformManager(object):
             if transformer is not None and isinstance(transformer, Pointer) is False:
                 transformer.reset()
 
-
-    def __summary(self):
+    def summary(self):
         """
         AUTHORS:
         --------
