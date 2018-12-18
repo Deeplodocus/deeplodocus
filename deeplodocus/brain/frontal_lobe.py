@@ -23,7 +23,6 @@ from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
 from deeplodocus.utils.dict_utils import check_kwargs
 from deeplodocus.utils.dict_utils import get_kwargs
-from deeplodocus.utils.flags.lib import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
@@ -171,7 +170,7 @@ class FrontalLobe(object):
         self.load_trainer()
         self.load_validator()
         self.load_tester()
-        self.load_memory()
+        # self.load_memory()
         #self.summary()
 
     def load_model(self):
@@ -225,7 +224,7 @@ class FrontalLobe(object):
         """
         if self.model is not None:
             self.optimizer = Optimizer(self.model.parameters(), self.config.optimizer).get()
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIMIZER_LOADED %(self.config.optimizer.name, self.optimizer.__module__))
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIMIZER_LOADED % (self.config.optimizer.name, self.optimizer.__module__))
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_OPTIMIZER_NOT_LOADED % DEEP_MSG_MODEL_LOADED)
 
@@ -313,34 +312,82 @@ class FrontalLobe(object):
 
     def load_trainer(self):
         """
-        Author: Alix Leroy and SW
-        :return: None
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Load a trainer
+
+        PARAMETERS:
+        -----------
+        None
+
+        RETURN:
+        -------
+        :return None
         """
-        self.trainer = self.__load_trainer(name="Trainer",
-                                           history=self.config.history,
-                                           dataloader=self.config.data.dataloader,
-                                           data=self.config.data.dataset.train,
-                                           transforms=self.config.transform.train)
+        if self.config.data.trainer.enabled:
+            transform_manager = TransformManager(self.config.transform.train)
+            dataset = Dataset(**self.config.data.dataset.train.get(),
+                              transform_manager=transform_manager,
+                              cv_library=self.config.project.cv_library)
+            self.trainer = Trainer(model=self.model,
+                                   dataset=dataset,
+                                   metrics=self.metrics,
+                                   losses=self.losses,
+                                   optimizer=self.optimizer,
+                                   num_epochs=self.config.training.num_epochs,
+                                   initial_epoch=self.config.training.initial_epoch,
+                                   shuffle=self.config.training.shuffle,
+                                   verbose=self.config.history.verbose,
+                                   tester=self.validator,
+                                   num_workers=self.config.data.dataloader.num_workers,
+                                   batch_size=self.config.data.dataloader.batch_size)
+        else:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_TRAINER_DISABLED % self.config.data.dataset.train.name)
 
     def load_validator(self):
         """
         Author: Alix Leroy and SW
         :return: None
         """
-        self.validator = self.__load_tester(name="Validator",
-                                            dataloader=self.config.data.dataloader,
-                                            data=self.config.data.dataset.validation,
-                                            transforms=self.config.transform.validation)
+        if self.config.data.validator.enabled:
+            transform_manager = TransformManager(self.config.transform.validation)
+            dataset = Dataset(**self.config.data.dataset.validation.get(),
+                              transform_manager=transform_manager,
+                              cv_library=self.config.project.cv_library)
+            self.validator = Tester(model=self.model,
+                                    dataset=dataset,
+                                    metrics=self.metrics,
+                                    losses=self.losses,
+                                    num_workers=self.config.data.dataloader.num_workers,
+                                    batch_size=self.config.data.dataloader.batch_size)
+        else:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_VALIDATOR_DISABLED % self.config.data.dataset.validation.name)
 
     def load_tester(self):
         """
         Author: Alix Leroy and SW
         :return: None
         """
-        self.tester = self.__load_tester(name="Tester",
-                                         dataloader=self.config.data.dataloader,
-                                         data=self.config.data.dataset.test,
-                                         transforms=self.config.transform.test)
+        if self.config.data.tester.enabled:
+            transform_manager = TransformManager(self.config.transform.test)
+            dataset = Dataset(**self.config.data.dataset.test.get(),
+                              transform_manager=transform_manager,
+                              cv_library=self.config.project.cv_library)
+            self.tester = Tester(model=self.model,
+                                 dataset=dataset,
+                                 metrics=self.metrics,
+                                 losses=self.losses,
+                                 num_workers=self.config.data.dataloader.num_workers,
+                                 batch_size=self.config.data.dataloader.batch_size)
+        else:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_TESTER_DISABLED % self.config.data.dataset.test.name)
 
     def load_memory(self):
         """
@@ -407,107 +454,6 @@ class FrontalLobe(object):
                        losses=self.losses,
                        metrics=self.metrics,
                        batch_size=self.config.data.dataloader.batch_size)
-
-    def __load_tester(self, dataloader, data, transforms, name):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-
-        Load a tester/validator
-
-        PARAMETERS:
-        -----------
-        :param dataloader:
-        :param data:
-        :param transforms:
-        :param name:
-
-        RETURN:
-        -------
-
-        :return tester->Tester: The loaded tester
-        """
-        print(data.get())
-        inputs = [item for item in data.inputs]
-        labels = [item for item in data.labels]
-        additional_data = [item for item in data.additional_data]
-        transform_manager = TransformManager(transforms)
-        dataset = Dataset(list_inputs=inputs,
-                          list_labels=labels,
-                          list_additional_data=additional_data,
-                          transform_manager=transform_manager,
-                          cv_library=DEEP_LIB_PIL,
-                          name=name)
-        dataset.load()
-        dataset.set_len_dataset(data.number)
-        dataset.summary()
-        tester = Tester(model=self.model,
-                        dataset=dataset,
-                        metrics=self.metrics,
-                        losses=self.losses,
-                        batch_size=dataloader.batch_size,
-                        num_workers=dataloader.num_workers)
-        return tester
-
-    def __load_trainer(self, history, dataloader, data, transforms, name):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-
-        Load a trainer
-
-        PARAMETERS:
-        -----------
-        :param history:
-        :param dataloader:
-        :param data:
-        :param transforms:
-        :param name:
-
-        RETURN:
-        -------
-
-        :return trainer->Trainer: The loaded trainer
-        """
-        inputs = [item for item in data.inputs]
-        labels = [item for item in data.labels]
-        additional_data = [item for item in data.additional_data]
-        transform_manager = TransformManager(transforms)
-        dataset = Dataset(list_inputs=inputs,
-                          list_labels=labels,
-                          list_additional_data=additional_data,
-                          transform_manager=transform_manager,
-                          cv_library=DEEP_LIB_PIL,
-                          name=name)
-        dataset.load()
-        dataset.set_len_dataset(data.number)
-        dataset.summary()
-
-        trainer = Trainer(model=self.model,
-                          dataset=dataset,
-                          metrics=self.metrics,
-                          losses=self.losses,
-                          optimizer=self.optimizer,
-                          num_epochs=self.config.training.num_epochs,
-                          initial_epoch=self.config.training.initial_epoch,
-                          shuffle=self.config.training.shuffle,
-                          verbose=history.verbose,
-                          tester=self.validator,
-                          num_workers=dataloader.num_workers,
-                          batch_size=dataloader.batch_size)
-        return trainer
 
     def __summary(self, model, input_size, losses, metrics, batch_size=-1, device="cuda"):
         """

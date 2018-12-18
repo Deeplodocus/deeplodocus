@@ -64,6 +64,9 @@ DEEP_MSG_DATA_TOO_LONG = "Dataset number is greater than the number of instances
 DEEP_MSG_DATA_SUMMARY = "Summary of the '%s' dataset :\n%s"
 DEEP_MSG_DATA_LENGTH = "Dataset contains %i instances : Using just %i instances"
 DEEP_MSG_DATA_NO_LENGTH = "Dataset number not given : Using all %i instances"
+DEEP_MSG_DATA_TRAINER_DISABLED = "The %s dataset is disabled"
+DEEP_MSG_DATA_VALIDATOR_DISABLED = "The %s dataset is disabled"
+DEEP_MSG_DATA_TESTER_DISABLED = "The \'%s\' dataset is disabled"
 
 # DEEP_SUCCESS
 DEEP_MSG_DATA_LOADED = "The '%s' dataset has been successfully loaded"
