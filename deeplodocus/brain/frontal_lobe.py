@@ -331,7 +331,7 @@ class FrontalLobe(object):
         -------
         :return None
         """
-        if self.config.data.trainer.enabled:
+        if self.config.data.enable.train:
             transform_manager = TransformManager(self.config.transform.train)
             dataset = Dataset(**self.config.data.dataset.train.get(),
                               transform_manager=transform_manager,
@@ -356,7 +356,7 @@ class FrontalLobe(object):
         Author: Alix Leroy and SW
         :return: None
         """
-        if self.config.data.validator.enabled:
+        if self.config.data.enable.validation:
             transform_manager = TransformManager(self.config.transform.validation)
             dataset = Dataset(**self.config.data.dataset.validation.get(),
                               transform_manager=transform_manager,
@@ -375,7 +375,7 @@ class FrontalLobe(object):
         Author: Alix Leroy and SW
         :return: None
         """
-        if self.config.data.tester.enabled:
+        if self.config.data.enable.test:
             transform_manager = TransformManager(self.config.transform.test)
             dataset = Dataset(**self.config.data.dataset.test.get(),
                               transform_manager=transform_manager,
