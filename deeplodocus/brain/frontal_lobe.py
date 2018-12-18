@@ -336,7 +336,8 @@ class FrontalLobe(object):
             dataset = Dataset(**self.config.data.dataset.train.get(),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
-            self.trainer = Trainer(model=self.model,
+            self.trainer = Trainer(**self.config.data.dataloader.get(),
+                                   model=self.model,
                                    dataset=dataset,
                                    metrics=self.metrics,
                                    losses=self.losses,
@@ -345,9 +346,7 @@ class FrontalLobe(object):
                                    initial_epoch=self.config.training.initial_epoch,
                                    shuffle=self.config.training.shuffle,
                                    verbose=self.config.history.verbose,
-                                   tester=self.validator,
-                                   num_workers=self.config.data.dataloader.num_workers,
-                                   batch_size=self.config.data.dataloader.batch_size)
+                                   tester=self.validator)
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_TRAINER_DISABLED % self.config.data.dataset.train.name)
 
@@ -361,12 +360,11 @@ class FrontalLobe(object):
             dataset = Dataset(**self.config.data.dataset.validation.get(),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
-            self.validator = Tester(model=self.model,
+            self.validator = Tester(**self.config.data.dataloader.get(),
+                                    model=self.model,
                                     dataset=dataset,
                                     metrics=self.metrics,
-                                    losses=self.losses,
-                                    num_workers=self.config.data.dataloader.num_workers,
-                                    batch_size=self.config.data.dataloader.batch_size)
+                                    losses=self.losses)
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_VALIDATOR_DISABLED % self.config.data.dataset.validation.name)
 
@@ -380,12 +378,11 @@ class FrontalLobe(object):
             dataset = Dataset(**self.config.data.dataset.test.get(),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
-            self.tester = Tester(model=self.model,
+            self.tester = Tester(**self.config.data.dataloader.get(),
+                                 model=self.model,
                                  dataset=dataset,
                                  metrics=self.metrics,
-                                 losses=self.losses,
-                                 num_workers=self.config.data.dataloader.num_workers,
-                                 batch_size=self.config.data.dataloader.batch_size)
+                                 losses=self.losses)
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_TESTER_DISABLED % self.config.data.dataset.test.name)
 

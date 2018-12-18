@@ -454,7 +454,7 @@ k'
                     return new_value
                 # If d_type is no longer a list, go with the default value.
                 if not isinstance(d_type, list):
-                    if value != default:
+                    if value != default and value is not None:
                         Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
                                                                                    value,
                                                                                    d_type.__name__,
@@ -468,7 +468,7 @@ k'
                     return value
                 # If not, we should replace it with a Namespace of the default values.
                 else:
-                    if value != default:
+                    if value != default and value is not None:
                         Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
                                                                                    value,
                                                                                    d_type.__name__,
@@ -478,7 +478,7 @@ k'
                 # For any other data type, try to convert, if None is given, go with the default.
                 new_value = self.__convert(value, d_type)
                 if new_value is None:
-                    if value != default:
+                    if value != default and value is not None:
                         Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
                                                                                    value,
                                                                                    d_type.__name__,
