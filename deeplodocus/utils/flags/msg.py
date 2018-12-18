@@ -19,7 +19,7 @@ DEEP_MSG_OPTIMIZER_NOT_LOADED = "Could not load optimizer : %s"
 
 # Deep Success
 DEEP_MSG_LOAD_CONFIG_FILE = "File loaded : %s"
-DEEP_MSG_CONFIG_COMPLETE = "Project configuration is complete"
+DEEP_MSG_CONFIG_COMPLETE = "Project configuration loaded"
 DEEP_MSG_PROJECT_GENERATED = "Project successfully generated ! Have fun <3"
 DEEP_MSG_MODULE_LOADED = "Module loaded : %s from %s"
 DEEP_MSG_MODEL_LOADED = "Model loaded : %s from %s"
@@ -56,8 +56,14 @@ DEEP_MSG_DATA_NOT_HANDLED = "The type of the following data is not handled : %s"
 DEEP_MSG_DATA_SOURCE_NOT_FOUND = "Source path not found : %s"
 DEEP_MSG_DATA_IS_NONE = "The following data is None : %s"
 DEEP_MSG_DATA_ENTRY = "Please check the following entry format : %s"
+
+# DEEP_WARNING
+DEEP_MSG_DATA_TOO_LONG = "Dataset number is greater than the number of instances : Using all %i instances"
+
 # DEEP_INFO
 DEEP_MSG_DATA_SUMMARY = "Summary of the '%s' dataset :\n%s"
+DEEP_MSG_DATA_LENGTH = "Dataset contains %i instances : Using just %i instances"
+DEEP_MSG_DATA_NO_LENGTH = "Dataset number not given : Using all %i instances"
 
 # DEEP_SUCCESS
 DEEP_MSG_DATA_LOADED = "The '%s' dataset has been successfully loaded"

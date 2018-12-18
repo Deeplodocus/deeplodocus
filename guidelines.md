@@ -1,5 +1,13 @@
 # Deeplodocus coding guide
 
+## Getting Started
+In the Deeplodocus repository you'll find a test folder. 
+Run `test/core/project_utility.py` to generate a complete Deeplodocus project (equivalent to running deeplodocus startproject "project-name" in the terminal). 
+Here, you can test your project without having to continuously reinstall Deeplodocus.
+
+
+Please note, if you modify any file in `deeplodocus/core/project/deep_structure` you'll have to run `test/core/project_utility.py` to update the default file copied during the generation of a new project.
+
 ## Source File Encoding
 
 TBC

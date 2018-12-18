@@ -168,9 +168,9 @@ class FrontalLobe(object):
         self.load_optimizer()    # Always load the optimizer after the model
         self.load_losses()
         self.load_metrics()
-        self.load_tester()
-        self.load_validator()
         self.load_trainer()
+        self.load_validator()
+        self.load_tester()
         self.load_memory()
         #self.summary()
 
@@ -228,8 +228,6 @@ class FrontalLobe(object):
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIMIZER_LOADED %(self.config.optimizer.name, self.optimizer.__module__))
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_OPTIMIZER_NOT_LOADED % DEEP_MSG_MODEL_LOADED)
-
-
 
     def load_losses(self):
         """
@@ -344,7 +342,6 @@ class FrontalLobe(object):
                                          data=self.config.data.dataset.test,
                                          transforms=self.config.transform.test)
 
-
     def load_memory(self):
         """
         AUTHORS:
@@ -375,12 +372,12 @@ class FrontalLobe(object):
                                            metrics = self.metrics,
                                            model_name = self.config.model.name,
                                            verbose = self.config.history.verbose,
-                                             memorize = self.config.history.memorize,
-                                             history_directory=DEEP_PATH_HISTORY,
-                                             overwatch_metric= overwatch_metric,
-                                             save_model_condition=self.config.training.save_condition,
-                                             save_model_directory=DEEP_PATH_SAVE_MODEL,
-                                             save_model_method=self.config.training.save_method)
+                                           memorize = self.config.history.memorize,
+                                           history_directory=DEEP_PATH_HISTORY,
+                                           overwatch_metric= overwatch_metric,
+                                           save_model_condition=self.config.training.save_condition,
+                                           save_model_directory=DEEP_PATH_SAVE_MODEL,
+                                           save_model_method=self.config.training.save_method)
 
     def summary(self):
         """
@@ -436,6 +433,7 @@ class FrontalLobe(object):
 
         :return tester->Tester: The loaded tester
         """
+        print(data.get())
         inputs = [item for item in data.inputs]
         labels = [item for item in data.labels]
         additional_data = [item for item in data.additional_data]
