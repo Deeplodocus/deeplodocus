@@ -31,7 +31,7 @@ DEEP_CONFIG_SECTIONS = [DEEP_CONFIG_PROJECT,
 # Default values and  data types must be given for each configuration
 # NB: if a list of floats is expected, use [float] instead of float
 DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {"dtype": str,
-                                              "default": "DeepProject"},
+                                              "default": "deeplodocus_project"},
                                      "cv_library": {"dtype": int,
                                                     "default": 1},
                                      "logs": {"history_train_batches": {"dtype": bool,

@@ -9,6 +9,7 @@ from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils import get_main_path
 
+
 class ProjectUtility(object):
     """
     AUTHORS:
@@ -88,7 +89,7 @@ class ProjectUtility(object):
             copy_tree(source_project_structure, project_path, update=1)
 
             # Copy the required config files
-            # self.__init_config()
+            self.__init_config()
 
             # Clean the structure (remove __pycache__ folder and __ini__.py files)
             self.__clean_structure(project_path)
@@ -124,11 +125,25 @@ class ProjectUtility(object):
         :return: None
         """
         config = Namespace(DEEP_CONFIG)
+        config = self.__set_config_defaults(config)
         config_dir = "%s/%s/config" % (self.main_path, self.project_name)
         os.makedirs(config_dir, exist_ok=True)
         for key, namespace in config.get().items():
             if isinstance(namespace, Namespace):
                 namespace.save("%s/%s%s" % (config_dir, key, DEEP_EXT_YAML))
+
+    def __set_config_defaults(self, namespace):
+        """
+        :param namespace:
+        :return:
+        """
+        for key, item in namespace.get().items():
+            if isinstance(item, Namespace):
+                if "default" in item.get():
+                    namespace.get()[key] = item.get()["default"]
+                else:
+                    item = self.__set_config_defaults(item)
+        return namespace
 
     @staticmethod
     def __clean_structure(deeplodocus_project_path):
