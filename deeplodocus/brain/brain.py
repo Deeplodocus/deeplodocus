@@ -4,14 +4,14 @@ import __main__
 
 from deeplodocus import __version__
 from deeplodocus.brain.frontal_lobe import FrontalLobe
+from deeplodocus.brain.thalamus import Thalamus
+from deeplodocus.brain.visual_cortex import VisualCortex
 from deeplodocus.utils.end import End
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification, DeepError
-from deeplodocus.brain.thalamus import Thalamus
-from deeplodocus.brain.visual_cortex import VisualCortex
 
 
 class Brain(FrontalLobe):
