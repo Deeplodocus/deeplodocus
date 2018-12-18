@@ -88,10 +88,24 @@ class Brain(FrontalLobe):
         self.load_config()
         Thalamus()                  # Initialize the Thalamus
 
+    """
+    "
+    " Public Methods
+    "
+    """
+
     def wake(self):
         """
-        Authors : Alix Leroy, SW
+        AUTHORS:
+        --------
+        :author: Samuel Westlake, Alix Leroy
+
+        DESCRIPTION:
+        ------------
         Deeplodocus terminal commands
+
+        RETURN:
+        -------
         :return: None
         """
         self.__on_wake()
@@ -102,8 +116,16 @@ class Brain(FrontalLobe):
 
     def sleep(self):
         """
-        Author: SW, Alix Leroy
+        AUTHORS:
+        --------
+        :author: Samuel Westlake, Alix Leroy
+
+        DESCRIPTION:
+        ------------
         Stop the interface, close logs and print good-bye message
+
+        RETURN:
+        -------
         :return: None
         """
         # Stop the visual cortex
@@ -115,8 +137,16 @@ class Brain(FrontalLobe):
 
     def save_config(self):
         """
-        Author: SW
-        Save the config to the config folder
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Save self.config to the config directory
+
+        RETURN:
+        -------
         :return: None
         """
         for key, namespace in self.config.get().items():
@@ -125,33 +155,67 @@ class Brain(FrontalLobe):
 
     def clear_config(self):
         """
-        Author: SW
-        Reset the config to an empty Namespace
-        :return: None
-        """
+       AUTHORS:
+       --------
+       :author: Samuel Westlake
+
+       DESCRIPTION:
+       ------------
+       Reset self.config to an empty Namespace
+
+       RETURN:
+       -------
+       :return: None
+       """
         self.config = Namespace()
 
     def restore_config(self):
         """
-        Author: SW
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
         Restore the config to the last stored version
-        :return:
+
+        RETURN:
+        -------
+        :return: None
         """
         self.config = self._config.copy()
 
     def store_config(self):
         """
-        Author: SW
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
         Saves a deep copy of the config as _config. In case the user wants to revert to previous settings
+
+        RETURN:
+        -------
         :return: None
         """
         self._config = self.config.copy()
 
     def load_config(self):
         """
-        Author: SW
-        Function: Checks current config path is valid, if not, user is prompted to give another
-        :return: bool: True if a valid config path is set, otherwise, False
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Loads each of the config files in the config directory into self.config
+        self.check_config() is called penultimately
+        self.store_config() is called finally
+
+        RETURN:
+        -------
+        :return: None
         """
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOAD_CONFIG_START % self.config_dir)
         # If the config directory exists
@@ -165,10 +229,10 @@ class Brain(FrontalLobe):
                     Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_FILE % config_path)
                 else:
                     Notification(DEEP_NOTIF_ERROR, DEEP_MSG_FILE_NOT_FOUND % config_path)
-            self.store_config()
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
         self.check_config()
+        self.store_config()
 
     def check_config(self):
         """
@@ -176,7 +240,7 @@ class Brain(FrontalLobe):
         --------
         :author: Samuel Westlake
 
-        DESCRIPTION SHORT:
+        DESCRIPTION:
         ------------
         Checks self.config by auto-completing missing parameters with default values and converting values to the
         required data type.
@@ -192,9 +256,20 @@ class Brain(FrontalLobe):
 
     def clear_logs(self, force=False):
         """
-        Author: SW
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
         Deletes logs that are not to be kept, as decided in the config settings
+
+        PARAMETERS:
+        -----------
         :param force: bool Use if you want to force delete all logs
+
+        RETURN:
+        -------
         :return: None
         """
         for log_type, (directory, ext) in DEEP_LOGS.items():
@@ -204,9 +279,20 @@ class Brain(FrontalLobe):
 
     def close_logs(self, force=False):
         """
-        Author: SW
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
         Closes logs that are to be kept and deletes logs that are to be deleted, as decided in the config settings
+
+        PARAMETERS:
+        -----------
         :param force: bool: Use if you want to force all logs to close (use if you don't want logs to be deleted)
+
+        RETURN:
+        -------
         :return: None
         """
         for log_type, (directory, ext) in DEEP_LOGS.items():
@@ -277,6 +363,12 @@ k'
             self.visual_cortex = None
         else:
             Notification(DEEP_NOTIF_ERROR, "The Visual Cortex is already asleep.")
+
+    """
+    "
+    " Private Methods
+    "
+    """
 
     def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
         """
@@ -441,46 +533,6 @@ k'
         else:
             return None
 
-    @staticmethod
-    def __convert(value, d_type):
-        """
-        AUTHORS:
-        --------
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-        Converts a given value to a given data type, and returns the result.
-        If the value can not be converted, None is returned.
-
-        PARAMETERS:
-        -----------
-        :param value: the value to be converted.
-        :param d_type: the data type to convert the value to.
-
-        RETURN:
-        -------
-        :return: new_value
-        """
-        # None is special, we don't try to convert None.
-        if value is None:
-            return None
-        # If the data type is numerical, try to do an eval, then try a straight conversion, then just go with None.
-        if isinstance(dtype, int) or isinstance(dtype, float):
-            try:
-                return d_type(eval(value))
-            except NameError:
-                try:
-                    return d_type(value)
-                except TypeError:
-                    return None
-        # For any other data type, just try a straight conversion to the required type.
-        else:
-            try:
-                return d_type(value)
-            except TypeError:
-                return None
-
     def __on_wake(self):
         """
         AUTHORS:
@@ -579,6 +631,46 @@ k'
         return self.__get_command_flags(commands)
 
     @staticmethod
+    def __convert(value, d_type):
+        """
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Converts a given value to a given data type, and returns the result.
+        If the value can not be converted, None is returned.
+
+        PARAMETERS:
+        -----------
+        :param value: the value to be converted.
+        :param d_type: the data type to convert the value to.
+
+        RETURN:
+        -------
+        :return: new_value
+        """
+        # None is special, we don't try to convert None.
+        if value is None:
+            return None
+        # If the data type is numerical, try to do an eval, then try a straight conversion, then just go with None.
+        if isinstance(dtype, int) or isinstance(dtype, float):
+            try:
+                return d_type(eval(value))
+            except NameError:
+                try:
+                    return d_type(value)
+                except TypeError:
+                    return None
+        # For any other data type, just try a straight conversion to the required type.
+        else:
+            try:
+                return d_type(value)
+            except TypeError:
+                return None
+
+    @staticmethod
     def __illegal_command_messages(command):
         """
         AUTHORS:
@@ -635,9 +727,11 @@ k'
                     flags[i] = None
         return commands, flags
 
-    #
-    # ALIASES
-    #
+    """
+    "
+    " Aliases
+    "
+    """
 
     visual_cortex = ui
     vc = ui
@@ -659,6 +753,3 @@ if __name__ == "__main__":
                         help="Path to the config directory")
     arguments = parser.parse_args()
     main(arguments)
-
-
-
