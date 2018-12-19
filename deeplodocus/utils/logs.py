@@ -143,8 +143,8 @@ class Logs(object):
             lines = file.readlines()
         try:
             time = re.split("-| |:", lines[-1].split(".")[0])
-            time = tuple(map(int, time))
-            time = "%i-%i-%i_%i-%i-%i" % time
+            tuple(map(int, time))
+            time = "%s-%s-%s_%s-%s-%s" % tuple(time)
         except (IndexError, ValueError):
             time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         shutil.move(self.__get_path(), self.__get_path(time))
