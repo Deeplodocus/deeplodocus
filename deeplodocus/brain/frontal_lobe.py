@@ -171,7 +171,7 @@ class FrontalLobe(object):
         self.load_validator()
         self.load_tester()
         # self.load_memory()
-        #self.summary()
+        # self.summary()
 
     def load_model(self):
         """
@@ -189,15 +189,14 @@ class FrontalLobe(object):
         PARAMETERS:
         -----------
 
-        :param config_model -> Namespace: The config of the model
-
         RETURN:
         -------
 
         :return model->torch.nn.Module:  The model
         """
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % self.config.model.name)
         self.model = Model(self.config.model).get()
-        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED %(self.config.model.name, self.model.__module__))
+        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED % (self.config.model.name, self.model.__module__))
 
     def load_optimizer(self):
         """
@@ -222,11 +221,13 @@ class FrontalLobe(object):
 
         :return: None
         """
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_OPTIM_LOADING % self.config.optimizer.name)
         if self.model is not None:
             self.optimizer = Optimizer(self.model.parameters(), self.config.optimizer).get()
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIMIZER_LOADED % (self.config.optimizer.name, self.optimizer.__module__))
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIM_LOADED
+                         % (self.config.optimizer.name, self.optimizer.__module__))
         else:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_OPTIMIZER_NOT_LOADED % DEEP_MSG_MODEL_LOADED)
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_OPTIM_NOT_LOADED % DEEP_MSG_MODEL_LOADED)
 
     def load_losses(self):
         """
@@ -250,6 +251,7 @@ class FrontalLobe(object):
 
         :return loss_functions->dict: The losses
         """
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOSS_LOADING % ", ".join(list(self.config.losses.get().keys())))
         losses = {}
         for key, value in self.config.losses.get().items():
             loss = get_module(config=value,
@@ -295,19 +297,18 @@ class FrontalLobe(object):
 
         :return loss_functions->dict: The metrics
         """
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_LOADING % ", ".join(list(self.config.metrics.get().keys())))
         metrics = {}
         for key, value in self.config.metrics.get().items():
             metric = get_module(config=value,
-                               modules=DEEP_MODULE_METRICS)
+                                modules=DEEP_MODULE_METRICS)
             kwargs = check_kwargs(get_kwargs(self.config.metrics.get(key)))
             if inspect.isclass(metric):
                 method = metric(**kwargs)
             else:
                 method = metric
-
             metrics[str(key)] = Metric(name=str(key), method=method)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, value.name, metric.__module__))
-
         self.metrics = metrics
 
     def load_trainer(self):
@@ -328,10 +329,11 @@ class FrontalLobe(object):
         None
 
         RETURN:
-        -------
+        ------- %
         :return None
         """
         if self.config.data.enable.train:
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.train.name)
             transform_manager = TransformManager(**self.config.transform.train.get())
             dataset = Dataset(**self.config.data.dataset.train.get(),
                               transform_manager=transform_manager,
@@ -348,7 +350,7 @@ class FrontalLobe(object):
                                    verbose=self.config.history.verbose,
                                    tester=self.validator)
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_TRAINER_DISABLED % self.config.data.dataset.train.name)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.train.name)
 
     def load_validator(self):
         """
@@ -366,7 +368,7 @@ class FrontalLobe(object):
                                     metrics=self.metrics,
                                     losses=self.losses)
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_VALIDATOR_DISABLED % self.config.data.dataset.validation.name)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.validation.name)
 
     def load_tester(self):
         """
@@ -384,7 +386,7 @@ class FrontalLobe(object):
                                  metrics=self.metrics,
                                  losses=self.losses)
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_TESTER_DISABLED % self.config.data.dataset.test.name)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.test.name)
 
     def load_memory(self):
         """
