@@ -1,5 +1,6 @@
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.entry import *
+from deeplodocus.utils.flags.notif import DEEP_NOTIF_INFO, DEEP_NOTIF_FATAL
 
 
 class Pointer(object):
@@ -8,7 +9,6 @@ class Pointer(object):
 
         self.name = str(pointer)
         self.pointer_to_transformer = self.__generate_pointer(pointer)
-
         #Transformer.__init__(self, config)
 
     def summary(self):

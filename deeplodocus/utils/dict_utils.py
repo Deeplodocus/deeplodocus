@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.generic_utils import get_int_or_float
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.dtype import DEEP_TYPE_FLOAT, DEEP_TYPE_INTEGER
 
 
 def check_kwargs(kwargs):
@@ -21,11 +21,11 @@ def check_kwargs(kwargs):
     else:
         print("Ths should not be printed : Unknown case : Go to check_kwargs and fix")
 
-def get_kwargs(dictionary : dict):
+
+def get_kwargs(dictionary: dict):
     for key, value in dictionary.items():
         if key == "kwargs":
             return value
-
     return None
 
 

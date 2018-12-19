@@ -7,11 +7,14 @@ import copy
 import os
 
 from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.event import *
+from deeplodocus.utils.flags.ext import DEEP_EXT_CSV
+from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.dict_utils import merge_sum_dict
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.utils.logs import Logs
-from deeplodocus.utils.flags.event import *
 from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.brain.signal import Signal
 
@@ -59,7 +62,6 @@ class History(object):
         self.train_batches_history = multiprocessing.Manager().Queue()
         self.train_epochs_history = multiprocessing.Manager().Queue()
         self.validation_history = multiprocessing.Manager().Queue()
-
 
         # Add headers to history files
         train_batches_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))

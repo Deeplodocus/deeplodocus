@@ -7,9 +7,13 @@ import __main__
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.end import End
 from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.event import *
+from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.flags.path import *
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.brain.signal import Signal
 from deeplodocus.brain.thalamus import Thalamus
+
 
 class Saver(object):
     """

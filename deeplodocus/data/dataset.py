@@ -8,7 +8,12 @@ from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.generic_utils import is_np_array
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.errors import error_entry_array_size
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.entry import *
+from deeplodocus.utils.flags.dtype import *
+from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.flags.msg import *
+from deeplodocus.utils.flags.lib import *
+from deeplodocus.utils.flags import DEEP_SHUFFLE_ALL
 
 
 class Dataset(object):
@@ -899,7 +904,7 @@ class Dataset(object):
         """
         # TODO : Add a progress bar
         # For each file check if we have the same number of row
-        for f_data in self.list_data:
+        for f_data in self.data:
             num_instances = 0
             # If the input given is a list of inputs
             if type(f_data) is list:
@@ -910,7 +915,7 @@ class Dataset(object):
             else:
                 num_instances = self.__compute_number_instances(f_data)
             if num_instances != self.number_instances:
-                Notification(DEEP_NOTIF_FATAL, "Number of instances in " + str(self.list_inputs[0]) + " and " + str(f) + " do not match.")
+                Notification(DEEP_NOTIF_FATAL, "Number of instances in " + str(self.inputs[0]) + " and " + str(f) + " do not match.")
 
     def __check_data_type(self):
         """

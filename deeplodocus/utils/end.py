@@ -37,12 +37,13 @@ class End(object):
 
         :return: None
         """
-        if error is False :
+        if error is False:
             self.__thanks_master()
         # Stop the program
         raise SystemExit(0)
 
-    def __thanks_master(self):
+    @staticmethod
+    def __thanks_master():
         """
         AUTHORS:
         --------
@@ -64,7 +65,6 @@ class End(object):
 
         :return: Universal Love <3
         """
-
         Notification(DEEP_NOTIF_INFO, "=================================")
         Notification(DEEP_NOTIF_INFO, "Thank you for using Deeplodocus !")
         Notification(DEEP_NOTIF_INFO, "== Made by Humans with deep <3 ==")

@@ -332,7 +332,7 @@ class FrontalLobe(object):
         :return None
         """
         if self.config.data.enable.train:
-            transform_manager = TransformManager(self.config.transform.train)
+            transform_manager = TransformManager(**self.config.transform.train.get())
             dataset = Dataset(**self.config.data.dataset.train.get(),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
@@ -356,7 +356,7 @@ class FrontalLobe(object):
         :return: None
         """
         if self.config.data.enable.validation:
-            transform_manager = TransformManager(self.config.transform.validation)
+            transform_manager = TransformManager(**self.config.transform.validation.get())
             dataset = Dataset(**self.config.data.dataset.validation.get(),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
@@ -374,7 +374,7 @@ class FrontalLobe(object):
         :return: None
         """
         if self.config.data.enable.test:
-            transform_manager = TransformManager(self.config.transform.test)
+            transform_manager = TransformManager(**self.config.transform.test.get())
             dataset = Dataset(**self.config.data.dataset.test.get(),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)

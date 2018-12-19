@@ -6,7 +6,8 @@ import __main__
 
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.module import DEEP_MODULE_TRANSFORMS
+from deeplodocus.utils.flags.notif import DEEP_NOTIF_INFO, DEEP_NOTIF_FATAL
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.dict_utils import get_kwargs
 from deeplodocus.utils.dict_utils import check_kwargs

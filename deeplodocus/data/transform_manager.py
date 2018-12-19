@@ -34,12 +34,12 @@ class TransformManager(object):
     This method is very efficient and allows to have exactly the same output on mulitple inputs (e.g. left and right image of stereo vision)
     """
 
-    def __init__(self, parameters)->None:
+    def __init__(self, name, inputs, labels, additional_data=None) -> None:
         """
         AUTHORS:
         --------
 
-        author: Alix Leroy
+        author: Alix Leroy and Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -49,94 +49,21 @@ class TransformManager(object):
         PARAMETERS:
         -----------
 
-        :param transform_parameters: The list of parameters of the
+        :param name: str: the name of the transformer
+        :param inputs: list
 
         RETURN:
         -------
 
         None
         """
-        self.parameters = parameters
-
-        # Handle name
-        if hasattr(parameters, 'name'):
-            self.name = str(parameters.name)
-        else:
-            self.name = "No name given - " + str(time.time())
-
-        # Handle inputs
-        if hasattr(parameters, 'inputs') or hasattr(parameters, 'input'):
-            self.list_input_transformers = self.__load_transformers(parameters.inputs)
-        else:
-            self.list_input_transformers = []
-
-        # Handle labels
-        if hasattr(parameters, 'labels') or hasattr(parameters, 'label'):
-            self.list_label_transformers = self.__load_transformers(parameters.labels)
-        else:
-            self.list_label_transformers = []
-
-        # Handle additional_data
-        if hasattr(parameters, 'additional_data'):
-            self.list_additional_data_transformers = self.__load_transformers(parameters.additional_data)
-        else:
-            self.list_additional_data_transformers = []
+        self.name = name
+        self.list_input_transformers = self.__load_transformers(inputs)
+        self.list_label_transformers = self.__load_transformers(labels)
+        self.list_additional_data_transformers = self.__load_transformers(additional_data)
         self.summary()
 
-    def update(self, parameters) -> None:
-        """
-        AUTHORS:
-        --------
-
-        author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Update all the parameters of the TransformerManager
-
-        PARAMETERS:
-        -----------
-
-        :param parameters: The list of parameters to update
-
-        RETURN:
-        -------
-
-        :return: None
-        """
-
-        try:
-            self.parameters = parameters
-
-            if hasattr(parameters, 'name'):
-                self.name = str(parameters.name)
-
-            # Handle inputs
-            if hasattr(parameters, 'inputs') or hasattr(parameters, 'input'):
-                self.list_input_transformers = self.__load_transformers(parameters.inputs)
-            else:
-                self.list_input_transformers = []
-
-            # Handle labels
-            if hasattr(parameters, 'labels') or hasattr(parameters, 'label'):
-                self.list_label_transformers = self.__load_transformers(parameters.labels)
-            else:
-                self.list_label_transformers = []
-
-            # Handle additional_data
-            if hasattr(parameters, 'additional_data'):
-                self.list_additional_data_transformers = self.__load_transformers(parameters.additional_data)
-            else:
-                self.list_additional_data_transformers = []
-
-            Notification(DEEP_NOTIF_SUCCESS, "The TransformManager '" + str(self.name) +"' has succesfully been updated.")
-
-        except:
-            Notification(DEEP_NOTIF_ERROR,
-                         "An error occurred while updating the TransformManager '" + str(self.name) +"'. Please check the given configuration")
-
-    def transform(self, data, index, type_data, entry_type , entry_num):
+    def transform(self, data, index, type_data, entry_type, entry_num):
         """
         AUTHORS:
         --------
@@ -278,8 +205,6 @@ class TransformManager(object):
             if transformer is not None:
                 transformer.summary()
 
-
-
     def __load_transformers(self, entries):
         """
         CONTRIBUTORS:
@@ -309,7 +234,6 @@ class TransformManager(object):
         if isinstance(entries, list) is False:
             entries = [entries]
 
-
         # Load and create the transformers and then add them to the transformers list
         for entry in entries:
             # Check if the entry is None
@@ -321,7 +245,6 @@ class TransformManager(object):
 
         # return the list of transformers
         return transformers_list
-
 
     def __create_transformer(self, config_entry):
         """
@@ -375,10 +298,9 @@ class TransformManager(object):
 
             # If the method does not exist
             else:
-                Notification(DEEP_NOTIF_FATAL , "The following transformation method does not exist : " + str(config.method))
+                Notification(DEEP_NOTIF_FATAL, "The following transformation method does not exist : " + str(config.method))
 
         return transformer
-
 
     @staticmethod
     def __is_pointer(source_path : str) -> bool:
