@@ -77,3 +77,9 @@ DEEP_MSG_DATA_LOADED = "The '%s' dataset has been successfully loaded"
 DEEP_MSG_CV_LIBRARY_SET = "Set cv library to : %s"
 DEEP_MSG_CV_LIBRARY_NOT_IMPLEMENTED = "The following image module is not implemented : %s"
 
+##################
+# DEEP_MSG_notif #
+##################
+
+# DEEP_FATAL
+DEEP_MSG_NOTIF_UNKNOWN = "Unknown notification type : %s"

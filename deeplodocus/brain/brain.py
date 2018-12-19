@@ -6,8 +6,14 @@ from deeplodocus import __version__
 from deeplodocus.brain.frontal_lobe import FrontalLobe
 from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.brain.visual_cortex import VisualCortex
-from deeplodocus.utils.end import End
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.cmd import *
+from deeplodocus.utils.flags.config import *
+from deeplodocus.utils.flags.exit import *
+from deeplodocus.utils.flags.ext import DEEP_EXT_YAML
+from deeplodocus.utils.flags.filter import *
+from deeplodocus.utils.flags.log import *
+from deeplodocus.utils.flags.msg import *
+from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.namespace import Namespace
@@ -51,6 +57,7 @@ class Brain(FrontalLobe):
     :method __preprocess_command:
     :method __illegal_command_messages:
     :method __get_command_flags:
+    :method __good_bye:
     """
 
     def __init__(self, config_dir):
@@ -75,18 +82,16 @@ class Brain(FrontalLobe):
 
         :return: None
         """
-        FrontalLobe.__init__(self)  # Model Manager
+        FrontalLobe.__init__(self)          # Model Manager
         self.close_logs(force=True)
         self.config_dir = config_dir
-        self.config_is_complete = False
         Logo(version=__version__)
         self.visual_cortex = None
         time.sleep(0.5)                     # Wait for the UI to respond
-        self.frontal_lobe = None
         self.config = None
         self._config = None
         self.load_config()
-        Thalamus()                  # Initialize the Thalamus
+        Thalamus()                          # Initialize the Thalamus
 
     """
     "
@@ -109,7 +114,6 @@ class Brain(FrontalLobe):
         :return: None
         """
         self.__on_wake()
-
         while True:
             command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
             self.__execute_command(command)
@@ -131,9 +135,9 @@ class Brain(FrontalLobe):
         # Stop the visual cortex
         if self.visual_cortex is not None:
             self.visual_cortex.stop()
-
+        self.__good_bye()
         self.close_logs()
-        End(error=False)
+        raise SystemExit(0)
 
     def save_config(self):
         """
@@ -658,10 +662,10 @@ k'
         if value is None:
             return None
         # If the data type is numerical, try to do an eval, then try a straight conversion, then just go with None.
-        if isinstance(dtype, int) or isinstance(dtype, float):
+        if d_type is int or d_type is float:
             try:
                 return d_type(eval(value))
-            except NameError:
+            except TypeError:
                 try:
                     return d_type(value)
                 except TypeError:
@@ -729,6 +733,34 @@ k'
                 else:
                     flags[i] = None
         return commands, flags
+
+    @staticmethod
+    def __good_bye():
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Display thanks message
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: Universal Love <3
+        """
+        Notification(DEEP_NOTIF_INFO, "=================================")
+        Notification(DEEP_NOTIF_INFO, "Thank you for using Deeplodocus !")
+        Notification(DEEP_NOTIF_INFO, "== Made by Humans with deep <3 ==")
+        Notification(DEEP_NOTIF_INFO, "=================================")
 
     """
     "

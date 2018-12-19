@@ -1,20 +1,3 @@
-from deeplodocus.utils.flags.cmd import *
-from deeplodocus.utils.flags.config import *
-from deeplodocus.utils.flags.entry import *
-from deeplodocus.utils.flags.exit import *
-from deeplodocus.utils.flags.ext import *
-from deeplodocus.utils.flags.filter import *
-from deeplodocus.utils.flags.lib import *
-from deeplodocus.utils.flags.log import *
-from deeplodocus.utils.flags.msg import *
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.path import *
-from deeplodocus.utils.flags.dtype import *
-from deeplodocus.utils.flags.ui import *
-from deeplodocus.utils.flags.backend import *
-from deeplodocus.utils.flags.module import *
-from deeplodocus.utils.flags.event import *
-
 #
 # MODEL SAVING CONDITION
 #

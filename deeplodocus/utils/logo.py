@@ -1,5 +1,5 @@
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.notif import DEEP_NOTIF_SUCCESS, DEEP_NOTIF_INFO
 
 
 class Logo(object):

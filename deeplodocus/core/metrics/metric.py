@@ -2,9 +2,11 @@ import inspect
 from typing import Union
 from torch.nn import Module
 
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.entry import *
+from deeplodocus.utils.flags.notif import DEEP_NOTIF_FATAL
 from deeplodocus.utils.notification import Notification
 from deeplodocus.core.metrics.generic_metric import GenericMetric
+
 
 class Metric(GenericMetric):
     """

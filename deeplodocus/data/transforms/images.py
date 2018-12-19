@@ -4,7 +4,7 @@ import cv2
 from typing import Union, List
 
 
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.lib import *
 
 
 def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int):

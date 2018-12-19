@@ -12,15 +12,17 @@ from torch import Tensor
 #
 
 from deeplodocus.data.dataset import Dataset
-from deeplodocus.callbacks.stopping import Stopping
 from deeplodocus.core.inference.tester import Tester
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.dict_utils import apply_weight
 from deeplodocus.utils.dict_utils import sum_dict
 from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.flags.event import *
 from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.brain.signal import Signal
+
 
 class Trainer(GenericEvaluator):
     """

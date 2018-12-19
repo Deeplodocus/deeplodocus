@@ -1,60 +1,11 @@
-import os
-import __main__
-
-from deeplodocus.utils.logs import Logs
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.colors import *
 from deeplodocus.utils.deep_error import DeepError
-
-
-
-#
-# List of color codes
-# Found at : https://stackoverflow.com/questions/287871/print-in-terminal-with-colors
-#
-
-CEND = '\33[0m'
-CBOLD = '\33[1m'
-CITALIC = '\33[3m'
-CURL = '\33[4m'
-CBLINK = '\33[5m'
-CBLINK2 = '\33[6m'
-CSELECTED = '\33[7m'
-
-CBLACK = '\33[30m'
-CRED = '\33[31m'
-CGREEN = '\33[32m'
-CYELLOW = '\33[33m'
-CBLUE = '\33[34m'
-CVIOLET = '\33[35m'
-CBEIGE = '\33[36m'
-CWHITE = '\33[37m'
-
-CBLACKBG = '\33[40m'
-CREDBG = '\33[41m'
-CGREENBG = '\33[42m'
-CYELLOWBG = '\33[43m'
-CBLUEBG = '\33[44m'
-CVIOLETBG = '\33[45m'
-CBEIGEBG = '\33[46m'
-CWHITEBG = '\33[47m'
-
-CGREY = '\33[90m'
-CRED2 = '\33[91m'
-CGREEN2 = '\33[92m'
-CYELLOW2 = '\33[93m'
-CBLUE2 = '\33[94m'
-CVIOLET2 = '\33[95m'
-CBEIGE2 = '\33[96m'
-CWHITE2 = '\33[97m'
-
-CGREYBG = '\33[100m'
-CREDBG2 = '\33[101m'
-CGREENBG2 = '\33[102m'
-CYELLOWBG2 = '\33[103m'
-CBLUEBG2 = '\33[104m'
-CVIOLETBG2 = '\33[105m'
-CBEIGEBG2 = '\33[106m'
-CWHITEBG2 = '\33[107m'
+from deeplodocus.utils.flags.ext import DEEP_EXT_LOGS
+from deeplodocus.utils.flags.log import DEEP_LOG_NOTIFICATION
+from deeplodocus.utils.flags.msg import DEEP_MSG_NOTIF_UNKNOWN
+from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.flags.path import DEEP_PATH_NOTIFICATION
+from deeplodocus.utils.logs import Logs
 
 
 class Notification(object):
@@ -62,38 +13,42 @@ class Notification(object):
     AUTHORS:
     --------
 
-    :author: Alix Leroy
+    :author: Alix Leroy and Samuel Westlake
 
     DESCRIPTION:
     ------------
 
-    Display a custom message to the user and save it to the logs if required
+    Display a custom message to the user and save it to the logs if required.
+
     """
 
-    def __init__(self, notif_type: int, message: str, log: bool=True) -> None:
+    def __init__(self, notif_type: int, message: str, log: bool = True) -> None:
         """
         AUTHORS:
         --------
 
-        :author: Alix Leroy
+        :author: Alix Leroy and Samuel Westlake
 
         DESCRIPTION:
         ------------
 
-        Check what type of notification has to be displayed
+        Check what type of notification has to be displayed.
+        Call the appropriate private method to write the notification as intended.
 
         PARAMETERS:
         -----------
 
-        :param type->int : Index of the notification type flag
-        :param message->str : Message to display
+        :param notif_type: int : Index of the notification type flag.
+        :param message: str : Message to display.
+        :param log: bool: Whether or not to write message to log file.
 
         RETURN:
         -------
 
-        :return : result if input required, else None
+        :return : None
+
         """
-        self.log = log                      # Whether or not notifications should be written to logs
+        self.log = log                          # Whether or not notifications should be written to logs
         self.response = ""                      # Allocated by self.__input(), returned by self.get()
         if notif_type == DEEP_NOTIF_INFO:
             self.__info(message)
@@ -112,43 +67,63 @@ class Notification(object):
         elif notif_type == DEEP_NOTIF_RESULT:
             self.__result(message)
         else:
-            raise ValueError("Unknown notification type: %s" % notif_type)
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NOTIF_UNKNOWN % notif_type)
+
+    def get(self) -> str:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy and Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Get the result of the input.
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return self.response: str: The response given by the user.
+
+        """
+        return self.response
 
     def __fatal_error(self, message: str) -> None:
         """
         AUTHORS:
         --------
 
-        :author: Alix Leroy
+        :author: Alix Leroy and Samuel Westlake
 
         DESCRIPTION:
         ------------
 
-        Display a FATAL ERROR message in RED BACKGROUND
+        Display the given message with a RED background, preceded by 'DEEP FATAL : '.
+        Write to log file if required.
+        Raise a DeepError.
 
         PARAMETERS:
         -----------
 
-        :param message->str: The message to display
+        :param message: str: The message to display.
 
         RETURN:
         -------
 
         :return: None
 
-        OTHERS:
-        -------
-
-        Close Deeplodocus Brain
         """
-        message1 = "DEEP FATAL ERROR : %s" % message
-        # message2 = "DEEP FATAL ERROR : Exiting the program"
-        print("%s%s%s" % (CREDBG, message1, CEND))
-        # print("%s%s%s" % (CREDBG, message2, CEND))
+        message = "DEEP FATAL ERROR : %s" % message
+        print("%s%s%s" % (CREDBG, message, CEND))
         if self.log is True:
-            self.__add_log(message1)
-            # self.__add_log(message2)
-        # End(error=True)
+            self.__add_log(message)
+        # End(error=True)   # Instead of ending and exiting the program, raise a DeepError which may be caught
         raise DeepError
 
     def __error(self, message: str) -> None:
@@ -156,49 +131,53 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy
+        :author: Alix Leroy and Samuel Westlake
 
         DESCRIPTION:
         ------------
 
-        Display an ERROR message in RED
+        Display the given message in RED, preceded by 'DEEP ERROR : '.
+        Write to log file if required.
 
         PARAMETERS:
         -----------
 
-        :param message->str: The message to display
+        :param message: str: The message to display.
 
         RETURN:
         -------
 
         :return: None
+
         """
         message = "DEEP ERROR : %s" % message
         print("%s%s%s" % (CRED, message, CEND))
         if self.log is True:
             self.__add_log(message)
 
-    def __warning(self, message: str)->None:
+    def __warning(self, message: str) -> None:
         """
         AUTHORS:
         --------
 
-        :author: Alix Leroy
+        :author: Alix Leroy and Samuel Westlake
 
         DESCRIPTION:
         ------------
 
-        Display an WARNING message in ORANGE/YELLOW
+        Display the given message in ORANGE/YELLOW, preceded by 'DEEP WARNING : '.
+        Write to log file if required.
 
         PARAMETERS:
         -----------
 
-        :param message->str: The message to display
+        :param message: str: The message to display.
 
         RETURN:
         -------
 
         :return: None
+
         """
         message = "DEEP WARNING : %s" % message
         print("%s%s%s" % (CYELLOW2, message, CEND))
@@ -210,22 +189,24 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy
+        :author: Alix Leroy and Samuel Westlake
 
         DESCRIPTION:
         ------------
 
-        Display an DEBUG message in BEIGE
+        Display the given message in BEIGE, preceded by 'DEEP DEBUG : '.
+        Write to log file if required.
 
         PARAMETERS:
         -----------
 
-        :param message->str: The message to display
+        :param message: str: The message to display.
 
         RETURN:
         -------
 
         :return: None
+
         """
         message = "DEEP DEBUG : %s" % message
         print("%s%s%s" % (CBEIGE, message, CEND))
@@ -237,22 +218,24 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy
+        :author: Alix Leroy and Samuel Westlake
 
         DESCRIPTION:
         ------------
 
-        Display an SUCCESS message in GREEN
+        Display the given message in GREEM, preceded by 'DEEP SUCCESS : '.
+        Write to log file if required.
 
         PARAMETERS:
         -----------
 
-        :param message->str: The message to display
+        :param message: str: The message to display.
 
         RETURN:
         -------
 
         :return: None
+
         """
         message = "DEEP SUCCESS : %s" % message
         print("%s%s%s" % (CGREEN, message, CEND))
@@ -264,24 +247,25 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy
+        :author: Alix Leroy and Samuel Westlake
 
         DESCRIPTION:
         ------------
 
-        Display an INFO message in BLUE
+        Display the given message in BLUE, preceded by 'DEEP INFO : '.
+        Write to log file if required.
 
         PARAMETERS:
         -----------
 
-        :param message->str: The message to display
+        :param message: str: The message to display.
 
         RETURN:
         -------
 
         :return: None
-        """
 
+        """
         message = "DEEP INFO : %s" % message
         print("%s%s%s" % (CBLUE, message, CEND))
         if self.log is True:
@@ -289,10 +273,27 @@ class Notification(object):
 
     def __result(self, message: str) -> None:
         """
-        Author: Alix Leroy, SW
-        Displays a DEEP RESULT message in WHITE
-        :param message: str: text to be printed
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy and Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Display the given message in WHITE preceded by 'DEEP RESULT : '.
+        Write to log file if required.
+
+        PARAMETERS:
+        -----------
+
+        :param message: str: The message to display.
+
+        RETURN:
+        -------
+
         :return: None
+
         """
         message = "DEEP RESULT : %s" % message
         print(message)
@@ -304,17 +305,17 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy
+        :author: Alix Leroy and Samuel Westlake
 
         DESCRIPTION:
         ------------
 
-        Display a BLINKING WHITE message and await for an input
+        Display a BLINKING WHITE message and await for an input.
 
         PARAMETERS:
         -----------
 
-        :param message->str: The message to display
+        :param message: str: The message to display.
 
         RETURN:
         -------
@@ -330,51 +331,28 @@ class Notification(object):
             self.__add_log(message)
             self.__add_log(str(self.response))
 
-    def get(self) -> str:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Get the result of the input
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return self.response->str: The response givne by the user
-        """
-        return self.response
-
     @staticmethod
     def __add_log(message: str) -> None:
         """
         AUTHORS:
         --------
 
-        :author: Alix Leroy
+        :author: Alix Leroy and Samuel Westlake
 
         DESCRIPTION:
         ------------
 
-        Add a message to the logs
+        Add a message to the logs.
 
         PARAMETERS:
         -----------
 
-        :param message->str: The message to save in the logs
+        :param message: str: The message to save in the logs.
 
         RETURN:
         -------
 
         :return: None
+
         """
-        Logs("notification", DEEP_PATH_NOTIFICATION, DEEP_EXT_LOGS).add(message)
+        Logs(DEEP_LOG_NOTIFICATION, DEEP_PATH_NOTIFICATION, DEEP_EXT_LOGS).add(message)
