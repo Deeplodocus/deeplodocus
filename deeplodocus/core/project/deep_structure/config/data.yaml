@@ -4,28 +4,46 @@ dataloader:
 dataset:
   train:
     number: 100
+    load_method: "default" #default (from memory), hard drive, ...
     inputs:
-      - ['./data/input1.txt']
-      - ['./data/input2.txt']
+      - path: ['./data/input1.txt']
+        join: Null # Null, auto, "some/path"      # (Optional) Null, auto, "some/path"
+        type: "image"                             # (Optional) image, video, integer, label,
+      - path: ['./data/input2.txt']
+        join: Null                                # (Optional) Null, auto, "some/path"
+        type: "image"                             # (Optional) image, video, integer, label,
     labels:
-      - ["./data/label1.txt"]
+      - path: ['./data/label1.txt']
+        type: "integer"
     additional_data:
       - Null
   validation:
     number : 7
+    load_method: "default" #default (from memory), hard drive, ...
     inputs:
-      - ['./data/input1.txt']
-      - ['./data/input2.txt']
+      - path: ['./data/input1.txt']
+        join: Null # Null, auto, "some/path"      # (Optional) Null, auto, "some/path"
+        type: "image"                             # (Optional) image, video, integer, label,
+      - path: ['./data/input2.txt']
+        join: Null                                # (Optional) Null, auto, "some/path"
+        type: "image"                             # (Optional) image, video, integer, label,
     labels:
-      - ["./data/label1.txt"]
+      - path: ['./data/label1.txt']
+        type: "integer"
     additional_data:
       - Null
   test:
     number: 7
+    load_method: "default" #default (from memory), hard drive, ...
     inputs:
-      - ['./data/input1.txt']
-      - ['./data/input2.txt']
+      - path: ['./data/input1.txt']
+        join: Null # Null, auto, "some/path"      # (Optional) Null, auto, "some/path"
+        type: "image"                             # (Optional) image, video, integer, label,
+      - path: ['./data/input2.txt']
+        join: Null                                # (Optional) Null, auto, "some/path"
+        type: "image"                             # (Optional) image, video, integer, label,
     labels:
-      - ["./data/label1.txt"]
+      - path: ['./data/label1.txt']
+        type: "integer"
     additional_data:
       - Null
