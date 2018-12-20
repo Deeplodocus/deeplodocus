@@ -14,7 +14,10 @@ from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.lib import *
 from deeplodocus.utils.flags import DEEP_SHUFFLE_ALL
+from deeplodocus.utils.flags.load import *
 
+# Temporary until Namespace fix
+import ast
 
 class Dataset(object):
     """
@@ -45,7 +48,12 @@ class Dataset(object):
         - OpenCV (usage recommended for efficiency)
     """
 
-    def __init__(self, inputs=None, labels=None, additional_data=None, number=None, name="Default",
+    def __init__(self, inputs=None,
+                 load_method = DEEP_LOAD_METHOD_MEMORY,
+                 labels=None,
+                 additional_data=None,
+                 number=None,
+                 name="Default",
                  use_raw_data=True,
                  transform_manager=None,
                  cv_library=DEEP_LIB_OPENCV):
@@ -72,9 +80,10 @@ class Dataset(object):
         :param cv_library: The computer vision library to be used for opening and modifying the images data
         :param name: Name of the dataset
         """
-        self.inputs = self.__check_null_entry(inputs)
-        self.labels = self.__check_null_entry(labels)
-        self.additional_data = self.__check_null_entry(additional_data)
+        self.inputs = self.__temp_convert_str2dict(self.__check_null_entry(inputs))
+        self.labels = self.__temp_convert_str2dict(self.__check_null_entry(labels))
+        self.additional_data = self.__temp_convert_str2dict(self.__check_null_entry(additional_data))
+        self.load_method = self.__check_load_method(load_method)
         self.number = number
         self.name = name
         self.transform_manager = transform_manager
@@ -429,21 +438,27 @@ class Dataset(object):
         :return final_data: The content of the files and folder given as input. The list is formatted to fit a pandas Dataframe columns
         """
         data = []
-        # For all the files/folder given as input
-        for i, f_data in enumerate(list_f_data):
+
+
+        # For all the entries given
+        for i, e_data in enumerate(list_f_data):
             content = []
 
-            # If the input given is a list of inputs to extend
-            if type(f_data) is list:
+            # If the entry given is a list of entries to extend
+            if type(e_data["path"]) is list:
 
-                # For each input in the list we collect the data and extend the list
-                for j, f in enumerate(f_data):
-                    content.extend(self.__get_content(f))
+                # For each entry in the list we collect the data and extend the list
+                for j, entry in enumerate(e_data["path"]):
+                    content.extend(self.__get_content(entry))
                 data.append(content)
-            # If the input given is a single input
+
+            # If the given entry is a single entry
             else:
-                content = self.__get_content(f_data)
+                content = self.__get_content(e_data["path"])
                 data.append(content)  # Add the new content to the list of data
+
+
+
         # Format the data to the format accepted by deeplodocus where final_data[i][j] = data[j][i]
         final_data = []
         if len(data) > 0:
@@ -479,7 +494,6 @@ class Dataset(object):
 
         :return content: Content of the file/folder in a list
         """
-
         # Get the source path type
         source_type = self.__source_path_type(f)
         content = None
@@ -849,6 +863,38 @@ class Dataset(object):
             Notification(DEEP_NOTIF_WARNING, "The video mode is not fully supported. We deeply suggest you to use sequences of images.")
             self.warning_video = 1
 
+    """
+    "
+    " CHECKERS
+    "
+    """
+
+    def __temp_convert_str2dict(self, entries):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Temporary change strings to dict for loading entry
+
+        PARAMETERS:
+        -----------
+
+        :param entries:
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        for i, entry in enumerate(entries):
+            entries[i] = ast.literal_eval(entry)
+        return entries
+
     @staticmethod
     def __check_null_entry(entry):
         """
@@ -882,6 +928,50 @@ class Dataset(object):
                 return entry
         except IndexError:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_ENTRY % entry)
+
+    def __check_load_method(self, load_method):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check if the load method required is valid.
+        Check if the load method given is an integer, otherwise convert it to the corresponding flag
+
+        PARAMETERS:
+        -----------
+
+        :param load_method:
+
+        RETURN:
+        -------
+
+        :return load_method (int): The corresponding DEEP_LOAD_METHOD flag
+        """
+
+        if isinstance(load_method, int):
+            if load_method in DEEP_LOAD_METHOD_LIST:
+                return load_method
+            else:
+                Notification(DEEP_NOTIF_FATAL, "The given flag '%i' does not correspond to any DEEP_LOAD_METHOD" %load_method)
+        else:
+            if load_method == "default":
+                return DEEP_LOAD_METHOD_MEMORY
+            elif load_method =="memory":
+                return DEEP_LOAD_METHOD_MEMORY
+            elif load_method in ["harddrive", "hard drive", "hard-drive", "hard_drive"]:
+                Notification(DEEP_NOTIF_FATAL, "Loading data using a hard drive reading is not currently implemented")
+                return DEEP_LOAD_METHOD_HARDDRIVE
+            elif load_method == "server":
+                Notification(DEEP_NOTIF_FATAL, "Loading data using a server is not currently implemented")
+                return DEEP_LOAD_METHOD_SERVER
+            else:
+                Notification(DEEP_NOTIF_FATAL, "The following loading method does not exist : %s" %str(load_method))
+
 
     def __check_data(self):
         """
@@ -966,14 +1056,15 @@ class Dataset(object):
         """
         num_instances = 0
         # If the input given is a list of inputs
-        if type(self.inputs[0]) is list:
+        if type(self.inputs[0]["path"]) is list:
 
             # For each input in the list we collect the data and extend the list
-            for j, f in enumerate(self.inputs[0]):
+            for j, f in enumerate(self.inputs[0]["path"]):
+                print(f)
                 num_instances += self.__get_number_instances(f)
         # If the input given is a single input
         else:
-            num_instances = self.__get_number_instances(self.inputs[0])
+            num_instances = self.__get_number_instances(self.inputs[0]["path"])
         return num_instances
 
     """
@@ -1028,14 +1119,13 @@ class Dataset(object):
         PARAMETERS:
         ------------
 
-        :param f: A file or folder path
+        :param e: an entry
 
         RETURN:
         -------
 
         :return num_instances(int): Number of instances in the file or the folder
         """
-
         # If the frame input is a file
         if self.__source_path_type(f) == DEEP_TYPE_FILE:
             with open(f) as f:
