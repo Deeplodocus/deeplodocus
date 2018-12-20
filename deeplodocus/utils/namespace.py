@@ -11,6 +11,7 @@ import re
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.msg import *
+from deeplodocus.utils.flags.config import DEEP_CONFIG_DIVIDER
 
 
 class Namespace(object):
