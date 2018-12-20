@@ -32,6 +32,7 @@ class Brain(FrontalLobe):
     ------------
 
     A Brain class that manages the commands of the user and allows to start the training
+
     PUBLIC METHODS:
     ---------------
     :method wake:
@@ -91,7 +92,7 @@ class Brain(FrontalLobe):
         self.config = None
         self._config = None
         self.load_config()
-        Thalamus()                          # Initialize the Thalamus
+        Thalamus()                          # Signal Manager
 
     """
     "
@@ -235,6 +236,7 @@ class Brain(FrontalLobe):
                     Notification(DEEP_NOTIF_ERROR, DEEP_MSG_FILE_NOT_FOUND % config_path)
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
+
         self.check_config()
         self.store_config()
 
@@ -311,8 +313,7 @@ class Brain(FrontalLobe):
     def ui(self):
         """
         AUTHORS:
-        --------AttributeError: module 'asyncio' has no attribute 'create_task'
-
+        --------
 
         :author: Alix Leroy
 
@@ -321,9 +322,7 @@ class Brain(FrontalLobe):
 
         Start the User Interface
 
-        PARAMETERS:AttributeError: module 'asyncio' has no attribute 'create_tasAttributeError: module 'asyncio' has no attribute 'create_task'
-k'
-
+        PARAMETERS:
         -----------
 
         None
@@ -757,10 +756,10 @@ k'
 
         :return: Universal Love <3
         """
-        Notification(DEEP_NOTIF_INFO, "=================================")
-        Notification(DEEP_NOTIF_INFO, "Thank you for using Deeplodocus !")
-        Notification(DEEP_NOTIF_INFO, "== Made by Humans with deep <3 ==")
-        Notification(DEEP_NOTIF_INFO, "=================================")
+        Notification(DEEP_NOTIF_LOVE, "=================================")
+        Notification(DEEP_NOTIF_LOVE, "Thank you for using Deeplodocus !")
+        Notification(DEEP_NOTIF_LOVE, "== Made by Humans with deep <3 ==")
+        Notification(DEEP_NOTIF_LOVE, "=================================")
 
     """
     "

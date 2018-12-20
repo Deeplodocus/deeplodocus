@@ -66,6 +66,8 @@ class Notification(object):
             self.__input(message)
         elif notif_type == DEEP_NOTIF_RESULT:
             self.__result(message)
+        elif notif_type == DEEP_NOTIF_LOVE:
+            self.__love(message)
         else:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NOTIF_UNKNOWN % notif_type)
 
@@ -297,6 +299,35 @@ class Notification(object):
         """
         message = "DEEP RESULT : %s" % message
         print(message)
+        if self.log is True:
+            self.__add_log(message)
+
+    def __love(self, message: str) -> None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Display the given message in PINK preceded by 'DEEP LOVE : '.
+        Write to log file if required.
+
+        PARAMETERS:
+        -----------
+
+        :param message: str: The message to display.
+
+        RETURN:
+        -------
+
+        :return: None
+
+        """
+        message = "DEEP LOVE : %s" % message
+        print("%s%s%s" % (CVIOLET2, message, CEND))
         if self.log is True:
             self.__add_log(message)
 

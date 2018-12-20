@@ -329,7 +329,8 @@ class FrontalLobe(object):
         None
 
         RETURN:
-        ------- %
+        -------
+
         :return None
         """
         if self.config.data.enable.train:
@@ -414,6 +415,8 @@ class FrontalLobe(object):
 
             overwatch_metric = OverWatchMetric(name=self.config.training.overwatch_metric,
                                                condition=self.config.training.overwatch_condition)
+
+            # The hippocampus (brain/memory/hippocampus) temporary  handles the saver and the history
             self.hippocampus = Hippocampus(losses=self.losses,
                                            metrics = self.metrics,
                                            model_name = self.config.model.name,
