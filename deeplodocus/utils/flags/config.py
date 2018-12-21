@@ -41,13 +41,16 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {"dtype": str,
                                               "history_validation": {"dtype": bool,
                                                                      "default": True},
                                               "notification": {"dtype": bool,
-                                                               "default": True}},
+                                                               "default": True}
+                                              },
                                      "on_wake": {"dtype": [str],
-                                                 "default": None}},
+                                                 "default": None}
+                                     },
                DEEP_CONFIG_MODEL: {"name": {"dtype": str,
                                             "default": "LeNet"},
                                    "kwargs": {"dtype": dict,
-                                              "default": "None"}},
+                                              "default": "None"}
+                                   },
                DEEP_CONFIG_OPTIMIZER: {"name": {"dtype": str,
                                                 "default": "Adam"},
                                        "kwargs": {"dtype": dict,
@@ -55,7 +58,9 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {"dtype": str,
                                                               "eps": 0.000000001,
                                                               "amsgrad": False,
                                                               "betas": [0.9, 0.999],
-                                                              "weight_decay": 0.0}}},
+                                                              "weight_decay": 0.0}
+                                                  }
+                                       },
                DEEP_CONFIG_HISTORY: {"verbose": {"dtype": int,
                                                  "default": 1},
                                      "memorize": {"dtype": int,
@@ -69,21 +74,25 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {"dtype": str,
                                       "save_condition": {"dtype": int,
                                                          "default": 1},
                                       "save_method": {"dtype": int,
-                                                      "default": 1}},
+                                                      "default": 1}
+                                      },
                DEEP_CONFIG_DATA: {"enable": {"train": {"dtype": bool,
                                                        "default": True},
                                              "validation": {"dtype": bool,
                                                             "default": True},
                                              "test": {"dtype": bool,
-                                                      "test": False}},
+                                                      "test": False}
+                                             },
                                   "dataloader": {"batch_size": {"dtype": int,
                                                                 "default": 32},
                                                  "num_workers": {"dtype": int,
-                                                                 "default": 1}},
+                                                                 "default": 1}
+                                                 },
                                   "dataset": {"train": {"inputs": {"dtype": None,
                                                                    "default": {"path": None,
                                                                                "join": None,
-                                                                               "type": None}},
+                                                                               "type": None}
+                                                                   },
                                                         "labels": {"dtype": [{str}],
                                                                    "default": [None]},
                                                         "additional_data": {"dtype": [[str]],
@@ -91,11 +100,13 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {"dtype": str,
                                                         "number": {"dtype": int,
                                                                    "default": None},
                                                         "name": {"dtype": str,
-                                                                 "default": "train"}},
+                                                                 "default": "train"}
+                                                        },
                                               "validation": {"inputs": {"dtype": None,
                                                                         "default": {"path": None,
                                                                                     "join": None,
-                                                                                    "type": None}},
+                                                                                    "type": None}
+                                                                        },
                                                              "labels": {"dtype": [[str]],
                                                                         "default": None},
                                                              "additional_data": {"dtype": [[str]],
@@ -103,11 +114,13 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {"dtype": str,
                                                              "number": {"dtype": int,
                                                                         "default": None},
                                                              "name": {"dtype": str,
-                                                                      "default": "validation"}},
+                                                                      "default": "validation"}
+                                                             },
                                               "test": {"inputs": {"dtype": None,
                                                                   "default": {"path": None,
                                                                               "join": None,
-                                                                              "type": None}},
+                                                                              "type": None}
+                                                                  },
                                                        "labels": {"dtype": [[str]],
                                                                   "default": None},
                                                        "additional_data": {"dtype": [[str]],
@@ -115,7 +128,21 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {"dtype": str,
                                                        "number": {"dtype": int,
                                                                   "default": None},
                                                        "name": {"dtype": str,
-                                                                "default": "test"}}}}}
+                                                                "default": "test"}
+                                                       }
+                                              }
+                                  },
+               DEEP_CONFIG_LOSS: {"*": {"module": {"dtype": str,
+                                                   "default": None},
+                                        "name": {"dtype": str,
+                                                 "default": "CrossEntropyLoss"},
+                                        "weight": {"dtype": float,
+                                                   "default": 1},
+                                        "kwargs": {"dtype": dict,
+                                                   "default": None}
+                                        }
+                                  }
+               }
 
 # A dict of names for each config file
 DEEP_CONFIG_FILES = {item: "%s%s" % (item, DEEP_EXT_YAML) for item in DEEP_CONFIG_SECTIONS}

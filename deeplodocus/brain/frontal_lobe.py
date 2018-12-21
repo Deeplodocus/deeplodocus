@@ -261,26 +261,27 @@ class FrontalLobe(object):
 
         :return loss_functions->dict: The losses
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOSS_LOADING % ", ".join(list(self.config.losses.get().keys())))
         losses = {}
-        for key, value in self.config.losses.get().items():
-            loss = get_module(config=value,
-                              modules=DEEP_MODULE_LOSSES)
-            kwargs = check_kwargs(get_kwargs(self.config.losses.get(key)))
-            method = loss(**kwargs)
+        for key, config in self.config.losses.get().items():
+            loss_name = "%s : %s" % (key, config.name) if config.module is None \
+                else "%s : %s from %s" % (key, config.name, config.module)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOSS_LOADING % loss_name)
+            loss = get_module(name=config.name,
+                              module=config.module,
+                              browse=DEEP_MODULE_LOSSES)
+            method = loss(**config.kwargs.get())
             # Check the weight
             if self.config.losses.check("weight", key):
-                if get_int_or_float(value.weight) not in (DEEP_TYPE_INTEGER, DEEP_TYPE_FLOAT):
+                if get_int_or_float(config.weight) not in (DEEP_TYPE_INTEGER, DEEP_TYPE_FLOAT):
                     Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have a correct weight argument" % key)
             else:
                 Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have any weight argument" % key)
-
             # Create the loss
             if isinstance(method, torch.nn.Module):
                 losses[str(key)] = Loss(name=str(key),
-                                        weight=float(value.weight),
+                                        weight=float(config.weight),
                                         loss=method)
-                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOSS_LOADED %(key, value.name, loss.__module__))
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOSS_LOADED % (key, config.name, loss.__module__))
             else:
                 Notification(DEEP_NOTIF_FATAL, "The loss function %s is not a torch.nn.Module instance" % key)
         self.losses = losses
@@ -309,16 +310,16 @@ class FrontalLobe(object):
         """
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_LOADING % ", ".join(list(self.config.metrics.get().keys())))
         metrics = {}
-        for key, value in self.config.metrics.get().items():
-            metric = get_module(config=value,
-                                modules=DEEP_MODULE_METRICS)
-            kwargs = check_kwargs(get_kwargs(self.config.metrics.get(key)))
+        for key, config in self.config.metrics.get().items():
+            metric = get_module(name=config.name,
+                                module=config.module,
+                                browse=DEEP_MODULE_METRICS)
             if inspect.isclass(metric):
-                method = metric(**kwargs)
+                method = metric(**config.kwargs.get())
             else:
                 method = metric
             metrics[str(key)] = Metric(name=str(key), method=method)
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, value.name, metric.__module__))
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, config.name, metric.__module__))
         self.metrics = metrics
 
     def load_trainer(self):

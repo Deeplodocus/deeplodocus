@@ -109,10 +109,10 @@ DEEP_MSG_OPTIM_NOT_LOADED = "Could not load optimizer : %s"
 DEEP_MSG_LOSS_NOT_FOUND = "Loss not found : %s"
 
 # DEEP_SUCCESS
-DEEP_MSG_LOSS_LOADED = "Loss loaded : %s (%s) from %s"
+DEEP_MSG_LOSS_LOADED = "Loss loaded : %s : %s from %s"
 
 # DEEP_INFO
-DEEP_MSG_LOSS_LOADING = "Loading losses : %s"
+DEEP_MSG_LOSS_LOADING = "Loading loss : %s"
 
 ###################
 # DEEP_MSG_METRIC #

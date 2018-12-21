@@ -237,7 +237,6 @@ class Brain(FrontalLobe):
                     Notification(DEEP_NOTIF_ERROR, DEEP_MSG_FILE_NOT_FOUND % config_path)
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
-
         self.check_config()
         self.store_config()
 
