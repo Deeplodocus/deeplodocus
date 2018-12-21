@@ -1,6 +1,6 @@
-
-from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.flags.module import DEEP_MODULE_MODELS
+from deeplodocus.utils.generic_utils import get_module
+from deeplodocus.utils.namespace import Namespace
 
 
 class Model(object):
@@ -20,7 +20,7 @@ class Model(object):
     def __init__(self, name, module=None, kwargs=None):
         self.name = name
         self.module = module
-        self.kwargs = {} if kwargs is None else kwargs
+        self.kwargs = Namespace if kwargs is None else kwargs
         self.model = None
 
     def load(self):
@@ -47,4 +47,4 @@ class Model(object):
         :return: None
         """
         model = get_module(name=self.name, module=self.module, browse=DEEP_MODULE_MODELS)
-        return model(**self.kwargs)
+        return model(**self.kwargs.get())

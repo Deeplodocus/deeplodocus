@@ -1,10 +1,9 @@
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags.filter import *
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.dict_utils import check_kwargs
+from deeplodocus.utils.flags.filter import DEEP_FILTER_OPTIMIZERS
+from deeplodocus.utils.flags.notif import DEEP_NOTIF_FATAL
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.namespace import Namespace
-from deeplodocus.utils.flags.module import *
+from deeplodocus.utils.flags.module import DEEP_MODULE_OPTIMIZERS
 
 
 class Optimizer(object):
@@ -21,7 +20,7 @@ class Optimizer(object):
        Optimizer class which loads the optimizer from a PyTorch module or from a custom module
        """
 
-    def __init__(self, model_parameters, config: Namespace):
+    def __init__(self, name, module, model_parameters, kwargs=None):
         """
         AUTHORS:
         --------
@@ -38,17 +37,19 @@ class Optimizer(object):
         -----------
 
         :param model_parameters:
-        :param config(Namespace):
 
         RETURN:
         -------
 
         :return: None
         """
-        self.optimizer = self.load(config=config,
-                                   model_parameters = model_parameters)
-    @staticmethod
-    def load(config, model_parameters):
+        self.name = name
+        self.module = module
+        self.kwargs = Namespace if kwargs is None else kwargs
+        self.model_parameters = model_parameters
+        self.optimizer = None
+
+    def load(self):
         """
         AUTHORS:
         --------
@@ -71,34 +72,10 @@ class Optimizer(object):
 
         :return: None
         """
-        optimizer = get_module(config=config,
-                               modules=DEEP_MODULE_OPTIMIZERS)
-        kwargs = check_kwargs(config.kwargs)
-        return optimizer(model_parameters, **kwargs)
-
-    def get(self):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Get the optimizer
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return: The optimizer
-        """
-        return self.optimizer
+        optimizer = get_module(name=self.name,
+                               module=self.module,
+                               browse=DEEP_MODULE_OPTIMIZERS)
+        return optimizer(self.model_parameters, **self.kwargs.get())
 
     @staticmethod
     def __format_optimizer_name(name: str):
@@ -147,4 +124,3 @@ class Optimizer(object):
         elif name.lower == "adadelta":
             name = "Adadelta"
         return name
-

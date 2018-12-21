@@ -170,8 +170,8 @@ class FrontalLobe(object):
         self.load_trainer()
         self.load_validator()
         self.load_tester()
-        # self.load_memory()
-        # self.summary()
+        self.load_memory()
+        self.summary()
 
     def load_model(self):
         """
@@ -223,12 +223,20 @@ class FrontalLobe(object):
 
         :return: None
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_OPTIM_LOADING % self.config.optimizer.name)
+        # Notify the user of which optimizer is being loaded and from where
+        optimizer_name = self.config.optimizer.name if self.config.optimizer.module is None \
+            else "%s from %s" % (self.config.model.name, self.config.model.module)
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_OPTIM_LOADING % optimizer_name)
+        # An optimizer cannot be loaded without a model (self.model.parameters() is required)
         if self.model is not None:
-            self.optimizer = Optimizer(self.model.parameters(), self.config.optimizer).get()
+            # Load the optimizer
+            self.optimizer = Optimizer(model_parameters=self.model.parameters(),
+                                       **self.config.optimizer.get()).load()
+            # Notify the user of success
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIM_LOADED
                          % (self.config.optimizer.name, self.optimizer.__module__))
         else:
+            # Notify the user that a model must be loaded
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_OPTIM_NOT_LOADED % DEEP_MSG_MODEL_LOADED)
 
     def load_losses(self):
