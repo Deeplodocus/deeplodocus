@@ -14,6 +14,7 @@ from deeplodocus.utils.flags.filter import *
 from deeplodocus.utils.flags.log import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.generic_utils import convert
 from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.namespace import Namespace
@@ -470,32 +471,56 @@ class Brain(FrontalLobe):
                                                                                    d_type.__name__,
                                                                                    default))
                     return default
-        else:
-            # If d_type is dict, it get's interesting... Because we really want it to be a Namespace instead.
-            if d_type == dict:
-                # If the value is a Namespace or None, leave it alone.
-                if isinstance(value, Namespace) or value is None:
-                    return value
-                # If not, we should replace it with a Namespace of the default values.
-                else:
-                    if value != default and value is not None:
-                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
-                                                                                   value,
-                                                                                   d_type.__name__,
-                                                                                   default))
-                    return Namespace(default)
+        # If d_type is dict, it get's interesting... Because we really want it to be a Namespace instead.
+        elif d_type is dict:
+            # If the value is a Namespace or None, leave it alone.
+            if isinstance(value, Namespace):
+                return self.__convert_namespace(value)
+            elif value is None:
+                return None
+            # If not, we should replace it with a Namespace of the default values.
             else:
-                # For any other data type, try to convert, if None is given, go with the default.
-                new_value = self.__convert(value, d_type)
-                if new_value is None:
-                    if value != default and value is not None:
-                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
-                                                                                   value,
-                                                                                   d_type.__name__,
-                                                                                   default))
-                    return default
-                else:
-                    return new_value
+                if value != default and value is not None:
+                    Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
+                                                                               value,
+                                                                               d_type.__name__,
+                                                                               default))
+                return Namespace(default)
+        else:
+            # For any other data type, try to convert, if None is given, go with the default.
+            new_value = self.__convert(value, d_type)
+            if new_value is None:
+                if value != default and value is not None:
+                    Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
+                                                                               value,
+                                                                               d_type.__name__,
+                                                                               default))
+                return default
+            else:
+                return new_value
+
+    @staticmethod
+    def __convert_namespace(namespace):
+        """
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Converts each value in a namespace to the most appropriate data type
+
+        PARAMETERS:
+        -----------
+        :param namespace: a given namespace to convert the values of
+
+        RETURN:
+        -------
+        :return: the namespace with each value converted to a sensible data type
+        """
+        for key, value in namespace.get().items():
+            namespace.get()[key] = convert(value)
+        return namespace
 
     def __convert_list(self, values, d_type):
         """

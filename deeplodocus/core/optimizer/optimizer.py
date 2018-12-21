@@ -45,7 +45,7 @@ class Optimizer(object):
         """
         self.name = name
         self.module = module
-        self.kwargs = Namespace if kwargs is None else kwargs
+        self.kwargs = Namespace() if kwargs is None else kwargs
         self.model_parameters = model_parameters
         self.optimizer = None
 

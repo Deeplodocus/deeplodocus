@@ -13,6 +13,34 @@ from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.notification import Notification
 
 
+def convert(value):
+    """
+    Convert a value or list of values to data type in order of preference: (float, bool, str)
+    :param value: value to convert
+    :return: converted value
+    """
+    if isinstance(value, list):
+        return [convert(item) for item in value]
+    else:
+        try:
+            return eval(value)
+        except TypeError:
+            pass
+        try:
+            return float(value)
+        except TypeError:
+            pass
+        try:
+            return bool(value)
+        except TypeError:
+            pass
+        try:
+            return str(value)
+        except TypeError:
+            pass
+    return None
+
+
 def sorted_nicely(l):
     """ Sorts the given iterable in the way that is expected.
 

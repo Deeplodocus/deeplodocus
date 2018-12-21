@@ -20,7 +20,7 @@ class Model(object):
     def __init__(self, name, module=None, kwargs=None):
         self.name = name
         self.module = module
-        self.kwargs = Namespace if kwargs is None else kwargs
+        self.kwargs = Namespace() if kwargs is None else kwargs
         self.model = None
 
     def load(self):
