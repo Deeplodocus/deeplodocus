@@ -8,7 +8,8 @@ from deeplodocus.data.transformer.pointer import Pointer
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.entry import *
+from deeplodocus.utils.flags.notif import *
 
 
 class TransformManager(object):
