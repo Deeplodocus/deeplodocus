@@ -42,6 +42,7 @@ def append(item1, item2):
     return item1
 
 
+# SHOULD BE LEGACY
 def convert_string_to_number(dictionary: dict):
     """
     AUTHORS:

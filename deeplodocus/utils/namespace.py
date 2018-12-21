@@ -204,7 +204,6 @@ class Namespace(object):
                 self.get()[sub_space].__add(dictionary)
 
 
-
 # this is to convert the string written as a tuple into a python tuple
 def yml_tuple_constructor(loader, node):
     # this little parse is really just for what I needed, feel free to change it!
@@ -226,6 +225,7 @@ def yml_tuple_constructor(loader, node):
     tup = tuple(map(parse_tup_el, tup_elements))
     return tup
 
+
 # Add tuples to PyYaml
 yaml.add_constructor(u'!tuple', yml_tuple_constructor)
 # this is to spot the strings written as tuple in the yaml
@@ -237,4 +237,3 @@ if __name__ == "__main__":
     a = {"project": "../yaml1", "network": {"gv": 56, "you": 90}, "test" : (1, "a", 1.2)}
     namespace.add(a, ["c", "main", "moop"])
     namespace.summary()
-

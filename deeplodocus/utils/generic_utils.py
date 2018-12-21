@@ -9,7 +9,6 @@ import string
 
 from deeplodocus.utils.flags.ext import *
 from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.notification import Notification
 
@@ -117,7 +116,8 @@ def is_np_array(data):
     except:
         return False
 
-def get_specific_module(module, name, silence=False):
+
+def get_specific_module(name, module, silence=False):
     """
     Author: Samuel Westlake
     :param module: str: path to the module (separated by '.')
@@ -130,15 +130,17 @@ def get_specific_module(module, name, silence=False):
         exec("from %s import %s\nmodule = %s" % (module, name, name), {}, local)
     except ImportError as e:
         if not silence:
-            Notification(DEEP_NOTIF_ERROR, e)
+            Notification(DEEP_NOTIF_ERROR, str(e))
     return local["module"]
 
-def get_module(config, modules):
+
+def get_module(name, module=None, browse=None):
     """
     AUTHORS:
     --------
 
     :author: Alix Leroy
+    :author: Samuel Westlake
 
     DESCRIPTION:
     ------------
@@ -148,30 +150,24 @@ def get_module(config, modules):
     PARAMETERS:
     -----------
 
-    :param config:
-    :param module:
+    :param name: str: the name of the object to load
+    :param module: str: the name of the specific module
+    :param browse: dict: a DEEP_MODULE dictionary to browse through
 
     RETURN:
     -------
 
     :return module(callable): The loaded module
     """
-    # If we want a specific model
-    if  config.check("module", None):
-        if config.module != None:
-            module = get_specific_module(module=config.module,
-                               name=config.name)
-        else:
-            # Browse in custom models
-            module = browse_module(modules=modules,
-                                   name=config.name)
+    if module is not None:
+        return get_specific_module(name, module)
+    elif browse is not None:
+        return browse_module(name, browse)
     else:
-        # Browse in custom models
-        module = browse_module(modules=modules,
-                                  name=config.name)
-    return module
+        return None
 
-def browse_module(modules: dict, name: str):
+
+def browse_module(name, modules):
     """
     AUTHORS:
     --------
@@ -189,7 +185,7 @@ def browse_module(modules: dict, name: str):
     PARAMETERS:
     -----------
 
-    :param modules(dict):
+    :param modules: dict
     :param name: The name of the callable
 
     RETURN:
@@ -210,7 +206,7 @@ def browse_module(modules: dict, name: str):
                 continue
 
             # Try to get the module
-            module = get_specific_module(modname, name, silence=True)
+            module = get_specific_module(name, modname, silence=True)
             # If the module exists add it to the list
             if module is not None:
                 list_modules.append(module)
@@ -222,6 +218,7 @@ def browse_module(modules: dict, name: str):
         return list_modules[0]
     else:
         return select_module(list_modules, name)
+
 
 def remove_duplicates(items: list):
     """
@@ -246,6 +243,7 @@ def remove_duplicates(items: list):
     :return (list): The lis of items without the duplicates
     """
     return list(set(items))
+
 
 def select_module(list_modules: list, name: str):
     """
@@ -287,6 +285,7 @@ def select_module(list_modules: list, name: str):
             response = int(response)
 
     return list_modules[response]
+
 
 def generate_random_alphanumeric(size: int = 16):
     """

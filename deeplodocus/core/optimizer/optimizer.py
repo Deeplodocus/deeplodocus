@@ -6,6 +6,7 @@ from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.flags.module import *
 
+
 class Optimizer(object):
     """
        AUTHORS:

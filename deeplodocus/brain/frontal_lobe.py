@@ -194,8 +194,10 @@ class FrontalLobe(object):
 
         :return model->torch.nn.Module:  The model
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % self.config.model.name)
-        self.model = Model(self.config.model).get()
+        model_name = self.config.model.name if self.config.model.module is None \
+            else "%s from %s" % (self.config.model.name, self.config.model.module)
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % model_name)
+        self.model = Model(**self.config.model.get()).load()
         Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED % (self.config.model.name, self.model.__module__))
 
     def load_optimizer(self):
