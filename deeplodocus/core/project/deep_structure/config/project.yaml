@@ -6,4 +6,3 @@ logs:
   history_validation: True
   notification: True
 on_wake:
-  - load()
