@@ -1,8 +1,13 @@
 dataloader:
   batch_size: 4
   num_workers: 4
+enable:
+  train: True
+  validation: True
+  test: True
 dataset:
   train:
+    name: Null
     number: 100
     load_method: "default" #default (from memory), hard drive, ...
     inputs:
@@ -18,6 +23,7 @@ dataset:
     additional_data:
       - Null
   validation:
+    name: Null
     number : 7
     load_method: "default" #default (from memory), hard drive, ...
     inputs:
@@ -33,6 +39,7 @@ dataset:
     additional_data:
       - Null
   test:
+    name: Null
     number: 7
     load_method: "default" #default (from memory), hard drive, ...
     inputs:

@@ -401,16 +401,23 @@ class Brain(FrontalLobe):
         # Ensure that sub_space is a list
         sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
         for key, value in dictionary.items():
+            # We can't check a 'value' that isn't a dictionary (it must contain 'dtype' and 'default')
             if isinstance(value, dict):
+                # The value valid for checking if it contains 'dtype' and 'default'
                 if "dtype" in value and "default" in value:
                     default = value["default"]
+                    # If the key exists in self.config, convert its value to the correct data type
                     if self.config.check(key, sub_space=sub_space):
                         d_type = value["dtype"]
-                        current = self.config.get(sub_space)[key]
-                        self.config.get(sub_space)[key] = self.__convert_dtype(current,
-                                                                               d_type,
-                                                                               default,
-                                                                               sub_space=sub_space + [key])
+                        if d_type is None:
+                            continue
+                        else:
+                            current = self.config.get(sub_space)[key]
+                            self.config.get(sub_space)[key] = self.__convert_dtype(current,
+                                                                                   d_type,
+                                                                                   default,
+                                                                                   sub_space=sub_space + [key])
+                    # The key does not exist in self.config, so add it and set it's value to default
                     else:
                         item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
                         Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_ADDED % (item_path, default))
