@@ -1,8 +1,11 @@
 # Python imports
 from typing import List
+from typing import Union
 
 # Deeplodocus imports
 from deeplodocus.utils.flag_indexer import FlagIndexer
+from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.flags.notif import *
 
 
 class Flag(object):
@@ -36,9 +39,8 @@ class Flag(object):
         PARAMETERS:
         -----------
 
-        :param index (int): The index of the flag
         :param names (List[str]): Names of the flag
-        :param description (str, Optional): Description of the flag
+        :param description (str): Description of the flag
 
         RETURN:
         -------
@@ -97,8 +99,7 @@ class Flag(object):
         """
         return "{0} : (id : {1})".format(self.description, self.index)
 
-
-    def corresponds(self, name : str):
+    def corresponds(self, name : Union[str, int]):
         """
         AUTHORS:
         --------
@@ -114,7 +115,7 @@ class Flag(object):
         PARAMETERS:
         -----------
 
-        :param name (str): The name to check
+        :param name (Union[str, int]): The name to check
 
         RETURN:
         -------
@@ -122,10 +123,22 @@ class Flag(object):
         :return (bool): Whether the string is part of the names or not
         """
 
-        if name in self.names:
-            return True
+        # A STRING name
+        if isinstance(name, str):
+            if name in self.names:
+                return True
+            else:
+                return False
+        # An INDEX INTEGER
+        elif isinstance(name, int):
+            if name == self.index:
+                return True
+            else:
+                return False
+        # OTHERS
         else:
-            return False
+            Notification(DEEP_NOTIF_FATAL, "The following variable is neither a Flag index "
+                                           "nor a Flag name : %s" % str(name))
 
     """
     "
