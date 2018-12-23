@@ -1,9 +1,25 @@
+# Python imports
+from typing import List
+
+# Deeplodocus imports
+from deeplodocus.utils.flag_indexer import FlagIndexer
 
 
 class Flag(object):
+    """
+    AUTHORS:
+    --------
 
+    :author: Alix Leroy
 
-    def __init__(self, index : int, name : str, description: str =  ""):
+    DESCRIPTION:
+    ------------
+
+    Complex Flag class
+    Create a flag with a full description, an auto-generated index and a list of accepted names.
+    """
+
+    def __init__(self, description: str, names : List[str]):
         """
         AUTHORS:
         --------
@@ -12,6 +28,7 @@ class Flag(object):
 
         DESCRIPTION:
         ------------
+
         Initialize a new flag.
         Each new flag contains a unique index and a corresponding name.
         The description is optional and not recommended for memory efficiency
@@ -20,7 +37,7 @@ class Flag(object):
         -----------
 
         :param index (int): The index of the flag
-        :param name (str): Name of the flag
+        :param names (List[str]): Names of the flag
         :param description (str, Optional): Description of the flag
 
         RETURN:
@@ -28,27 +45,99 @@ class Flag(object):
 
         None
         """
-        self.index = index
-        self.name = name
+        self.index = FlagIndexer().generate_unique_index()
+        self.names = names
         self.description = description
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Call the flag to get the index
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return self.index (int): The index of the flag
+        """
         return self.index
 
     def __str__(self):
-        return "({0} ({1}))".format(self.x,self.y)
+        """
+        AUTHORS:
+        --------
 
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Print the description of the flag with the corresponding index
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return (str): The Description of the flag with the corresponding index
+        """
+        return "{0} : (id : {1})".format(self.description, self.index)
+
+
+    def corresponds(self, name : str):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+
+        DESCRIPTION:
+        ------------
+
+        Check if a name is part of the
+
+        PARAMETERS:
+        -----------
+
+        :param name (str): The name to check
+
+        RETURN:
+        -------
+
+        :return (bool): Whether the string is part of the names or not
+        """
+
+        if name in self.names:
+            return True
+        else:
+            return False
+
+    """
+    "
+    " GETTERS
+    "
+    """
     def get_index(self):
         return self.index
 
-    def get_name(self):
-        return self.name
+    def get_names(self):
+        return self.names
 
     def get_description(self):
         return self.description
 
-
-DEEP_LIB_OPENCV = Flag(0, "OpenCV Library")
-
-a = DEEP_LIB_OPENCV
-print(a)
