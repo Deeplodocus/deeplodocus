@@ -129,17 +129,15 @@ class Namespace(object):
         else:
             return False
 
-    def __get_summary(self, tab_size=2, tabs=0, line=None):
+    def __get_summary(self, tab_size=2, tabs=0):
         """
         Author: SW
         Returns a summary of this namespace as a string.
         :param tab_size: int: number of spaces per tab.
         :param tabs: int: number of tabs to use (for internal use).
-        :param line: str: the summary statement from a previous call (for internal use).
         :return: None
         """
-        if line is None:
-            line = ""
+        line = ""
         for key, value in self.__dict__.items():
             if isinstance(value, Namespace):
                 line += "%s%s:\n" % (" " * tab_size * tabs, key)
@@ -148,9 +146,12 @@ class Namespace(object):
                 if isinstance(value, list):
                     line += "%s%s:\n" % (" " * tab_size * tabs, key)
                     for item in value:
-                        if isinstance(item, str):
+                        if isinstance(item, Namespace):
+                            item = item.__get_summary(tabs=tabs + 2, tab_size=tab_size).lstrip()
+                            line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
+                        elif isinstance(item, str):
                             item = '"%s"' % item
-                        line += "%s- %s\n" % (" " * (tab_size + 1) * tabs, item)
+                            line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
                 else:
                     if isinstance(value, str):
                         value = '"%s"' % value
