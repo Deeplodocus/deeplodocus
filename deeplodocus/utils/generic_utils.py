@@ -6,12 +6,15 @@ import pkgutil
 import __main__
 import random
 import string
+from typing import List
+from typing import Union
 
 from deeplodocus.utils.flags.ext import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.flag import Flag
 
 
 def sorted_nicely(l):
@@ -117,6 +120,7 @@ def is_np_array(data):
     except:
         return False
 
+
 def get_specific_module(module, name, silence=False):
     """
     Author: Samuel Westlake
@@ -132,6 +136,7 @@ def get_specific_module(module, name, silence=False):
         if not silence:
             Notification(DEEP_NOTIF_ERROR, e)
     return local["module"]
+
 
 def get_module(config, modules):
     """
@@ -170,6 +175,7 @@ def get_module(config, modules):
         module = browse_module(modules=modules,
                                   name=config.name)
     return module
+
 
 def browse_module(modules: dict, name: str):
     """
@@ -223,6 +229,7 @@ def browse_module(modules: dict, name: str):
     else:
         return select_module(list_modules, name)
 
+
 def remove_duplicates(items: list):
     """
     AUTHORS:
@@ -246,6 +253,7 @@ def remove_duplicates(items: list):
     :return (list): The lis of items without the duplicates
     """
     return list(set(items))
+
 
 def select_module(list_modules: list, name: str):
     """
@@ -288,6 +296,7 @@ def select_module(list_modules: list, name: str):
 
     return list_modules[response]
 
+
 def generate_random_alphanumeric(size: int = 16):
     """
     AUTHORS:
@@ -313,3 +322,40 @@ def generate_random_alphanumeric(size: int = 16):
     """
 
     return''.join(random.choices(string.ascii_letters + string.digits, k=size))
+
+
+def get_corresponding_flag(flag_list: List[Flag], name : Union[str, int], fatal: bool =True):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Browse the wanted flag among a list
+    If no flag corresponds, raise a DeepError
+
+    PARAMETERS:
+    -----------
+
+    :param flag_list (List[Flag]) : The list of flag to browse in
+    :param name (Union[str, int]): the name or index of the flag to search
+    :param fatal(bool, Optional): Whether to raise a DeepError if no flag is found or not
+
+    RETURN:
+    -------
+
+    :return : The corresponding flag
+    """
+
+    for flag in flag_list:
+        if flag.corresponds(name=name) is True:
+            return flag
+
+    # If no flag is found
+    if fatal is True:
+        Notification(DEEP_NOTIF_FATAL, "No flag with the name '%s' was found in the following list : %s" %(str(name), str(flag_list)))
+    else:
+        return None
