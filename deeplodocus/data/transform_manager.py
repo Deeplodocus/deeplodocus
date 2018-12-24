@@ -8,13 +8,8 @@ from deeplodocus.data.transformer.pointer import Pointer
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
-<<<<<<< HEAD
 from deeplodocus.utils.flags.notif import DEEP_NOTIF_FATAL
 from deeplodocus.utils.flags.entry import *
-=======
-from deeplodocus.utils.flags.entry import *
-from deeplodocus.utils.flags.notif import *
->>>>>>> upstream/master
 
 
 class TransformManager(object):
