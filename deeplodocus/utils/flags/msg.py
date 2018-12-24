@@ -1,8 +1,5 @@
 # DEEP MESSAGES / TEXT / STATEMENTS
 
-###################
-# DEEP_MSG_CONFIG #
-###################
 
 # Deep Error
 DEEP_MSG_FILE_NOT_FOUND = "File not found : %s"
@@ -15,7 +12,6 @@ DEEP_MSG_INVALID_DEVICE = "%s is not a valid input device : Please specify 'cuda
 
 # Deep Success
 DEEP_MSG_LOAD_CONFIG_FILE = "File loaded : %s"
-DEEP_MSG_CONFIG_COMPLETE = "Project configuration loaded"
 DEEP_MSG_PROJECT_GENERATED = "Project successfully generated ! Have fun <3"
 DEEP_MSG_MODULE_LOADED = "Module loaded : %s from %s"
 
@@ -24,17 +20,29 @@ DEEP_MSG_ALREADY_AWAKE = ": I am already awake !"
 DEEP_MSG_USE_CONFIG_SAVE = ": Please use 'save_config()' instead"
 DEEP_MSG_PRIVATE = ": Please don't interfere with my private parts"
 DEEP_MSG_PROJECT_ALREADY_EXISTS = ": Project %s already exists !"
-DEEP_MSG_NOT_CONVERTED = "At %s : Could not convert %s to type %s : Using default value : %s"
-DEEP_MSG_CONFIG_ADDED = "Configuration added : %s : Using default value : %s"
-DEEP_MSG_CONFIG_NOT_FOUND = "Configuration not found : %s"
 
 # Deep Input
 DEEP_MSG_INSTRUCTRION = "Awaiting instruction ..."
 DEEP_MSG_CONTINUE = "Do you wish to continue ? (y/n)"
 
 # Deep Info
-DEEP_MSG_LOAD_CONFIG_START = "Loading configurations from %s"
 DEEP_MSG_PROJECT_NOT_GENERATED = "Project not generated"
+
+###################
+# DEEP_MSG_CONFIG #
+###################
+
+# DEEP_INFO
+DEEP_MSG_CONFIG_LOADING_DIR = "Loading configurations : %s"
+DEEP_MSG_CONFIG_LOADING_FILE = "Loading configuration file : %s"
+
+# DEEP_SUCCESS
+DEEP_MSG_CONFIG_COMPLETE = "All configurations complete"
+
+# DEEP_WARNING
+DEEP_MSG_CONFIG_NOT_FOUND = "Entry not found : %s : Using default value : %s"
+DEEP_MSG_CONFIG_NOT_SET = "Entry not set : %s : Using default value : %s"
+DEEP_MSG_CONFIG_NOT_CONVERTED = "Type error : At %s : Could not convert %s to type %s : Using default value : %s"
 
 #################
 # DEEP_MSG_DATA #

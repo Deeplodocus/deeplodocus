@@ -9,9 +9,10 @@ import re
 
 
 from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.dict_utils import remove_keys
 from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.msg import *
-from deeplodocus.utils.flags.config import DEEP_CONFIG_DIVIDER
+
+DEEP_CONFIG_DIVIDER = "/"
 
 
 class Namespace(object):
@@ -61,7 +62,7 @@ class Namespace(object):
         """
         return copy.deepcopy(self)
 
-    def get(self, key=None):
+    def get(self, key=None, ignore=None):
         """
         Get data from the Namespace as a dictionary given a key or list of keys.
         Note: key can be a list of sub Namespace names for which get() will be called recursively.
@@ -69,7 +70,10 @@ class Namespace(object):
         :return: dict: data retrieved from the Namespace.
         """
         if key is None:
-            return self.__dict__
+            if ignore is None:
+                return self.__dict__
+            else:
+                return remove_keys(self.__dict__, ignore)
         else:
             if isinstance(key, list):
                 key = key[0] if len(key) == 1 else key
@@ -116,13 +120,12 @@ class Namespace(object):
         :param sub_space: str: a subspace where the item is expected to be found.
         :return: bool: whether or not the subspace exists in namespace.
         """
-        if key in self.get(sub_space).keys():
+        try:
+            dictionary = self.get(sub_space).keys()
+        except KeyError:
+            dictionary = {}
+        if key in dictionary:
             return True
-        elif sub_space is not None:
-            sub_space = [sub_space] if not isinstance(sub_space, list) else sub_space
-            item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
-            Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
-            return False
         else:
             return False
 

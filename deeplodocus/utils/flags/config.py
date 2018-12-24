@@ -3,6 +3,12 @@ from deeplodocus.utils.flags.ext import DEEP_EXT_YAML
 # The divider to use when expressing paths to configs
 DEEP_CONFIG_DIVIDER = "/"
 
+# Keywords
+DEEP_CONFIG_ENABLED = "enabled"
+DEEP_CONFIG_DEFAULT = "default"
+DEEP_CONFIG_DTYPE = "dtype"
+DEEP_CONFIG_WILDCARD = "*"
+
 # Names of each section of the config fle
 DEEP_CONFIG_PROJECT = "project"
 DEEP_CONFIG_MODEL = "model"
@@ -49,7 +55,7 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {"dtype": str,
                DEEP_CONFIG_MODEL: {"name": {"dtype": str,
                                             "default": "LeNet"},
                                    "kwargs": {"dtype": dict,
-                                              "default": "None"}
+                                              "default": None}
                                    },
                DEEP_CONFIG_OPTIMIZER: {"name": {"dtype": str,
                                                 "default": "Adam"},
@@ -76,54 +82,71 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {"dtype": str,
                                       "save_method": {"dtype": int,
                                                       "default": 1}
                                       },
-               DEEP_CONFIG_DATA: {"enable": {"train": {"dtype": bool,
-                                                       "default": True},
-                                             "validation": {"dtype": bool,
-                                                            "default": True},
-                                             "test": {"dtype": bool,
-                                                      "test": False}
-                                             },
-                                  "dataloader": {"batch_size": {"dtype": int,
+               DEEP_CONFIG_DATA: {"dataloader": {"batch_size": {"dtype": int,
                                                                 "default": 32},
                                                  "num_workers": {"dtype": int,
                                                                  "default": 1}
                                                  },
-                                  "dataset": {"train": {"inputs": {"dtype": None,
-                                                                   "default": {"path": None,
-                                                                               "join": None,
-                                                                               "type": None}
-                                                                   },
-                                                        "labels": {"dtype": [{str}],
-                                                                   "default": [None]},
-                                                        "additional_data": {"dtype": [[str]],
+                                  "dataset": {"train": {DEEP_CONFIG_ENABLED: {"dtype": bool,
+                                                                              "default": True},
+                                                        "inputs": {"dtype": [{"path": [str],
+                                                                              "join": str,
+                                                                              "type": str,
+                                                                              "load_method": str}],
+                                                                   "default": None},
+                                                        "labels": {"dtype": [{"path": [str],
+                                                                              "join": str,
+                                                                              "type": str,
+                                                                              "load_method": str}],
+                                                                   "default": None},
+                                                        "additional_data": {"dtype": [{"path": [str],
+                                                                                       "join": str,
+                                                                                       "type": str,
+                                                                                       "load_method": str}],
                                                                             "default": None},
                                                         "number": {"dtype": int,
                                                                    "default": None},
                                                         "name": {"dtype": str,
                                                                  "default": "train"}
                                                         },
-                                              "validation": {"inputs": {"dtype": None,
-                                                                        "default": {"path": None,
-                                                                                    "join": None,
-                                                                                    "type": None}
-                                                                        },
-                                                             "labels": {"dtype": [[str]],
+                                              "validation": {DEEP_CONFIG_ENABLED: {"dtype": bool,
+                                                                                   "default": True},
+                                                             "inputs": {"dtype": [{"path": [str],
+                                                                                   "join": str,
+                                                                                   "type": str,
+                                                                                   "load_method": str}],
                                                                         "default": None},
-                                                             "additional_data": {"dtype": [[str]],
+                                                             "labels": {"dtype": [{"path": [str],
+                                                                                   "join": str,
+                                                                                   "type": str,
+                                                                                   "load_method": str}],
+                                                                        "default": None},
+                                                             "additional_data": {"dtype": [{"path": [str],
+                                                                                            "join": str,
+                                                                                            "type": str,
+                                                                                            "load_method": str}],
                                                                                  "default": None},
                                                              "number": {"dtype": int,
                                                                         "default": None},
                                                              "name": {"dtype": str,
                                                                       "default": "validation"}
                                                              },
-                                              "test": {"inputs": {"dtype": None,
-                                                                  "default": {"path": None,
-                                                                              "join": None,
-                                                                              "type": None}
-                                                                  },
-                                                       "labels": {"dtype": [[str]],
+                                              "test": {DEEP_CONFIG_ENABLED: {"dtype": bool,
+                                                                             "default": True},
+                                                       "inputs": {"dtype": [{"path": [str],
+                                                                             "join": str,
+                                                                             "type": str,
+                                                                             "load_method": str}],
                                                                   "default": None},
-                                                       "additional_data": {"dtype": [[str]],
+                                                       "labels": {"dtype": [{"path": [str],
+                                                                             "join": str,
+                                                                             "type": str,
+                                                                             "load_method": str}],
+                                                                  "default": None},
+                                                       "additional_data": {"dtype": [{"path": [str],
+                                                                                      "join": str,
+                                                                                      "type": str,
+                                                                                      "load_method": str}],
                                                                            "default": None},
                                                        "number": {"dtype": int,
                                                                   "default": None},
@@ -132,16 +155,27 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {"dtype": str,
                                                        }
                                               }
                                   },
-               DEEP_CONFIG_LOSS: {"*": {"module": {"dtype": str,
-                                                   "default": None},
-                                        "name": {"dtype": str,
-                                                 "default": "CrossEntropyLoss"},
-                                        "weight": {"dtype": float,
-                                                   "default": 1},
-                                        "kwargs": {"dtype": dict,
-                                                   "default": None}
-                                        }
-                                  }
+               DEEP_CONFIG_LOSS: {DEEP_CONFIG_WILDCARD: {"module": {"dtype": str,
+                                                         "default": None},
+                                                         "name": {"dtype": str,
+                                                                  "default": "CrossEntropyLoss"},
+                                                         "weight": {"dtype": float,
+                                                                    "default": 1},
+                                                         "kwargs": {"dtype": dict,
+                                                                    "default": {}}
+                                                         }
+                                  },
+               DEEP_CONFIG_TRANSFORM: {},
+               DEEP_CONFIG_METRICS: {DEEP_CONFIG_WILDCARD: {"module": {"dtype": str,
+                                                                       "default": None},
+                                                            "name": {"dtype": str,
+                                                                     "default": "CrossEntropyLoss"},
+                                                            "weight": {"dtype": float,
+                                                                       "default": 1},
+                                                            "kwargs": {"dtype": dict,
+                                                                       "default": {}}
+                                                            }
+                                     }
                }
 
 # A dict of names for each config file

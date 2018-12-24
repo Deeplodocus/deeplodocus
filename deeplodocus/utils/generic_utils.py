@@ -11,34 +11,123 @@ from deeplodocus.utils.flags.ext import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.namespace import Namespace
 
 
-def convert(value):
+def convert(value, d_type=None):
     """
     Convert a value or list of values to data type in order of preference: (float, bool, str)
     :param value: value to convert
+    :param d_type: data type to convert to
     :return: converted value
     """
-    if isinstance(value, list):
-        return [convert(item) for item in value]
-    else:
+    if value is None:
+        return None
+    elif d_type is None:
+        if isinstance(value, list):
+            return [convert(item) for item in value]
+        else:
+            new_value = convert2float(value)
+            if new_value is not None:
+                return new_value
+            new_value = convert2bool(value)
+            if new_value is not None:
+                return new_value
+            new_value = convert2bool(value)
+            if new_value is not None:
+                return new_value
+            else:
+                return str(value)
+    elif d_type is str:
+        return str(value)
+    elif d_type is int:
+        return convert2int(value)
+    elif d_type is float:
+        return convert2float(value)
+    elif d_type is bool:
+        return convert2bool(value)
+    elif d_type is dict:
         try:
-            return eval(value)
-        except TypeError:
-            pass
-        try:
-            return float(value)
-        except TypeError:
-            pass
-        try:
-            return bool(value)
-        except TypeError:
-            pass
-        try:
-            return str(value)
-        except TypeError:
-            pass
-    return None
+            return convert_namespace(value)
+        except AttributeError:
+            return None
+    elif isinstance(d_type, dict):
+        new_value = {}
+        for key, item in d_type.items():
+            try:
+                new_value[key] = convert(value[key], d_type=item)
+            except KeyError:
+                new_value[key] = None
+            except TypeError:
+                return None
+        return Namespace(new_value)
+    elif isinstance(d_type, list):
+        value = value if isinstance(value, list) else [value]
+        new_value = []
+        for item in value:
+            new_item = convert(item, d_type[0])
+            if new_item is None:
+                return None
+            else:
+                new_value.append(new_item)
+        return new_value
+        # new_value = [convert(item, d_type[0]) for item in value]
+        # if None in new_value:
+        #     return None
+        # else:
+        #     return new_value
+
+
+def convert2int(value):
+    try:
+        return int(eval(value))
+    except (ValueError, TypeError, SyntaxError):
+        pass
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def convert2float(value):
+    try:
+        return float(eval(value))
+    except (ValueError, TypeError, SyntaxError, NameError):
+        pass
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def convert2bool(value):
+    try:
+        return bool(value)
+    except TypeError:
+        return None
+
+
+def convert_namespace(namespace):
+        """
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Converts each value in a namespace to the most appropriate data type
+
+        PARAMETERS:
+        -----------
+        :param namespace: a given namespace to convert the values of
+
+        RETURN:
+        -------
+        :return: the namespace with each value converted to a sensible data type
+        """
+        for key, value in namespace.get().items():
+            namespace.get()[key] = convert(value)
+        return namespace
 
 
 def sorted_nicely(l):
@@ -48,9 +137,9 @@ def sorted_nicely(l):
     l -- The iterable to be sorted.
 
     """
-    convert = lambda text: int(text) if text.isdigit() else text
-    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
-    return sorted(l, key=alphanum_key)
+    to_convert = lambda text: int(text) if text.isdigit() else text
+    alpha_num_key = lambda key: [to_convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alpha_num_key)
 
 
 def is_string_an_integer(string: str) -> bool:

@@ -8,7 +8,8 @@ from deeplodocus.data.transformer.pointer import Pointer
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.notif import DEEP_NOTIF_FATAL
+from deeplodocus.utils.flags.entry import *
 
 
 class TransformManager(object):
@@ -227,24 +228,8 @@ class TransformManager(object):
 
         :return transformers_list: The list of the transformers corresponding to the entries
         """
-
-        transformers_list = []
-
-        # If there is only one entry not in a list format (input, label, additional_data)
-        if isinstance(entries, list) is False:
-            entries = [entries]
-
-        # Load and create the transformers and then add them to the transformers list
-        for entry in entries:
-            # Check if the entry is None
-            if entry is None or entry == "":
-                transformers_list.append(None)
-            else:
-                transformer = self.__create_transformer(config_entry=entry)
-                transformers_list.append(transformer)
-
-        # return the list of transformers
-        return transformers_list
+        entries = entries if isinstance(entries, list) else [entries]
+        return [self.__create_transformer(config_entry=entry) for entry in entries if entry is not None]
 
     def __create_transformer(self, config_entry):
         """
@@ -272,34 +257,26 @@ class TransformManager(object):
 
         # If the config source is a pointer to another transformer
         if self.__is_pointer(config_entry) is True:
-            transformer = Pointer(config_entry) # Generic Transformer as a pointer
-
+            transformer = Pointer(config_entry)     # Generic Transformer as a pointer
         # If the user wants to create a transformer from scratch
         else:
             config = Namespace(config_entry)
-
-            if hasattr(config, 'method') is False:
+            if not hasattr(config, 'method'):
                 Notification(DEEP_NOTIF_FATAL, "The following transformer does not have any method specified : " + str(config_entry))
-
             # Get the config method in lowercases
             config.method = config.method.lower()
-
             # If sequential method selected
             if config.method == "sequential":
-                transformer = Sequential(config)
-
+                transformer = Sequential(**config.get())
             # If someOf method selected
             elif config.method == "someof":
-                transformer = SomeOf(config)
-
+                transformer = SomeOf(**config.get())
             # If oneof method selected
             elif config.method == "oneof":
-                transformer = OneOf(config)
-
+                transformer = OneOf(**config.get())
             # If the method does not exist
             else:
                 Notification(DEEP_NOTIF_FATAL, "The following transformation method does not exist : " + str(config.method))
-
         return transformer
 
     @staticmethod

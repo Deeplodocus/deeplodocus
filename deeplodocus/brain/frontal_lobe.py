@@ -21,13 +21,12 @@ from deeplodocus.core.model.model import Model
 from deeplodocus.core.optimizer.optimizer import Optimizer
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
-from deeplodocus.utils.dict_utils import check_kwargs
-from deeplodocus.utils.dict_utils import get_kwargs
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.module import *
+from deeplodocus.utils.flags.config import DEEP_CONFIG_ENABLED
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
@@ -344,10 +343,10 @@ class FrontalLobe(object):
 
         :return None
         """
-        if self.config.data.enable.train:
+        if self.config.data.dataset.train.enabled:
             Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.train.name)
             transform_manager = TransformManager(**self.config.transform.train.get())
-            dataset = Dataset(**self.config.data.dataset.train.get(),
+            dataset = Dataset(**self.config.data.dataset.train.get(ignore=DEEP_CONFIG_ENABLED),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
             self.trainer = Trainer(**self.config.data.dataloader.get(),

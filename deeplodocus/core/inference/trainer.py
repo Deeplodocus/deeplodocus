@@ -47,8 +47,8 @@ class Trainer(GenericEvaluator):
                  batch_size: int = 4,
                  shuffle: int = DEEP_SHUFFLE_ALL,
                  num_workers: int = 4,
-                 verbose: int=DEEP_VERBOSE_BATCH,
-                 tester: Tester=None):
+                 verbose: int = DEEP_VERBOSE_BATCH,
+                 tester: Tester = None):
         """
         AUTHORS:
         --------
