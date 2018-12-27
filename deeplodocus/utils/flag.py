@@ -98,8 +98,8 @@ class Flag(object):
         :return (str): The Description of the flag with the corresponding index
         """
         return "{0} : (id : {1})".format(self.description, self.index)
-
-    def corresponds(self, name : Union[str, int]):
+    
+    def corresponds(self, info : Union[str, int, Flag]):
         """
         AUTHORS:
         --------
@@ -115,30 +115,38 @@ class Flag(object):
         PARAMETERS:
         -----------
 
-        :param name (Union[str, int]): The name to check
+        :param name (Union[str, int, Flag]): The info to check
 
         RETURN:
         -------
 
-        :return (bool): Whether the string is part of the names or not
+        :return (bool): Whether the inof correspond to the Flag
         """
 
-        # A STRING name
-        if isinstance(name, str):
-            if name in self.names:
+        # NAME COMPARISON
+        if isinstance(info, str):
+            if info in self.names:
                 return True
             else:
                 return False
-        # An INDEX INTEGER
-        elif isinstance(name, int):
-            if name == self.index:
+
+        # INDEX COMPARISON
+        elif isinstance(info, int):
+            if info == self.index:
                 return True
             else:
                 return False
+
+        # COMPLETE FLAG COMPARISON
+        elif isinstance(info, Flag):
+            if info.get_index() == self.index:
+                return True
+            else:
+                return False
+
         # OTHERS
         else:
-            Notification(DEEP_NOTIF_FATAL, "The following variable is neither a Flag index "
-                                           "nor a Flag name : %s" % str(name))
+            Notification(DEEP_NOTIF_FATAL, "The info %s isn't a string, an index or a Flag instance." % str(info))
 
     """
     "
