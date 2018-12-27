@@ -8,6 +8,7 @@ import random
 import string
 from typing import List
 from typing import Union
+from typing import Optional
 
 from deeplodocus.utils.flags.ext import *
 from deeplodocus.utils.flags.notif import *
@@ -162,10 +163,10 @@ def get_module(config, modules):
     :return module(callable): The loaded module
     """
     # If we want a specific model
-    if  config.check("module", None):
-        if config.module != None:
+    if config.check("module", None):
+        if config.module is not None:
             module = get_specific_module(module=config.module,
-                               name=config.name)
+                                         name=config.name)
         else:
             # Browse in custom models
             module = browse_module(modules=modules,
@@ -173,7 +174,7 @@ def get_module(config, modules):
     else:
         # Browse in custom models
         module = browse_module(modules=modules,
-                                  name=config.name)
+                               name=config.name)
     return module
 
 
@@ -216,7 +217,9 @@ def browse_module(modules: dict, name: str):
                 continue
 
             # Try to get the module
-            module = get_specific_module(modname, name, silence=True)
+            module = get_specific_module(module=modname,
+                                         name=name,
+                                         silence=True)
             # If the module exists add it to the list
             if module is not None:
                 list_modules.append(module)
@@ -230,7 +233,7 @@ def browse_module(modules: dict, name: str):
         return select_module(list_modules, name)
 
 
-def remove_duplicates(items: list):
+def remove_duplicates(items: list) -> list:
     """
     AUTHORS:
     --------
@@ -250,7 +253,7 @@ def remove_duplicates(items: list):
     RETURN:
     -------
 
-    :return (list): The lis of items without the duplicates
+    :return (list): The list of items without the duplicates
     """
     return list(set(items))
 
@@ -285,7 +288,7 @@ def select_module(list_modules: list, name: str):
 
     # Prompt the user to pick on from the list
     response = -1
-    while (response < 0 or response >= len(list_modules)):
+    while response < 0 or response >= len(list_modules):
         response = Notification(DEEP_NOTIF_INPUT, "Which one would you prefer to use ? (Pick a number)").get()
 
         # Check if the response is an integer
@@ -297,7 +300,7 @@ def select_module(list_modules: list, name: str):
     return list_modules[response]
 
 
-def generate_random_alphanumeric(size: int = 16):
+def generate_random_alphanumeric(size: int = 16) -> str:
     """
     AUTHORS:
     --------
@@ -324,7 +327,7 @@ def generate_random_alphanumeric(size: int = 16):
     return''.join(random.choices(string.ascii_letters + string.digits, k=size))
 
 
-def get_corresponding_flag(flag_list: List[Flag], name : Union[str, int], fatal: bool =True):
+def get_corresponding_flag(flag_list: List[Flag], info : Union[str, int, Flag], fatal: bool =True, default: Optional[Flag]= None) -> Union[Flag, None]:
     """
     AUTHORS:
     --------
@@ -341,7 +344,7 @@ def get_corresponding_flag(flag_list: List[Flag], name : Union[str, int], fatal:
     -----------
 
     :param flag_list (List[Flag]) : The list of flag to browse in
-    :param name (Union[str, int]): the name or index of the flag to search
+    :param name (Union[str, int, Flag]): Info (name, index or full Flag) of the flag to search
     :param fatal(bool, Optional): Whether to raise a DeepError if no flag is found or not
 
     RETURN:
@@ -350,12 +353,21 @@ def get_corresponding_flag(flag_list: List[Flag], name : Union[str, int], fatal:
     :return : The corresponding flag
     """
 
+    # Search in the flag list
     for flag in flag_list:
-        if flag.corresponds(name=name) is True:
+        if flag.corresponds(info=info) is True:
             return flag
 
     # If no flag is found
+    if default is not None:
+        Notification(DEEP_NOTIF_WARNING,
+                     "The following flag does not exist : %s, the default one %s has been selected instead" % (str(info), default.get_description()))
+
+        return default
+
+    # If no default
     if fatal is True:
-        Notification(DEEP_NOTIF_FATAL, "No flag with the name '%s' was found in the following list : %s" %(str(name), str(flag_list)))
+        Notification(DEEP_NOTIF_FATAL, "No flag with the info '%s' was found in the following list : %s" %(str(info), str(flag_list)))
     else:
         return None
+
