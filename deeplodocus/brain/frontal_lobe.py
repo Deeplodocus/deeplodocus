@@ -21,13 +21,12 @@ from deeplodocus.core.model.model import Model
 from deeplodocus.core.optimizer.optimizer import Optimizer
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
-from deeplodocus.utils.dict_utils import check_kwargs
-from deeplodocus.utils.dict_utils import get_kwargs
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.module import *
+from deeplodocus.utils.flags.config import DEEP_CONFIG_ENABLED
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
@@ -170,8 +169,8 @@ class FrontalLobe(object):
         self.load_trainer()
         self.load_validator()
         self.load_tester()
-        # self.load_memory()
-        # self.summary()
+        self.load_memory()
+        self.summary()
 
     def load_model(self):
         """
@@ -194,8 +193,10 @@ class FrontalLobe(object):
 
         :return model->torch.nn.Module:  The model
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % self.config.model.name)
-        self.model = Model(self.config.model).get()
+        model_name = self.config.model.name if self.config.model.module is None \
+            else "%s from %s" % (self.config.model.name, self.config.model.module)
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % model_name)
+        self.model = Model(**self.config.model.get()).load()
         Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED % (self.config.model.name, self.model.__module__))
 
     def load_optimizer(self):
@@ -221,12 +222,20 @@ class FrontalLobe(object):
 
         :return: None
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_OPTIM_LOADING % self.config.optimizer.name)
+        # Notify the user of which optimizer is being loaded and from where
+        optimizer_name = self.config.optimizer.name if self.config.optimizer.module is None \
+            else "%s from %s" % (self.config.model.name, self.config.model.module)
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_OPTIM_LOADING % optimizer_name)
+        # An optimizer cannot be loaded without a model (self.model.parameters() is required)
         if self.model is not None:
-            self.optimizer = Optimizer(self.model.parameters(), self.config.optimizer).get()
+            # Load the optimizer
+            self.optimizer = Optimizer(model_parameters=self.model.parameters(),
+                                       **self.config.optimizer.get()).load()
+            # Notify the user of success
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIM_LOADED
                          % (self.config.optimizer.name, self.optimizer.__module__))
         else:
+            # Notify the user that a model must be loaded
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_OPTIM_NOT_LOADED % DEEP_MSG_MODEL_LOADED)
 
     def load_losses(self):
@@ -251,26 +260,27 @@ class FrontalLobe(object):
 
         :return loss_functions->dict: The losses
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOSS_LOADING % ", ".join(list(self.config.losses.get().keys())))
         losses = {}
-        for key, value in self.config.losses.get().items():
-            loss = get_module(config=value,
-                              modules=DEEP_MODULE_LOSSES)
-            kwargs = check_kwargs(get_kwargs(self.config.losses.get(key)))
-            method = loss(**kwargs)
+        for key, config in self.config.losses.get().items():
+            loss_name = "%s : %s" % (key, config.name) if config.module is None \
+                else "%s : %s from %s" % (key, config.name, config.module)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOSS_LOADING % loss_name)
+            loss = get_module(name=config.name,
+                              module=config.module,
+                              browse=DEEP_MODULE_LOSSES)
+            method = loss(**config.kwargs.get())
             # Check the weight
             if self.config.losses.check("weight", key):
-                if get_int_or_float(value.weight) not in (DEEP_TYPE_INTEGER, DEEP_TYPE_FLOAT):
+                if get_int_or_float(config.weight) not in (DEEP_TYPE_INTEGER, DEEP_TYPE_FLOAT):
                     Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have a correct weight argument" % key)
             else:
                 Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have any weight argument" % key)
-
             # Create the loss
             if isinstance(method, torch.nn.Module):
                 losses[str(key)] = Loss(name=str(key),
-                                        weight=float(value.weight),
+                                        weight=float(config.weight),
                                         loss=method)
-                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOSS_LOADED %(key, value.name, loss.__module__))
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOSS_LOADED % (key, config.name, loss.__module__))
             else:
                 Notification(DEEP_NOTIF_FATAL, "The loss function %s is not a torch.nn.Module instance" % key)
         self.losses = losses
@@ -299,16 +309,16 @@ class FrontalLobe(object):
         """
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_LOADING % ", ".join(list(self.config.metrics.get().keys())))
         metrics = {}
-        for key, value in self.config.metrics.get().items():
-            metric = get_module(config=value,
-                                modules=DEEP_MODULE_METRICS)
-            kwargs = check_kwargs(get_kwargs(self.config.metrics.get(key)))
+        for key, config in self.config.metrics.get().items():
+            metric = get_module(name=config.name,
+                                module=config.module,
+                                browse=DEEP_MODULE_METRICS)
             if inspect.isclass(metric):
-                method = metric(**kwargs)
+                method = metric(**config.kwargs.get())
             else:
                 method = metric
             metrics[str(key)] = Metric(name=str(key), method=method)
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, value.name, metric.__module__))
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, config.name, metric.__module__))
         self.metrics = metrics
 
     def load_trainer(self):
@@ -333,10 +343,10 @@ class FrontalLobe(object):
 
         :return None
         """
-        if self.config.data.enable.train:
+        if self.config.data.dataset.train.enabled:
             Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.train.name)
             transform_manager = TransformManager(**self.config.transform.train.get())
-            dataset = Dataset(**self.config.data.dataset.train.get(),
+            dataset = Dataset(**self.config.data.dataset.train.get(ignore=DEEP_CONFIG_ENABLED),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
             self.trainer = Trainer(**self.config.data.dataloader.get(),

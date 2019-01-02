@@ -9,8 +9,6 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags.module import DEEP_MODULE_TRANSFORMS
 from deeplodocus.utils.flags.notif import DEEP_NOTIF_INFO, DEEP_NOTIF_FATAL
 from deeplodocus.utils.namespace import Namespace
-from deeplodocus.utils.dict_utils import get_kwargs
-from deeplodocus.utils.dict_utils import check_kwargs
 
 
 class Transformer(object):
@@ -28,7 +26,7 @@ class Transformer(object):
     The transformer loads the transforms in memory and allows the data to be transformed
     """
 
-    def __init__(self, config):
+    def __init__(self, name, inputs, labels, additional_data):
         """
         AUTHORS:
         --------
@@ -50,7 +48,13 @@ class Transformer(object):
 
         :return: None
         """
-        self.name = config.name
+        # Public Attributes
+        self.name = name
+        self.inputs = inputs
+        self.labels = labels
+        self.additional_data = additional_data
+
+        # (Probably should be) Private Attributes
         self.last_index = None
         self.pointer_to_transformer = None
         self.last_transforms = []
@@ -58,12 +62,6 @@ class Transformer(object):
         # List of transforms
         self.list_transforms = []
         self.list_mandatory_transforms = []
-
-        if config.check("mandatory_transforms", None):
-            self.list_mandatory_transforms = self.__fill_transform_list(config.mandatory_transforms)
-
-        if config.check("transforms", None):
-            self.list_transforms = self.__fill_transform_list(config.transforms)
 
     def summary(self):
         """
@@ -89,12 +87,10 @@ class Transformer(object):
         """
 
         Notification(DEEP_NOTIF_INFO, "Transformer '" + str(self.name) + "' summary :")
-
         if len(self.list_mandatory_transforms) > 0:
             Notification(DEEP_NOTIF_INFO, " Mandatory transforms :")
             for t in self.list_mandatory_transforms:
                 Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t[0]) + " , Args : " + str(t[2]) + ", Method : " + str(t[1]))
-
         if len(self.list_transforms) > 0:
             Notification(DEEP_NOTIF_INFO, " Transforms :")
             for t in self.list_transforms:
@@ -173,15 +169,13 @@ class Transformer(object):
         :return: None
         """
         list_transforms = []
-
         for key, value in config_transforms.get().items():
             list_transforms.append([key,
-                                    get_module(value, modules=DEEP_MODULE_TRANSFORMS),
-                                    check_kwargs(get_kwargs(value.get()))])
+                                    get_module(value,
+                                               module=None,
+                                               browse=DEEP_MODULE_TRANSFORMS),
+                                    value.get()])
         return list_transforms
-
-
-
 
     def transform(self, data, index, data_type):
         """
@@ -293,7 +287,6 @@ class Transformer(object):
             m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
             image = cv2.warpAffine(image, m, (cols, rows)).astype(np.float32)
 
-
         elif key == "boundary_rotation":
             angle = float(key["angle"])
             angle = (2 * np.random.rand() - 1) * angle
@@ -301,7 +294,6 @@ class Transformer(object):
             rows, cols = shape[0:2]
             m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
             image = cv2.warpAffine(image, m, (cols, rows)).astype(np.float32)
-
 
         elif key == "rotation":
             angle = float(key["angle"])
@@ -326,9 +318,6 @@ class Transformer(object):
         image = cv2.blur(image, kernel)
         return image, None
 
-
-
-
     def normalize_video(self, video):
         """
         Author: Alix Leroy
@@ -339,4 +328,3 @@ class Transformer(object):
         video = [self.normalize_image(frame) for frame in video]
 
         return video
-

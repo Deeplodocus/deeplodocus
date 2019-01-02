@@ -9,9 +9,10 @@ import re
 
 
 from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.dict_utils import remove_keys
 from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.msg import *
-from deeplodocus.utils.flags.config import DEEP_CONFIG_DIVIDER
+
+DEEP_CONFIG_DIVIDER = "/"
 
 
 class Namespace(object):
@@ -61,7 +62,7 @@ class Namespace(object):
         """
         return copy.deepcopy(self)
 
-    def get(self, key=None):
+    def get(self, key=None, ignore=None):
         """
         Get data from the Namespace as a dictionary given a key or list of keys.
         Note: key can be a list of sub Namespace names for which get() will be called recursively.
@@ -69,7 +70,10 @@ class Namespace(object):
         :return: dict: data retrieved from the Namespace.
         """
         if key is None:
-            return self.__dict__
+            if ignore is None:
+                return self.__dict__
+            else:
+                return remove_keys(self.__dict__, ignore)
         else:
             if isinstance(key, list):
                 key = key[0] if len(key) == 1 else key
@@ -116,27 +120,24 @@ class Namespace(object):
         :param sub_space: str: a subspace where the item is expected to be found.
         :return: bool: whether or not the subspace exists in namespace.
         """
-        if key in self.get(sub_space).keys():
+        try:
+            dictionary = self.get(sub_space).keys()
+        except KeyError:
+            dictionary = {}
+        if key in dictionary:
             return True
-        elif sub_space is not None:
-            sub_space = [sub_space] if not isinstance(sub_space, list) else sub_space
-            item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
-            Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_FOUND % item_path)
-            return False
         else:
             return False
 
-    def __get_summary(self, tab_size=2, tabs=0, line=None):
+    def __get_summary(self, tab_size=2, tabs=0):
         """
         Author: SW
         Returns a summary of this namespace as a string.
         :param tab_size: int: number of spaces per tab.
         :param tabs: int: number of tabs to use (for internal use).
-        :param line: str: the summary statement from a previous call (for internal use).
         :return: None
         """
-        if line is None:
-            line = ""
+        line = ""
         for key, value in self.__dict__.items():
             if isinstance(value, Namespace):
                 line += "%s%s:\n" % (" " * tab_size * tabs, key)
@@ -145,9 +146,12 @@ class Namespace(object):
                 if isinstance(value, list):
                     line += "%s%s:\n" % (" " * tab_size * tabs, key)
                     for item in value:
-                        if isinstance(item, str):
+                        if isinstance(item, Namespace):
+                            item = item.__get_summary(tabs=tabs + 2, tab_size=tab_size).lstrip()
+                            line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
+                        elif isinstance(item, str):
                             item = '"%s"' % item
-                        line += "%s- %s\n" % (" " * (tab_size + 1) * tabs, item)
+                            line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
                 else:
                     if isinstance(value, str):
                         value = '"%s"' % value
@@ -204,7 +208,6 @@ class Namespace(object):
                 self.get()[sub_space].__add(dictionary)
 
 
-
 # this is to convert the string written as a tuple into a python tuple
 def yml_tuple_constructor(loader, node):
     # this little parse is really just for what I needed, feel free to change it!
@@ -226,6 +229,7 @@ def yml_tuple_constructor(loader, node):
     tup = tuple(map(parse_tup_el, tup_elements))
     return tup
 
+
 # Add tuples to PyYaml
 yaml.add_constructor(u'!tuple', yml_tuple_constructor)
 # this is to spot the strings written as tuple in the yaml
@@ -237,4 +241,3 @@ if __name__ == "__main__":
     a = {"project": "../yaml1", "network": {"gv": 56, "you": 90}, "test" : (1, "a", 1.2)}
     namespace.add(a, ["c", "main", "moop"])
     namespace.summary()
-

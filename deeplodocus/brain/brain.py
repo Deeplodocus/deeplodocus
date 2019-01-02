@@ -14,6 +14,7 @@ from deeplodocus.utils.flags.filter import *
 from deeplodocus.utils.flags.log import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.generic_utils import convert
 from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.namespace import Namespace
@@ -222,7 +223,7 @@ class Brain(FrontalLobe):
         -------
         :return: None
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOAD_CONFIG_START % self.config_dir)
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_CONFIG_LOADING_DIR % self.config_dir)
         # If the config directory exists
         if os.path.isdir(self.config_dir):
             self.clear_config()
@@ -230,17 +231,18 @@ class Brain(FrontalLobe):
             for key, file_name in DEEP_CONFIG_FILES.items():
                 config_path = "%s/%s" % (self.config_dir, file_name)
                 if os.path.isfile(config_path):
+                    Notification(DEEP_NOTIF_INFO, DEEP_MSG_CONFIG_LOADING_FILE % config_path)
                     self.config.add({key: Namespace(config_path)})
-                    Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOAD_CONFIG_FILE % config_path)
+                    self.check_config(key=key)
                 else:
-                    Notification(DEEP_NOTIF_ERROR, DEEP_MSG_FILE_NOT_FOUND % config_path)
+                    self.clear_config()
+                    Notification(DEEP_NOTIF_FATAL, DEEP_MSG_FILE_NOT_FOUND % config_path)
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_CONFIG_COMPLETE)
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
-
-        self.check_config()
         self.store_config()
 
-    def check_config(self):
+    def check_config(self, key=None):
         """
         AUTHORS:
         --------
@@ -257,8 +259,11 @@ class Brain(FrontalLobe):
         -------
         :return: None
         """
-        self.__check_config()
-        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_CONFIG_COMPLETE)
+        if key is None:
+            self.__check_config()
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_CONFIG_COMPLETE)
+        else:
+            self.__check_config(DEEP_CONFIG[key], sub_space=key)
 
     def clear_logs(self, force=False):
         """
@@ -372,60 +377,56 @@ class Brain(FrontalLobe):
     " Private Methods
     "
     """
-
-    def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
+    def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None, index=None):
         """
-        AUTHORS:
-        --------
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-        If a parameter is missing, the user is notified by a DEEP_NOTIF_WARNING with DEEP_MSG_CONFIG_NOT_FOUND.
-        The missing parameter is added with the default value specified by DEEP_CONFIG and user is notified of the
-        addition of the parameter by a DEEP_NOTIF_WARNING with DEE_MSG_CONFIG_ADDED.
-        If a parameter is found successfully, it is converted to the data type specified by 'dtype' in DEEP_CONFIG.
-        If a parameter cannot be converted to the required data type, it is replaced with the default from DEEP_CONFIG.
-
-        PARAMETERS:
-        -----------
-        NB: Both parameters are only for use when check_config calls itself.
-        :param dictionary: dictionary to compare self.config with.
-        :param sub_space: list of strings defining the path to the current sub-space.
-
-        RETURN:
-        -------
-        :return: None
+        :param dictionary:
+        :param sub_space:
+        :return:
         """
         sub_space = [] if sub_space is None else sub_space
-        # Ensure that sub_space is a list
         sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
-        for key, value in dictionary.items():
-            # We can't check a 'value' that isn't a dictionary (it must contain 'dtype' and 'default')
+        for name, value in dictionary.items():
             if isinstance(value, dict):
-                # The value valid for checking if it contains 'dtype' and 'default'
-                if "dtype" in value and "default" in value:
-                    default = value["default"]
-                    # If the key exists in self.config, convert its value to the correct data type
-                    if self.config.check(key, sub_space=sub_space):
-                        d_type = value["dtype"]
-                        if d_type is None:
-                            continue
+                keys = list(self.config.get(sub_space)) if name is DEEP_CONFIG_WILDCARD else [name]
+                if DEEP_CONFIG_ENABLED in keys:
+                    try:
+                        enabled = self.config.get(sub_space)[DEEP_CONFIG_ENABLED]
+                    except KeyError:
+                        enabled = dictionary[DEEP_CONFIG_ENABLED][DEEP_CONFIG_DEFAULT]
+                    if not enabled:
+                        break
+                for key in keys:
+                    if DEEP_CONFIG_DTYPE in value and DEEP_CONFIG_DEFAULT in value:
+                        default = value[DEEP_CONFIG_DEFAULT]
+                        if self.config.check(key, sub_space=sub_space):
+                            d_type = value[DEEP_CONFIG_DTYPE]
+                            if d_type is None:
+                                continue
+                            else:
+                                self.config.get(sub_space)[key] = self.__convert(self.config.get(sub_space)[key],
+                                                                                 d_type,
+                                                                                 default,
+                                                                                 sub_space=sub_space + [key])
                         else:
-                            current = self.config.get(sub_space)[key]
-                            self.config.get(sub_space)[key] = self.__convert_dtype(current,
-                                                                                   d_type,
-                                                                                   default,
-                                                                                   sub_space=sub_space + [key])
-                    # The key does not exist in self.config, so add it and set it's value to default
+                            self.__add_to_config(key, default, sub_space)
                     else:
-                        item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
-                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_ADDED % (item_path, default))
-                        self.config.get(sub_space)[key] = default
-                else:
-                    self.__check_config(value, sub_space=sub_space + [key])
+                        self.__check_config(dictionary=value, sub_space=sub_space + [key])
 
-    def __convert_dtype(self, value, d_type, default, sub_space=None):
+    def __add_to_config(self, key, default, sub_space):
+        """
+        Used by self.__config() to add a (default) value to the config
+        :param key:
+        :param default:
+        :param sub_space:
+        :return:
+        """
+        item_path = DEEP_CONFIG_DIVIDER.join(sub_space + [key])
+        default_name = {} if isinstance(default, Namespace) else default
+        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_FOUND % (item_path, default_name))
+        # self.config.get(sub_space)[key] = default
+        self.config.add({key: default}, sub_space=sub_space)
+
+    def __convert(self, value, d_type, default, sub_space=None):
         """
         AUTHORS:
         --------
@@ -451,100 +452,34 @@ class Brain(FrontalLobe):
         """
         sub_space = [] if sub_space is None else sub_space
         sub_space = DEEP_CONFIG_DIVIDER.join(sub_space)
-        # If the length of d_type can be determined, d_type is a list of values.
+        # If the value is not set
+        if value is None:
+            # If the value needs to be set
+            if default not in [None, {}]:
+                # Notify user that default is being used
+                Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_SET % (sub_space, default))
+            new_value = default
+        # If value is set
+        else:
+            new_value = convert(value, d_type)
+            # If value cannot be converted
+            if new_value is None:
+                # Notify user that default is being used
+                Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_CONVERTED % (sub_space,
+                                                                                  value,
+                                                                                  self.__get_dtype_name(d_type),
+                                                                                  default))
+                new_value = default
+        new_value = Namespace(new_value) if isinstance(new_value, dict) else new_value
+        return new_value
+
+    def __get_dtype_name(self, d_type):
         if isinstance(d_type, list):
-            while True:
-                # Convert list (of lists of lists ... ) to the specified d_type.
-                new_value = self.__convert_list(value, d_type)
-                # If this fails
-                if new_value is None:
-                    # Reduce the order of lists.
-                    d_type = d_type[0]
-                else:
-                    return new_value
-                # If d_type is no longer a list, go with the default value.
-                if not isinstance(d_type, list):
-                    if value != default and value is not None:
-                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
-                                                                                   value,
-                                                                                   d_type.__name__,
-                                                                                   default))
-                    return default
+            return [self.__get_dtype_name(dt) for dt in d_type]
+        elif isinstance(d_type, dict):
+            return {key: self.__get_dtype_name(dt) for key, dt in d_type.items()}
         else:
-            # If d_type is dict, it get's interesting... Because we really want it to be a Namespace instead.
-            if d_type == dict:
-                # If the value is a Namespace or None, leave it alone.
-                if isinstance(value, Namespace) or value is None:
-                    return value
-                # If not, we should replace it with a Namespace of the default values.
-                else:
-                    if value != default and value is not None:
-                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
-                                                                                   value,
-                                                                                   d_type.__name__,
-                                                                                   default))
-                    return Namespace(default)
-            else:
-                # For any other data type, try to convert, if None is given, go with the default.
-                new_value = self.__convert(value, d_type)
-                if new_value is None:
-                    if value != default and value is not None:
-                        Notification(DEEP_NOTIF_WARNING, DEEP_MSG_NOT_CONVERTED % (sub_space,
-                                                                                   value,
-                                                                                   d_type.__name__,
-                                                                                   default))
-                    return default
-                else:
-                    return new_value
-
-    def __convert_list(self, values, d_type):
-        """
-        AUTHORS:
-        --------
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-        Converts each value in a list to the given d_type.
-        The method is recursive and will convert items in a list of lists of lists ...
-        The order of the lists that contain the data type dictate the expected order.
-        So... d_type=[[str]] will cause the method to try and convert values into a list of lists of strings
-
-        PARAMETERS:
-        -----------
-        :param values: the value to be converted
-        :param d_type: the data type to convert the value to
-
-        RETURN:
-        -------
-        :return: values with each item converted to the given data type (None will be returned if the method failed)
-        """
-        # Reduce the list order of the given d_type by one.
-        d_type = d_type[0]
-        # If values are not a list, we cannot convert each item in values... something is wrong.
-        if isinstance(values, list):
-            # If d_type is still a list, then values is a multi-level list and must call this method again.
-            if isinstance(d_type, list):
-                for i, value in enumerate(values):
-                    # Convert each item in the list
-                    new_values = self.__convert_list(value, d_type)
-                    # Return None if the conversion failed, there is no more you can do here.
-                    if new_values is None:
-                        return None
-                    else:
-                        values[i] = new_values
-            else:
-                for i, value in enumerate(values):
-                    new_value = self.__convert(value, d_type)
-                    # Return None if the conversion failed.
-                    if new_value is None:
-                        return None
-                    else:
-                        values[i] = new_value
-            # If you get this far, everything must be going well.
-            return values
-        else:
-            return None
+            return d_type.__name__
 
     def __on_wake(self):
         """
@@ -643,45 +578,6 @@ class Brain(FrontalLobe):
                 self.__illegal_command_messages(command)
         return self.__get_command_flags(commands)
 
-    @staticmethod
-    def __convert(value, d_type):
-        """
-        AUTHORS:
-        --------
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-        Converts a given value to a given data type, and returns the result.
-        If the value can not be converted, None is returned.
-
-        PARAMETERS:
-        -----------
-        :param value: the value to be converted.
-        :param d_type: the data type to convert the value to.
-
-        RETURN:
-        -------
-        :return: new_value
-        """
-        # None is special, we don't try to convert None.
-        if value is None:
-            return None
-        # If the data type is numerical, try to do an eval, then try a straight conversion, then just go with None.
-        if d_type is int or d_type is float:
-            try:
-                return d_type(eval(value))
-            except TypeError:
-                try:
-                    return d_type(value)
-                except TypeError:
-                    return None
-        # For any other data type, just try a straight conversion to the required type.
-        else:
-            try:
-                return d_type(value)
-            except TypeError:
-                return None
 
     @staticmethod
     def __illegal_command_messages(command):
