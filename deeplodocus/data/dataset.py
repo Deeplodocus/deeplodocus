@@ -1,13 +1,18 @@
+# Python imports
 import pandas as pd
 import numpy as np
 import mimetypes
 import os
 
+# Deeplodocus imports
 from deeplodocus.utils.generic_utils import sorted_nicely
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.generic_utils import is_np_array
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.errors import error_entry_array_size
+from deeplodocus.utils.namespace import Namespace
+
+# Deeplodocus flags imports
 from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.notif import *
@@ -38,10 +43,10 @@ class Dataset(object):
         - Data transform (through the TransformManager class)
 
 
-    The dataset is splitted into 3 subsets :
+    The dataset is split into 3 subsets :
         - Inputs : Data given as input to the network
         - Labels : Data given as output (ground truth) to the network (optional)
-        - Additional data : Data given to the loss function (optional)
+        - Additional data : Data given to the loss function without any comparison with the output (optional)
 
     The dataset class supports 2 different image processing libraries :
         - PILLOW (fork of PIL) as default
@@ -1060,7 +1065,6 @@ class Dataset(object):
 
             # For each input in the list we collect the data and extend the list
             for j, f in enumerate(self.inputs[0]["path"]):
-                print(f)
                 num_instances += self.__get_number_instances(f)
         # If the input given is a single input
         else:
@@ -1137,3 +1141,751 @@ class Dataset(object):
         else:
             Notification(DEEP_NOTIF_FATAL, "The following input is neither a file nor a folder :" + str(f))
         return num_instances
+
+
+# Python import
+from typing import List
+from typing import Union
+from typing import Any
+
+# Deeplodocus imports
+from deeplodocus.data.entry import Entry
+from deeplodocus.utils.generic_utils import get_corresponding_flag
+
+# Deeplodocus flags
+from deeplodocus.utils.flags.source import *
+from deeplodocus.utils.flags.flag_lists import *
+
+class DatasetFuture(object):
+
+
+    """
+    AUTHORS:
+    --------
+
+    :author : Alix Leroy
+    :author: Samuel Westlake
+
+
+    DESCRIPTION:
+    ------------
+
+    A dataset class to manage the data given by the config files.
+    The following class permits :
+        - Data checking
+        - Smart data loading
+        - Data formatting
+        - Data transform (through the TransformManager class)
+
+
+    The dataset is splitted into 3 subsets :
+        - Inputs : Data given as input to the network
+        - Labels : Data given as output (ground truth) to the network (optional)
+        - Additional data : Data given to the loss function (optional)
+
+    The dataset class supports 2 different image processing libraries :
+        - PILLOW (fork of PIL) as default
+        - OpenCV (usage recommended for efficiency)
+    """
+
+    def __init__(self,
+                 inputs=None,
+                 labels=None,
+                 additional_data=None,
+                 number=None,
+                 name="Default",
+                 use_raw_data=True,
+                 cv_library : Flag = DEEP_LIB_PIL,
+                 transform_manager=None):
+        """
+        AUTHORS:
+        --------
+
+        author: Alix Leroy
+        author:
+
+        DESCRIPTION:
+        ---------
+
+        Initialize the dataset
+
+        PARAMETERS:
+        -----------
+
+        :param inputs: A list of input files/folders/list of files/folders
+        :param labels: A list of label files/folders/list of files/folders
+        :param additional_data: A list of additional data files/folders/list of files/folders
+        :param use_raw_data: Boolean : Whether to feed the network with raw data or always apply transforms on it
+        :param transform_manager: A TransformManager instance
+        :param name: Name of the dataset
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        self.list_inputs = self.__generate_entries(entries=self.__check_null_entry(inputs), entry_type=DEEP_ENTRY_INPUT)
+        self.list_labels = self.__generate_entries(entries=self.__check_null_entry(labels), entry_type=DEEP_ENTRY_LABEL)
+        self.list_additional_data = self.__generate_entries(entries=self.__check_null_entry(additional_data), entry_type=DEEP_ENTRY_ADDITIONAL_DATA)
+        self.number_raw_instances = self.__calculate_number_raw_instances()
+        self.length = self.__compute_length(desired_length=number, num_raw_instances = self.number_raw_instances)
+        self.name = name
+        self.transform_manager = transform_manager
+        self.use_raw_data = use_raw_data
+        self.warning_video = None
+        self.cv_library = None
+        self.set_cv_library(cv_library)
+
+    def __getitem__(self, index : int):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the selected item
+        The item is selected accordingly to the required function
+
+        PARAMETERS:
+        -----------
+
+        :param item:
+
+        RETURN:
+        -------
+
+        :return instance: Loaded and possibly transformed instance to be given to the training
+        """
+
+        inputs = []
+        labels = []
+        additional_data = []
+        # Index of the raw data is used only to get the path to original data.
+        # Real index is used for data transformation
+        index_raw_data = index % self.number_raw_instances
+        # If we ask for a not existing index we use the modulo and consider the data to have to be augmented
+        if index >= self.number_raw_instances:
+            augment = True
+        # If we ask for a raw data, augment it only if required by the user
+        else:
+            augment = not self.use_raw_data
+        if index >= self.length:
+            Notification(DEEP_NOTIF_FATAL, "The given instance index is too high : " + str(index))
+
+        # Extract lists of raw data for the selected index
+        if not self.list_labels:
+            if not self.list_additional_data:
+                inputs = self.__load(entries=self.list_inputs,
+                                     index=index,
+                                     augment=augment)
+
+            else:
+                inputs = self.__load(entries=self.list_inputs,
+                                     index=index,
+                                     augment=augment)
+                additional_data = self.__load(entries=self.list_additional_data,
+                                              index=index,
+                                              augment=augment)
+        else:
+            if not self.list_additional_data:
+                inputs = self.__load(entries=self.list_inputs,
+                                     index=index,
+                                     augment=augment)
+                labels = self.__load(entries=self.list_labels,
+                                     index=index,
+                                     augment=augment)
+            else:
+                inputs = self.__load(entries=self.list_inputs,
+                                     index=index,
+                                     augment=augment)
+                labels = self.__load(entries=self.list_labels,
+                                     index=index,
+                                     augment=augment)
+                additional_data = self.__load(entries=self.list_additional_data,
+                                              index=index,
+                                              augment=augment)
+
+        return inputs, labels, additional_data
+
+    """
+    "
+    " LENGTH
+    "
+    """
+    def __len__(self) -> int:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the length of the data set
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return (int): The length of the data set
+        """
+
+        return self.length
+
+    @staticmethod
+    def __compute_length(desired_length : int, num_raw_instances : int) -> int:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Calculate the length of the dataset
+
+        PARAMETERS:
+        -----------
+
+        :param desired_length(int): The desired number of instances
+        :param num_raw_instances(int): The actual number of instance in the sources
+
+        RETURN:
+        -------
+
+        :return (int): The length of the dataset
+        """
+
+        if desired_length is None:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_NO_LENGTH % num_raw_instances)
+            return num_raw_instances
+        else:
+            if desired_length > num_raw_instances:
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_GREATER % (desired_length, num_raw_instances))
+                return desired_length
+            elif desired_length < num_raw_instances:
+                Notification(DEEP_NOTIF_WARNING, DEEP_MSG_DATA_SHORTER % (num_raw_instances, desired_length))
+                return desired_length
+            else:
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_LENGTH % num_raw_instances)
+
+    def __calculate_number_raw_instances(self) -> int:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Calculate the theoretical number of instances in each epoch
+        The first given file/folder stands as the frame to count
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return num_raw_instances (int): theoretical number of instances in each epoch
+        """
+        # Calculate for the first entry
+        num_raw_instances = self.list_inputs[0].calculate_number_raw_instances()
+
+        # Gather all the entries in one list
+        entries = self.list_inputs + self.list_labels + self.list_additional_data
+
+        # For each entry check if the number of raw instances is the same as the first input
+        for index, entry in enumerate(entries):
+            n = entry.calculate_number_raw_instances()
+
+            if n != num_raw_instances:
+                Notification(DEEP_NOTIF_FATAL, "Number of instances in " + str(self.list_inputs[0].get_entry_type()) +
+                             "-" + str(self.list_inputs[0].get_entry_index()) + " and " + str(entry.get_entry_type()) +
+                             "-" + str(entry.get_entry_index())+ " do not match.")
+        return num_raw_instances
+
+    def __load(self, entries : List[Entry], index : int, augment: bool):
+        """
+
+        :param entries:
+        :return:
+        """
+        data = []
+
+        for entry in entries:
+            entry_data, is_loaded, is_transformed = entry.__getitem__(index=index)
+
+            # LOAD
+            if is_loaded is False:
+                entry_data = self.__load_data_from_str(data=entry_data,
+                                                       entry=entry,
+                                                       index=index)
+            # TRANSFORM
+            if is_transformed is False and augment is True:
+                entry_data = self.__transform_data(data=entry_data,
+                                                   entry=entry,
+                                                   index=index)
+            data.append(entry_data)
+
+        return data
+
+    def __generate_entries(self, entries: list, entry_type : Flag) -> List[Entry]:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Generate a list of Entry instances
+
+        PARAMETERS:
+        -----------
+
+        :param entries (list): The list of raw entries
+        :param entry_type (Flag):
+
+        RETURN:
+        -------
+
+        :return generated_entries (List(Entry)): The list of Entry instances generated
+        """
+        # List of generated entries to a Entry class format
+        generated_entries = []
+
+        # For each entry in a dictionary format
+        for index, entry in enumerate(entries):
+
+            # Check the completeness of the entry
+            entry = self.__check_entry_completeness(entry)
+            # Create the Entry instance
+            new_entry = Entry(sources=entry.source,
+                              join=entry.join,
+                              data_type=entry.type,
+                              load_method=entry.load_method,
+                              entry_index=index,
+                              entry_type=entry_type)
+            generated_entries.append(new_entry)
+
+        return generated_entries
+
+    @staticmethod
+    def __check_entry_completeness(entry: Namespace) -> Namespace:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check if the dictionary formatted entry is complete.
+        If not complete, fill the dictionary with default value
+
+        PARAMETERS:
+        -----------
+
+        :param entry (Namespace): The entry to check the completeness
+
+        RETURN:
+        -------
+
+        :return entry (Namespace): The completed entry
+
+        RAISE:
+        ------
+
+        :raise DeepError: Raised if the path is not given
+        """
+
+        # SOURCE
+        if entry.check("source", None) is False:
+            Notification(DEEP_NOTIF_FATAL, "The source was not specified to the following entry : %s" % str(entry.get()))
+
+        # JOIN PATH
+        if entry.check("join", None) is False:
+            entry.add({"join" : None}, None)
+
+        # LOADING METHOD
+        if entry.check("load_method", None) is False:
+            entry.add({"load_method" : "online"})
+
+        # DATA TYPE
+        if entry.check("type", None) is False:
+            entry.add({"type" : None})
+
+        return entry
+
+    def __load_data_from_str(self, data: Union[str, List[str], Any], index: int, entry : Entry) -> List[Any]:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Load a data from a string format to the actual content
+
+        PARAMETERS:
+        -----------
+
+        :param data (Union[str, List[str]]):
+        :param index (int):
+        :param entry (Entry):
+
+        RETURN:
+        -------
+
+        :return:
+        """
+
+        loaded_data = []
+
+        # Get data type index (only use the index for efficiency in the loop)
+        dtype_flag_index = entry.get_data_type()()
+
+        # Make sure the data contains something
+        if data is not None:
+            # TODO : Check how sequence behaves
+            # If data is a sequence we use the function in a recursive fashion
+            if dtype_flag_index == DEEP_DTYPE_SEQUENCE():
+                sequence_raw_data = data.split()  # Generate a list from the sequence
+                loaded_data.append(self.__load_data_from_str(data=sequence_raw_data,
+                                                             index=index,
+                                                             entry=entry))  # Get the content of the list
+            # IMAGE
+            elif dtype_flag_index == DEEP_DTYPE_IMAGE():
+                image = self.__load_image(data)
+                if self.cv_library == DEEP_LIB_PIL:
+                    image = np.array(image)
+
+                image = np.swapaxes(image, 0, 2).astype(float)
+                loaded_data.append(image)
+            # TODO : Check how video behaves
+            # VIDEO
+            elif dtype_flag_index == DEEP_DTYPE_VIDEO():
+                video = self.__load_video(data)
+                loaded_data.append(video)
+            # INTEGER
+            elif dtype_flag_index == DEEP_DTYPE_INTEGER():
+                integer = int(data)
+                loaded_data.append(integer)
+            # FLOAT NUMBER
+            elif dtype_flag_index == DEEP_DTYPE_FLOAT():
+                floating = float(data)
+                loaded_data.append(floating)
+            # NUMPY ARRAY
+            elif dtype_flag_index == DEEP_DTYPE_NP_ARRAY():
+                loaded_data.append(np.load(data))
+            # Data type not recognized
+            else:
+                Notification(DEEP_NOTIF_FATAL,
+                             "The following data could not be loaded because its type is not recognize : %s.\n"
+                             "Please check the documentation online to see the supported types" % data)
+        # If the data is None
+        else:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_IS_NONE % data)
+        return loaded_data
+
+    def __transform_data(self, data : List[Any], index : int, entry : Entry) -> List[Any]:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Transform the data
+
+        PARAMETERS:
+        -----------
+
+        :param data:
+        :param index:
+        :param entry:
+
+        RETURN:
+        -------
+
+        :return data(Any): The transformed data
+        """
+
+        transformed_data = []
+
+        for d in data:
+            td = self.transform_manager.transform(data=d,
+                                                  index=index,
+                                                  entry=entry)
+            transformed_data.append(td)
+
+        return transformed_data
+
+
+    """
+    "
+    " DATA LOADERS
+    "
+    """
+
+    def __load_image(self, image_path: str):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Load the image in the image_path
+
+        PARAMETERS:
+        -----------
+
+        :param image_path->str: The path of the image to load
+
+        RETURN:
+        -------
+
+        :return: The loaded image
+        """
+        if self.cv_library() == DEEP_LIB_OPENCV():
+            image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+            # Check that the image was correctly loaded
+            if image is None:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_LOAD_IMAGE % ("OpenCV", image_path))
+            # If the image is not grayscale
+            if len(image.shape) > 2:
+                # Convert to BGR(a) to RGB(a)
+                return self.__convert_bgra2rgba(image)
+        elif self.cv_library() == DEEP_LIB_PIL():
+            try:
+                return Image.open(image_path)
+            except FileNotFoundError:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_FIND_IMAGE % ("PIL", image_path))
+            except OSError:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_IDENTIFY_IMAGE % ("PIL", image_path))
+        else:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_CV_LIBRARY_NOT_IMPLEMENTED % self.cv_library)
+
+    @staticmethod
+    def __convert_bgra2rgba(image):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Convert BGR(alpha) image to RGB(alpha) image
+
+        PARAMETERS:
+        -----------
+
+        :param image: image to convert
+
+        RETURN:
+        -------
+
+        :return: a RGB(alpha) image
+        """
+
+        # Get the number of channels in the image
+        _, _, channels = image.shape
+
+        # Handle BGR and BGR(A) images
+        if channels == 3:
+            image = image[:, :, (2, 1, 0)]
+        elif channels == 4:
+            image = image[:, :, (2, 1, 0, 3)]
+        return image
+
+    def __load_video(self, video_path: str):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+        Load a video
+
+        PARAMETERS:
+        -----------
+
+        :param video_path->str: absolute path to a video
+
+        RETURN:
+        -------
+
+        :return: a list of frame from the video
+        """
+        self.__throw_warning_video()
+        video = []
+        # If the computer vision library selected is OpenCV
+        if self.cv_library == DEEP_LIB_OPENCV:
+            # try to load the file
+            cap = cv2.VideoCapture(video_path)
+            while True:
+                _, frame = cap.read()
+                if frame is None:
+                    break
+                video.append(self.__convert_bgra2rgba(frame))
+            cap.release()
+        else:
+            Notification(DEEP_NOTIF_FATAL, "The video could not be loaded because OpenCV is not selected as the Computer Vision library")
+        return video
+
+    def __throw_warning_video(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Warn the user of the unstable video mode.
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        if self.warning_video is None:
+            Notification(DEEP_NOTIF_WARNING, "The video mode is not fully supported. "
+                                             "We deeply suggest you to use sequences of images.")
+            self.warning_video = 1
+
+    def set_cv_library(self, cv_library : Flag) -> None:
+        """
+         AUTHORS:
+         --------
+
+         :author: Samuel Westlake
+         :author: Alix Leroy
+
+         DESCRIPTION:
+         ------------
+
+         Set self.cv_library to the given value and import the corresponding cv library
+
+         PARAMETERS:
+         -----------
+
+         None
+
+         RETURN:
+         -------
+
+         None
+         """
+        self.cv_library = get_corresponding_flag(flag_list=DEEP_LIST_CV_LIB, info=cv_library)
+        self.__import_cv_library(cv_library=cv_library)
+
+    @staticmethod
+    def __import_cv_library(cv_library : Flag) -> None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Samuel Westlake
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Imports either cv2 or PIL.Image dependant on the value of cv_library
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        None
+        """
+        if DEEP_LIB_OPENCV.corresponds(info=cv_library):
+            try:
+                #Notification(DEEP_NOTIF_INFO, DEEP_MSG_CV_LIBRARY_SET % "OPENCV")
+                global cv2
+                import cv2
+            except ImportError as e:
+                Notification(DEEP_NOTIF_ERROR, str(e))
+        elif DEEP_LIB_PIL.corresponds(info=cv_library):
+            try:
+                #Notification(DEEP_NOTIF_INFO, DEEP_MSG_CV_LIBRARY_SET % "PILLOW")
+                global Image
+                from PIL import Image
+            except ImportError as e:
+                Notification(DEEP_NOTIF_ERROR, str(e))
+        else:
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CV_LIBRARY_NOT_IMPLEMENTED % cv_library)
+
+    @staticmethod
+    def __check_null_entry(entry):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check if an entry is Null
+
+        PARAMETERS:
+        -----------
+
+        :param entry: The entry to check
+
+        RETURN:
+        -------
+
+        :return ->list: The formatted entry
+        """
+
+        try:
+            if entry is None:
+                return []
+            elif entry[0] is None:
+                return []
+            else:
+                return entry
+        except IndexError:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_ENTRY % entry)
+
+

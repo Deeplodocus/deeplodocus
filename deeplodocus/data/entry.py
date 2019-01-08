@@ -4,12 +4,12 @@ from typing import List
 from typing import Any
 from typing import Union
 from typing import Optional
+from typing import Tuple
 import mimetypes
 
 # Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.generic_utils import sorted_nicely
-from deeplodocus.utils.file import get_specific_line
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.generic_utils import is_np_array
 from deeplodocus.utils.generic_utils import get_corresponding_flag
@@ -22,8 +22,8 @@ from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.load import *
 from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags.dtype import *
-from deeplodocus.utils.flags.list import DEEP_LIST_DTYPE
-from deeplodocus.utils.flags.list import DEEP_LIST_ENTRY
+from deeplodocus.utils.flags.flag_lists import DEEP_LIST_DTYPE
+from deeplodocus.utils.flags.flag_lists import DEEP_LIST_ENTRY
 
 
 class Entry(object):
@@ -68,7 +68,7 @@ class Entry(object):
     def __init__(self, sources: Union[str, List[str]],
                  join: Union[str, List[str], None],
                  entry_index : int,
-                 entry_type: Union[str, int, Flag, None],
+                 entry_type: Union[str, int, Flag],
                  data_type: Union[str, int, Flag, None] = None,
                  load_method : Union[str, int, Flag, None] = "default"):
         """
@@ -99,29 +99,28 @@ class Entry(object):
 
         :return: None
         """
-
         self.sources = self.__check_sources(sources=sources, join=join)
         self.data_type = self.__check_data_type(data_type)
         self.load_method = self.__check_load_method(load_method)
         self.entry_index = entry_index
         self.entry_type = self.__check_entry_type(entry_type)
 
+        # Check folders (convert folders to files)
+        self.__check_folders()
+
         # Loading method dependant actions
         # OFFLINE
-        if load_method() == DEEP_LOAD_METHOD_OFFLINE():
-            self.data_in_memory = self.__load_content_in_memory(self.sources)
+        if DEEP_LOAD_METHOD_OFFLINE.corresponds(info=load_method):
+            self.__load_content_in_memory(self.sources)
 
         # SEMI ONLINE
-        #elif load_method() == DEEP_LOAD_METHOD_SEMI_ONLINE():
-        #    self.data_in_memory = self.__load_source_in_memory(self.sources)
+        #elif DEEP_LOAD_METHOD_SEMI_ONLINE.corresponds(info=load_method):
+        #    self.__load_source_in_memory(self.sources)
 
-        # ONLINE
-        elif load_method() == DEEP_LOAD_METHOD_ONLINE():
-            self.__check_folders_for_online_loading()
+        self.__len__()
+        print(self.length)
 
-
-
-    def __getitem__(self, index : int) -> str:
+    def __getitem__(self, index : int) -> Tuple[Any, bool, bool]:
         """
         AUTHORS:
         --------
@@ -144,25 +143,125 @@ class Entry(object):
         :return item (str): The item at the selected index in string format
         """
 
-        item= ""
+        item= None
+        is_loaded = False
+        is_transformed = False
 
         # OFFLINE
         if self.load_method() == DEEP_LOAD_METHOD_OFFLINE():
             item = self.__get_data_from_memory(index=index)
+            is_loaded = True
+            is_transformed = True
 
         # SEMI-ONLINE
         #elif self.load_method() == DEEP_LOAD_METHOD_SEMI_ONLINE():
-        #    item = self.__load_semi_online(index=index)
+        #    item, is_loaded, is_transformed = self.__load_semi_online(index=index)
 
         # ONLINE
         elif self.load_method() == DEEP_LOAD_METHOD_ONLINE():
-            item = self.__load_online(index=index)
+            item, is_loaded, is_transformed = self.__load_online(index=index)
 
         # OTHERS
         else:
             Notification(DEEP_NOTIF_FATAL, "Loading method not implemented : %s" % str(self.load_method.get_description()))
 
-        return item
+        return item, is_loaded, is_transformed
+
+    def __get_data_from_memory(self, index: int) -> Any:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get a specific data from the memory
+
+        PARAMETERS:
+        -----------
+
+        :param index(int): The index of the data
+
+        RETURN:
+        -------
+
+        :return (Any): The requested data
+        """
+
+        # Get the corresponding source
+        source_index, index_in_source = self.__compute_source_indexes(index=index)
+
+        # Get the data
+        return self.sources[source_index].__getitem__(index_in_source)
+
+    def __load_online(self, index: int) -> Tuple[Any, bool, bool]:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Load the data directly from the hard drive without accessing the memory
+        The method access the source file, folder or database (entry.path) to load the data
+        This might be slower because of the multiple reads in files
+        This function does not write any content in the file and therefore can be called with a Multiprocessing / Multithreading Dataloader
+
+        PARAMETERS:
+        -----------
+
+        :param index (int): The specific index to load
+
+        RETURN:
+        -------
+
+        :return: data(Any): The data returned
+        """
+        # Get the corresponding source
+        source_index, index_in_source = self.__compute_source_indexes(index=index)
+        source = self.sources[source_index]
+        return source.__getitem__(index=index_in_source)
+
+    def __compute_source_indexes(self, index: int) -> Tuple[int]:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Compute the source index
+
+        PARAMETERS:
+        -----------
+
+        :param index(int): The index of the data to load
+
+        RETURN:
+        -------
+
+        :return (Tuple[int]): [The index of the source to load from, The index of the instance in the source]
+        """
+
+        mod_index = index % self.length
+
+        temp_index = 0
+        prev_temp_index = 0
+
+        for i, source in enumerate(self.sources):
+            temp_index += source.get_length()
+
+            if mod_index <= temp_index:
+                return i, index - prev_temp_index
+            prev_temp_index = temp_index
+
+        Notification(DEEP_NOTIF_DEBUG, "Error in computing the source index... Please check the algorithm")
 
     def __len__(self):
         """
@@ -175,7 +274,7 @@ class Entry(object):
         ------------
 
         Get the length of the entry.
-        The length of the entry is computed differently wether the loading method is offline or online.
+        The length of the entry is computed differently whether the loading method is offline or online.
 
         PARAMETERS:
         -----------
@@ -187,16 +286,8 @@ class Entry(object):
 
         :return (int): The length of the entry
         """
-        # OFFLINE
-        if self.load_method() == DEEP_LOAD_METHOD_OFFLINE():
-            return len(self.data_in_memory)
-
-        #elif self.load_method() == DEEP_LOAD_METHOD_SEMI_ONLINE():
-        #    # TODO:
-
-        # ONLINE
-        elif self.load_method() == DEEP_LOAD_METHOD_ONLINE():
-            return sum([l.__len__ for l in self.sources])
+        self.length = sum([s.__len__(load_method=self.load_method) for s in self.sources])
+        return self.length
 
     def __convert_source_folder_to_file(self, source : Source):
         """
@@ -241,7 +332,7 @@ class Entry(object):
     "
     """
 
-    def __check_sources(self, sources : Union[str, List[str]], join: Union[str, List[str]]) -> List[Source]:
+    def __check_sources(self, sources : Union[str, List[str]],  join : Union[str, None, List[Union[str, None]]]) -> List[Source]:
         """
         AUTHORS:
         --------
@@ -271,13 +362,8 @@ class Entry(object):
         if isinstance(sources, list) is False:
             sources = [sources]
 
-        if isinstance(join, list) is False:
-            join = [join]
-
-        # Check the jointures are strings
-        for j in join:
-            if isinstance(j, str) is False:
-                Notification(DEEP_NOTIF_FATAL, "The jointure '%s' is not on a string format" %(str(j)))
+        # Check joins
+        join = self.__check_join(join=join)
 
         # Check the number of jointures and sources are equal:
         if len(sources) != len(join):
@@ -293,7 +379,7 @@ class Entry(object):
 
         return formatted_sources
 
-    def __check_join(self, join : Union[str, List[str]]):
+    def __check_join(self, join : Union[str, None, List[Union[str, None]]]):
         """
         AUTHORS:
         --------
@@ -323,12 +409,12 @@ class Entry(object):
 
         # Check all the elements in the list to make sure they are strings
         for item in join:
-            if isinstance(item, str) is False:
+            if isinstance(item, str) is False and item is not None:
                 Notification(DEEP_NOTIF_FATAL, "The join parameter '%s' in the %i th %s entry is not valid" %(str(item), self.entry_type.get_description(), self.entry_index))
 
         return join
 
-    def __check_data_type(self, data_type: Union[str, int, None]):
+    def __check_data_type(self, data_type: Union[str, int, Flag, None]):
         """
         AUTHORS:
         --------
@@ -458,7 +544,7 @@ class Entry(object):
             return DEEP_LOAD_METHOD_ONLINE
 
     @staticmethod
-    def __check_entry_type(entry_type : Union[str, int]):
+    def __check_entry_type(entry_type : Union[str, int, Flag]):
         """
         AUTHORS:
         --------
@@ -473,17 +559,16 @@ class Entry(object):
         PARAMETERS:
         -----------
 
-        :param entry_type (Union[str, int]): The raw entry type
+        :param entry_type (Union[str, int, Flag]): The raw entry type
 
         RETURN:
         -------
 
         :return entry_type(Flag): The entry type
         """
-
         return get_corresponding_flag(flag_list=DEEP_LIST_ENTRY, info=entry_type)
 
-    def __check_folders_for_online_loading(self):
+    def __check_folders(self):
         """
         AUTHORS:
         --------
@@ -522,7 +607,7 @@ class Entry(object):
     "
     """
 
-    def __load_content_in_memory(self, sources: List[Source]):
+    def __load_content_in_memory(self, sources: List[Source]) -> None:
         """
         AUTHORS:
         --------
@@ -542,20 +627,21 @@ class Entry(object):
         RETURN:
         -------
 
-        :return content: Content of the entry loaded
+        :return None
         """
 
-        content = []
 
         # For each source
         for source in sources:
 
+            content = []
             for i in range(source.__len__()):
                 data = source.__getitem__(index=i)
                 content.append(data)
 
-        return content
+            source.set_data_in_memory(content=content)
 
+        Notification(DEEP_NOTIF_SUCCESS, "Entry %s %i : Content loaded in memory" % (str(self.entry_type.get_description()), self.entry_index))
 
     def __read_folders(self, directory: Union[str, List[str]]) -> List[str]:
         """
@@ -694,7 +780,7 @@ class Entry(object):
     def get_entry_type(self)-> Flag:
         return self.entry_type
 
-    def __get_data_from_memory(self, index: int) -> Any:
+    def calculate_number_raw_instances(self) -> int:
         """
         AUTHORS:
         --------
@@ -704,102 +790,21 @@ class Entry(object):
         DESCRIPTION:
         ------------
 
-        Get a specific data from the memory
+        Sum the number of raw instance in each source
 
         PARAMETERS:
         -----------
 
-        :param index(int): The index of the data
+        None
 
         RETURN:
         -------
 
-        :return (Any): The requested data
+        :return num_raw_instances(int): Number of raw instances in the entry
         """
-        return self.data_in_memory[index]
+        num_raw_instances = 0
 
-    def __load_online(self, index: int):
-        """
-        AUTHORS:
-        --------
+        for index, source in enumerate(self.sources):
+            num_raw_instances += self.sources.__len__()
 
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Load the data directly from the hard drive without accessing the memory
-        The method access the source file, folder or database (entry.path) to load the data
-        This might be slower because of the multiple reads in files
-        This function does not write any content in the file and therefore can be called with a Multiprocessing / Multithreading Dataloader
-
-        PARAMETERS:
-        -----------
-
-        :param index (int): The specific index to load
-
-        RETURN:
-        -------
-
-        :return: data
-        """
-
-        # Get the corresponding source
-        source = self.sources[self.__compute_source_index(index=index)]
-        stype = source.get_type()
-
-        # FILE
-        if stype() == DEEP_SOURCE_FILE():
-            data = get_specific_line(filename=source.get_source(),
-                                     index=index)
-
-        # BINARY FILE
-        # elif source_type == DEEP_SOURCE_BINARY_FILE()
-        # TODO: Add binary files
-
-        # FOLDER
-        elif stype() == DEEP_SOURCE_FOLDER():
-            Notification(DEEP_NOTIF_FATAL, "Load from hard drive with a source folder is supposed to "
-                                           "be converted to a source file."
-                                           "Please check the documentation to see how to use the Dataset class")
-
-        # DATABASE
-        elif stype()() == DEEP_SOURCE_DATABASE():
-            Notification(DEEP_NOTIF_FATAL, "Load from hard drive with a source database not implemented yet")
-
-        data = Extractor.extract(data=data, source_type=stype)
-
-    def __compute_source_index(self, index: int):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Compute the source index
-
-        PARAMETERS:
-        -----------
-
-        :param index(int): The index of the data to load
-
-        RETURN:
-        -------
-
-        :return source_index(int): The index of the source to load from
-        """
-
-        mod_index = index % self.__len__()
-
-        temp_index = 0
-
-        for i, source in enumerate(self.sources):
-            temp_index += source.__len__()
-
-            if mod_index <= temp_index:
-                return i
-
-        Notification(DEEP_NOTIF_DEBUG, "Error in computing the source index... Please check the algorithm")
+        return num_raw_instances

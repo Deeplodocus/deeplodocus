@@ -1,13 +1,19 @@
 # Python imports
 import os
+from typing import List
+from typing import Any
+from typing import Tuple
 
 # Deeplodocus imports
 from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.file import get_specific_line
+
 
 # Deeplodocus flags
 from deeplodocus.utils.flags.source import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.msg import *
+from deeplodocus.utils.flags.load import *
 
 
 class Source(object):
@@ -34,15 +40,16 @@ class Source(object):
         self.source = source
         self.type = self.__check_source_type(source)
         self.join = join
-        self.length = self.__calculate_length(source_type=self.type, source=source)
-
+        self.data_in_memory = None
+        self.length = None
+        print(join)
     """
     "
     " LOAD ITEM
     "
     """
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> Tuple[Any, bool, bool]:
         """
         AUTHORS:
         --------
@@ -65,17 +72,45 @@ class Source(object):
         :return data:
         """
 
-        data = self.__format_path(data)
+        is_loaded = False
+        is_transformed = False
+
+        # FILE
+        if self.type() == DEEP_SOURCE_FILE():
+            data = get_specific_line(filename=self.source,
+                                     index=index)
+            is_loaded = False
+            is_transformed = False
+
+        # BINARY FILE
+        # elif self.type == DEEP_SOURCE_BINARY_FILE()
+        # TODO: Add binary files
+
+        # FOLDER
+        elif self.type() == DEEP_SOURCE_FOLDER():
+            Notification(DEEP_NOTIF_FATAL, "Load from hard drive with a source folder is supposed to "
+                                           "be converted to a source file."
+                                           "Please check the documentation to see how to use the Dataset class")
+            is_loaded = False
+            is_transformed = False
+
+        # DATABASE
+        elif self.type()() == DEEP_SOURCE_DATABASE():
+            Notification(DEEP_NOTIF_FATAL, "Load from hard drive with a source database not implemented yet")
+            is_loaded = False
+            is_transformed = False
+
+        # Format the data if it is a path to a specific file
+        # Formatting will automatically join the adequate parent directory to a relative path
+
+        if self.join is not None:
+            data = self.__format_path(data)
 
 
+        return data, is_loaded, is_transformed
 
-    """
-    "
-    " LENGTH
-    "
-    """
 
-    def __len__(self):
+    def __len__(self, load_method : Flag) -> int:
         """
         AUTHORS:
         --------
@@ -85,7 +120,50 @@ class Source(object):
         DESCRIPTION:
         ------------
 
-        Get the length of the source
+        Calculate the length of the source
+
+        PARAMETERS:
+        -----------
+
+        :param load_method(Flag): The loading method selected
+
+        RETURN:
+        -------
+
+        :return length(int): The length of the source
+        """
+
+        length = 0
+
+        # OFFLINE
+        if DEEP_LOAD_METHOD_OFFLINE.corresponds(load_method):
+            length = len(self.data_in_memory)
+
+        #elif DEEP_LOAD_METHOD_SEMI_ONLINE.corresponds(load_method):
+        #    # TODO: add semi online
+
+        # ONLINE
+        elif DEEP_LOAD_METHOD_ONLINE.corresponds(load_method):
+            length = self.__compute_length_()
+
+        # DEFAULT
+        else:
+            length = self.__compute_length_()
+
+        self.length = length
+        return length
+
+    def __compute_length_(self) -> int:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Compute the length using the method corresponding to the source type
 
         PARAMETERS:
         -----------
@@ -95,13 +173,57 @@ class Source(object):
         RETURN:
         -------
 
-        :return self.length(int): The length of the source
+        :return length(int): The length of the source
         """
-        return self.length
+        length = 0
 
+        # FILE
+        if self.type() == DEEP_SOURCE_FILE():
+            with open(self.source) as f:
+                for l in f:
+                    length += 1
 
-    @staticmethod
-    def __calculate_length(source_type : Flag, source: str):
+        # FOLDER
+        elif self.type() == DEEP_SOURCE_FOLDER():
+            Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for the folder")
+
+        # DATABASE
+        elif self.type() == DEEP_SOURCE_DATABASE():
+            Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for the database")
+
+        # SERVER
+        elif self.type() == DEEP_SOURCE_SERVER():
+            Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for a remote server")
+
+        # SPARK
+        elif self.type() == DEEP_SOURCE_SPARK():
+            Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for spark")
+
+        # OTHERS
+        else:
+            Notification(DEEP_NOTIF_FATAL,
+                         "The length of the source %s could not be computed because the type is not handled." % str(self.source))
+        return length
+
+    def load_offline(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+
+        :return:
+        """
+
+    """
+    "
+    " MEMORY
+    "
+    """
+
+    def add_item_to_memory(self, item: Any, index: int):
         """
         AUTHORS:
         --------
@@ -111,42 +233,47 @@ class Source(object):
         DESCRIPTION:
         ------------
 
-        Calculate the length of a specific source
+        Add an item to memory
 
         PARAMETERS:
         -----------
 
-        :param source_type (Flag): The source type flag
+        :param index (int): The index of the item
+        :param item (Any): The item to add in memory
 
         RETURN:
         -------
 
-        :return length(int): The length of the source
+        :return: None
         """
 
-        # FILE
-        if source_type() == DEEP_SOURCE_FILE():
-            pass
+        self.data_in_memory[index] = item
 
-        # FOLDER
-        elif source_type() == DEEP_SOURCE_FOLDER():
-            pass
+    def initialize_memory(self, instances : int) -> None:
+        """
+        AUTHORS:
+        --------
 
-        # DATABASE
-        elif source_type() == DEEP_SOURCE_DATABASE():
-            Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for the database")
+        :author: Alix Leroy
 
-        # SERVER
-        elif source_type() == DEEP_SOURCE_SERVER():
-            Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for a remote server")
+        DESCRIPTION:
+        ------------
 
-        # SPARK
-        elif source_type() == DEEP_SOURCE_SPARK():
-            Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for spark")
+        Initialize the list storing the data
 
-        # OTHERS
-        else:
-            Notification(DEEP_NOTIF_FATAL, "The length of the source %s could not be computed because the type is not handled." %str(source))
+        PARAMETERS:
+        -----------
+
+        :param instances(int): The number of instances in the source
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        self.data_in_memory = [0 for k in range(instances)]
+
 
     def __check_source_type(self, source : str) -> Flag:
         """
@@ -256,17 +383,12 @@ class Source(object):
 
         :return data(str): The data formatted to join the
         """
-
-        # If it is a file we format the path
-        if os.path.isfile(data):
-            if not os.path.isabs(data):
-                if self.get_join() is not None:
-                    if self.get_join().lower() == "auto":
-                        data = "/".join([os.path.dirname(self.get_source()), data])
-                    elif os.path.isdir(self.get_join()):
-                        data = "/".join([os.path.dirname(self.get_join()), data])
-                    else :
-                        Notification(DEEP_NOTIF_FATAL, "The following folder couldn't be joined to the filepath : %s " % str(self.get_join()))
+        if self.join.lower() == "auto":
+            data = "/".join([os.path.dirname(self.source), data])
+        elif os.path.isdir(self.join):
+            data = "/".join([os.path.dirname(self.join), data])
+        else :
+            Notification(DEEP_NOTIF_FATAL, "The following folder couldn't be joined to the filepath : %s " % str(self.join))
         return data
 
 
@@ -285,6 +407,9 @@ class Source(object):
     def get_type(self):
         return self.type
 
+    def get_length(self):
+        return self.length
+
     """
     "
     " SETTERS
@@ -296,3 +421,6 @@ class Source(object):
 
     def set_type(self, type : Flag):
         self.type = type
+
+    def set_data_in_memory(self, content : List[Any]):
+        self.data_in_memory = content
