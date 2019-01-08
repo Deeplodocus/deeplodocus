@@ -12,10 +12,126 @@ from typing import Optional
 
 from deeplodocus.utils.flags.ext import *
 from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flag import Flag
+from deeplodocus.utils.namespace import Namespace
+
+
+def convert(value, d_type=None):
+    """
+    Convert a value or list of values to data type in order of preference: (float, bool, str)
+    :param value: value to convert
+    :param d_type: data type to convert to
+    :return: converted value
+    """
+    if value is None:
+        return None
+    elif d_type is None:
+        if isinstance(value, list):
+            return [convert(item) for item in value]
+        else:
+            new_value = convert2float(value)
+            if new_value is not None:
+                return new_value
+            new_value = convert2bool(value)
+            if new_value is not None:
+                return new_value
+            new_value = convert2bool(value)
+            if new_value is not None:
+                return new_value
+            else:
+                return str(value)
+    elif d_type is str:
+        return str(value)
+    elif d_type is int:
+        return convert2int(value)
+    elif d_type is float:
+        return convert2float(value)
+    elif d_type is bool:
+        return convert2bool(value)
+    elif d_type is dict:
+        try:
+            return convert_namespace(value)
+        except AttributeError:
+            return None
+    elif isinstance(d_type, dict):
+        new_value = {}
+        for key, item in d_type.items():
+            try:
+                new_value[key] = convert(value[key], d_type=item)
+            except KeyError:
+                new_value[key] = None
+            except TypeError:
+                return None
+        return Namespace(new_value)
+    elif isinstance(d_type, list):
+        value = value if isinstance(value, list) else [value]
+        new_value = []
+        for item in value:
+            new_item = convert(item, d_type[0])
+            if new_item is None:
+                return None
+            else:
+                new_value.append(new_item)
+        return new_value
+        # new_value = [convert(item, d_type[0]) for item in value]
+        # if None in new_value:
+        #     return None
+        # else:
+        #     return new_value
+
+
+def convert2int(value):
+    try:
+        return int(eval(value))
+    except (ValueError, TypeError, SyntaxError):
+        pass
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def convert2float(value):
+    try:
+        return float(eval(value))
+    except (ValueError, TypeError, SyntaxError, NameError):
+        pass
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def convert2bool(value):
+    try:
+        return bool(value)
+    except TypeError:
+        return None
+
+
+def convert_namespace(namespace):
+        """
+        AUTHORS:
+        --------
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+        Converts each value in a namespace to the most appropriate data type
+
+        PARAMETERS:
+        -----------
+        :param namespace: a given namespace to convert the values of
+
+        RETURN:
+        -------
+        :return: the namespace with each value converted to a sensible data type
+        """
+        for key, value in namespace.get().items():
+            namespace.get()[key] = convert(value)
+        return namespace
 
 
 def sorted_nicely(l):
@@ -25,9 +141,9 @@ def sorted_nicely(l):
     l -- The iterable to be sorted.
 
     """
-    convert = lambda text: int(text) if text.isdigit() else text
-    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
-    return sorted(l, key=alphanum_key)
+    to_convert = lambda text: int(text) if text.isdigit() else text
+    alpha_num_key = lambda key: [to_convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alpha_num_key)
 
 
 def is_string_an_integer(string: str) -> bool:
@@ -122,7 +238,7 @@ def is_np_array(data):
         return False
 
 
-def get_specific_module(module, name, silence=False):
+def get_specific_module(name, module, silence=False):
     """
     Author: Samuel Westlake
     :param module: str: path to the module (separated by '.')
@@ -135,16 +251,17 @@ def get_specific_module(module, name, silence=False):
         exec("from %s import %s\nmodule = %s" % (module, name, name), {}, local)
     except ImportError as e:
         if not silence:
-            Notification(DEEP_NOTIF_ERROR, e)
+            Notification(DEEP_NOTIF_ERROR, str(e))
     return local["module"]
 
 
-def get_module(config, modules):
+def get_module(name, module=None, browse=None):
     """
     AUTHORS:
     --------
 
     :author: Alix Leroy
+    :author: Samuel Westlake
 
     DESCRIPTION:
     ------------
@@ -154,31 +271,24 @@ def get_module(config, modules):
     PARAMETERS:
     -----------
 
-    :param config:
-    :param module:
+    :param name: str: the name of the object to load
+    :param module: str: the name of the specific module
+    :param browse: dict: a DEEP_MODULE dictionary to browse through
 
     RETURN:
     -------
 
     :return module(callable): The loaded module
     """
-    # If we want a specific model
-    if config.check("module", None):
-        if config.module is not None:
-            module = get_specific_module(module=config.module,
-                                         name=config.name)
-        else:
-            # Browse in custom models
-            module = browse_module(modules=modules,
-                                   name=config.name)
+    if module is not None:
+        return get_specific_module(name, module)
+    elif browse is not None:
+        return browse_module(name, browse)
     else:
-        # Browse in custom models
-        module = browse_module(modules=modules,
-                               name=config.name)
-    return module
+        return None
 
 
-def browse_module(modules: dict, name: str):
+def browse_module(name, modules):
     """
     AUTHORS:
     --------
@@ -196,7 +306,7 @@ def browse_module(modules: dict, name: str):
     PARAMETERS:
     -----------
 
-    :param modules(dict):
+    :param modules: dict
     :param name: The name of the callable
 
     RETURN:
@@ -217,9 +327,7 @@ def browse_module(modules: dict, name: str):
                 continue
 
             # Try to get the module
-            module = get_specific_module(module=modname,
-                                         name=name,
-                                         silence=True)
+            module = get_specific_module(name, modname, silence=True)
             # If the module exists add it to the list
             if module is not None:
                 list_modules.append(module)

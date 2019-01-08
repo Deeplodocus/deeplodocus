@@ -29,7 +29,7 @@ class Loss(GenericMetric):
 
     """
 
-    def __init__(self, name:str, loss: torch.nn.Module, weight: Num=1.0):
+    def __init__(self, name: str, loss: torch.nn.Module, weight: Num=1.0):
         """
         AUTHORS:
         --------

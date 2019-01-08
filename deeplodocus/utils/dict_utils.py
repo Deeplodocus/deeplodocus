@@ -1,32 +1,13 @@
 import operator
 from collections import defaultdict
 
-from deeplodocus.utils.namespace import Namespace
-from deeplodocus.utils.generic_utils import get_int_or_float
-from deeplodocus.utils.flags.dtype import DEEP_TYPE_FLOAT, DEEP_TYPE_INTEGER
 
-
-def check_kwargs(kwargs):
-    """
-    Author: Samuel Westlake
-    :param kwargs: dict: a dictionary of keyword arguments
-    :return: prepare namespace.kwargs for use
-    """
-    if kwargs is None:
-        return {}
-    elif isinstance(kwargs, Namespace):
-        return convert_string_to_number(kwargs.get())
-    elif isinstance(kwargs, dict):
-        return convert_string_to_number(kwargs)
-    else:
-        print("Ths should not be printed : Unknown case : Go to check_kwargs and fix")
-
-
-def get_kwargs(dictionary: dict):
-    for key, value in dictionary.items():
-        if key == "kwargs":
-            return value
-    return None
+def remove_keys(dictionary, keys):
+    keys = keys if isinstance(keys, list) else [keys]
+    new_dict = dict(dictionary)
+    for key in keys:
+        del new_dict[key]
+    return new_dict
 
 
 def append(item1, item2):
@@ -40,41 +21,6 @@ def append(item1, item2):
         item1 = [item1]
     item1.append(item2)
     return item1
-
-
-def convert_string_to_number(dictionary: dict):
-    """
-    AUTHORS:
-    --------
-
-    :author: Alix Leroy
-
-    DESCRIPTION:
-    ------------
-
-    Convert strings in a dictionary to float or integers
-
-    PARAMETERS:
-    -----------
-
-    :param dictionary -> dictionary: The dictionary to convert
-
-    RETURN:
-    -------
-
-    :return dict->dict: The converted dictionary
-    """
-    for key, value in dictionary.items():
-        if isinstance(value, bool):
-            continue
-        dtype = get_int_or_float(value)
-        # Float
-        if dtype == DEEP_TYPE_FLOAT:
-            dictionary[key] = float(value)
-        # Integer
-        elif dtype == DEEP_TYPE_INTEGER:
-            dictionary[key] = int(value)
-    return dictionary
 
 
 def merge_sum_dict(*dicts):

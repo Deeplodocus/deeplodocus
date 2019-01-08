@@ -1,5 +1,6 @@
 from .transformer import Transformer
 
+
 class Sequential(Transformer):
     """
     AUTHORS:
@@ -13,7 +14,7 @@ class Sequential(Transformer):
     Sequential class inheriting from Transformer which compute the list of transforms sequentially
     """
 
-    def __init__(self, config):
+    def __init__(self, name, method, mandatory_transforms, transforms):
         """
         AUTHORS:
         --------
@@ -35,8 +36,7 @@ class Sequential(Transformer):
 
         :return: None
         """
-        Transformer.__init__(self, config)
-
+        Transformer.__init__(self, name, method, mandatory_transforms, transforms)
 
     def transform(self, transformed_data, index, data_type):
         """
