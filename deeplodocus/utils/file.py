@@ -24,6 +24,6 @@ def get_specific_line(filename: str, index: int) -> str:
     with open(filename) as f:
         for i, line in enumerate(f):
             if i == index:
-                return line[:-2]            # Get the line and remove the \n at the end
+                return line.rstrip()            # Get the line and remove the \n at the end
             elif i > index:
                 break
