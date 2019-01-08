@@ -17,9 +17,10 @@ class Model(object):
     Model class containing the model
     """
 
-    def __init__(self, name, module=None, kwargs=None):
+    def __init__(self, name, input_size = None, module=None, kwargs=None):
         self.name = name
         self.module = module
+        self.input_size = input_size
         self.kwargs = Namespace() if kwargs is None else kwargs
         self.model = None
 
