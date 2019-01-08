@@ -1,3 +1,7 @@
+# Python imports
+from typing import Union
+
+# Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags.notif import DEEP_NOTIF_INFO, DEEP_NOTIF_FATAL
@@ -9,6 +13,10 @@ class Pointer(object):
 
         self.name = str(pointer)
         self.pointer_to_transformer = self.__generate_pointer(pointer)
+
+        # TODO : Replace the pointer_to_transformer by a transform entry and a transformer index
+        self.transform_entry = None
+        self.transformer_index = 0
         #Transformer.__init__(self, config)
 
     def summary(self):
@@ -68,7 +76,16 @@ class Pointer(object):
         else:
             Notification(DEEP_NOTIF_FATAL, "The following transformer is not a pointer : " + str(pointer))
 
-    def __convert_pointer_type(self, pointer_type):
+    def __convert_pointer_type(self, pointer_type : Union[str, int, Flag]):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :param pointer_type:
+        :return:
+        """
+
 
         type = str(pointer_type).lower()
 

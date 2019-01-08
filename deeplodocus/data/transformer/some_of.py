@@ -54,7 +54,7 @@ class SomeOf(Transformer):
         else:
             self.number_transformation = None
 
-    def transform(self, transformed_data, index, data_type):
+    def transform(self, transformed_data, index):
         """
         AUTHORS:
         --------
@@ -71,7 +71,6 @@ class SomeOf(Transformer):
 
         :param transformed_data: The data to transform
         :param index: The index of the data
-        :param data_type: The data_type
 
         RETURN:
         -------
