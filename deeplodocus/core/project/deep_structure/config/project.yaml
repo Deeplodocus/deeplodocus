@@ -1,5 +1,5 @@
 name: "deeplodocus_project"
-cv_library: 1
+cv_library: "opencv"
 logs:
   history_train_batches: True
   history_train_epochs: True
