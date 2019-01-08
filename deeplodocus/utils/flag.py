@@ -1,6 +1,7 @@
 # Python imports
 from typing import List
 from typing import Union
+from typing import Any
 
 # Deeplodocus imports
 from deeplodocus.utils.flag_indexer import FlagIndexer
@@ -97,9 +98,10 @@ class Flag(object):
 
         :return (str): The Description of the flag with the corresponding index
         """
-        return "{0} : (id : {1})".format(self.description, self.index)
-    
-    def corresponds(self, info : Union[str, int, Flag]):
+        return "Flag {0} : (id : {1})".format(self.description, self.index)
+
+    # TODO : Find a way to replace the "Any" typing to "Flag"
+    def corresponds(self, info : Union[str, int, Any]) -> bool:
         """
         AUTHORS:
         --------
