@@ -57,15 +57,17 @@ DEEP_MSG_DATA_SOURCE_NOT_FOUND = "Source path not found : %s"
 DEEP_MSG_DATA_IS_NONE = "The following data is None : %s"
 DEEP_MSG_DATA_ENTRY = "Please check the following entry format : %s"
 
-# DEEP_WARNING
-DEEP_MSG_DATA_TOO_LONG = "Dataset number is greater than the number of instances : Using all %i instances"
+# DEEP WARNING
+DEEP_MSG_DATA_SHORTER = "Dataset contains %i instances : Using just %i instances"
 
 # DEEP_INFO
 DEEP_MSG_DATA_SUMMARY = "Summary of the '%s' dataset :\n%s"
-DEEP_MSG_DATA_LENGTH = "Dataset contains %i instances : Using just %i instances"
-DEEP_MSG_DATA_NO_LENGTH = "Dataset number not given : Using all %i instances"
+DEEP_MSG_DATA_LENGTH = "Dataset length set to %i instances"
+DEEP_MSG_DATA_NO_LENGTH = "Dataset length not given : Using all %i instances"
 DEEP_MSG_DATA_DISABLED = "Dataset disabled : %s"
 DEEP_NOTIF_DATA_LOADING = "Loading dataset : %s"
+DEEP_MSG_DATA_GREATER = "Dataset number (%i) is greater than the number of instances (%i): Additional data will be transformed"
+
 
 # DEEP_SUCCESS
 DEEP_MSG_DATA_LOADED = "Dataset loaded : %s"

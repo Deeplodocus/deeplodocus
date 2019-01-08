@@ -2,6 +2,7 @@ from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.source import *
 from deeplodocus.utils.flags.load import *
 from deeplodocus.utils.flags.entry import *
+from deeplodocus.utils.flags.lib import *
 
 # DATA TYPES
 DEEP_LIST_DTYPE = [DEEP_DTYPE_IMAGE,
@@ -23,7 +24,15 @@ DEEP_LIST_LOAD_METHOD = [DEEP_LOAD_METHOD_MEMORY,
                          DEEP_LOAD_METHOD_HARDDRIVE,
                          DEEP_LOAD_METHOD_SERVER]
 # ENTRIES
-DEEP_LIST_ENTRY = [DEEP_ENTRY_INPUT_,
-                   DEEP_ENTRY_LABEL_,
-                   DEEP_ENTRY_OUTPUT_,
-                   DEEP_ENTRY_ADDITIONAL_DATA_]
+DEEP_LIST_ENTRY = [DEEP_ENTRY_INPUT,
+                   DEEP_ENTRY_LABEL,
+                   DEEP_ENTRY_OUTPUT,
+                   DEEP_ENTRY_ADDITIONAL_DATA]
+
+DEEP_LIST_POINTER_ENTRY = [DEEP_ENTRY_INPUT,
+                           DEEP_ENTRY_LABEL,
+                           DEEP_ENTRY_ADDITIONAL_DATA]
+
+# COMPUTER VISION LIBRARIES
+DEEP_LIST_CV_LIB = [DEEP_LIB_PIL,
+                    DEEP_LIB_OPENCV]
