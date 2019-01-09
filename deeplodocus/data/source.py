@@ -42,7 +42,6 @@ class Source(object):
         self.join = join
         self.data_in_memory = None
         self.length = None
-        print(join)
     """
     "
     " LOAD ITEM
@@ -105,7 +104,6 @@ class Source(object):
 
         if self.join is not None:
             data = self.__format_path(data)
-
 
         return data, is_loaded, is_transformed
 
@@ -216,6 +214,7 @@ class Source(object):
 
         :return:
         """
+        pass
 
     """
     "
