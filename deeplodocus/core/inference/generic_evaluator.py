@@ -2,6 +2,7 @@
 # Common imports
 #
 from typing import Union
+from typing import List
 import inspect
 
 #
@@ -14,6 +15,7 @@ import torch
 #
 # Deeplodocus imports
 #
+from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
@@ -78,10 +80,10 @@ class GenericEvaluator(GenericInferer):
 
     @staticmethod
     def compute_metrics(metrics: dict,
-                        inputs: Union[tensor, list],
-                        outputs: Union[tensor, list],
-                        labels: Union[tensor, list],
-                        additional_data: Union[tensor, list]) -> dict:
+                        inputs: Union[tensor, List[tensor]],
+                        outputs: Union[tensor, List[tensor]],
+                        labels: Union[tensor, List[tensor]],
+                        additional_data: Union[tensor, List[tensor]]) -> dict:
         """
         AUTHORS;
         --------

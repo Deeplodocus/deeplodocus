@@ -1,27 +1,22 @@
-#
-# COMMON IMPORTS
-#
-
-#
-# BACKEND IMPORTS
-#
+# Backend imports
 from torch.nn import Module
 from torch import Tensor
-#
-# DEEPLODOCUS IMPORTS
-#
 
+# Deeplodocus imports
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.tester import Tester
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.dict_utils import apply_weight
 from deeplodocus.utils.dict_utils import sum_dict
-from deeplodocus.utils.flags import *
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.event import *
 from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.brain.signal import Signal
+
+# Deeplodocus flags
+from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.flags.event import *
+from deeplodocus.utils.flags.shuffle import *
 
 
 class Trainer(GenericEvaluator):
@@ -45,7 +40,7 @@ class Trainer(GenericEvaluator):
                  num_epochs: int,
                  initial_epoch: int = 1,
                  batch_size: int = 4,
-                 shuffle: int = DEEP_SHUFFLE_ALL,
+                 shuffle: Flag = DEEP_SHUFFLE_NONE,
                  num_workers: int = 4,
                  verbose: int = DEEP_VERBOSE_BATCH,
                  tester: Tester = None):
@@ -110,7 +105,9 @@ class Trainer(GenericEvaluator):
         # Early stopping
         #self.stopping = Stopping(stopping_parameters)
 
-
+        #
+        # Connect signals
+        #
         Thalamus().connect(receiver=self.saving_required, event=DEEP_EVENT_SAVING_REQUIRED, expected_arguments=["saving_required"])
 
     def fit(self, first_training: bool = True)->None:
@@ -237,14 +234,10 @@ class Trainer(GenericEvaluator):
                                                 "result_validation_metrics" : result_validation_metrics,
                                                 "num_minibatches_validation" : self.tester.get_num_minibatches()
                                                }))
-
-
         # Send signal end training
         Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_TRAINING_END,
-                                     args={"model" : self.model}))
+                                     args={"model": self.model}))
 
-        # Pause callbacks which compute time
-        self.callbacks.pause()
 
 
     def detach(self, outputs, total_loss, result_losses, result_metrics):
@@ -355,9 +348,12 @@ class Trainer(GenericEvaluator):
 
         :return: The total_loss, the individual losses and the individual metrics
         """
+        # Initialize the losses and metrics results
         total_validation_loss = None
         result_losses = None
         result_metrics = None
+
+        # If a tester is available compute the losses and metrics
         if self.tester is not None:
             total_validation_loss, result_losses, result_metrics = self.tester.evaluate(model=self.model)
         return total_validation_loss, result_losses, result_metrics
@@ -366,10 +362,24 @@ class Trainer(GenericEvaluator):
 
     def saving_required(self, saving_required: bool):
         """
+        AUTHORS:
+        --------
 
-        :param saving_required:
-        :return:
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Signal to send the model to be saved if require
+
+        PARAMETERS:
+        -----------
+
+        :param saving_required (bool): Whether saving the model is required or not
+
+        RETURN:
+        -------
         """
 
         if saving_required is True:
-            Thalamus().add_signal(signal= Signal(event=DEEP_EVENT_SAVE_MODEL, args={"model": self.model}))
+            Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_SAVE_MODEL, args={"model": self.model}))

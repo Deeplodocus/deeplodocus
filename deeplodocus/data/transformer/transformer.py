@@ -177,12 +177,11 @@ class Transformer(object):
                                     value.get()])
         return list_transforms
 
-    def transform(self, data, index, data_type):
+    def transform(self, data, index):
         """
         Authors : Alix Leroy,
         :param data: data to transform
         :param index: The index of the instance in the Data Frame
-        :param data_type: The type of data
         :return: The transformed data
         """
         pass # Will be overridden
@@ -328,3 +327,7 @@ class Transformer(object):
         video = [self.normalize_image(frame) for frame in video]
 
         return video
+
+    @staticmethod
+    def has_transforms():
+        return True

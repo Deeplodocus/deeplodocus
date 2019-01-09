@@ -6,11 +6,15 @@ import pkgutil
 import __main__
 import random
 import string
+from typing import List
+from typing import Union
+from typing import Optional
 
 from deeplodocus.utils.flags.ext import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.notification import Notification
+from deeplodocus.utils.flag import Flag
 from deeplodocus.utils.namespace import Namespace
 
 
@@ -337,7 +341,7 @@ def browse_module(name, modules):
         return select_module(list_modules, name)
 
 
-def remove_duplicates(items: list):
+def remove_duplicates(items: list) -> list:
     """
     AUTHORS:
     --------
@@ -357,7 +361,7 @@ def remove_duplicates(items: list):
     RETURN:
     -------
 
-    :return (list): The lis of items without the duplicates
+    :return (list): The list of items without the duplicates
     """
     return list(set(items))
 
@@ -392,7 +396,7 @@ def select_module(list_modules: list, name: str):
 
     # Prompt the user to pick on from the list
     response = -1
-    while (response < 0 or response >= len(list_modules)):
+    while response < 0 or response >= len(list_modules):
         response = Notification(DEEP_NOTIF_INPUT, "Which one would you prefer to use ? (Pick a number)").get()
 
         # Check if the response is an integer
@@ -404,7 +408,7 @@ def select_module(list_modules: list, name: str):
     return list_modules[response]
 
 
-def generate_random_alphanumeric(size: int = 16):
+def generate_random_alphanumeric(size: int = 16) -> str:
     """
     AUTHORS:
     --------
@@ -429,3 +433,49 @@ def generate_random_alphanumeric(size: int = 16):
     """
 
     return''.join(random.choices(string.ascii_letters + string.digits, k=size))
+
+
+def get_corresponding_flag(flag_list: List[Flag], info : Union[str, int, Flag], fatal: bool =True, default: Optional[Flag]= None) -> Union[Flag, None]:
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Browse the wanted flag among a list
+    If no flag corresponds, raise a DeepError
+
+    PARAMETERS:
+    -----------
+
+    :param flag_list (List[Flag]) : The list of flag to browse in
+    :param name (Union[str, int, Flag]): Info (name, index or full Flag) of the flag to search
+    :param fatal(bool, Optional): Whether to raise a DeepError if no flag is found or not
+
+    RETURN:
+    -------
+
+    :return : The corresponding flag
+    """
+
+    # Search in the flag list
+    for flag in flag_list:
+        if flag.corresponds(info=info) is True:
+            return flag
+
+    # If no flag is found
+    if default is not None:
+        Notification(DEEP_NOTIF_WARNING,
+                     "The following flag does not exist : %s, the default one %s has been selected instead" % (str(info), default.get_description()))
+
+        return default
+
+    # If no default
+    if fatal is True:
+        Notification(DEEP_NOTIF_FATAL, "No flag with the info '%s' was found in the following list : %s" %(str(info), str([flag.description for flag in flag_list])))
+    else:
+        return None
+

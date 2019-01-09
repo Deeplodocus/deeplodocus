@@ -38,7 +38,7 @@ class Sequential(Transformer):
         """
         Transformer.__init__(self, name, method, mandatory_transforms, transforms)
 
-    def transform(self, transformed_data, index, data_type):
+    def transform(self, transformed_data, index):
         """
         AUTHORS:
         --------
@@ -55,7 +55,6 @@ class Sequential(Transformer):
 
         :param transformed_data: The data to transform
         :param index: The index of the data
-        :param data_type: The data_type
 
         RETURN:
         -------

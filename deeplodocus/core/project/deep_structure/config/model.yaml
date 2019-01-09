@@ -1,4 +1,4 @@
-module: "modules.models.LeNet"
-name: "LeNet"
-# input_size : [[3, 216, 384], [3, 216, 384]]
+#module: "modules.models.LeNet"
+name: "Net"
+input_size : [[3, 216, 384], [3, 216, 384]]
 kwargs: Null

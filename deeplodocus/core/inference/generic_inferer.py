@@ -53,7 +53,7 @@ class GenericInferer(object):
                                      shuffle=False,
                                      num_workers=num_workers)
         self.num_minibatches = self.compute_num_minibatches(batch_size=batch_size,
-                                                          length_dataset=dataset.__len__())
+                                                            length_dataset=dataset.__len__())
 
     @staticmethod
     def clean_single_element_list(minibatch: list) -> list:
