@@ -117,8 +117,8 @@ class Entry(object):
         #elif DEEP_LOAD_METHOD_SEMI_ONLINE.corresponds(info=load_method):
         #    self.__load_source_in_memory(self.sources)
 
+        # Evaluate the length of the entry
         self.__len__()
-        print(self.length)
 
     def __getitem__(self, index : int) -> Tuple[Any, bool, bool]:
         """
@@ -226,7 +226,7 @@ class Entry(object):
         source = self.sources[source_index]
         return source.__getitem__(index=index_in_source)
 
-    def __compute_source_indexes(self, index: int) -> Tuple[int]:
+    def __compute_source_indexes(self, index: int) -> Tuple[int, int]:
         """
         AUTHORS:
         --------
@@ -238,6 +238,7 @@ class Entry(object):
 
         Compute the source index
 
+
         PARAMETERS:
         -----------
 
@@ -246,10 +247,8 @@ class Entry(object):
         RETURN:
         -------
 
-        :return (Tuple[int]): [The index of the source to load from, The index of the instance in the source]
+        :return (Tuple[int, int]): [The index of the source to load from, The index of the instance in the source]
         """
-
-        mod_index = index % self.length
 
         temp_index = 0
         prev_temp_index = 0
@@ -257,7 +256,7 @@ class Entry(object):
         for i, source in enumerate(self.sources):
             temp_index += source.get_length()
 
-            if mod_index <= temp_index:
+            if index <= temp_index:
                 return i, index - prev_temp_index
             prev_temp_index = temp_index
 
@@ -780,31 +779,3 @@ class Entry(object):
     def get_entry_type(self)-> Flag:
         return self.entry_type
 
-    def calculate_number_raw_instances(self) -> int:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Sum the number of raw instance in each source
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return num_raw_instances(int): Number of raw instances in the entry
-        """
-        num_raw_instances = 0
-
-        for index, source in enumerate(self.sources):
-            num_raw_instances += self.sources.__len__()
-
-        return num_raw_instances
