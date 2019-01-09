@@ -1,15 +1,18 @@
 import time
+from typing import Any
 
 # Import transformers
 from deeplodocus.data.transformer.one_of import OneOf
 from deeplodocus.data.transformer.sequential import Sequential
 from deeplodocus.data.transformer.some_of import SomeOf
 from deeplodocus.data.transformer.pointer import Pointer
+from deeplodocus.data.transformer.no_transformer import NoTransformer
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.flags.notif import DEEP_NOTIF_FATAL
 from deeplodocus.utils.flags.entry import *
+from deeplodocus.data.entry import Entry
 
 
 class TransformManager(object):
@@ -64,7 +67,7 @@ class TransformManager(object):
         self.list_additional_data_transformers = self.__load_transformers(additional_data)
         self.summary()
 
-    def transform(self, data, index, type_data, entry_type, entry_num):
+    def transform(self, data : Any, index : int, entry: Entry) -> Any:
         """
         AUTHORS:
         --------
@@ -75,15 +78,17 @@ class TransformManager(object):
         ------------
 
         Transform a data
+        Check if the transformer selected is a pointer
+        If not a pointer : directly transforms the data
+        If a pointer, loads the pointed transformer and then transforms the data
 
         PARAMETERS:
         -----------
 
-        :param data: The data to transform
-        :param index: The index of the data to transform
-        :param type_data: Type of data to transform (image, video, sound, ...)
-        :param entry_type: Type of entry (input, label, additional_data)
-        :param entry_num: Number of the entry (input1, input2, ...) (useful for sequences)
+        :param data (Any): The data to transform
+        :param index (int): The index of the data to transform
+        :param entry (Entry): The entry of the data
+
 
         RETURN:
         -------
@@ -94,39 +99,55 @@ class TransformManager(object):
         list_transformers = None
 
         # Get the list of transformers corresponding to the type of entry
-        if entry_type == DEEP_ENTRY_INPUT:
-            list_transformers = self.list_input_transformers
-        elif entry_type == DEEP_ENTRY_LABEL:
-            list_transformers = self.list_label_transformers
-        elif entry_type == DEEP_ENTRY_ADDITIONAL_DATA:
-            list_transformers = self.list_additional_data_transformers
-        else:
-            Notification(DEEP_NOTIF_FATAL, "The following type of transformer does not exist : " + str (entry_type))
 
+        # INPUT
+        if DEEP_ENTRY_INPUT.corresponds(info=entry.get_entry_type()):
+            list_transformers = self.list_input_transformers
+
+        # LABEL
+        elif DEEP_ENTRY_LABEL.corresponds(info=entry.get_entry_type()):
+            list_transformers = self.list_label_transformers
+
+        # ADDITIONAL DATA
+        elif DEEP_ENTRY_ADDITIONAL_DATA.corresponds(info=entry.get_entry_type()):
+            list_transformers = self.list_additional_data_transformers
+
+        # WRONG FLAG
+        else:
+            Notification(DEEP_NOTIF_FATAL, "The following type of transformer does not exist : " + str(entry.get_entry_type().get_description()))
+
+        # If it is a NoTransformer instance
+        if list_transformers[entry.get_entry_index()].has_transforms() is False:
+            return data
 
         # Check if the transformer points to another transformer
-        pointer = list_transformers[entry_num].get_pointer()
+        pointer = list_transformers[entry.get_entry_index()].get_pointer()
 
         # If we do not point to another transformer, transform directly the data
         if pointer is None:
-        # Transform
-            transformed_data = list_transformers[entry_num].transform(data, index, type_data)
+            transformed_data = list_transformers[entry.get_entry_index()].transform(data, index)
 
         # If we point to another transformer, load the transformer then transform the data
         else:
 
+            # INPUT
             if pointer[0] == DEEP_ENTRY_INPUT:
                 list_transformers = self.list_input_transformers
 
+            # LABEL
             elif pointer[0] == DEEP_ENTRY_LABEL:
                 list_transformers = self.list_label_transformers
 
+            # ADDITIONAL DATA
             elif pointer[0] == DEEP_ENTRY_ADDITIONAL_DATA:
                 list_transformers = self.list_additional_data_transformers
 
+            # WRONG FLAG
             else:
-                Notification(DEEP_NOTIF_FATAL, "The following type of transformer does not exist : " + str (pointer[0]))
-            transformed_data = list_transformers[pointer[1]].transform(data, index, type_data)
+                Notification(DEEP_NOTIF_FATAL, "The following type of transformer does not exist : " + str(pointer[0]))
+
+            # Transform the data with the freshly loaded transformer
+            transformed_data = list_transformers[pointer[1]].transform(data, index)
 
         return transformed_data
 
@@ -229,7 +250,7 @@ class TransformManager(object):
         :return transformers_list: The list of the transformers corresponding to the entries
         """
         entries = entries if isinstance(entries, list) else [entries]
-        return [self.__create_transformer(config_entry=entry) for entry in entries if entry is not None]
+        return [self.__create_transformer(config_entry=entry) for entry in entries]
 
     def __create_transformer(self, config_entry):
         """
@@ -254,11 +275,17 @@ class TransformManager(object):
 
         :return transformer: The created transformer
         """
+        transformer = None
 
-        # If the config source is a pointer to another transformer
-        if self.__is_pointer(config_entry) is True:
+        # NONE
+        if config_entry is None:
+            transformer = NoTransformer()
+
+        # POINTER
+        elif self.__is_pointer(config_entry) is True:
             transformer = Pointer(config_entry)     # Generic Transformer as a pointer
-        # If the user wants to create a transformer from scratch
+
+        # TRANSFORMER
         else:
             config = Namespace(config_entry)
             if not hasattr(config, 'method'):
@@ -277,6 +304,7 @@ class TransformManager(object):
             # If the method does not exist
             else:
                 Notification(DEEP_NOTIF_FATAL, "The following transformation method does not exist : " + str(config.method))
+
         return transformer
 
     @staticmethod
