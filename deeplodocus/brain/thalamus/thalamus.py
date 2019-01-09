@@ -178,6 +178,7 @@ class Thalamus(metaclass=Singleton):
             for connection in self.connections[event]:
                 receiver = connection.get_receiver()
                 expected_arguments = connection.get_expected_arguments()
+
                 # If only some specific keys have to be kept
                 if expected_arguments is not None:
                     args = self.keep_arguments(receiver=receiver, expected_arguments=expected_arguments, arguments=args)
@@ -186,7 +187,6 @@ class Thalamus(metaclass=Singleton):
         # Else display an error notification
         else:
             Notification(DEEP_NOTIF_ERROR, "The following event %s is not connected to any receiver." % str(event))
-
 
     def keep_arguments(self, receiver: callable, expected_arguments: list, arguments: dict):
         """
@@ -204,8 +204,9 @@ class Thalamus(metaclass=Singleton):
         PARAMETERS:
         -----------
 
-        :param expected_arguments(list): The list of desired arguments
-        :param arguments(dict): The dictionary to filter
+        :param receiver (callable): The function to receive the signal
+        :param expected_arguments (list): The list of desired arguments
+        :param arguments (dict): The dictionary to filter
 
         RETURN:
         -------
