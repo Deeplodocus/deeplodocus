@@ -18,13 +18,13 @@ from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.lib import *
-from deeplodocus.utils.flags import DEEP_SHUFFLE_ALL
+from deeplodocus.utils.flags.shuffle import *
 from deeplodocus.utils.flags.load import *
 
 # Temporary until Namespace fix
 import ast
 
-class Dataset(object):
+class DatasetLegacy(object):
     """
     AUTHORS:
     --------
@@ -239,22 +239,27 @@ class Dataset(object):
         for row in str(self.data.iloc[0:self.__len__()]).split("\n"):
             Notification(DEEP_NOTIF_INFO, row)
 
-    def set_cv_library(self, cv_library):
+    def set_cv_library(self, cv_library ) -> None:
         """
          AUTHORS:
          --------
-         author: Samuel Westlake
+
+         :author: Samuel Westlake
+         :author: Alix Leroy
 
          DESCRIPTION:
          ------------
+
          Set self.cv_library to the given value and import the corresponding cv library
 
          PARAMETERS:
          -----------
-         None
+
+         :param cv_library(): The Flag of the computer vision library selected
 
          RETURN:
          -------
+
          None
          """
         self.cv_library = cv_library
@@ -264,18 +269,22 @@ class Dataset(object):
         """
         AUTHORS:
         --------
+
         author: Alix Leroy
 
         DESCRIPTION:
         ------------
+
         Load the dataset into memory
 
         PARAMETERS:
         -----------
+
         None
 
         RETURN:
         -------
+
         :return: None
         """
         # Read the data given as input
@@ -1156,7 +1165,7 @@ from deeplodocus.utils.generic_utils import get_corresponding_flag
 from deeplodocus.utils.flags.source import *
 from deeplodocus.utils.flags.flag_lists import *
 
-class DatasetFuture(object):
+class Dataset(object):
 
 
     """
@@ -1170,7 +1179,7 @@ class DatasetFuture(object):
     DESCRIPTION:
     ------------
 
-    A dataset class to manage the data given by the config files.
+    A Dataset class to manage the data given by the config files.
     The following class permits :
         - Data checking
         - Smart data loading
@@ -1235,6 +1244,7 @@ class DatasetFuture(object):
         self.warning_video = None
         self.cv_library = None
         self.set_cv_library(cv_library)
+        self.item_order = np.arange(self.length)
 
     def __getitem__(self, index : int):
         """
@@ -1260,20 +1270,25 @@ class DatasetFuture(object):
         :return instance: Loaded and possibly transformed instance to be given to the training
         """
 
+        # If the index given is too big => Error
+        if index >= self.length:
+            Notification(DEEP_NOTIF_FATAL, "The given instance index is too high : " + str(index))
+        # Else we get the random generated index
+        else:
+            index = self.item_order[index]
+
         inputs = []
         labels = []
         additional_data = []
-        # Index of the raw data is used only to get the path to original data.
-        # Real index is used for data transformation
-        index_raw_data = index % self.number_raw_instances
+
         # If we ask for a not existing index we use the modulo and consider the data to have to be augmented
         if index >= self.number_raw_instances:
             augment = True
         # If we ask for a raw data, augment it only if required by the user
         else:
             augment = not self.use_raw_data
-        if index >= self.length:
-            Notification(DEEP_NOTIF_FATAL, "The given instance index is too high : " + str(index))
+
+
 
         # Extract lists of raw data for the selected index
         if not self.list_labels:
@@ -1403,14 +1418,14 @@ class DatasetFuture(object):
         :return num_raw_instances (int): theoretical number of instances in each epoch
         """
         # Calculate for the first entry
-        num_raw_instances = self.list_inputs[0].calculate_number_raw_instances()
+        num_raw_instances = self.list_inputs[0].__len__()
 
         # Gather all the entries in one list
         entries = self.list_inputs + self.list_labels + self.list_additional_data
 
         # For each entry check if the number of raw instances is the same as the first input
         for index, entry in enumerate(entries):
-            n = entry.calculate_number_raw_instances()
+            n = entry.__len__()
 
             if n != num_raw_instances:
                 Notification(DEEP_NOTIF_FATAL, "Number of instances in " + str(self.list_inputs[0].get_entry_type()) +
@@ -1418,32 +1433,55 @@ class DatasetFuture(object):
                              "-" + str(entry.get_entry_index())+ " do not match.")
         return num_raw_instances
 
-    def __load(self, entries : List[Entry], index : int, augment: bool):
+    def __load(self, entries : List[Entry], index : int, augment: bool) -> List[Any]:
         """
+        AUTHORS:
+        --------
 
-        :param entries:
-        :return:
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Load one instance of the dataset into memory
+
+        PARAMETERS:
+        -----------
+
+        :param entries(List[Entry]): The list of entries to load the instance from
+        :param index(int): The index of the instance
+        :param augment(bool): Whether to augment the data or not
+
+        RETURN:
+        -------
+
+        :return data(List[Any]): The loaded and transformed data
         """
         data = []
 
-        for entry in entries:
-            entry_data, is_loaded, is_transformed = entry.__getitem__(index=index)
+        # Get the index of the original instance (before transformation)
+        index_raw_instance = index % self.number_raw_instances
 
-            # LOAD
+        # Gather the item of each entry
+        for entry in entries:
+            entry_data, is_loaded, is_transformed = entry.__getitem__(index=index_raw_instance)
+
+            # LOAD THE ITEM
             if is_loaded is False:
                 entry_data = self.__load_data_from_str(data=entry_data,
-                                                       entry=entry,
-                                                       index=index)
-            # TRANSFORM
+                                                       entry=entry)
+
+            # TRANSFORM THE ITEM
             if is_transformed is False and augment is True:
                 entry_data = self.__transform_data(data=entry_data,
                                                    entry=entry,
                                                    index=index)
             data.append(entry_data)
 
+
         return data
 
-    def __generate_entries(self, entries: list, entry_type : Flag) -> List[Entry]:
+    def __generate_entries(self, entries: List[Namespace], entry_type : Flag) -> List[Entry]:
         """
         AUTHORS:
         --------
@@ -1458,18 +1496,18 @@ class DatasetFuture(object):
         PARAMETERS:
         -----------
 
-        :param entries (list): The list of raw entries
-        :param entry_type (Flag):
+        :param entries (List[Namespace]): The list of raw entries in a Namespace format
+        :param entry_type (Flag): The flag of the entry type
 
         RETURN:
         -------
 
         :return generated_entries (List(Entry)): The list of Entry instances generated
         """
-        # List of generated entries to a Entry class format
+        # List of generated entries to an Entry class format
         generated_entries = []
 
-        # For each entry in a dictionary format
+        # For each entry in a Namespace format
         for index, entry in enumerate(entries):
 
             # Check the completeness of the entry
@@ -1533,7 +1571,7 @@ class DatasetFuture(object):
 
         return entry
 
-    def __load_data_from_str(self, data: Union[str, List[str], Any], index: int, entry : Entry) -> List[Any]:
+    def __load_data_from_str(self, data: Union[str, List[str], Any], entry: Entry) -> Union[Any, List[Any]]:
         """
         AUTHORS:
         --------
@@ -1544,58 +1582,67 @@ class DatasetFuture(object):
         ------------
 
         Load a data from a string format to the actual content
+        Loads either one item or a list of items
 
         PARAMETERS:
         -----------
 
-        :param data (Union[str, List[str]]):
-        :param index (int):
-        :param entry (Entry):
+        :param data(Union[str, List[str]]): The data to transform
+        :param entry (Entry): The entry to which the item is attached
 
         RETURN:
         -------
 
-        :return:
+        :return loaded_data(Union[Any, List[Any]]): The loaded data
         """
 
-        loaded_data = []
+        loaded_data = None
 
         # Get data type index (only use the index for efficiency in the loop)
         dtype_flag_index = entry.get_data_type()()
 
         # Make sure the data contains something
         if data is not None:
-            # TODO : Check how sequence behaves
+
             # If data is a sequence we use the function in a recursive fashion
+            # SEQUENCE
             if dtype_flag_index == DEEP_DTYPE_SEQUENCE():
+                # Get the content of the list
                 sequence_raw_data = data.split()  # Generate a list from the sequence
-                loaded_data.append(self.__load_data_from_str(data=sequence_raw_data,
-                                                             index=index,
-                                                             entry=entry))  # Get the content of the list
+                loaded_data = []
+                for d in sequence_raw_data:
+                    ld = self.__load_data_from_str(data=d,
+                                                   entry=entry)
+                    loaded_data.append(ld)
+
             # IMAGE
             elif dtype_flag_index == DEEP_DTYPE_IMAGE():
-                image = self.__load_image(data)
-                if self.cv_library == DEEP_LIB_PIL:
-                    image = np.array(image)
+                # Load image
+                loaded_data = self.__load_image(data)
 
-                image = np.swapaxes(image, 0, 2).astype(float)
-                loaded_data.append(image)
-            # TODO : Check how video behaves
+                # If using PIL convert it to a numpy array
+                if self.cv_library == DEEP_LIB_PIL:
+                    loaded_data = np.array(loaded_data)
+
+                # Swap axes for PyTorch
+                loaded_data = np.swapaxes(loaded_data, 0, 2).astype(float)
+
             # VIDEO
             elif dtype_flag_index == DEEP_DTYPE_VIDEO():
-                video = self.__load_video(data)
-                loaded_data.append(video)
+                loaded_data = self.__load_video(data)
+
             # INTEGER
             elif dtype_flag_index == DEEP_DTYPE_INTEGER():
-                integer = int(data)
-                loaded_data.append(integer)
+                loaded_data = int(data)
+
             # FLOAT NUMBER
             elif dtype_flag_index == DEEP_DTYPE_FLOAT():
-                floating = float(data)
-                loaded_data.append(floating)
+                loaded_data = float(data)
+
             # NUMPY ARRAY
             elif dtype_flag_index == DEEP_DTYPE_NP_ARRAY():
-                loaded_data.append(np.load(data))
+                loaded_data = np.load(data)
+
             # Data type not recognized
             else:
                 Notification(DEEP_NOTIF_FATAL,
@@ -1604,9 +1651,10 @@ class DatasetFuture(object):
         # If the data is None
         else:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_IS_NONE % data)
+
         return loaded_data
 
-    def __transform_data(self, data : List[Any], index : int, entry : Entry) -> List[Any]:
+    def __transform_data(self, data: Union[Any, List[Any]], index: int, entry: Entry) -> Union[Any, List[Any]]:
         """
         AUTHORS:
         --------
@@ -1617,27 +1665,36 @@ class DatasetFuture(object):
         ------------
 
         Transform the data
+        Transform either one item or a list of item
 
         PARAMETERS:
         -----------
 
-        :param data:
-        :param index:
-        :param entry:
+        :param data(Union[Any, List[Any]]): The data to transform
+        :param index (int): The index of the instance
+        :param entry (Entry): The entry to which the item is attached
 
         RETURN:
         -------
 
-        :return data(Any): The transformed data
+        :return transformed_data(Union[Any, List[Any]]): The transformed data
         """
 
-        transformed_data = []
+        # If we want to transform a sequence we use the function recursively
+        if isinstance(data, list):
+            transformed_data = []
 
-        for d in data:
-            td = self.transform_manager.transform(data=d,
-                                                  index=index,
-                                                  entry=entry)
-            transformed_data.append(td)
+            for d in data:
+                td = self.__transform_data(data=d,
+                                           index=index,
+                                           entry=entry)
+                transformed_data.append(td)
+
+        # If it is only one item to transform
+        else:
+            transformed_data = self.transform_manager.transform(data=data,
+                                                                index=index,
+                                                                entry=entry)
 
         return transformed_data
 
@@ -1663,13 +1720,14 @@ class DatasetFuture(object):
         PARAMETERS:
         -----------
 
-        :param image_path->str: The path of the image to load
+        :param image_path(str): The path of the image to load
 
         RETURN:
         -------
 
         :return: The loaded image
         """
+        # LOAD USING OPENCV
         if self.cv_library() == DEEP_LIB_OPENCV():
             image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
             # Check that the image was correctly loaded
@@ -1679,6 +1737,8 @@ class DatasetFuture(object):
             if len(image.shape) > 2:
                 # Convert to BGR(a) to RGB(a)
                 return self.__convert_bgra2rgba(image)
+
+        # LOAD USING PIL
         elif self.cv_library() == DEEP_LIB_PIL():
             try:
                 return Image.open(image_path)
@@ -1747,7 +1807,7 @@ class DatasetFuture(object):
         self.__throw_warning_video()
         video = []
         # If the computer vision library selected is OpenCV
-        if self.cv_library == DEEP_LIB_OPENCV:
+        if self.cv_library() == DEEP_LIB_OPENCV():
             # try to load the file
             cap = cv2.VideoCapture(video_path)
             while True:
@@ -1803,7 +1863,7 @@ class DatasetFuture(object):
          PARAMETERS:
          -----------
 
-         None
+         :param cv_library(Flag): The flag of the computer vision library selected
 
          RETURN:
          -------
@@ -1888,4 +1948,67 @@ class DatasetFuture(object):
         except IndexError:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_ENTRY % entry)
 
+    def shuffle(self, method: Flag) -> None:
+        """
+        AUTHORS:
+        --------
 
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Shuffle the dataframe containing the data
+
+        PARAMETERS:
+        -----------
+
+        :param method (Flag): The shuffling method Flag
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        # ALL DATASET
+        if DEEP_SHUFFLE_ALL.corresponds(info=method):
+            self.item_order = np.random.randint(0, high=self.length, size=(self.length,))
+            Notification(DEEP_NOTIF_SUCCESS, "Dataset shuffled")
+
+        # NONE
+        elif DEEP_SHUFFLE_NONE.corresponds(info=method):
+            pass
+
+        # BATCHES
+        elif DEEP_SHUFFLE_BATCHES.corresponds(info=method):
+            Notification(DEEP_NOTIF_ERROR, "Batch shuffling not implemented yet.")
+
+        # WRONG FLAG
+        else:
+            Notification(DEEP_NOTIF_ERROR, "The shuffling method does not exist.")
+
+        # Reset the TransformManager
+        self.reset()
+
+    def reset(self) -> None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+        Reset the transform_manager
+
+        PARAMETERS:
+        -----------
+        None
+
+        RETURN:
+        -------
+        :return: None
+        """
+        if self.transform_manager is not None:
+            self.transform_manager.reset()
