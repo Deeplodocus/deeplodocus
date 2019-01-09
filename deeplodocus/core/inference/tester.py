@@ -82,7 +82,7 @@ class Tester(GenericEvaluator):
                          verbose=verbose)
 
 
-    def evaluate(self, model):
+    def evaluate(self, model : Module):
         """
         AUTHORS:
         --------
@@ -98,21 +98,14 @@ class Tester(GenericEvaluator):
         PARAMETERS:
         -----------
 
-        :param model->torch.nn.Module: The model which has to be trained
-        :param dataset->Dataset: The dataset to be trained on
-        :param metrics->dict: The metrics to analyze
-        :param losses->dict: The losses to use for the backpropagation
-        :param batch_size->int: Size a minibatch
-        :param num_workers->int: Number of processes / threads to use for data loading
-        :param verbose->int: DEEP_VERBOSE flag, How verbose the Trainer is
-
+        :param model (torch.nn.Module): The model which has to be trained
 
         RETURN:
         -------
 
-        :return sum_losses->dict: Sum of the losses over the test data set
-        :return total_losses->dict: Total losses for the model over the test data set
-        :return total_metrics->dict: Total metrics for the model over the test data set
+        :return sum_losses (dict): Sum of the losses over the test data set
+        :return total_losses (dict): Total losses for the model over the test data set
+        :return total_metrics (dict): Total metrics for the model over the test data set
         """
 
         # Make dictionaries like losses and metrics but initialised with lists
