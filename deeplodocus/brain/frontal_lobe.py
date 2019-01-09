@@ -19,7 +19,7 @@ from deeplodocus.core.metrics.metric import Metric
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.core.model.model import Model
 from deeplodocus.core.optimizer.optimizer import Optimizer
-from deeplodocus.data.dataset import  DatasetFuture
+from deeplodocus.data.dataset import  Dataset
 from deeplodocus.data.transform_manager import TransformManager
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
@@ -166,8 +166,8 @@ class FrontalLobe(object):
         self.load_optimizer()    # Always load the optimizer after the model
         self.load_losses()
         self.load_metrics()
+        self.load_validator()       # Always load the validator before the trainer
         self.load_trainer()
-        self.load_validator()
         self.load_tester()
         self.load_memory()
         self.summary()
@@ -343,6 +343,7 @@ class FrontalLobe(object):
 
         :return None
         """
+        # If the train step is enabled
         if self.config.data.enabled.train:
             Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.train.name)
 
@@ -350,9 +351,9 @@ class FrontalLobe(object):
             transform_manager = TransformManager(**self.config.transform.train.get())
 
             # Dataset
-            dataset = DatasetFuture(**self.config.data.dataset.train.get(),
-                                    transform_manager=transform_manager,
-                                    cv_library=self.config.project.cv_library)
+            dataset = Dataset(**self.config.data.dataset.train.get(),
+                              transform_manager=transform_manager,
+                              cv_library=self.config.project.cv_library)
 
             # Trainer
             self.trainer = Trainer(**self.config.data.dataloader.get(),
@@ -371,15 +372,38 @@ class FrontalLobe(object):
 
     def load_validator(self):
         """
-        Author: Alix Leroy and SW
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Load the validation inferer in memory
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
         :return: None
         """
+        # If the validation step is enabled
         if self.config.data.enabled.validation:
+            # Transform Manager
             transform_manager = TransformManager(**self.config.transform.validation.get())
+
             # Dataset
-            dataset = DatasetFuture(**self.config.data.dataset.train.get(),
-                                    transform_manager=transform_manager,
-                                    cv_library=self.config.project.cv_library)
+            dataset = Dataset(**self.config.data.dataset.train.get(),
+                              transform_manager=transform_manager,
+                              cv_library=self.config.project.cv_library)
+
+            # Validator
             self.validator = Tester(**self.config.data.dataloader.get(),
                                     model=self.model,
                                     dataset=dataset,
@@ -390,15 +414,38 @@ class FrontalLobe(object):
 
     def load_tester(self):
         """
-        Author: Alix Leroy and SW
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Load the test inferer in memory
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
         :return: None
         """
+        # If the test step is enabled
         if self.config.data.enabled.test:
+
+            # Transform Manager
             transform_manager = TransformManager(**self.config.transform.test.get())
+
             # Dataset
-            dataset = DatasetFuture(**self.config.data.dataset.train.get(),
-                                    transform_manager=transform_manager,
-                                    cv_library=self.config.project.cv_library)
+            dataset = Dataset(**self.config.data.dataset.train.get(),
+                              transform_manager=transform_manager,
+                              cv_library=self.config.project.cv_library)
+            # Tester
             self.tester = Tester(**self.config.data.dataloader.get(),
                                  model=self.model,
                                  dataset=dataset,
