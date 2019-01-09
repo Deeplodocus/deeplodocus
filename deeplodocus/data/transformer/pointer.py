@@ -101,3 +101,6 @@ class Pointer(object):
         else :
             Notification(DEEP_NOTIF_FATAL, "The type of the following transformer's pointer does not exist, please check the documentation : " + str(self.name))
 
+    @staticmethod
+    def has_transforms():
+        return True

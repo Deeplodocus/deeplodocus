@@ -327,3 +327,7 @@ class Transformer(object):
         video = [self.normalize_image(frame) for frame in video]
 
         return video
+
+    @staticmethod
+    def has_transforms():
+        return True
