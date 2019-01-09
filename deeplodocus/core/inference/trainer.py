@@ -1,28 +1,22 @@
-#
-# COMMON IMPORTS
-#
-
-#
-# BACKEND IMPORTS
-#
+# Backend imports
 from torch.nn import Module
 from torch import Tensor
-#
-# DEEPLODOCUS IMPORTS
-#
 
+# Deeplodocus imports
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.tester import Tester
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.dict_utils import apply_weight
 from deeplodocus.utils.dict_utils import sum_dict
-from deeplodocus.utils.flags import *
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.event import *
-from deeplodocus.utils.flags.shuffle import * 
 from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.brain.signal import Signal
+
+# Deeplodocus flags
+from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.flags.event import *
+from deeplodocus.utils.flags.shuffle import *
 
 
 class Trainer(GenericEvaluator):
@@ -240,8 +234,6 @@ class Trainer(GenericEvaluator):
                                                 "result_validation_metrics" : result_validation_metrics,
                                                 "num_minibatches_validation" : self.tester.get_num_minibatches()
                                                }))
-
-
         # Send signal end training
         Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_TRAINING_END,
                                      args={"model": self.model}))
