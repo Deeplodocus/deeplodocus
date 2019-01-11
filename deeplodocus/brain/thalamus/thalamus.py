@@ -9,6 +9,7 @@ from deeplodocus.brain.signal import Signal
 from deeplodocus.utils.singleton import Singleton
 from deeplodocus.brain.connection import Connection
 
+
 class Thalamus(metaclass=Singleton):
     """
     AUTHORS:
@@ -27,7 +28,6 @@ class Thalamus(metaclass=Singleton):
     TODO : Has to be tested when communicating with the visual cortex
     """
 
-
     def __init__(self):
         """
         AUTHORS:
@@ -45,7 +45,6 @@ class Thalamus(metaclass=Singleton):
         self.signals = multiprocessing.Manager().Queue()                   # To be used once asynchronous brain is implemented
         self.connections = {}                          # Connections store in a dictionary
         Notification(DEEP_NOTIF_SUCCESS, "Brain : Thalamus running")
-
 
     def add_signal(self, signal: Signal):
         """

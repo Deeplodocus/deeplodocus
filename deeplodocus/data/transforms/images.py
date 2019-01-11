@@ -82,8 +82,8 @@ def adjust_gamma(image, gamma):
     PARAMETERS:
     -----------
 
-    :param image->np.array: The image to transform
-    :param gamma->float: Gamma value
+    :param image -> np.array: The image to transform
+    :param gamma -> float: Gamma value
 
     RETURN:
     -------
@@ -97,7 +97,7 @@ def adjust_gamma(image, gamma):
     return cv2.LUT(image, table), None
 
 
-def resize(image: np.array, shape, keep_aspect: bool = True, padding: int = 0):
+def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0):
     """
     AUTHORS:
     --------
@@ -123,7 +123,7 @@ def resize(image: np.array, shape, keep_aspect: bool = True, padding: int = 0):
 
     :return->np.array: Image of size shape
     """
-
+    print("Here")
     # If we want to reduce the image
     if image.shape[0] * image.shape[1] > shape[0] * shape[1]:
         interpolation = cv2.INTER_LINEAR_EXACT  # Use the Bilinear Interpolation

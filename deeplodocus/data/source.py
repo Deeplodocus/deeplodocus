@@ -15,7 +15,7 @@ from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.load import *
 
-
+import cv2
 class Source(object):
     """
     AUTHORS:
@@ -36,7 +36,7 @@ class Source(object):
                                          - Specific server (work in progress)
     """
 
-    def __init__(self, source: str, join : str):
+    def __init__(self, source: str, join: str):
         self.source = source
         self.type = self.__check_source_type(source)
         self.join = join
@@ -385,8 +385,8 @@ class Source(object):
         if self.join.lower() == "auto":
             data = "/".join([os.path.dirname(self.source), data])
         elif os.path.isdir(self.join):
-            data = "/".join([os.path.dirname(self.join), data])
-        else :
+            data = "/".join([self.join, data])
+        else:
             Notification(DEEP_NOTIF_FATAL, "The following folder couldn't be joined to the filepath : %s " % str(self.join))
         return data
 

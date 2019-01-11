@@ -13,8 +13,6 @@ from deeplodocus.utils.errors import error_entry_array_size
 from deeplodocus.utils.namespace import Namespace
 
 # Deeplodocus flags imports
-from deeplodocus.utils.flags.entry import *
-from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.lib import *
@@ -23,6 +21,7 @@ from deeplodocus.utils.flags.load import *
 
 # Temporary until Namespace fix
 import ast
+
 
 class DatasetLegacy(object):
     """
@@ -773,6 +772,8 @@ class DatasetLegacy(object):
             if len(image.shape) > 2:
                 # Convert to RGB(a)
                 return self.__convert_bgra2rgba(image)
+            else:
+                return image[:, :, np.newaxis]
         elif self.cv_library == DEEP_LIB_PIL:
             try:
                 return Image.open(image_path)
@@ -1165,9 +1166,8 @@ from deeplodocus.utils.generic_utils import get_corresponding_flag
 from deeplodocus.utils.flags.source import *
 from deeplodocus.utils.flags.flag_lists import *
 
+
 class Dataset(object):
-
-
     """
     AUTHORS:
     --------
@@ -1204,7 +1204,7 @@ class Dataset(object):
                  number=None,
                  name="Default",
                  use_raw_data=True,
-                 cv_library : Flag = DEEP_LIB_PIL,
+                 cv_library: Flag = DEEP_LIB_PIL,
                  transform_manager=None):
         """
         AUTHORS:
@@ -1237,7 +1237,7 @@ class Dataset(object):
         self.list_labels = self.__generate_entries(entries=self.__check_null_entry(labels), entry_type=DEEP_ENTRY_LABEL)
         self.list_additional_data = self.__generate_entries(entries=self.__check_null_entry(additional_data), entry_type=DEEP_ENTRY_ADDITIONAL_DATA)
         self.number_raw_instances = self.__calculate_number_raw_instances()
-        self.length = self.__compute_length(desired_length=number, num_raw_instances = self.number_raw_instances)
+        self.length = self.__compute_length(desired_length=number, num_raw_instances=self.number_raw_instances)
         self.name = name
         self.transform_manager = transform_manager
         self.use_raw_data = use_raw_data
@@ -1246,7 +1246,7 @@ class Dataset(object):
         self.set_cv_library(cv_library)
         self.item_order = np.arange(self.length)
 
-    def __getitem__(self, index : int):
+    def __getitem__(self, index: int):
         """
         AUTHORS:
         --------
@@ -1287,8 +1287,6 @@ class Dataset(object):
         # If we ask for a raw data, augment it only if required by the user
         else:
             augment = not self.use_raw_data
-
-
 
         # Extract lists of raw data for the selected index
         if not self.list_labels:
@@ -1393,6 +1391,7 @@ class Dataset(object):
                 return desired_length
             else:
                 Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_LENGTH % num_raw_instances)
+                return desired_length
 
     def __calculate_number_raw_instances(self) -> int:
         """
@@ -1620,10 +1619,6 @@ class Dataset(object):
                 # Load image
                 loaded_data = self.__load_image(data)
 
-                # If using PIL convert it to a numpy array
-                if self.cv_library == DEEP_LIB_PIL:
-                    loaded_data = np.array(loaded_data)
-
                 # Swap axes for PyTorch
                 loaded_data = np.swapaxes(loaded_data, 0, 2).astype(float)
 
@@ -1734,14 +1729,17 @@ class Dataset(object):
             if image is None:
                 Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_LOAD_IMAGE % ("OpenCV", image_path))
             # If the image is not grayscale
-            if len(image.shape) > 2:
+            if image.ndim > 2:
                 # Convert to BGR(a) to RGB(a)
                 return self.__convert_bgra2rgba(image)
+            else:
+                image = image[:, :, np.newaxis]
+                return image
 
         # LOAD USING PIL
         elif self.cv_library() == DEEP_LIB_PIL():
             try:
-                return Image.open(image_path)
+                return np.array(Image.open(image_path))
             except FileNotFoundError:
                 Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_FIND_IMAGE % ("PIL", image_path))
             except OSError:
