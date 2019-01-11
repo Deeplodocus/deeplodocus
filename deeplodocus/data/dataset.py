@@ -987,7 +987,6 @@ class DatasetLegacy(object):
             else:
                 Notification(DEEP_NOTIF_FATAL, "The following loading method does not exist : %s" %str(load_method))
 
-
     def __check_data(self):
         """
         Author : Alix Leroy
@@ -1476,8 +1475,6 @@ class Dataset(object):
                                                    entry=entry,
                                                    index=index)
             data.append(entry_data)
-
-
         return data
 
     def __generate_entries(self, entries: List[Namespace], entry_type : Flag) -> List[Entry]:

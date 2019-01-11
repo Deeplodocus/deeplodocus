@@ -123,7 +123,7 @@ def load_model(name, module, kwargs, input_size=None, batch_size=None):
             for h in hooks:
                 h.remove()
 
-            Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
+            Notification(DEEP_NOTIF_INFO, '================================================================')
             line_new = '{:>20}  {:>25} {:>15}'.format('Layer (type)', 'Output Shape', 'Param #')
             Notification(DEEP_NOTIF_INFO, line_new)
             Notification(DEEP_NOTIF_INFO, '================================================================')

@@ -174,8 +174,8 @@ class FrontalLobe(object):
         self.load_optimizer()    # Always load the optimizer after the model
         self.load_losses()
         self.load_metrics()
-        self.load_validator()       # Always load the validator before the trainer
         self.load_trainer()
+        self.load_validator()       # Always load the validator before the trainer
         self.load_tester()
         self.load_memory()
         # self.summary()
@@ -209,8 +209,8 @@ class FrontalLobe(object):
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % model_name)
 
         # Load the model with model.kwargs from the config
-        # self.model = Model(**self.config.model.get()).load()
-        self.model = load_model(**self.config.model.get(), batch_size=self.config.data.dataloader.batch_size)
+        self.model = load_model(**self.config.model.get(),
+                                batch_size=self.config.data.dataloader.batch_size)
 
         # Put model on the required hardware
         self.model.to(self.device)
@@ -421,7 +421,7 @@ class FrontalLobe(object):
             transform_manager = TransformManager(**self.config.transform.validation.get())
 
             # Dataset
-            dataset = Dataset(**self.config.data.dataset.train.get(),
+            dataset = Dataset(**self.config.data.dataset.validation.get(),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
 
@@ -464,7 +464,7 @@ class FrontalLobe(object):
             transform_manager = TransformManager(**self.config.transform.test.get())
 
             # Dataset
-            dataset = Dataset(**self.config.data.dataset.train.get(),
+            dataset = Dataset(**self.config.data.dataset.test.get(),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
             # Tester
@@ -504,16 +504,15 @@ class FrontalLobe(object):
 
             # The hippocampus (brain/memory/hippocampus) temporary  handles the saver and the history
             self.hippocampus = Hippocampus(losses=self.losses,
-                                           metrics = self.metrics,
-                                           model_name = self.config.model.name,
-                                           verbose = self.config.history.verbose,
-                                           memorize = self.config.history.memorize,
+                                           metrics=self.metrics,
+                                           model_name=self.config.model.name,
+                                           verbose=self.config.history.verbose,
+                                           memorize=self.config.history.memorize,
                                            history_directory=DEEP_PATH_HISTORY,
-                                           overwatch_metric= overwatch_metric,
+                                           overwatch_metric=overwatch_metric,
                                            save_model_condition=self.config.training.save_condition,
                                            save_model_directory=DEEP_PATH_SAVE_MODEL,
                                            save_model_method=self.config.training.save_method)
-
 
     @staticmethod
     def __model_has_multiple_inputs(list_inputs):
