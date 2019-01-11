@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 # Python imports
-from collections import OrderedDict
-import numpy as np
 import inspect
 
 # Back-end imports
@@ -17,9 +15,9 @@ from deeplodocus.core.inference.trainer import Trainer
 from deeplodocus.core.metrics.loss import Loss
 from deeplodocus.core.metrics.metric import Metric
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
-from deeplodocus.core.model.model import Model
+from deeplodocus.core.model.model import load_model
 from deeplodocus.core.optimizer.optimizer import Optimizer
-from deeplodocus.data.dataset import  Dataset
+from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
@@ -211,7 +209,8 @@ class FrontalLobe(object):
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % model_name)
 
         # Load the model with model.kwargs from the config
-        self.model = Model(**self.config.model.get()).load()
+        # self.model = Model(**self.config.model.get()).load()
+        self.model = load_model(**self.config.model.get(), batch_size=self.config.data.dataloader.batch_size)
 
         # Put model on the required hardware
         self.model.to(self.device)
@@ -515,167 +514,6 @@ class FrontalLobe(object):
                                            save_model_directory=DEEP_PATH_SAVE_MODEL,
                                            save_model_method=self.config.training.save_method)
 
-    def summary(self):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-
-        Summarise the model
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return: None
-        """
-
-        if self.config.model.get("input_size", None):
-            self.__summary(model=self.model,
-                           input_size=self.config.model.input_size,
-                           losses=self.losses,
-                           metrics=self.metrics,
-                           batch_size=self.config.data.dataloader.batch_size)
-        else:
-            Notification(DEEP_NOTIF_ERROR, "Model's input size not given, the summary cannot be displayed.")
-
-    def __summary(self, model, input_size, losses, metrics, batch_size=-1, device="cuda"):
-        """
-        AUTHORS:
-        --------
-
-        :author:  https://github.com/sksq96/pytorch-summary
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Print a summary of the current model
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return: None
-        """
-
-        def register_hook(module):
-
-            def hook(module, input, output):
-                class_name = str(module.__class__).split(".")[-1].split("'")[0]
-                module_idx = len(summary)
-                m_key = "%s-%i" % (class_name, module_idx + 1)
-                summary[m_key] = OrderedDict()
-                summary[m_key]["input_shape"] = list(input[0].size())
-                summary[m_key]["input_shape"][0] = batch_size
-                if isinstance(output, (list, tuple)):
-                    summary[m_key]["output_shape"] = [[-1] + list(o.size())[1:] for o in output]
-                else:
-                    summary[m_key]["output_shape"] = list(output.size())
-                    summary[m_key]["output_shape"][0] = batch_size
-                params = 0
-                if hasattr(module, "weight") and hasattr(module.weight, "size"):
-                    params += torch.prod(torch.LongTensor(list(module.weight.size())))
-                    summary[m_key]["trainable"] = module.weight.requires_grad
-                if hasattr(module, "bias") and hasattr(module.bias, "size"):
-                    params += torch.prod(torch.LongTensor(list(module.bias.size())))
-                summary[m_key]["nb_params"] = params
-
-            if (
-                    not isinstance(module, nn.Sequential)
-                    and not isinstance(module, nn.ModuleList)
-                    and not (module == model)
-            ):
-                hooks.append(module.register_forward_hook(hook))
-
-        # Batch_size of 2 for batchnorm
-        x = [torch.rand(2, *in_size) for in_size in input_size]
-
-        # Move the batch to the same device as the model
-        x = [i.to(model.device) for i in x]
-
-        # Create properties
-        summary = OrderedDict()
-        hooks = []
-
-        # Register hook
-        model.apply(register_hook)
-
-        # Make a forward pass
-        model(*x)
-
-        # Remove these hooks
-        for h in hooks:
-            h.remove()
-
-        Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
-        line_new = '{:>20}  {:>25} {:>15}'.format('Layer (type)', 'Output Shape', 'Param #')
-        Notification(DEEP_NOTIF_INFO, line_new)
-        Notification(DEEP_NOTIF_INFO, '================================================================')
-        total_params = 0
-        total_output = 0
-        trainable_params = 0
-        for layer in summary:
-            # Input_shape, output_shape, trainable, nb_params
-            line_new = '{:>20}  {:>25} {:>15}'.format(layer, str(summary[layer]['output_shape']),
-                                                      '{0:,}'.format(summary[layer]['nb_params']))
-            total_params += summary[layer]['nb_params']
-            total_output += np.prod(summary[layer]["output_shape"])
-            if 'trainable' in summary[layer]:
-                if summary[layer]['trainable'] == True:
-                    trainable_params += summary[layer]['nb_params']
-            Notification(DEEP_NOTIF_INFO, line_new)
-
-        # Assume 4 bytes/number (float on cuda).
-        total_input_size = abs(np.prod(input_size) * batch_size * 4. / (1024 ** 2.))
-        total_output_size = abs(2. * total_output * 4. / (1024 ** 2.))  # x2 for gradients
-        total_params_size = abs(total_params.numpy() * 4. / (1024 ** 2.))
-        total_size = total_params_size + total_output_size + total_input_size
-
-        Notification(DEEP_NOTIF_INFO, '================================================================')
-        Notification(DEEP_NOTIF_INFO, 'Total params: {0:,}'.format(total_params))
-        Notification(DEEP_NOTIF_INFO, 'Trainable params: {0:,}'.format(trainable_params))
-        Notification(DEEP_NOTIF_INFO, 'Non-trainable params: {0:,}'.format(total_params - trainable_params))
-        Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
-        Notification(DEEP_NOTIF_INFO, "Input size (MB): %0.2f" % total_input_size)
-        Notification(DEEP_NOTIF_INFO, "Forward/backward pass size (MB): %0.2f" % total_output_size)
-        Notification(DEEP_NOTIF_INFO, "Params size (MB): %0.2f" % total_params_size)
-        Notification(DEEP_NOTIF_INFO, "Estimated Total Size (MB): %0.2f" % total_size)
-        Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
-
-        # List of metrics
-        Notification(DEEP_NOTIF_INFO, "LIST OF METRICS :")
-        Notification(DEEP_NOTIF_INFO, '================================================================')
-        for metric_name, metric in metrics.items():
-            Notification(DEEP_NOTIF_INFO, "%s : " % metric_name)
-
-        # List of loss functions
-        Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
-        Notification(DEEP_NOTIF_INFO, "LIST OF LOSS FUNCTIONS :")
-        Notification(DEEP_NOTIF_INFO, '================================================================')
-        for loss_name, loss in losses.items():
-            Notification(DEEP_NOTIF_INFO, "%s :" % loss_name)
-
-        # Optimizer
-        Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
-        Notification(DEEP_NOTIF_INFO, "OPTIMIZER :" + str(self.config.optimizer.name))
-        Notification(DEEP_NOTIF_INFO, '================================================================')
-        for key, value in self.config.optimizer.kwargs.get().items():
-            if key != "name":
-                Notification(DEEP_NOTIF_INFO, "%s : %s" %(key, value))
 
     @staticmethod
     def __model_has_multiple_inputs(list_inputs):
