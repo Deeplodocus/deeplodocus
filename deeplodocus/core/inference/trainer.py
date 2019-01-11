@@ -89,8 +89,6 @@ class Trainer(GenericEvaluator):
                          batch_size=batch_size,
                          num_workers=num_workers,
                          verbose=verbose)
-
-
         self.shuffle = shuffle
         self.optimizer = optimizer
         self.initial_epoch = initial_epoch
@@ -283,7 +281,6 @@ class Trainer(GenericEvaluator):
 
         return outputs, total_loss, result_losses, result_metrics
 
-
     def __continue_training(self):
         """
         AUTHORS:
@@ -359,8 +356,6 @@ class Trainer(GenericEvaluator):
             total_validation_loss, result_losses, result_metrics = self.tester.evaluate(model=self.model)
         return total_validation_loss, result_losses, result_metrics
 
-
-
     def saving_required(self, saving_required: bool):
         """
         AUTHORS:
@@ -376,7 +371,7 @@ class Trainer(GenericEvaluator):
         PARAMETERS:
         -----------
 
-        :param saving_required (bool): Whether saving the model is required or not
+        :param saving_required: (bool): Whether saving the model is required or not
 
         RETURN:
         -------
