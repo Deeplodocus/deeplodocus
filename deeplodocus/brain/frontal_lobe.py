@@ -26,7 +26,7 @@ from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.module import *
-from deeplodocus.utils.flags.config import DEEP_CONFIG_ENABLED
+from deeplodocus.utils.flags.config import DEEP_CONFIG_AUTO
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
@@ -88,6 +88,17 @@ class FrontalLobe(object):
         self.losses = None
         self.optimizer = None
         self.hippocampus = None
+        self.device = None
+
+    def set_device(self):
+        try:
+            if self.config.project.device == DEEP_CONFIG_AUTO:
+                self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            else:
+                self.device = torch.device(self.config.project.device)
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_PROJECT_DEVICE % str(self.device))
+        except TypeError:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_PROJECT_DEVICE_NOT_FOUND % self.config.project.device)
 
     def train(self):
         """
@@ -112,7 +123,6 @@ class FrontalLobe(object):
 
         :return: None
         """
-
         self.trainer.fit() if self.trainer is not None else Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TRAINER)
 
     def evaluate(self):
@@ -170,7 +180,7 @@ class FrontalLobe(object):
         self.load_trainer()
         self.load_tester()
         self.load_memory()
-        self.summary()
+        # self.summary()
 
     def load_model(self):
         """
@@ -193,10 +203,23 @@ class FrontalLobe(object):
 
         :return model->torch.nn.Module:  The model
         """
+        # If a module is specified, edit the model name to include the module (for notification purposes)
         model_name = self.config.model.name if self.config.model.module is None \
             else "%s from %s" % (self.config.model.name, self.config.model.module)
+
+        # Notify the user which model is being collected and from where
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % model_name)
+
+        # Load the model with model.kwargs from the config
         self.model = Model(**self.config.model.get()).load()
+
+        # Put model on the required hardware
+        self.model.to(self.device)
+
+        # Store the device the model is on for
+        self.model.device = self.device
+
+        # Notify the user of success
         Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED % (self.config.model.name, self.model.__module__))
 
     def load_optimizer(self):
@@ -478,8 +501,7 @@ class FrontalLobe(object):
         """
         if self.losses is not None and self.metrics is not None:
 
-            overwatch_metric = OverWatchMetric(name=self.config.training.overwatch_metric,
-                                               condition=self.config.training.overwatch_condition)
+            overwatch_metric = OverWatchMetric(**self.config.training.overwatch.get())
 
             # The hippocampus (brain/memory/hippocampus) temporary  handles the saver and the history
             self.hippocampus = Hippocampus(losses=self.losses,
@@ -579,25 +601,11 @@ class FrontalLobe(object):
             ):
                 hooks.append(module.register_forward_hook(hook))
 
-        # Check device
-        device = device.lower()
-        try:
-            assert device in ["cuda", "cpu"]
-        except AssertionError:
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_INVALID_DEVICE % device)
-
-        # Set data type depending on device
-        if device == "cuda" and torch.cuda.is_available():
-            dtype = torch.cuda.FloatTensor
-        else:
-            dtype = torch.FloatTensor
-
-        # Multiple inputs to the network
-        if self.__model_has_multiple_inputs(self.config.data.dataset.train.inputs) is False:
-            input_size = [input_size]
-
         # Batch_size of 2 for batchnorm
-        x = [torch.rand(2, *in_size).type(dtype) for in_size in input_size]
+        x = [torch.rand(2, *in_size) for in_size in input_size]
+
+        # Move the batch to the same device as the model
+        x = [i.to(model.device) for i in x]
 
         # Create properties
         summary = OrderedDict()

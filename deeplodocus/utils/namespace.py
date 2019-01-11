@@ -166,10 +166,11 @@ class Namespace(object):
         Note: the function is recursive and sub-dictionaries are represented as sub-Namespaces.
         """
         namespace = Namespace()
-        for key, item in dictionary.items():
-            if isinstance(item, dict):
-                item = self.__dict2namespace(item)
-            namespace.__add({key: item})
+        if dictionary is not None:
+            for key, item in dictionary.items():
+                if isinstance(item, dict):
+                    item = self.__dict2namespace(item)
+                namespace.__add({key: item})
         return namespace
 
     def __yaml2namespace(self, file_name):

@@ -21,6 +21,7 @@ from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
 from deeplodocus.utils.notification import Notification
 
+
 class GenericEvaluator(GenericInferer):
     """
     AUTHORS:

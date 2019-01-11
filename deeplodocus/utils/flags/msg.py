@@ -28,6 +28,16 @@ DEEP_MSG_CONTINUE = "Do you wish to continue ? (y/n)"
 # Deep Info
 DEEP_MSG_PROJECT_NOT_GENERATED = "Project not generated"
 
+####################
+# DEEP_MSG_PROJECT #
+####################
+
+# DEEP_SUCCESS
+DEEP_MSG_PROJECT_DEVICE = "Device set : %s"
+
+# DEEP_FATAL
+EEP_MSG_PROJECT_DEVICE_NOT_FOUND = "Device not found : %s"
+
 ###################
 # DEEP_MSG_CONFIG #
 ###################
