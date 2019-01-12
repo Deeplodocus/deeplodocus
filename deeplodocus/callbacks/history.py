@@ -43,8 +43,8 @@ class History(object):
                  validation_filename: str = "history_validation.csv",
                  verbose: int = DEEP_VERBOSE_BATCH,
                  memorize: int = DEEP_MEMORIZE_BATCHES,
-                 save_condition: int = DEEP_SAVE_CONDITION_END_EPOCH, # DEEP_SAVE_CONDITION_END_TRAINING to save at the end of training, DEEP_SAVE_CONDITION_END_EPOCH to save at the end of the epoch,
-                 overwatch_metric:OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
+                 save_condition: int = DEEP_SAVE_CONDITION_END_EPOCH,    # DEEP_SAVE_CONDITION_END_TRAINING to save at the end of training, DEEP_SAVE_CONDITION_END_EPOCH to save at the end of the epoch,
+                 overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
                  ):
         self.log_dir = log_dir
         self.verbose = verbose
@@ -64,9 +64,15 @@ class History(object):
         self.validation_history = multiprocessing.Manager().Queue()
 
         # Add headers to history files
-        train_batches_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
-        train_epochs_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
-        validation_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS] + list(losses.keys()) + list(metrics.keys()))
+        train_batches_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS]
+                                         + list(vars(losses).keys())
+                                         + list(vars(metrics).keys()))
+        train_epochs_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS]
+                                        + list(vars(losses).keys())
+                                        + list(vars(metrics).keys()))
+        validation_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS]
+                                      + list(vars(losses).keys())
+                                      + list(vars(metrics).keys()))
 
         self.__add_logs("history_train_batches", log_dir, ".csv", train_batches_headers)
         self.__add_logs("history_train_epochs", log_dir, ".csv", train_epochs_headers)

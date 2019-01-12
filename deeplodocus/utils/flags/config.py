@@ -44,7 +44,7 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {DEEP_CONFIG_DTYPE: str,
                                      "device": {DEEP_CONFIG_DTYPE: str,
                                                 DEEP_CONFIG_DEFAULT: DEEP_CONFIG_AUTO},
                                      "gpus": {DEEP_CONFIG_DTYPE: str,
-                                                DEEP_CONFIG_DEFAULT: DEEP_CONFIG_AUTO},
+                                              DEEP_CONFIG_DEFAULT: DEEP_CONFIG_AUTO},
                                      "logs": {"history_train_batches": {DEEP_CONFIG_DTYPE: bool,
                                                                         DEEP_CONFIG_DEFAULT: True},
                                               "history_train_epochs": {DEEP_CONFIG_DTYPE: bool,
@@ -55,7 +55,7 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {DEEP_CONFIG_DTYPE: str,
                                                                DEEP_CONFIG_DEFAULT: True}
                                               },
                                      "on_wake": {DEEP_CONFIG_DTYPE: [str],
-                                                 DEEP_CONFIG_DEFAULT: []}
+                                                 DEEP_CONFIG_DEFAULT: None}
                                      },
                DEEP_CONFIG_MODEL: {"module": {DEEP_CONFIG_DTYPE: str,
                                               DEEP_CONFIG_DEFAULT: None},

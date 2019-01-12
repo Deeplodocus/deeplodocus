@@ -3,6 +3,7 @@ from torch.nn import Module
 
 Num = Union[int, float]
 
+
 class GenericMetric(object):
     """
     AUTHORS:
