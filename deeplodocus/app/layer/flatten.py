@@ -1,5 +1,5 @@
+# Backend import
 from torch import nn
-
 
 # Should only be used in a Sequential construction mode (Not recommended approach)
 class Flatten(nn.Module):
