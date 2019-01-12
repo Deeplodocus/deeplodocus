@@ -69,6 +69,7 @@ DEEP_MSG_DATA_ENTRY = "Please check the following entry format : %s"
 
 # DEEP WARNING
 DEEP_MSG_DATA_SHORTER = "Dataset contains %i instances : Using just %i instances"
+DEEP_MSG_DATA_TOO_LONG = "Dataset number %i exceeds the number of instances : Using just %i instances"
 
 # DEEP_INFO
 DEEP_MSG_DATA_SUMMARY = "Summary of the '%s' dataset :\n%s"

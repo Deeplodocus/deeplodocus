@@ -72,7 +72,6 @@ class Trainer(GenericEvaluator):
         :param verbose->int: DEEP_VERBOSE flag, How verbose the Trainer is
         :param memorize->int: DEEP_MEMORIZE flag, what data to save
         :param save_condition->int: DEEP_SAVE flag, when to save the results
-        :param stopping_parameters:
         :param tester->Tester: The tester to use for validation
         :param model_name->str: The name of the model
 
@@ -102,12 +101,14 @@ class Trainer(GenericEvaluator):
             self.tester = None
 
         # Early stopping
-        #self.stopping = Stopping(stopping_parameters)
+        # self.stopping = Stopping(stopping_parameters)
 
         #
         # Connect signals
         #
-        Thalamus().connect(receiver=self.saving_required, event=DEEP_EVENT_SAVING_REQUIRED, expected_arguments=["saving_required"])
+        Thalamus().connect(receiver=self.saving_required,
+                           event=DEEP_EVENT_SAVING_REQUIRED,
+                           expected_arguments=["saving_required"])
 
     def fit(self, first_training: bool = True)->None:
         """
@@ -124,7 +125,7 @@ class Trainer(GenericEvaluator):
         PARAMETERS:
         -----------
 
-        :param first_training(bool, optional): Whether it is the first training on the model or not
+        :param first_training: (bool, optional): Whether it is the first training on the model or not
 
         RETURN:
         -------
@@ -136,7 +137,7 @@ class Trainer(GenericEvaluator):
         # Prompt if the user want to continue the training
         self.__continue_training()
 
-    def __train(self, first_training=True)->None:
+    def __train(self, first_training=True) -> None:
         """
         AUTHORS:
         --------

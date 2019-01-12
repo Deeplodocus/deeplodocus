@@ -376,7 +376,6 @@ class FrontalLobe(object):
             dataset = Dataset(**self.config.data.dataset.train.get(),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
-
             # Trainer
             self.trainer = Trainer(**self.config.data.dataloader.get(),
                                    model=self.model,
