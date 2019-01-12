@@ -569,7 +569,6 @@ class Brain(FrontalLobe):
                 self.__illegal_command_messages(command)
         return self.__get_command_flags(commands)
 
-
     @staticmethod
     def __illegal_command_messages(command):
         """

@@ -3,6 +3,7 @@ from deeplodocus.utils.flags.source import *
 from deeplodocus.utils.flags.load import *
 from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags.lib import *
+from deeplodocus.utils.flags.shuffle import *
 
 # DATA TYPES
 DEEP_LIST_DTYPE = [DEEP_DTYPE_IMAGE,
@@ -36,3 +37,7 @@ DEEP_LIST_POINTER_ENTRY = [DEEP_ENTRY_INPUT,
 # COMPUTER VISION LIBRARIES
 DEEP_LIST_CV_LIB = [DEEP_LIB_PIL,
                     DEEP_LIB_OPENCV]
+
+DEEP_LIST_SHUFFLE = [DEEP_SHUFFLE_NONE,
+                     DEEP_SHUFFLE_BATCHES,
+                     DEEP_SHUFFLE_ALL]

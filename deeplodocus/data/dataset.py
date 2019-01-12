@@ -617,6 +617,8 @@ class Dataset(object):
         if image is None:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_LOAD_IMAGE % (self.cv_library.name, image_path))
 
+        image = cv2.resize(image, (256, 128))
+
         # If image is not gray-scale, convert to rgba, else add extra channel
         if image.ndim > 2:
             image = self.__convert_bgra2rgba(image)
@@ -847,11 +849,10 @@ class Dataset(object):
 
         :return: None
         """
-
         # ALL DATASET
         if DEEP_SHUFFLE_ALL.corresponds(info=method):
             self.item_order = np.random.randint(0, high=self.length, size=(self.length,))
-            Notification(DEEP_NOTIF_SUCCESS, "Dataset shuffled")
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_SHUFFLE_COMPLETE % method.name)
 
         # NONE
         elif DEEP_SHUFFLE_NONE.corresponds(info=method):
@@ -863,7 +864,7 @@ class Dataset(object):
 
         # WRONG FLAG
         else:
-            Notification(DEEP_NOTIF_ERROR, "The shuffling method does not exist.")
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_SHUFFLE_NOT_FOUND % method.name)
 
         # Reset the TransformManager
         self.reset()
