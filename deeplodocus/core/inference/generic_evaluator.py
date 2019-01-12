@@ -114,7 +114,7 @@ class GenericEvaluator(GenericInferer):
         # Temporary variable for saving the output
         temp_metric_result = None
 
-        for key, metric in metrics.items():
+        for key, metric in vars(metrics).items():
             metric_args = metric.get_arguments()
             metric_method = metric.get_method()
 

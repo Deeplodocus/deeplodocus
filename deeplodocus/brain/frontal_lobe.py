@@ -177,7 +177,6 @@ class FrontalLobe(object):
         self.load_validator()       # Always load the validator before the trainer
         self.load_tester()
         self.load_memory()
-        # self.summary()
 
     def load_model(self):
         """

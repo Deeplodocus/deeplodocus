@@ -1,19 +1,6 @@
-#
-# COMMON IMPORTS
-#
-
-
-
-#
-# BACKEND IMPORTS
-#
 
 import torch
 import torch.nn as nn
-
-#
-# DEEPLDODOCUS IMPORTS
-#
 
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.utils import dict_utils
@@ -150,7 +137,7 @@ class Tester(GenericEvaluator):
 
         return sum_losses, total_losses, total_metrics
 
-    def set_metrics(self, metrics:dict):
+    def set_metrics(self, metrics: dict):
         """
         AUTHORS:
         --------
@@ -165,7 +152,7 @@ class Tester(GenericEvaluator):
         PARAMETERS:
         -----------
 
-        :param metrics->dict: The metrics we want to analyze
+        :param metrics: dict: The metrics we want to analyze
 
         RETURN:
         -------
@@ -189,7 +176,7 @@ class Tester(GenericEvaluator):
         PARAMETERS:
         -----------
 
-        :param losses->dict: The losses we want to analyze
+        :param losses: dict: The losses we want to analyze
 
         RETURN:
         -------
