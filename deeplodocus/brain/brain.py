@@ -93,6 +93,7 @@ class Brain(FrontalLobe):
         self.config = None
         self._config = None
         self.load_config()
+        self.set_device()
         Thalamus()                          # Signal Manager
 
     """
@@ -388,13 +389,6 @@ class Brain(FrontalLobe):
         for name, value in dictionary.items():
             if isinstance(value, dict):
                 keys = list(self.config.get(sub_space)) if name is DEEP_CONFIG_WILDCARD else [name]
-                if DEEP_CONFIG_ENABLED in keys:
-                    try:
-                        enabled = self.config.get(sub_space)[DEEP_CONFIG_ENABLED]
-                    except KeyError:
-                        enabled = dictionary[DEEP_CONFIG_ENABLED][DEEP_CONFIG_DEFAULT]
-                    if not enabled:
-                        break
                 for key in keys:
                     if DEEP_CONFIG_DTYPE in value and DEEP_CONFIG_DEFAULT in value:
                         default = value[DEEP_CONFIG_DEFAULT]
@@ -496,8 +490,6 @@ class Brain(FrontalLobe):
         :return: None
         """
         if self.config.project.on_wake is not None:
-            if not isinstance(self.config.project.on_wake, list):
-                self.config.project.on_wake = [self.config.project.on_wake]
             for command in self.config.project.on_wake:
                 self.__execute_command(command)
 

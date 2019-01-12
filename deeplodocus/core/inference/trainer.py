@@ -1,5 +1,6 @@
 # Backend imports
-from torch.nn import Module
+import torch
+import torch.nn as nn
 from torch import Tensor
 
 # Deeplodocus imports
@@ -32,7 +33,7 @@ class Trainer(GenericEvaluator):
     Trainer instance to train a model
     """
     def __init__(self,
-                 model: Module,
+                 model: nn.Module,
                  dataset: Dataset,
                  metrics: dict,
                  losses: dict,
@@ -71,7 +72,6 @@ class Trainer(GenericEvaluator):
         :param verbose->int: DEEP_VERBOSE flag, How verbose the Trainer is
         :param memorize->int: DEEP_MEMORIZE flag, what data to save
         :param save_condition->int: DEEP_SAVE flag, when to save the results
-        :param stopping_parameters:
         :param tester->Tester: The tester to use for validation
         :param model_name->str: The name of the model
 
@@ -88,8 +88,6 @@ class Trainer(GenericEvaluator):
                          batch_size=batch_size,
                          num_workers=num_workers,
                          verbose=verbose)
-
-
         self.shuffle = shuffle
         self.optimizer = optimizer
         self.initial_epoch = initial_epoch
@@ -103,12 +101,14 @@ class Trainer(GenericEvaluator):
             self.tester = None
 
         # Early stopping
-        #self.stopping = Stopping(stopping_parameters)
+        # self.stopping = Stopping(stopping_parameters)
 
         #
         # Connect signals
         #
-        Thalamus().connect(receiver=self.saving_required, event=DEEP_EVENT_SAVING_REQUIRED, expected_arguments=["saving_required"])
+        Thalamus().connect(receiver=self.saving_required,
+                           event=DEEP_EVENT_SAVING_REQUIRED,
+                           expected_arguments=["saving_required"])
 
     def fit(self, first_training: bool = True)->None:
         """
@@ -125,7 +125,7 @@ class Trainer(GenericEvaluator):
         PARAMETERS:
         -----------
 
-        :param first_training(bool, optional): Whether it is the first training on the model or not
+        :param first_training: (bool, optional): Whether it is the first training on the model or not
 
         RETURN:
         -------
@@ -137,7 +137,7 @@ class Trainer(GenericEvaluator):
         # Prompt if the user want to continue the training
         self.__continue_training()
 
-    def __train(self, first_training=True)->None:
+    def __train(self, first_training=True) -> None:
         """
         AUTHORS:
         --------
@@ -159,7 +159,6 @@ class Trainer(GenericEvaluator):
 
         :return: None
         """
-
         if first_training is True:
             Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_TRAINING_START, args={}))
         else:
@@ -171,7 +170,6 @@ class Trainer(GenericEvaluator):
                                                                                        "num_epochs": self.num_epochs}))
 
             for minibatch_index, minibatch in enumerate(self.dataloader, 0):
-
                 # Clean the given data
                 inputs, labels, additional_data = self.clean_single_element_list(minibatch)
 
@@ -179,7 +177,11 @@ class Trainer(GenericEvaluator):
                 self.optimizer.zero_grad()
 
                 # Infer the output of the batch
-                outputs = self.model(*inputs)
+                # TODO: inputs should be a list and use outputs = self.model(*inputs) and put inputs on device
+                inputs = inputs.to(device=self.model.device, dtype=torch.float)
+                labels = labels.to(device=self.model.device, dtype=torch.long)
+
+                outputs = self.model(inputs)
 
                 # Compute losses and metrics
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
@@ -204,14 +206,14 @@ class Trainer(GenericEvaluator):
                                                                                  result_metrics=result_metrics)
 
                 # Send signal batch end
-                Thalamus().add_signal(Signal(event= DEEP_EVENT_ON_BATCH_END,
-                                             args={"minibatch_index": minibatch_index+1,
-                                                   "num_minibatches": self.num_minibatches,
-                                                   "epoch_index": epoch,
-                                                   "total_loss": total_loss.item(),
-                                                   "result_losses": result_losses,
-                                                   "result_metrics": result_metrics
-                                                   }))
+                # Thalamus().add_signal(Signal(event= DEEP_EVENT_ON_BATCH_END,
+                #                              args={"minibatch_index": minibatch_index+1,
+                #                                    "num_minibatches": self.num_minibatches,
+                #                                    "epoch_index": epoch,
+                #                                    "total_loss": total_loss.item(),
+                #                                    "result_losses": result_losses,
+                #                                    "result_metrics": result_metrics
+                #                                    }))
 
             # Shuffle the data if required
             if self.shuffle is not None:
@@ -224,21 +226,19 @@ class Trainer(GenericEvaluator):
             total_validation_loss, result_validation_losses, result_validation_metrics = self.__evaluate_epoch()
 
             # Send signal epoch end
-            Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_EPOCH_END,
-                                         args={"epoch_index": epoch,
-                                                "num_epochs" : self.num_epochs,
-                                                "model" : self.model,
-                                                "num_minibatches" : self.num_minibatches,
-                                                "total_validation_loss" : total_validation_loss.item(),
-                                                "result_validation_losses" : result_validation_losses,
-                                                "result_validation_metrics" : result_validation_metrics,
-                                                "num_minibatches_validation" : self.tester.get_num_minibatches()
-                                               }))
+            # Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_EPOCH_END,
+            #                              args={"epoch_index": epoch,
+            #                                    "num_epochs": self.num_epochs,
+            #                                    "model": self.model,
+            #                                    "num_minibatches": self.num_minibatches,
+            #                                    "total_validation_loss": total_validation_loss.item(),
+            #                                    "result_validation_losses": result_validation_losses,
+            #                                    "result_validation_metrics": result_validation_metrics,
+            #                                    "num_minibatches_validation": self.tester.get_num_minibatches()
+            #                                    }))
         # Send signal end training
         Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_TRAINING_END,
                                      args={"model": self.model}))
-
-
 
     def detach(self, outputs, total_loss, result_losses, result_metrics):
         """
@@ -281,7 +281,6 @@ class Trainer(GenericEvaluator):
         #         result_metrics[key] = value.detach()
 
         return outputs, total_loss, result_losses, result_metrics
-
 
     def __continue_training(self):
         """
@@ -358,8 +357,6 @@ class Trainer(GenericEvaluator):
             total_validation_loss, result_losses, result_metrics = self.tester.evaluate(model=self.model)
         return total_validation_loss, result_losses, result_metrics
 
-
-
     def saving_required(self, saving_required: bool):
         """
         AUTHORS:
@@ -375,7 +372,7 @@ class Trainer(GenericEvaluator):
         PARAMETERS:
         -----------
 
-        :param saving_required (bool): Whether saving the model is required or not
+        :param saving_required: (bool): Whether saving the model is required or not
 
         RETURN:
         -------

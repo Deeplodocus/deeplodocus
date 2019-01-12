@@ -3,6 +3,7 @@ from torch.nn import Module
 
 from deeplodocus.data.dataset import Dataset
 
+
 class GenericInferer(object):
     """
     AUTHORS:
@@ -15,8 +16,6 @@ class GenericInferer(object):
 
     A GenericInferer class
     """
-
-
 
     def __init__(self,
                  model: Module,
@@ -47,7 +46,7 @@ class GenericInferer(object):
         self.model = model
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.dataset=dataset
+        self.dataset = dataset
         self.dataloader = DataLoader(dataset=dataset,
                                      batch_size=batch_size,
                                      shuffle=False,

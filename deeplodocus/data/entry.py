@@ -67,10 +67,11 @@ class Entry(object):
 
     def __init__(self, sources: Union[str, List[str]],
                  join: Union[str, List[str], None],
-                 entry_index : int,
+                 entry_index: int,
                  entry_type: Union[str, int, Flag],
                  data_type: Union[str, int, Flag, None] = None,
-                 load_method : Union[str, int, Flag, None] = "default"):
+                 load_method: Union[str, int, Flag, None] = "default"):
+
         """
         AUTHORS:
         --------
@@ -543,7 +544,7 @@ class Entry(object):
             return DEEP_LOAD_METHOD_ONLINE
 
     @staticmethod
-    def __check_entry_type(entry_type : Union[str, int, Flag]):
+    def __check_entry_type(entry_type: Union[str, int, Flag]):
         """
         AUTHORS:
         --------

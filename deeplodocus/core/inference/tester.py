@@ -8,8 +8,8 @@
 # BACKEND IMPORTS
 #
 
-from torch.nn import Module
-
+import torch
+import torch.nn as nn
 
 #
 # DEEPLDODOCUS IMPORTS
@@ -36,7 +36,7 @@ class Tester(GenericEvaluator):
     """
 
     def __init__(self,
-                 model: Module,
+                 model: nn.Module,
                  dataset: Dataset,
                  metrics: dict,
                  losses: dict,
@@ -81,8 +81,7 @@ class Tester(GenericEvaluator):
                          num_workers=num_workers,
                          verbose=verbose)
 
-
-    def evaluate(self, model : Module):
+    def evaluate(self, model : nn.Module):
         """
         AUTHORS:
         --------
@@ -118,8 +117,14 @@ class Tester(GenericEvaluator):
             # Get the data
             inputs, labels, additional_data = self.clean_single_element_list(minibatch)
 
+
+            # TODO: setting input dtype here is a bit of a hack
+            inputs = inputs.to(device=self.model.device, dtype=torch.float)
+            labels = labels.to(device=self.model.device, dtype=torch.long)
+
             # Infer the outputs from the model over the given mini batch
-            outputs = model(*inputs)
+            # TODO: inputs should be unpacked?? with *inputs
+            outputs = model(inputs)
 
             # Detach the tensor from the graph (avoid leaking memory)
             outputs = outputs.detach()

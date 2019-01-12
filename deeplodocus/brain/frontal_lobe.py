@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 # Python imports
-from collections import OrderedDict
-import numpy as np
 import inspect
 
 # Back-end imports
@@ -17,20 +15,21 @@ from deeplodocus.core.inference.trainer import Trainer
 from deeplodocus.core.metrics.loss import Loss
 from deeplodocus.core.metrics.metric import Metric
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
-from deeplodocus.core.model.model import Model
-from deeplodocus.core.optimizer.optimizer import Optimizer
-from deeplodocus.data.dataset import  Dataset
+from deeplodocus.core.model.model import load_model
+from deeplodocus.core.optimizer.optimizer import load_optimizer
+from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.module import *
-from deeplodocus.utils.flags.config import DEEP_CONFIG_ENABLED
+from deeplodocus.utils.flags.config import DEEP_CONFIG_AUTO
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
 from deeplodocus.brain.memory.hippocampus import Hippocampus
+from deeplodocus.core.metrics import Metrics, Losses
 
 
 class FrontalLobe(object):
@@ -88,6 +87,17 @@ class FrontalLobe(object):
         self.losses = None
         self.optimizer = None
         self.hippocampus = None
+        self.device = None
+
+    def set_device(self):
+        try:
+            if self.config.project.device == DEEP_CONFIG_AUTO:
+                self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            else:
+                self.device = torch.device(self.config.project.device)
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_PROJECT_DEVICE % str(self.device))
+        except TypeError:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_PROJECT_DEVICE_NOT_FOUND % self.config.project.device)
 
     def train(self):
         """
@@ -112,7 +122,6 @@ class FrontalLobe(object):
 
         :return: None
         """
-
         self.trainer.fit() if self.trainer is not None else Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TRAINER)
 
     def evaluate(self):
@@ -166,11 +175,11 @@ class FrontalLobe(object):
         self.load_optimizer()    # Always load the optimizer after the model
         self.load_losses()
         self.load_metrics()
-        self.load_validator()       # Always load the validator before the trainer
         self.load_trainer()
+        self.load_validator()       # Always load the validator before the trainer
         self.load_tester()
         self.load_memory()
-        self.summary()
+        # self.summary()
 
     def load_model(self):
         """
@@ -193,10 +202,24 @@ class FrontalLobe(object):
 
         :return model->torch.nn.Module:  The model
         """
+        # If a module is specified, edit the model name to include the module (for notification purposes)
         model_name = self.config.model.name if self.config.model.module is None \
             else "%s from %s" % (self.config.model.name, self.config.model.module)
+
+        # Notify the user which model is being collected and from where
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % model_name)
-        self.model = Model(**self.config.model.get()).load()
+
+        # Load the model with model.kwargs from the config
+        self.model = load_model(**self.config.model.get(),
+                                batch_size=self.config.data.dataloader.batch_size)
+
+        # Put model on the required hardware
+        self.model.to(self.device)
+
+        # Store the device the model is on for
+        self.model.device = self.device
+
+        # Notify the user of success
         Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED % (self.config.model.name, self.model.__module__))
 
     def load_optimizer(self):
@@ -229,14 +252,14 @@ class FrontalLobe(object):
         # An optimizer cannot be loaded without a model (self.model.parameters() is required)
         if self.model is not None:
             # Load the optimizer
-            self.optimizer = Optimizer(model_parameters=self.model.parameters(),
-                                       **self.config.optimizer.get()).load()
+            self.optimizer = load_optimizer(model_parameters=self.model.parameters(),
+                                            **self.config.optimizer.get())
             # Notify the user of success
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIM_LOADED
                          % (self.config.optimizer.name, self.optimizer.__module__))
         else:
             # Notify the user that a model must be loaded
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_OPTIM_NOT_LOADED % DEEP_MSG_MODEL_LOADED)
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_OPTIM_LOADED_FAIL % DEEP_MSG_MODEL_NOT_LOADED)
 
     def load_losses(self):
         """
@@ -261,29 +284,32 @@ class FrontalLobe(object):
         :return loss_functions->dict: The losses
         """
         losses = {}
-        for key, config in self.config.losses.get().items():
-            loss_name = "%s : %s" % (key, config.name) if config.module is None \
-                else "%s : %s from %s" % (key, config.name, config.module)
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOSS_LOADING % loss_name)
-            loss = get_module(name=config.name,
-                              module=config.module,
-                              browse=DEEP_MODULE_LOSSES)
-            method = loss(**config.kwargs.get())
-            # Check the weight
-            if self.config.losses.check("weight", key):
-                if get_int_or_float(config.weight) not in (DEEP_TYPE_INTEGER, DEEP_TYPE_FLOAT):
-                    Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have a correct weight argument" % key)
-            else:
-                Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have any weight argument" % key)
-            # Create the loss
-            if isinstance(method, torch.nn.Module):
-                losses[str(key)] = Loss(name=str(key),
-                                        weight=float(config.weight),
-                                        loss=method)
-                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOSS_LOADED % (key, config.name, loss.__module__))
-            else:
-                Notification(DEEP_NOTIF_FATAL, "The loss function %s is not a torch.nn.Module instance" % key)
-        self.losses = losses
+        if self.config.losses.get():
+            for key, config in self.config.losses.get().items():
+                loss_name = "%s : %s" % (key, config.name) if config.module is None \
+                    else "%s : %s from %s" % (key, config.name, config.module)
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOSS_LOADING % loss_name)
+                loss = get_module(name=config.name,
+                                  module=config.module,
+                                  browse=DEEP_MODULE_LOSSES)
+                method = loss(**config.kwargs.get())
+                # Check the weight
+                if self.config.losses.check("weight", key):
+                    if get_int_or_float(config.weight) not in (DEEP_TYPE_INTEGER, DEEP_TYPE_FLOAT):
+                        Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have a correct weight argument" % key)
+                else:
+                    Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have any weight argument" % key)
+                # Create the loss
+                if isinstance(method, torch.nn.Module):
+                    losses[str(key)] = Loss(name=str(key),
+                                            weight=float(config.weight),
+                                            loss=method)
+                    Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOSS_LOADED % (key, config.name, loss.__module__))
+                else:
+                    Notification(DEEP_NOTIF_FATAL, "The loss function %s is not a torch.nn.Module instance" % key)
+        else:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOSS_NONE)
+        self.losses = Losses(losses)
 
     def load_metrics(self):
         """
@@ -307,19 +333,22 @@ class FrontalLobe(object):
 
         :return loss_functions->dict: The metrics
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_LOADING % ", ".join(list(self.config.metrics.get().keys())))
         metrics = {}
-        for key, config in self.config.metrics.get().items():
-            metric = get_module(name=config.name,
-                                module=config.module,
-                                browse=DEEP_MODULE_METRICS)
-            if inspect.isclass(metric):
-                method = metric(**config.kwargs.get())
-            else:
-                method = metric
-            metrics[str(key)] = Metric(name=str(key), method=method)
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, config.name, metric.__module__))
-        self.metrics = metrics
+        if self.config.metrics.get():
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_LOADING % ", ".join(list(self.config.metrics.get().keys())))
+            for key, config in self.config.metrics.get().items():
+                metric = get_module(name=config.name,
+                                    module=config.module,
+                                    browse=DEEP_MODULE_METRICS)
+                if inspect.isclass(metric):
+                    method = metric(**config.kwargs.get())
+                else:
+                    method = metric
+                metrics[str(key)] = Metric(name=str(key), method=method)
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, config.name, metric.__module__))
+        else:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_NONE)
+        self.metrics = Metrics(metrics)
 
     def load_trainer(self):
         """
@@ -354,7 +383,6 @@ class FrontalLobe(object):
             dataset = Dataset(**self.config.data.dataset.train.get(),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
-
             # Trainer
             self.trainer = Trainer(**self.config.data.dataloader.get(),
                                    model=self.model,
@@ -399,7 +427,7 @@ class FrontalLobe(object):
             transform_manager = TransformManager(**self.config.transform.validation.get())
 
             # Dataset
-            dataset = Dataset(**self.config.data.dataset.train.get(),
+            dataset = Dataset(**self.config.data.dataset.validation.get(),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
 
@@ -442,7 +470,7 @@ class FrontalLobe(object):
             transform_manager = TransformManager(**self.config.transform.test.get())
 
             # Dataset
-            dataset = Dataset(**self.config.data.dataset.train.get(),
+            dataset = Dataset(**self.config.data.dataset.test.get(),
                               transform_manager=transform_manager,
                               cv_library=self.config.project.cv_library)
             # Tester
@@ -478,196 +506,38 @@ class FrontalLobe(object):
         """
         if self.losses is not None and self.metrics is not None:
 
-            overwatch_metric = OverWatchMetric(name=self.config.training.overwatch_metric,
-                                               condition=self.config.training.overwatch_condition)
+            overwatch_metric = OverWatchMetric(**self.config.training.overwatch.get())
 
             # The hippocampus (brain/memory/hippocampus) temporary  handles the saver and the history
             self.hippocampus = Hippocampus(losses=self.losses,
-                                           metrics = self.metrics,
-                                           model_name = self.config.model.name,
-                                           verbose = self.config.history.verbose,
-                                           memorize = self.config.history.memorize,
+                                           metrics=self.metrics,
+                                           model_name=self.config.model.name,
+                                           verbose=self.config.history.verbose,
+                                           memorize=self.config.history.memorize,
                                            history_directory=DEEP_PATH_HISTORY,
-                                           overwatch_metric= overwatch_metric,
+                                           overwatch_metric=overwatch_metric,
                                            save_model_condition=self.config.training.save_condition,
                                            save_model_directory=DEEP_PATH_SAVE_MODEL,
                                            save_model_method=self.config.training.save_method)
 
     def summary(self):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-
-        Summarise the model
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return: None
-        """
-
-        if self.config.model.get("input_size", None):
-            self.__summary(model=self.model,
-                           input_size=self.config.model.input_size,
-                           losses=self.losses,
-                           metrics=self.metrics,
-                           batch_size=self.config.data.dataloader.batch_size)
+        if self.model is not None:
+            self.model.summary()
         else:
-            Notification(DEEP_NOTIF_ERROR, "Model's input size not given, the summary cannot be displayed.")
-
-    def __summary(self, model, input_size, losses, metrics, batch_size=-1, device="cuda"):
-        """
-        AUTHORS:
-        --------
-
-        :author:  https://github.com/sksq96/pytorch-summary
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Print a summary of the current model
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return: None
-        """
-
-        def register_hook(module):
-
-            def hook(module, input, output):
-                class_name = str(module.__class__).split(".")[-1].split("'")[0]
-                module_idx = len(summary)
-                m_key = "%s-%i" % (class_name, module_idx + 1)
-                summary[m_key] = OrderedDict()
-                summary[m_key]["input_shape"] = list(input[0].size())
-                summary[m_key]["input_shape"][0] = batch_size
-                if isinstance(output, (list, tuple)):
-                    summary[m_key]["output_shape"] = [[-1] + list(o.size())[1:] for o in output]
-                else:
-                    summary[m_key]["output_shape"] = list(output.size())
-                    summary[m_key]["output_shape"][0] = batch_size
-                params = 0
-                if hasattr(module, "weight") and hasattr(module.weight, "size"):
-                    params += torch.prod(torch.LongTensor(list(module.weight.size())))
-                    summary[m_key]["trainable"] = module.weight.requires_grad
-                if hasattr(module, "bias") and hasattr(module.bias, "size"):
-                    params += torch.prod(torch.LongTensor(list(module.bias.size())))
-                summary[m_key]["nb_params"] = params
-
-            if (
-                    not isinstance(module, nn.Sequential)
-                    and not isinstance(module, nn.ModuleList)
-                    and not (module == model)
-            ):
-                hooks.append(module.register_forward_hook(hook))
-
-        # Check device
-        device = device.lower()
-        try:
-            assert device in ["cuda", "cpu"]
-        except AssertionError:
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_INVALID_DEVICE % device)
-
-        # Set data type depending on device
-        if device == "cuda" and torch.cuda.is_available():
-            dtype = torch.cuda.FloatTensor
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_NOT_LOADED)
+        if self.optimizer is not None:
+            self.optimizer.summary()
         else:
-            dtype = torch.FloatTensor
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_OPTIM_NOT_LOADED)
+        if self.losses is not None:
+            self.losses.summary()
+        else:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOSS_NOT_LOADED)
+        if self.metrics is not None:
+            self.metrics.summary()
+        else:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_NOT_LOADED)
 
-        # Multiple inputs to the network
-        if self.__model_has_multiple_inputs(self.config.data.dataset.train.inputs) is False:
-            input_size = [input_size]
-
-        # Batch_size of 2 for batchnorm
-        x = [torch.rand(2, *in_size).type(dtype) for in_size in input_size]
-
-        # Create properties
-        summary = OrderedDict()
-        hooks = []
-
-        # Register hook
-        model.apply(register_hook)
-
-        # Make a forward pass
-        model(*x)
-
-        # Remove these hooks
-        for h in hooks:
-            h.remove()
-
-        Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
-        line_new = '{:>20}  {:>25} {:>15}'.format('Layer (type)', 'Output Shape', 'Param #')
-        Notification(DEEP_NOTIF_INFO, line_new)
-        Notification(DEEP_NOTIF_INFO, '================================================================')
-        total_params = 0
-        total_output = 0
-        trainable_params = 0
-        for layer in summary:
-            # Input_shape, output_shape, trainable, nb_params
-            line_new = '{:>20}  {:>25} {:>15}'.format(layer, str(summary[layer]['output_shape']),
-                                                      '{0:,}'.format(summary[layer]['nb_params']))
-            total_params += summary[layer]['nb_params']
-            total_output += np.prod(summary[layer]["output_shape"])
-            if 'trainable' in summary[layer]:
-                if summary[layer]['trainable'] == True:
-                    trainable_params += summary[layer]['nb_params']
-            Notification(DEEP_NOTIF_INFO, line_new)
-
-        # Assume 4 bytes/number (float on cuda).
-        total_input_size = abs(np.prod(input_size) * batch_size * 4. / (1024 ** 2.))
-        total_output_size = abs(2. * total_output * 4. / (1024 ** 2.))  # x2 for gradients
-        total_params_size = abs(total_params.numpy() * 4. / (1024 ** 2.))
-        total_size = total_params_size + total_output_size + total_input_size
-
-        Notification(DEEP_NOTIF_INFO, '================================================================')
-        Notification(DEEP_NOTIF_INFO, 'Total params: {0:,}'.format(total_params))
-        Notification(DEEP_NOTIF_INFO, 'Trainable params: {0:,}'.format(trainable_params))
-        Notification(DEEP_NOTIF_INFO, 'Non-trainable params: {0:,}'.format(total_params - trainable_params))
-        Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
-        Notification(DEEP_NOTIF_INFO, "Input size (MB): %0.2f" % total_input_size)
-        Notification(DEEP_NOTIF_INFO, "Forward/backward pass size (MB): %0.2f" % total_output_size)
-        Notification(DEEP_NOTIF_INFO, "Params size (MB): %0.2f" % total_params_size)
-        Notification(DEEP_NOTIF_INFO, "Estimated Total Size (MB): %0.2f" % total_size)
-        Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
-
-        # List of metrics
-        Notification(DEEP_NOTIF_INFO, "LIST OF METRICS :")
-        Notification(DEEP_NOTIF_INFO, '================================================================')
-        for metric_name, metric in metrics.items():
-            Notification(DEEP_NOTIF_INFO, "%s : " % metric_name)
-
-        # List of loss functions
-        Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
-        Notification(DEEP_NOTIF_INFO, "LIST OF LOSS FUNCTIONS :")
-        Notification(DEEP_NOTIF_INFO, '================================================================')
-        for loss_name, loss in losses.items():
-            Notification(DEEP_NOTIF_INFO, "%s :" % loss_name)
-
-        # Optimizer
-        Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
-        Notification(DEEP_NOTIF_INFO, "OPTIMIZER :" + str(self.config.optimizer.name))
-        Notification(DEEP_NOTIF_INFO, '================================================================')
-        for key, value in self.config.optimizer.kwargs.get().items():
-            if key != "name":
-                Notification(DEEP_NOTIF_INFO, "%s : %s" %(key, value))
 
     @staticmethod
     def __model_has_multiple_inputs(list_inputs):

@@ -28,6 +28,16 @@ DEEP_MSG_CONTINUE = "Do you wish to continue ? (y/n)"
 # Deep Info
 DEEP_MSG_PROJECT_NOT_GENERATED = "Project not generated"
 
+####################
+# DEEP_MSG_PROJECT #
+####################
+
+# DEEP_SUCCESS
+DEEP_MSG_PROJECT_DEVICE = "Device set : %s"
+
+# DEEP_FATAL
+DEEP_MSG_PROJECT_DEVICE_NOT_FOUND = "Device not found : %s"
+
 ###################
 # DEEP_MSG_CONFIG #
 ###################
@@ -59,6 +69,7 @@ DEEP_MSG_DATA_ENTRY = "Please check the following entry format : %s"
 
 # DEEP WARNING
 DEEP_MSG_DATA_SHORTER = "Dataset contains %i instances : Using just %i instances"
+DEEP_MSG_DATA_TOO_LONG = "Dataset number %i exceeds the number of instances : Using just %i instances"
 
 # DEEP_INFO
 DEEP_MSG_DATA_SUMMARY = "Summary of the '%s' dataset :\n%s"
@@ -88,15 +99,13 @@ DEEP_MSG_NOTIF_UNKNOWN = "Unknown notification type : %s"
 ##################
 # DEEP_MSG_MODEL #
 ##################
+DEEP_MSG_MODEL_NOT_LOADED = "Model not loaded"
 
 # DEEP_SUCCESS
 DEEP_MSG_MODEL_LOADED = "Model loaded : %s from %s"
 
 # DEEP_INFO
 DEEP_MSG_MODEL_LOADING = "Loading model : %s"
-
-# DEEP_FATAL
-DEEP_MSG_MODEL_NOT_LOADED = "Model not loaded"
 
 ##################
 # DEEP_MSG_OPTIM #
@@ -107,9 +116,10 @@ DEEP_MSG_OPTIM_LOADED = "Optimizer loaded : %s from %s"
 
 # DEEP_INFO
 DEEP_MSG_OPTIM_LOADING = "Loading optimizer : %s"
+DEEP_MSG_OPTIM_NOT_LOADED = "Optimizer not loaded"
 
 # DEEP_FATAL
-DEEP_MSG_OPTIM_NOT_LOADED = "Could not load optimizer : %s"
+DEEP_MSG_OPTIM_LOADED_FAIL = "Could not load optimizer : %s"
 
 #################
 # DEEP_MSG_LOSS #
@@ -123,6 +133,8 @@ DEEP_MSG_LOSS_LOADED = "Loss loaded : %s : %s from %s"
 
 # DEEP_INFO
 DEEP_MSG_LOSS_LOADING = "Loading loss : %s"
+DEEP_MSG_LOSS_NONE = "No metrics to load"
+DEEP_MSG_LOSS_NOT_LOADED = "Losses not loaded"
 
 ###################
 # DEEP_MSG_METRIC #
@@ -136,3 +148,5 @@ DEEP_MSG_METRIC_LOADED = "Metric loaded : %s (%s) from %s"
 
 # DEEP_INFO
 DEEP_MSG_METRIC_LOADING = "Loading metrics : %s"
+DEEP_MSG_METRIC_NONE = "No metrics to load"
+DEEP_MSG_METRIC_NOT_LOADED = "Metrics not loaded"

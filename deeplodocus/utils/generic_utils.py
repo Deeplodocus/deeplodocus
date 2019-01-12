@@ -33,7 +33,10 @@ def convert(value, d_type=None):
         else:
             new_value = convert2float(value)
             if new_value is not None:
-                return new_value
+                if round(new_value, 0) == new_value:
+                    return int(new_value)
+                else:
+                    return new_value
             new_value = convert2bool(value)
             if new_value is not None:
                 return new_value
@@ -75,11 +78,6 @@ def convert(value, d_type=None):
             else:
                 new_value.append(new_item)
         return new_value
-        # new_value = [convert(item, d_type[0]) for item in value]
-        # if None in new_value:
-        #     return None
-        # else:
-        #     return new_value
 
 
 def convert2int(value):
