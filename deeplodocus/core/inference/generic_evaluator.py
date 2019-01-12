@@ -3,7 +3,6 @@
 #
 from typing import Union
 from typing import List
-import inspect
 
 #
 # Backend imports
@@ -19,7 +18,6 @@ from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
-from deeplodocus.utils.notification import Notification
 
 
 class GenericEvaluator(GenericInferer):

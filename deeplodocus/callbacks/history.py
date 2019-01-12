@@ -44,8 +44,8 @@ class History(object):
                  verbose: int = DEEP_VERBOSE_BATCH,
                  memorize: int = DEEP_MEMORIZE_BATCHES,
                  save_condition: int = DEEP_SAVE_CONDITION_END_EPOCH,    # DEEP_SAVE_CONDITION_END_TRAINING to save at the end of training, DEEP_SAVE_CONDITION_END_EPOCH to save at the end of the epoch,
-                 overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
-                 ):
+                 overwatch_metric: OverWatchMetric = OverWatchMetric(name = TOTAL_LOSS,
+                                                                     condition = DEEP_COMPARE_SMALLER)):
         self.log_dir = log_dir
         self.verbose = verbose
         self.metrics = metrics
@@ -90,20 +90,32 @@ class History(object):
         # Load histories
         self.__load_histories()
 
-
         # Connect to signals
-        Thalamus().connect(receiver=self.on_batch_end, event=DEEP_EVENT_ON_BATCH_END)
-        Thalamus().connect(receiver=self.on_epoch_end, event=DEEP_EVENT_ON_EPOCH_END, expected_arguments=["epoch_index",
-                                                                                                          "num_epochs",
-                                                                                                          "num_minibatches",
-                                                                                                          "total_validation_loss",
-                                                                                                          "result_validation_losses",
-                                                                                                          "result_validation_metrics",
-                                                                                                          "num_minibatches_validation"])
-        Thalamus().connect(receiver=self.on_train_begin, event=DEEP_EVENT_ON_TRAINING_START, expected_arguments=[])
-        Thalamus().connect(receiver=self.on_train_end, event=DEEP_EVENT_ON_TRAINING_END, expected_arguments=[])
-        Thalamus().connect(receiver=self.on_epoch_start, event=DEEP_EVENT_ON_EPOCH_START, expected_arguments=["epoch_index",
-                                                                                                                "num_epochs"])
+        Thalamus().connect(receiver=self.on_batch_end,
+                           event=DEEP_EVENT_ON_BATCH_END)
+        Thalamus().connect(receiver=self.on_epoch_end,
+                           event=DEEP_EVENT_ON_EPOCH_END,
+                           expected_arguments=[
+                               "epoch_index",
+                               "num_epochs",
+                               "num_minibatches",
+                               "total_validation_loss",
+                               "result_validation_losses",
+                               "result_validation_metrics",
+                               "num_minibatches_validation"
+                           ])
+        Thalamus().connect(receiver=self.on_train_begin,
+                           event=DEEP_EVENT_ON_TRAINING_START,
+                           expected_arguments=[])
+        Thalamus().connect(receiver=self.on_train_end,
+                           event=DEEP_EVENT_ON_TRAINING_END,
+                           expected_arguments=[])
+        Thalamus().connect(receiver=self.on_epoch_start,
+                           event=DEEP_EVENT_ON_EPOCH_START,
+                           expected_arguments=[
+                               "epoch_index",
+                               "num_epochs"
+                           ])
 
     def on_train_begin(self):
         """
@@ -163,11 +175,12 @@ class History(object):
         PARAMETERS:
         -----------
 
-        :param minibatch_index->int: Index of the current minibatch
-        :param num_minibatches->int: Number of minibatches per epoch
-        :param total_loss->int: The total loss
-        :param result_losses->dict: List of resulting losses
-        :param result_metrics->dict: List of resulting metrics
+        :param minibatch_index: int: Index of the current minibatch
+        :param num_minibatches: int: Number of minibatches per epoch
+        :param epoch_index: int: Index of the current epoch
+        :param total_loss: int: The total loss
+        :param result_losses: dict: List of resulting losses
+        :param result_metrics: dict: List of resulting metrics
 
         RETURN:
         -------
@@ -206,8 +219,6 @@ class History(object):
         if self.train_batches_history.qsize() > 10:
             self.save(only_batches=True)
 
-
-
     def on_epoch_end(self,
                      epoch_index: int,
                      num_epochs: int,
@@ -231,7 +242,7 @@ class History(object):
         PARAMETERS:
         -----------
 
-        :param epoch_index->int: current epoch index
+        :param epoch_index: int: current epoch index
         :param num_epochs: int: total number of epoch
         :param num_minibatches: int: number of minibatches per epoch
         :param total_validation_loss:
@@ -256,18 +267,16 @@ class History(object):
             
             if self.memorize >= DEEP_MEMORIZE_BATCHES:
                 data = [datetime.datetime.now().strftime(TIME_FORMAT),
-                      self.__time(),
-                      epoch_index,
-                      self.running_total_loss / num_minibatches] + \
-                     [value.item() / num_minibatches for (loss_name, value) in self.running_losses.items()] + \
-                     [value  / num_minibatches for (metric_name, value) in self.running_metrics.items()]
+                        self.__time(),
+                        epoch_index,
+                        self.running_total_loss / num_minibatches] \
+                       + [value.item() / num_minibatches for (loss_name, value) in self.running_losses.items()] \
+                       + [value / num_minibatches for (metric_name, value) in self.running_metrics.items()]
                 self.train_epochs_history.put(data)
-
 
         self.running_total_loss = 0
         self.running_losses = {}
         self.running_metrics = {}
-
 
         # MANAGE VALIDATION HISTORY
         if total_validation_loss is not None:
@@ -284,9 +293,9 @@ class History(object):
                 data = [datetime.datetime.now().strftime(TIME_FORMAT),
                         self.__time(),
                         epoch_index,
-                        total_validation_loss / num_minibatches_validation] + \
-                       [value.item() / num_minibatches_validation for (loss_name, value) in result_validation_losses.items()] + \
-                       [value / num_minibatches_validation for (metric_name, value) in result_validation_metrics.items()]
+                        total_validation_loss / num_minibatches_validation] \
+                       + [value.item() / num_minibatches_validation for (loss_name, value) in result_validation_losses.items()] \
+                       + [value / num_minibatches_validation for (metric_name, value) in result_validation_metrics.items()]
 
                 self.validation_history.put(data)
 
@@ -337,7 +346,7 @@ class History(object):
                 self.__add_logs("history_train_epochs", self.log_dir, DEEP_EXT_CSV, train_epochs_history)
 
             for i in range(self.validation_history.qsize()):
-                validation_history = ",".join(str(value) for  value in self.validation_history.get())
+                validation_history = ",".join(str(value) for value in self.validation_history.get())
                 self.__add_logs("history_validation", self.log_dir, DEEP_EXT_CSV, validation_history)
 
 
@@ -487,20 +496,19 @@ class History(object):
         """
         Logs(log_type, log_folder, log_extension).add(message)
 
-
     def __compute_overwatch_metric(self, num_minibatches_training,
-                                        running_total_loss,
-                                        running_losses,
-                                        running_metrics,
-                                        total_validation_loss,
-                                        result_validation_losses,
-                                        result_validation_metrics)->None:
+                                   running_total_loss,
+                                   running_losses,
+                                   running_metrics,
+                                   total_validation_loss,
+                                   result_validation_losses,
+                                   result_validation_metrics) -> None:
 
         # If the validation loss is None (No validation) we take the metric from the training as overwatch metric
         if total_validation_loss is None:
-            data = dict([(TOTAL_LOSS, running_total_loss / num_minibatches_training)] +
-                        [(loss_name, value.item() / num_minibatches_training) for (loss_name, value) in running_losses.items()] +
-                        [(metric_name, value / num_minibatches_training) for (metric_name, value) in  running_metrics.items()])
+            data = dict([(TOTAL_LOSS, running_total_loss / num_minibatches_training)]
+                        + [(loss_name, value.item() / num_minibatches_training) for (loss_name, value) in running_losses.items()]
+                        + [(metric_name, value / num_minibatches_training) for (metric_name, value) in running_metrics.items()])
 
             for key, value in data.items():
                 if key == self.overwatch_metric.get_name():
@@ -508,8 +516,8 @@ class History(object):
                     break
         else:
             data = dict([(TOTAL_LOSS, total_validation_loss)] +
-                        [(loss_name, value.item()) for (loss_name, value) in result_validation_losses.items()] +
-                        [(metric_name, value / num_minibatches_training) for (metric_name, value) in result_validation_metrics.items()])
+                        [(loss_name, value.item()) for (loss_name, value) in result_validation_losses.items()]
+                        + [(metric_name, value / num_minibatches_training) for (metric_name, value) in result_validation_metrics.items()])
 
             for key, value in data.items():
                 if key == self.overwatch_metric.get_name():

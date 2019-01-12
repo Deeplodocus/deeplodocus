@@ -2,8 +2,6 @@ import cv2
 import numpy as np
 import random
 
-import __main__
-
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags.module import DEEP_MODULE_TRANSFORMS

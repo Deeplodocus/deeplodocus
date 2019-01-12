@@ -1,8 +1,6 @@
 import torch
-import torch.onnx as onnx
 from torch.nn import Module
 import os
-import __main__
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.end import End

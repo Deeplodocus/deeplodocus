@@ -5,8 +5,6 @@ import inspect
 
 # Back-end imports
 from torch import *
-import torch
-import torch.nn as nn
 import torch.nn.functional
 
 # Deeplodocus import
