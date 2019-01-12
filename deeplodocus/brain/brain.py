@@ -1,6 +1,5 @@
 import os
 import time
-import __main__
 
 from deeplodocus import __version__
 from deeplodocus.brain.frontal_lobe import FrontalLobe

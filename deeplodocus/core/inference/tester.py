@@ -81,7 +81,7 @@ class Tester(GenericEvaluator):
                          num_workers=num_workers,
                          verbose=verbose)
 
-    def evaluate(self, model : nn.Module):
+    def evaluate(self, model: nn.Module):
         """
         AUTHORS:
         --------
@@ -97,7 +97,7 @@ class Tester(GenericEvaluator):
         PARAMETERS:
         -----------
 
-        :param model (torch.nn.Module): The model which has to be trained
+        :param model: (torch.nn.Module): The model which has to be trained
 
         RETURN:
         -------
@@ -106,6 +106,8 @@ class Tester(GenericEvaluator):
         :return total_losses (dict): Total losses for the model over the test data set
         :return total_metrics (dict): Total metrics for the model over the test data set
         """
+        # Put model into evaluation mode
+        self.model.eval()
 
         # Make dictionaries like losses and metrics but initialised with lists
         total_losses = dict_utils.like(self.losses, [])
@@ -116,7 +118,6 @@ class Tester(GenericEvaluator):
 
             # Get the data
             inputs, labels, additional_data = self.clean_single_element_list(minibatch)
-
 
             # TODO: setting input dtype here is a bit of a hack
             inputs = inputs.to(device=self.model.device, dtype=torch.float)
@@ -148,7 +149,6 @@ class Tester(GenericEvaluator):
         sum_losses = dict_utils.sum_dict(total_losses)
 
         return sum_losses, total_losses, total_metrics
-
 
     def set_metrics(self, metrics:dict):
         """

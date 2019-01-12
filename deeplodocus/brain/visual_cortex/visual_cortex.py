@@ -11,7 +11,6 @@ import jinja2
 # Deeplodocus modules
 from deeplodocus.utils.notification import Notification
 from deeplodocus.brain.visual_cortex.routes import Routes
-from deeplodocus.utils.flags import *
 from deeplodocus.brain.visual_cortex.middlewares import setup_middlewares
 
 

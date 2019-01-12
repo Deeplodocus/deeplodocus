@@ -1,7 +1,6 @@
 # Backend imports
 import torch
 import torch.nn as nn
-from torch import Tensor
 
 # Deeplodocus imports
 from deeplodocus.data.dataset import Dataset
@@ -168,7 +167,7 @@ class Trainer(GenericEvaluator):
 
             Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_EPOCH_START, args={"epoch_index": epoch,
                                                                                        "num_epochs": self.num_epochs}))
-
+            self.model.train()
             for minibatch_index, minibatch in enumerate(self.dataloader, 0):
                 # Clean the given data
                 inputs, labels, additional_data = self.clean_single_element_list(minibatch)

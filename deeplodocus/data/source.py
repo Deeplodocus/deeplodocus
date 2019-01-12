@@ -15,7 +15,7 @@ from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.load import *
 
-import cv2
+
 class Source(object):
     """
     AUTHORS:
