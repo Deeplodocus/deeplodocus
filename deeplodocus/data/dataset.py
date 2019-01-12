@@ -326,8 +326,45 @@ class Dataset(object):
                 entry_data = self.__transform_data(data=entry_data,
                                                    entry=entry,
                                                    index=index)
+
+            entry_data = self.__format_data(entry_data, entry)
             data.append(entry_data)
         return data
+
+    @staticmethod
+    def __format_data(data_entry, entry):
+        """
+        AUTHORS:
+        --------
+
+        :author: Samuel Westlake
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Method to format data to pytorch conventions.
+        Images are converted from (w, h, ch) to (ch, h, w)
+        Videos are ...
+
+        PARAMETERS:
+        -----------
+
+        :param data_entry: the data instance
+        :param entry: the data entry flag
+
+        RETURN:
+        -------
+
+        :return: the formatted data entry
+        """
+        if entry.data_type() == DEEP_DTYPE_IMAGE():
+            # Make image (ch, h, w)
+            data_entry = np.swapaxes(data_entry, 0, 2)
+            data_entry = np.swapaxes(data_entry, 1, 2)
+
+        # TODO: Formating for other data types
+        return data_entry
 
     def __generate_entries(self, entries: List[Namespace], entry_type: Flag) -> List[Entry]:
         """
@@ -585,10 +622,6 @@ class Dataset(object):
             image = self.__convert_bgra2rgba(image)
         else:
             image = image[:, :, np.newaxis]
-
-        # Make image (ch, h, w)
-        image = np.swapaxes(image, 0, 2)
-        image = np.swapaxes(image, 1, 2)
 
         return image.astype(float)
 
