@@ -489,8 +489,9 @@ class Brain(FrontalLobe):
         -------
         :return: None
         """
-        for command in self.config.project.on_wake:
-            self.__execute_command(command)
+        if self.config.project.on_wake is not None:
+            for command in self.config.project.on_wake:
+                self.__execute_command(command)
 
     def __execute_command(self, command):
         """

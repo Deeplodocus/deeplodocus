@@ -89,7 +89,7 @@ class ProjectUtility(object):
             copy_tree(source_project_structure, project_path, update=1)
 
             # Copy the required config files
-            #self.__init_config()
+            # self.__init_config()
 
             # Clean the structure (remove __pycache__ folder and __ini__.py files)
             self.__clean_structure(project_path)

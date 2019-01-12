@@ -16,10 +16,13 @@ def load_model(name, module, kwargs, input_size=None, batch_size=None):
     # Define our model that inherits from the nn.Module
     class Model(model):
 
-        def __init__(self, input_size=None, batch_size=None, **kwargs):
+        def __init__(self, name, module, input_size, batch_size, kwargs_dict, **kwargs):
             super(Model, self).__init__(**kwargs)
+            self.name = name
+            self.module = module
             self.input_size = input_size
             self.batch_size = batch_size
+            self.kwargs_dict = kwargs_dict
 
         def summary(self):
             """
@@ -124,9 +127,11 @@ def load_model(name, module, kwargs, input_size=None, batch_size=None):
                 h.remove()
 
             Notification(DEEP_NOTIF_INFO, '================================================================')
+            Notification(DEEP_NOTIF_INFO, "MODEL : %s from %s" % (self.name, self.module))
+            Notification(DEEP_NOTIF_INFO, '================================================================')
             line_new = '{:>20}  {:>25} {:>15}'.format('Layer (type)', 'Output Shape', 'Param #')
             Notification(DEEP_NOTIF_INFO, line_new)
-            Notification(DEEP_NOTIF_INFO, '================================================================')
+            Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
             total_params = 0
             total_output = 0
             trainable_params = 0
@@ -146,8 +151,12 @@ def load_model(name, module, kwargs, input_size=None, batch_size=None):
             total_output_size = abs(2. * total_output * 4. / (1024 ** 2.))  # x2 for gradients
             total_params_size = abs(total_params.numpy() * 4. / (1024 ** 2.))
             total_size = total_params_size + total_output_size + total_input_size
-
-            Notification(DEEP_NOTIF_INFO, '================================================================')
+            Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
+            Notification(DEEP_NOTIF_INFO, "Input size : %s" % self.input_size)
+            Notification(DEEP_NOTIF_INFO, "Batch size : %s" % self.batch_size)
+            for key, item in self.kwargs_dict.items():
+                Notification(DEEP_NOTIF_INFO, "%s : %s" % (key, item))
+            Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
             Notification(DEEP_NOTIF_INFO, 'Total params: {0:,}'.format(total_params))
             Notification(DEEP_NOTIF_INFO, 'Trainable params: {0:,}'.format(trainable_params))
             Notification(DEEP_NOTIF_INFO, 'Non-trainable params: {0:,}'.format(total_params - trainable_params))
@@ -156,30 +165,7 @@ def load_model(name, module, kwargs, input_size=None, batch_size=None):
             Notification(DEEP_NOTIF_INFO, "Forward/backward pass size (MB): %0.2f" % total_output_size)
             Notification(DEEP_NOTIF_INFO, "Params size (MB): %0.2f" % total_params_size)
             Notification(DEEP_NOTIF_INFO, "Estimated Total Size (MB): %0.2f" % total_size)
-            Notification(DEEP_NOTIF_INFO, '================================================================')
+            Notification(DEEP_NOTIF_INFO, "")
 
-            """
-            # List of metrics
-            Notification(DEEP_NOTIF_INFO, "LIST OF METRICS :")
-            Notification(DEEP_NOTIF_INFO, '================================================================')
-            for metric_name, metric in metrics.items():
-                Notification(DEEP_NOTIF_INFO, "%s : " % metric_name)
-
-            # List of loss functions
-            Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
-            Notification(DEEP_NOTIF_INFO, "LIST OF LOSS FUNCTIONS :")
-            Notification(DEEP_NOTIF_INFO, '================================================================')
-            for loss_name, loss in losses.items():
-                Notification(DEEP_NOTIF_INFO, "%s :" % loss_name)
-
-            # Optimizer
-            Notification(DEEP_NOTIF_INFO, "----------------------------------------------------------------")
-            Notification(DEEP_NOTIF_INFO, "OPTIMIZER :" + str(self.config.optimizer.name))
-            Notification(DEEP_NOTIF_INFO, '================================================================')
-            for key, value in self.config.optimizer.kwargs.get().items():
-                if key != "name":
-                    Notification(DEEP_NOTIF_INFO, "%s : %s" % (key, value))
-            """
-
-    return Model(input_size=input_size, batch_size=batch_size, **kwargs.get())
+    return Model(name, module, input_size, batch_size, kwargs.get(), **kwargs.get())
 
