@@ -20,7 +20,7 @@ setup(
     url='https://www.deeplodocus.github.io/',
     author='Alix Leroy and Samuel Westlake',
     author_email='deeplodocus@gmail.com',
-    description=('Deeplodocus is a high-level Python framework for Deep Learning that keeps your head above water'),
+    description=('The  Deep Learning framework keeping your head above water'),
     long_description=read('README.rst'),
     license='MIT',
     #packages=find_packages(exclude=EXCLUDE_FROM_PACKAGES),
