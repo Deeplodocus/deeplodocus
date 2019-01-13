@@ -123,7 +123,6 @@ def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0):
 
     :return->np.array: Image of size shape
     """
-    print("Here")
     # If we want to reduce the image
     if image.shape[0] * image.shape[1] > shape[0] * shape[1]:
         interpolation = cv2.INTER_LINEAR_EXACT  # Use the Bilinear Interpolation
@@ -290,7 +289,6 @@ def rotate(image: np.array, angle: float):
     m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
     return cv2.warpAffine(image, m, (cols, rows)).astype(np.float32), None
 
-
 def normalize_image(image, mean:Union[None, list, int], standard_deviation: float, cv_library: int = DEEP_LIB_OPENCV):
     """
     AUTHORS:
@@ -327,7 +325,7 @@ def normalize_image(image, mean:Union[None, list, int], standard_deviation: floa
     # Note 2 : Could be a limiting factor for big "mini"-batches (i.e. >= 1024) and big images (i.e. >= 512, 512, 3)
 
     # If OpenCV is selected (50% faster than numpy)
-    if cv_library == DEEP_LIB_OPENCV:
+    if DEEP_LIB_OPENCV.corresponds(cv_library):
         channels = image.shape[-1]
 
         if mean is None:

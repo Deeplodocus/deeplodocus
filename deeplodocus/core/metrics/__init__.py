@@ -21,6 +21,9 @@ class Metrics(object):
             Notification(DEEP_NOTIF_INFO, "None")
         Notification(DEEP_NOTIF_INFO, "")
 
+    def get(self, item):
+        return self.__dict__[item]
+
 
 class Losses(object):
 
@@ -40,3 +43,6 @@ class Losses(object):
         if not vars(self):
             Notification(DEEP_NOTIF_INFO, "None")
         Notification(DEEP_NOTIF_INFO, "")
+
+    def get(self, item):
+        return self.__dict__[item]

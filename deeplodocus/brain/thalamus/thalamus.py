@@ -74,7 +74,7 @@ class Thalamus(metaclass=Singleton):
         signal = self.signals.get()
         self.send(signal)
 
-    def connect(self, receiver: callable, event: int, expected_arguments = None):
+    def connect(self, receiver: callable, event: Flag, expected_arguments = None):
         """
         AUTHORS:
         --------
@@ -90,7 +90,7 @@ class Thalamus(metaclass=Singleton):
         -----------
 
         :param receiver(callable): The method to call when firing the signal
-        :param event(int): The type of event
+        :param event(Flag): The type of event
 
         RETURN:
         -------
@@ -102,12 +102,13 @@ class Thalamus(metaclass=Singleton):
 
         # If the event already register then add the reference to the set
         if event in self.connections:
-            self.connections[event].add(connection)
+            self.connections[event.get_index()].add(connection)
         # Else initiate the list with the reference
         else:
-            self.connections[event] = set([connection]) # Make a list around connection to make it iterable
+            # Make a list around connection to make it iterable (Use not literal set to make entries unique)
+            self.connections[event.get_index()] = set([connection])
 
-    def disconnect(self, receiver: callable, event: int):
+    def disconnect(self, receiver: callable, event: Flag):
         """
         AUTHORS:
         --------
@@ -124,7 +125,7 @@ class Thalamus(metaclass=Singleton):
         -----------
 
         :param receiver(callable): The method to call on the event is fired
-        :param event(int): The type of event
+        :param event(Flag): The type of event
 
         RETURN:
         -------
@@ -133,20 +134,19 @@ class Thalamus(metaclass=Singleton):
         """
         disconnected = False
         # For all the connections at the specific event
-        for i, connection in enumerate(self.connections[event]):
+        for i, connection in enumerate(self.connections[event.get_index()]):
             weak_ref_receiver = connection.get_receiver()
 
             # If the weak connection if found, we remove the connection
             if weak_ref_receiver in weakref.getweakrefs(receiver):
-                self.connections[event][i].pop()
+                self.connections[event.get_index()][i].pop()
                 disconnected = True
                 break
 
         if disconnected is False:
             Notification(DEEP_NOTIF_ERROR, "The following receiver %s could not be disconnected from %i." %(str(receiver), event))
 
-
-    def send(self, signal: Signal):
+    def send(self, signal: Signal) -> None:
         """
         AUTHORS:
         --------
@@ -161,20 +161,20 @@ class Thalamus(metaclass=Singleton):
         PARAMETERS:
         -----------
 
-        :param signal(Signal): A signal to send
+        :param signal (Signal): A signal to send
 
         RETURN:
         -------
 
         :return: None
         """
-        # Get event id and arguments from the signal to send
+        # Get event and arguments from the signal to send
         event = signal.get_event()
         args = signal.get_arguments()
 
         # If the event in the list broadcast the signal
-        if event in self.connections:
-            for connection in self.connections[event]:
+        if event.get_index() in self.connections:
+            for connection in self.connections[event.get_index()]:
                 receiver = connection.get_receiver()
                 expected_arguments = connection.get_expected_arguments()
 
@@ -185,9 +185,10 @@ class Thalamus(metaclass=Singleton):
 
         # Else display an error notification
         else:
-            Notification(DEEP_NOTIF_ERROR, "The following event %s is not connected to any receiver." % str(event))
+            Notification(DEEP_NOTIF_ERROR, "The following event '%s' is not connected to any receiver." % str(event.get_description()))
 
-    def keep_arguments(self, receiver: callable, expected_arguments: list, arguments: dict):
+    @staticmethod
+    def keep_arguments(receiver: callable, expected_arguments: list, arguments: dict) -> dict:
         """
         AUTHORS:
         --------

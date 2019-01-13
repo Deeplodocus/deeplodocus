@@ -42,7 +42,7 @@ class Sequential(Transformer):
         """
         Transformer.__init__(self, name, mandatory_transforms, transforms)
 
-    def transform(self, transformed_data: Any, index : int) -> Any:
+    def transform(self, transformed_data: Any, index: int) -> Any:
         """
         AUTHORS:
         --------
@@ -67,19 +67,19 @@ class Sequential(Transformer):
         """
         transforms = []
 
-        if self.__last_index == index:
-            transforms += self.__last_transforms
+        if self.last_index == index:
+            transforms += self.last_transforms
 
         else:
             # Get mandatory transforms + transforms
-            transforms += self.__list_mandatory_transforms + self.__list_transforms
+            transforms += self.list_mandatory_transforms + self.list_transforms
 
         # Reinitialize the last transforms
-        self.__last_transforms = []
+        self.last_transforms = []
 
         # Apply the transforms
-        transformed_data = self.__apply_transforms(transformed_data, transforms)
+        transformed_data = self.apply_transforms(transformed_data, transforms)
 
         # Update the last index
-        self.__last_index = index
+        self.last_index = index
         return transformed_data

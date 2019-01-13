@@ -173,8 +173,8 @@ class FrontalLobe(object):
         self.load_optimizer()    # Always load the optimizer after the model
         self.load_losses()
         self.load_metrics()
-        self.load_trainer()
         self.load_validator()       # Always load the validator before the trainer
+        self.load_trainer()
         self.load_tester()
         self.load_memory()
 

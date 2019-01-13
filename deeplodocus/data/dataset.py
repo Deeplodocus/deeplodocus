@@ -617,8 +617,6 @@ class Dataset(object):
         if image is None:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_LOAD_IMAGE % (self.cv_library.name, image_path))
 
-        image = cv2.resize(image, (256, 128))
-
         # If image is not gray-scale, convert to rgba, else add extra channel
         if image.ndim > 2:
             image = self.__convert_bgra2rgba(image)
