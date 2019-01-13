@@ -9,7 +9,6 @@ import re
 
 
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.dict_utils import remove_keys
 from deeplodocus.utils.flags.notif import *
 
 DEEP_CONFIG_DIVIDER = "/"
@@ -62,7 +61,28 @@ class Namespace(object):
         """
         return copy.deepcopy(self)
 
-    def get(self, key=None, ignore=None):
+    def get_all(self):
+        """
+        Author: SW
+        :return: Self and all sub-spaces as a dictionary
+        """
+        dictionary = {}
+        for key, item in self.__dict__.items():
+            if isinstance(item, Namespace):
+                dictionary[key] = item.get_all()
+            elif isinstance(item, list):
+                item_tmp = []
+                for i in item:
+                    try:
+                        item_tmp.append(i.get_all())
+                    except AttributeError:
+                        item_tmp.append(i)
+                dictionary[key] = item_tmp
+            else:
+                dictionary[key] = item
+        return dictionary
+
+    def get(self, key=None):
         """
         Get data from the Namespace as a dictionary given a key or list of keys.
         Note: key can be a list of sub Namespace names for which get() will be called recursively.
@@ -70,10 +90,7 @@ class Namespace(object):
         :return: dict: data retrieved from the Namespace.
         """
         if key is None:
-            if ignore is None:
-                return self.__dict__
-            else:
-                return remove_keys(self.__dict__, ignore)
+            return self.__dict__
         else:
             if isinstance(key, list):
                 key = key[0] if len(key) == 1 else key
