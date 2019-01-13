@@ -1,3 +1,4 @@
+# Python imports
 import pandas as pd
 import time
 import datetime
@@ -6,17 +7,21 @@ import multiprocessing.managers
 import copy
 import os
 
-from deeplodocus.utils.flags import *
-from deeplodocus.utils.flags.event import *
-from deeplodocus.utils.flags.ext import DEEP_EXT_CSV
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.path import *
+# Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.dict_utils import merge_sum_dict
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.utils.logs import Logs
 from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.brain.signal import Signal
+
+# Deeplodocus flags
+from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.event import *
+from deeplodocus.utils.flags.ext import DEEP_EXT_CSV
+from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.flags.path import *
+from deeplodocus.utils.flags.compare_metric import *
 
 Num = Union[int, float]
 
@@ -44,8 +49,9 @@ class History(object):
                  verbose: int = DEEP_VERBOSE_BATCH,
                  memorize: int = DEEP_MEMORIZE_BATCHES,
                  save_condition: int = DEEP_SAVE_CONDITION_END_EPOCH,    # DEEP_SAVE_CONDITION_END_TRAINING to save at the end of training, DEEP_SAVE_CONDITION_END_EPOCH to save at the end of the epoch,
-                 overwatch_metric: OverWatchMetric = OverWatchMetric(name = TOTAL_LOSS,
-                                                                     condition = DEEP_COMPARE_SMALLER)):
+                 overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_METRIC_SMALLER)
+                ):
+
         self.log_dir = log_dir
         self.verbose = verbose
         self.metrics = metrics

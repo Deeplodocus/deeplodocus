@@ -40,6 +40,7 @@ class Flag(object):
         PARAMETERS:
         -----------
 
+        :param name(str): Official name of the flag
         :param names (List[str]): Names of the flag
         :param description (str): Description of the flag
 
@@ -102,7 +103,7 @@ class Flag(object):
         return "Flag {0} : (id : {1})".format(self.description, self.index)
 
     # TODO : Find a way to replace the "Any" typing to "Flag"
-    def corresponds(self, info : Union[str, int, Any]) -> bool:
+    def corresponds(self, info : Union[str, int, Any, None]) -> bool:
         """
         AUTHORS:
         --------
@@ -118,17 +119,20 @@ class Flag(object):
         PARAMETERS:
         -----------
 
-        :param name (Union[str, int, Flag]): The info to check
+        :param name (Union[str, int, Flag, None]): The info to check
 
         RETURN:
         -------
 
-        :return (bool): Whether the inof correspond to the Flag
+        :return (bool): Whether the info corresponds to the Flag
         """
+        # NONE
+        if info is None:
+            return False
 
         # NAME COMPARISON
         if isinstance(info, str):
-            if info in self.names:
+            if info.lower() in self.names:
                 return True
             else:
                 return False
@@ -164,4 +168,7 @@ class Flag(object):
 
     def get_description(self):
         return self.description
+
+    def get_name(self):
+        return self.name
 

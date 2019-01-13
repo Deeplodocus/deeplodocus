@@ -3,5 +3,6 @@ initial_epoch : 0
 shuffle : 1
 save_condition : 2
 save_method : 1
-overwatch_metric : "total loss"
-overwatch_condition : 0
+overwatch:
+  name: "total loss"
+  condition: "smaller"

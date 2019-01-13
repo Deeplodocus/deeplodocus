@@ -1,4 +1,6 @@
 from typing import Any
+from typing import List
+from typing import Optional
 
 # Import transformers
 from deeplodocus.data.transformer.one_of import OneOf
@@ -7,11 +9,17 @@ from deeplodocus.data.transformer.some_of import SomeOf
 from deeplodocus.data.transformer.pointer import Pointer
 from deeplodocus.data.transformer.no_transformer import NoTransformer
 
+# Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.flags.notif import DEEP_NOTIF_FATAL
 from deeplodocus.utils.flags.entry import *
 from deeplodocus.data.entry import Entry
+from deeplodocus.utils.generic_utils import get_corresponding_flag
+
+#Deeplodocus flags
+from deeplodocus.utils.flags.flag_lists import DEEP_LIST_TRANSFORMERS
+from deeplodocus.utils.flags.transformer import *
 
 
 class TransformManager(object):
@@ -37,7 +45,7 @@ class TransformManager(object):
     This method is very efficient and allows to have exactly the same output on mulitple inputs (e.g. left and right image of stereo vision)
     """
 
-    def __init__(self, name, inputs, labels, additional_data=None) -> None:
+    def __init__(self, name: str, inputs: List[Optional[str]], labels: List[Optional[str]], additional_data: List[Optional[str]]) -> None:
         """
         AUTHORS:
         --------
@@ -97,7 +105,9 @@ class TransformManager(object):
 
         list_transformers = None
 
+        #
         # Get the list of transformers corresponding to the type of entry
+        #
 
         # INPUT
         if DEEP_ENTRY_INPUT.corresponds(info=entry.get_entry_type()):
@@ -113,40 +123,42 @@ class TransformManager(object):
 
         # WRONG FLAG
         else:
-            Notification(DEEP_NOTIF_FATAL, "The following type of transformer does not exist : " + str(entry.get_entry_type().get_description()))
+            Notification(DEEP_NOTIF_FATAL, "The following type of entry does not exist : " + str(entry.get_entry_type().get_description()))
 
         # If it is a NoTransformer instance
         if list_transformers[entry.get_entry_index()].has_transforms() is False:
             return data
 
         # Check if the transformer points to another transformer
-        pointer = list_transformers[entry.get_entry_index()].get_pointer()
+        pointer, pointer_entry_index = list_transformers[entry.get_entry_index()].get_pointer()
 
         # If we do not point to another transformer, transform directly the data
         if pointer is None:
             transformed_data = list_transformers[entry.get_entry_index()].transform(data, index)
 
+        #
         # If we point to another transformer, load the transformer then transform the data
+        #
         else:
 
             # INPUT
-            if pointer[0] == DEEP_ENTRY_INPUT:
+            if DEEP_ENTRY_INPUT.corresponds(pointer):
                 list_transformers = self.list_input_transformers
 
             # LABEL
-            elif pointer[0] == DEEP_ENTRY_LABEL:
+            elif DEEP_ENTRY_LABEL.corresponds(pointer):
                 list_transformers = self.list_label_transformers
 
             # ADDITIONAL DATA
-            elif pointer[0] == DEEP_ENTRY_ADDITIONAL_DATA:
+            elif DEEP_ENTRY_ADDITIONAL_DATA.corresponds(pointer):
                 list_transformers = self.list_additional_data_transformers
 
             # WRONG FLAG
             else:
-                Notification(DEEP_NOTIF_FATAL, "The following type of transformer does not exist : " + str(pointer[0]))
+                Notification(DEEP_NOTIF_FATAL, "The following type of pointer does not exist : " + str(pointer))
 
             # Transform the data with the freshly loaded transformer
-            transformed_data = list_transformers[pointer[1]].transform(data, index)
+            transformed_data = list_transformers[pointer_entry_index].transform(data, index)
 
         return transformed_data
 
@@ -287,19 +299,30 @@ class TransformManager(object):
         # TRANSFORMER
         else:
             config = Namespace(config_entry)
-            if not hasattr(config, 'method'):
+
+            # Check if a method is given by the user
+            if config.check("method", None) is False:
                 Notification(DEEP_NOTIF_FATAL, "The following transformer does not have any method specified : " + str(config_entry))
-            # Get the config method in lowercases
-            config.method = config.method.lower()
-            # If sequential method selected
-            if config.method == "sequential":
+
+            # Get the corresponding flag
+            flag = get_corresponding_flag(flag_list=DEEP_LIST_TRANSFORMERS, info=config.method, fatal = False)
+
+            # Remove the method from the config
+            delattr(config, 'method')
+
+            #
+            # Create the corresponding Transformer
+            #
+
+            # SEQUENTIAL
+            if DEEP_TRANSFORMER_SEQUENTIAL.corresponds(flag):
                 transformer = Sequential(**config.get())
-            # If someOf method selected
-            elif config.method == "someof":
-                transformer = SomeOf(**config.get())
-            # If oneof method selected
-            elif config.method == "oneof":
+            # ONE OF
+            elif DEEP_TRANSFORMER_ONE_OF.corresponds(flag):
                 transformer = OneOf(**config.get())
+            # SOME OF
+            elif DEEP_TRANSFORMER_SOME_OF.corresponds(flag):
+                SomeOf(**config.get())
             # If the method does not exist
             else:
                 Notification(DEEP_NOTIF_FATAL, "The following transformation method does not exist : " + str(config.method))
@@ -307,7 +330,7 @@ class TransformManager(object):
         return transformer
 
     @staticmethod
-    def __is_pointer(source_path : str) -> bool:
+    def __is_pointer(source_path: str) -> bool:
         """
         AUTHORS:
         --------

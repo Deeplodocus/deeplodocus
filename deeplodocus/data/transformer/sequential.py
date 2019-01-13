@@ -1,4 +1,8 @@
-from .transformer import Transformer
+# Python imports
+from typing import Any
+
+# Deeplodocus imports
+from deeplodocus.data.transformer.transformer import Transformer
 
 
 class Sequential(Transformer):
@@ -14,7 +18,7 @@ class Sequential(Transformer):
     Sequential class inheriting from Transformer which compute the list of transforms sequentially
     """
 
-    def __init__(self, name, method, mandatory_transforms, transforms):
+    def __init__(self, name, mandatory_transforms, transforms):
         """
         AUTHORS:
         --------
@@ -36,9 +40,9 @@ class Sequential(Transformer):
 
         :return: None
         """
-        Transformer.__init__(self, name, method, mandatory_transforms, transforms)
+        Transformer.__init__(self, name, mandatory_transforms, transforms)
 
-    def transform(self, transformed_data, index):
+    def transform(self, transformed_data: Any, index : int) -> Any:
         """
         AUTHORS:
         --------
@@ -63,22 +67,19 @@ class Sequential(Transformer):
         """
         transforms = []
 
-        if self.last_index == index:
-            transforms = self.last_transforms
+        if self.__last_index == index:
+            transforms += self.__last_transforms
 
         else:
             # Get mandatory transforms + transforms
-            transforms = self.list_mandatory_transforms + self.list_transforms
+            transforms += self.__list_mandatory_transforms + self.__list_transforms
 
         # Reinitialize the last transforms
-        self.last_transforms = []
+        self.__last_transforms = []
 
         # Apply the transforms
-        transformed_data = self.apply_transforms(transformed_data, transforms)
+        transformed_data = self.__apply_transforms(transformed_data, transforms)
 
         # Update the last index
-        self.last_index = index
+        self.__last_index = index
         return transformed_data
-
-
-
