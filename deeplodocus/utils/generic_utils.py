@@ -3,7 +3,6 @@ This script contains useful generic functions
 """
 import re
 import pkgutil
-import __main__
 import random
 import string
 from typing import List

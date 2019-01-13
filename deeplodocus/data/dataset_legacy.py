@@ -10,7 +10,6 @@ from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.generic_utils import is_np_array
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.errors import error_entry_array_size
-from deeplodocus.utils.namespace import Namespace
 
 # Deeplodocus flags imports
 from deeplodocus.utils.flags.notif import *

@@ -91,7 +91,7 @@ def mean(dictionary: dict):
     return dictionary
 
 
-def apply(dictionary1: dict, dictionary2: dict, op: str, error_ok: bool=False):
+def apply(dictionary1: dict, dictionary2: dict, op: str, error_ok: bool = False):
     """
     Author: SW
     Apply to the values of dictionary1 the corresponding values from dictionary2 by the given operator
@@ -120,7 +120,7 @@ def apply_weight(loss_dictionary: dict, losses: dict):
     :param losses: dict: dict: the name and loss objects
     :return: loss_dictionary: dict: loss_dictionary with weights applied
     """
-    for key, value in loss_dictionary.items():
+    for key, value in vars(loss_dictionary).items():
         loss_dictionary[key] = value * losses[key].get_weight()
     return loss_dictionary
 

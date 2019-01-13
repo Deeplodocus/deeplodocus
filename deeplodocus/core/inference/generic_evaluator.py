@@ -3,7 +3,6 @@
 #
 from typing import Union
 from typing import List
-import inspect
 
 #
 # Backend imports
@@ -19,7 +18,6 @@ from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
-from deeplodocus.utils.notification import Notification
 
 
 class GenericEvaluator(GenericInferer):
@@ -116,7 +114,7 @@ class GenericEvaluator(GenericInferer):
         # Temporary variable for saving the output
         temp_metric_result = None
 
-        for key, metric in metrics.items():
+        for key, metric in vars(metrics).items():
             metric_args = metric.get_arguments()
             metric_method = metric.get_method()
 

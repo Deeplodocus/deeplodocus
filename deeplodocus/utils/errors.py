@@ -1,5 +1,4 @@
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags import *
 
 
 def error_entry_array_size(d: dict, error_type):

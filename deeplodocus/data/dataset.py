@@ -326,8 +326,45 @@ class Dataset(object):
                 entry_data = self.__transform_data(data=entry_data,
                                                    entry=entry,
                                                    index=index)
+
+            entry_data = self.__format_data(entry_data, entry)
             data.append(entry_data)
         return data
+
+    @staticmethod
+    def __format_data(data_entry, entry):
+        """
+        AUTHORS:
+        --------
+
+        :author: Samuel Westlake
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Method to format data to pytorch conventions.
+        Images are converted from (w, h, ch) to (ch, h, w)
+        Videos are ...
+
+        PARAMETERS:
+        -----------
+
+        :param data_entry: the data instance
+        :param entry: the data entry flag
+
+        RETURN:
+        -------
+
+        :return: the formatted data entry
+        """
+        if entry.data_type() == DEEP_DTYPE_IMAGE():
+            # Make image (ch, h, w)
+            data_entry = np.swapaxes(data_entry, 0, 2)
+            data_entry = np.swapaxes(data_entry, 1, 2)
+
+        # TODO: Formating for other data types
+        return data_entry
 
     def __generate_entries(self, entries: List[Namespace], entry_type: Flag) -> List[Entry]:
         """
@@ -580,15 +617,13 @@ class Dataset(object):
         if image is None:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_LOAD_IMAGE % (self.cv_library.name, image_path))
 
+        image = cv2.resize(image, (256, 128))
+
         # If image is not gray-scale, convert to rgba, else add extra channel
         if image.ndim > 2:
             image = self.__convert_bgra2rgba(image)
         else:
             image = image[:, :, np.newaxis]
-
-        # Make image (ch, h, w)
-        image = np.swapaxes(image, 0, 2)
-        image = np.swapaxes(image, 1, 2)
 
         return image.astype(float)
 
@@ -814,11 +849,10 @@ class Dataset(object):
 
         :return: None
         """
-
         # ALL DATASET
         if DEEP_SHUFFLE_ALL.corresponds(info=method):
             self.item_order = np.random.randint(0, high=self.length, size=(self.length,))
-            Notification(DEEP_NOTIF_SUCCESS, "Dataset shuffled")
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_SHUFFLE_COMPLETE % method.name)
 
         # NONE
         elif DEEP_SHUFFLE_NONE.corresponds(info=method):
@@ -830,7 +864,7 @@ class Dataset(object):
 
         # WRONG FLAG
         else:
-            Notification(DEEP_NOTIF_ERROR, "The shuffling method does not exist.")
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_SHUFFLE_NOT_FOUND % method.name)
 
         # Reset the TransformManager
         self.reset()
