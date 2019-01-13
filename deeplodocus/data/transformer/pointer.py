@@ -69,7 +69,7 @@ class Pointer(object):
 
         :return: pointer_to_transformer attribute
         """
-        return [self.transformer_entry, self.transformer_index]
+        return self.transformer_entry, self.transformer_index
 
     def __generate_pointer(self, pointer : str) -> Tuple[Flag, int]:
         """
