@@ -68,10 +68,10 @@ class Thalamus(metaclass=Singleton):
 
         :return: None
         """
-        self.signals.put(signal)
+        #self.signals.put(signal)
 
         # To keep like this until asynchronous brain is implemented
-        signal = self.signals.get()
+        #signal = self.signals.get()
         self.send(signal)
 
     def connect(self, receiver: callable, event: Flag, expected_arguments = None):

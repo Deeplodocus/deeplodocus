@@ -5,6 +5,7 @@ import os
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.end import End
 from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.compare_metric import *
 from deeplodocus.utils.flags.event import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
@@ -148,7 +149,7 @@ class Saver(object):
             save = False
 
         # If  the new metric has to be smaller than the best one
-        if current_overwatch_metric.get_condition() == DEEP_COMPARE_SMALLER:
+        if  DEEP_COMPARE_METRIC_SMALLER.corresponds(current_overwatch_metric.get_condition()):
             # If the model improved since last batch => Save
             if self.best_overwatch_metric.get_value() > current_overwatch_metric.get_value():
                 self.best_overwatch_metric = current_overwatch_metric
@@ -159,7 +160,7 @@ class Saver(object):
                 save = False
 
         # If the new metric has to be bigger than the best one (e.g. The accuracy of a classification)
-        elif current_overwatch_metric.get_condition() == DEEP_COMPARE_BIGGER:
+        elif DEEP_COMPARE_METRIC_BIGGER.corresponds(current_overwatch_metric.get_condition()):
             # If the model improved since last batch => Save
             if self.best_overwatch_metric.get_value() < current_overwatch_metric.get_value():
                 self.best_overwatch_metric = current_overwatch_metric

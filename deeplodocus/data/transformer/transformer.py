@@ -226,7 +226,6 @@ class Transformer(object):
 
         # Apply the transforms
         for transform in transforms:
-
             transform_name = transform["name"]
             transform_method = transform["method"]  # Create a generic alias for the transform method
             transform_args = transform["kwargs"]  # Dictionary of arguments

@@ -623,7 +623,7 @@ class Dataset(object):
         else:
             image = image[:, :, np.newaxis]
 
-        return image.astype(float)
+        return image.astype(np.float32)
 
     @staticmethod
     def __convert_bgra2rgba(image):

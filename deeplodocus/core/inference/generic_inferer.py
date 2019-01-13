@@ -153,3 +153,30 @@ class GenericInferer(object):
         """
         return self.num_minibatches
 
+    def to_device(self, data, device):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Convert data to the correct backend format
+
+        PARAMETERS:
+        -----------
+
+        :param data (data):
+        :param device:
+
+        RETURN:
+        -------
+
+        :return:
+        """
+        if isinstance(data, list):
+            return [d.to(device=device) for d in data]
+        else:
+            return data.to(device)
