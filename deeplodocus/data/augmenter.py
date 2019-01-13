@@ -7,7 +7,7 @@ import datetime
 
 # Import deeplodocus modules
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags import *
+
 
 class Augmenter(object):
     """

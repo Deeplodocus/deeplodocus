@@ -1,6 +1,5 @@
 import os
 import time
-import __main__
 
 from deeplodocus import __version__
 from deeplodocus.brain.frontal_lobe import FrontalLobe
@@ -569,7 +568,6 @@ class Brain(FrontalLobe):
                 commands.remove(command)
                 self.__illegal_command_messages(command)
         return self.__get_command_flags(commands)
-
 
     @staticmethod
     def __illegal_command_messages(command):

@@ -1,7 +1,6 @@
 # Backend imports
 import torch
 import torch.nn as nn
-from torch import Tensor
 
 # Deeplodocus imports
 from deeplodocus.data.dataset import Dataset
@@ -18,6 +17,8 @@ from deeplodocus.utils.flags import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.event import *
 from deeplodocus.utils.flags.shuffle import *
+from deeplodocus.utils.generic_utils import get_corresponding_flag
+from deeplodocus.utils.flags.flag_lists import DEEP_LIST_SHUFFLE
 
 
 class Trainer(GenericEvaluator):
@@ -88,10 +89,12 @@ class Trainer(GenericEvaluator):
                          batch_size=batch_size,
                          num_workers=num_workers,
                          verbose=verbose)
-        self.shuffle = shuffle
         self.optimizer = optimizer
         self.initial_epoch = initial_epoch
         self.num_epochs = num_epochs
+        self.shuffle = get_corresponding_flag(DEEP_LIST_SHUFFLE, shuffle,
+                                              fatal=False,
+                                              default=DEEP_SHUFFLE_NONE)
 
         if isinstance(tester, Tester):
             self.tester = tester          # Tester for validation
@@ -168,7 +171,8 @@ class Trainer(GenericEvaluator):
 
             Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_EPOCH_START, args={"epoch_index": epoch,
                                                                                        "num_epochs": self.num_epochs}))
-
+            # Put model into train mode for the start of the epoch
+            self.model.train()
             for minibatch_index, minibatch in enumerate(self.dataloader, 0):
                 # Clean the given data
                 inputs, labels, additional_data = self.clean_single_element_list(minibatch)
@@ -188,7 +192,7 @@ class Trainer(GenericEvaluator):
                 result_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
                 # Add weights to losses
-                result_losses = apply_weight(result_losses, self.losses)
+                # result_losses = apply_weight(result_losses, self.losses)
 
                 # Sum all the result of the losses
                 total_loss = sum_dict(result_losses)

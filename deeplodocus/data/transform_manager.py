@@ -1,4 +1,3 @@
-import time
 from typing import Any
 from typing import List
 from typing import Optional
