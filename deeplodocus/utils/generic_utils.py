@@ -253,7 +253,7 @@ def get_specific_module(name, module, silence=False):
     return local["module"]
 
 
-def get_module(name, module=None, browse=None):
+def get_module(name: str, module=None, browse=None) -> Union[callable, None]:
     """
     AUTHORS:
     --------
@@ -276,7 +276,7 @@ def get_module(name, module=None, browse=None):
     RETURN:
     -------
 
-    :return module(callable): The loaded module
+    :return module(Union[callable, None]): The loaded module
     """
     if module is not None:
         return get_specific_module(name, module)
@@ -286,7 +286,7 @@ def get_module(name, module=None, browse=None):
         return None
 
 
-def browse_module(name, modules):
+def browse_module(name, modules) -> callable:
     """
     AUTHORS:
     --------
@@ -310,7 +310,7 @@ def browse_module(name, modules):
     RETURN:
     -------
 
-    :return: The module if loaded, None else
+    :return (callable): The loaded module
     """
     list_modules = []
     # For all the given modules
@@ -320,6 +320,7 @@ def browse_module(name, modules):
                                                               prefix=value["prefix"] + '.',
                                                               onerror=lambda x: None):
 
+            # TODO : Remove when torch module is updated to 1.0.1+
             # Fix the loading a of useless torch module(temporary)
             if modname == "torch.nn.parallel.distributed_c10d":
                 continue
@@ -330,11 +331,18 @@ def browse_module(name, modules):
             if module is not None:
                 list_modules.append(module)
 
+    # Remove modules found multiple times
     list_modules = remove_duplicates(items=list_modules)
+
+    # If not module was found
     if len(list_modules) == 0:
-        Notification(DEEP_NOTIF_FATAL, "Couldn't find the module '%s' anywhere.")
+        Notification(DEEP_NOTIF_FATAL, "Couldn't find the module '%s' anywhere." %name)
+
+    # If only one module was found
     elif len(list_modules) == 1:
         return list_modules[0]
+
+    # If more than one module was found we ask the user to select the good one
     else:
         return select_module(list_modules, name)
 
@@ -364,7 +372,7 @@ def remove_duplicates(items: list) -> list:
     return list(set(items))
 
 
-def select_module(list_modules: list, name: str):
+def select_module(list_modules: list, name: str) -> callable:
     """
     AUTHORS:
     --------
@@ -385,7 +393,7 @@ def select_module(list_modules: list, name: str):
     RETURN:
     -------
 
-    :return: The desired module
+    :return: The desired module(callable)
     """
     Notification(DEEP_NOTIF_WARNING, "The module '%s' was found in multiple locations :" % name)
     # Print the list of modules and their corresponding indices
