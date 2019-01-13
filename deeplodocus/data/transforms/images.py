@@ -123,7 +123,6 @@ def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0):
 
     :return->np.array: Image of size shape
     """
-    print("Here")
     # If we want to reduce the image
     if image.shape[0] * image.shape[1] > shape[0] * shape[1]:
         interpolation = cv2.INTER_LINEAR_EXACT  # Use the Bilinear Interpolation
