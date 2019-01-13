@@ -1,4 +1,4 @@
-from deeplodocus.utils.flags.event import *
+from deeplodocus.utils.flag import Flag
 
 
 class Signal(object):
@@ -15,7 +15,7 @@ class Signal(object):
     Signal class to be used to interact with the Thalamus
     """
 
-    def __init__(self, event, args={}):
+    def __init__(self, event : Flag, args={}):
         """
         AUTHORS:
         --------
@@ -35,7 +35,7 @@ class Signal(object):
         self.event = event
         self.arguments = args
 
-    def get_event(self):
+    def get_event(self) -> Flag:
         """
         AUTHORS:
         --------

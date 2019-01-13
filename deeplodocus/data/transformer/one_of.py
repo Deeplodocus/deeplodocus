@@ -63,19 +63,19 @@ class OneOf(Transformer):
         :return transformed_data: The transformed data
         """
         transforms = []
-        if self.__last_index == index:
-            transforms += self.__last_transforms
+        if self.last_index == index:
+            transforms += self.last_transforms
 
         else: # Get ALL the mandatory transforms + one transform randomly selected
-            transforms += self.__list_mandatory_transforms                                    # Get the mandatory transforms
-            random_transform_index = random.randint(0, len(self.__list_transforms) -1)        # Get a random transform among the ones available in the list
-            transforms += self.__list_transforms[random_transform_index]                      # Get the one function
+            transforms += self.list_mandatory_transforms                                    # Get the mandatory transforms
+            random_transform_index = random.randint(0, len(self.list_transforms) -1)        # Get a random transform among the ones available in the list
+            transforms += self.list_transforms[random_transform_index]                      # Get the one function
 
         # Reinitialize the last transforms
-        self.__last_transforms = []
+        self.last_transforms = []
 
         # Apply the transforms
-        transformed_data = self.__apply_transforms(transformed_data, transforms)
+        transformed_data = self.apply_transforms(transformed_data, transforms)
 
-        self.__last_index = index
+        self.last_index = index
         return transformed_data

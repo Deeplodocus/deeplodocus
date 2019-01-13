@@ -46,21 +46,21 @@ class SomeOf(Transformer):
 
         # Compute the number of transformation required
         if number_transformations is None :
-            self.__number_transformation = None
+            self.number_transformation = None
 
             if number_transformations_min is None:
-                self.__number_transformations_min = 1
+                self.number_transformations_min = 1
             else:
-                self.__number_transformations_min = int(number_transformations_min)
+                self.number_transformations_min = int(number_transformations_min)
 
             if num_transformations_max is None:
-                self.__number_transformations_max = len(self.__list_transforms)
+                self.number_transformations_max = len(self.list_transforms)
             else:
-                self.__number_transformations_max = int(num_transformations_max)
+                self.number_transformations_max = int(num_transformations_max)
         else:
-            self.__number_transformation = number_transformations
-            self.__number_transformation_min = None
-            self.__number_num_transformations_max = None
+            self.number_transformation = number_transformations
+            self.number_transformation_min = None
+            self.number_num_transformations_max = None
 
     def transform(self, transformed_data: Any, index: int) -> Any:
         """
@@ -87,36 +87,36 @@ class SomeOf(Transformer):
         """
         transforms = []
 
-        if self.__last_index == index:
-            transforms += self.__last_transforms
+        if self.last_index == index:
+            transforms += self.last_transforms
 
         else:
             # Add the mandatory transforms
-            transforms += self.__list_mandatory_transforms
+            transforms += self.list_mandatory_transforms
 
             # If an exact number of transformations is defined
             if self.__number_transformation is not None:
-                number_transforms_applied = self.__number_transformation
+                number_transforms_applied = self.number_transformation
 
             # Else pick a random number between the boundaries
             else:
-                number_transforms_applied = random.randint(self.__number_transformations_min, self.__number_transformations_max)
+                number_transforms_applied = random.randint(self.number_transformations_min, self.number_transformations_max)
 
             # Select random transforms from the list
-            index_transforms_applied = random.sample(range(len(self.__list_transforms)), number_transforms_applied ).sort()       # Sort the list numerically
+            index_transforms_applied = random.sample(range(len(self.list_transforms)), number_transforms_applied ).sort()       # Sort the list numerically
 
             # Add the randomly selected transforms to the transform list
             for index in index_transforms_applied:
-                transforms.append(self.__list_transforms[index])
+                transforms.append(self.list_transforms[index])
 
         # Reinitialize the last transforms
-        self.__last_transforms = []
+        self.last_transforms = []
 
         # Apply the transforms
-        transformed_data = self.__apply_transforms(transformed_data, transforms)
+        transformed_data = self.apply_transforms(transformed_data, transforms)
 
         # Update the last index
-        self.__last_index = index
+        self.last_index = index
         return transformed_data
 
 

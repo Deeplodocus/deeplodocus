@@ -180,19 +180,20 @@ class Trainer(GenericEvaluator):
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
 
-                # Infer the output of the batch
                 # TODO: inputs should be a list and use outputs = self.model(*inputs) and put inputs on device
-                inputs = inputs.to(device=self.model.device, dtype=torch.float)
-                labels = labels.to(device=self.model.device, dtype=torch.long)
+                #inputs = [i.to(device=self.model.device, dtype=torch.float) for i in inputs]
+                #labels = [l.to(device=self.model.device) for l in labels]
+                #labels = labels[0]
 
-                outputs = self.model(inputs)
+                # Infer the output of the batch
+                outputs = self.model(*inputs)
 
                 # Compute losses and metrics
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
                 result_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
                 # Add weights to losses
-                # result_losses = apply_weight(result_losses, self.losses)
+                result_losses = self.apply_weight(result_losses, self.losses)
 
                 # Sum all the result of the losses
                 total_loss = sum_dict(result_losses)
@@ -285,6 +286,13 @@ class Trainer(GenericEvaluator):
         #         result_metrics[key] = value.detach()
 
         return outputs, total_loss, result_losses, result_metrics
+
+    @staticmethod
+    def apply_weight(result_metrics, metrics):
+        for key, value in result_metrics.items():
+            result_metrics[key] = value * metrics.get(key).get_weight()
+        return result_metrics
+
 
     def __continue_training(self):
         """

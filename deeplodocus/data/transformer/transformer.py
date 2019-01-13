@@ -19,6 +19,7 @@ from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.flags.module import DEEP_MODULE_TRANSFORMS
 from deeplodocus.utils.flags.notif import DEEP_NOTIF_INFO, DEEP_NOTIF_FATAL
 
+
 class Transformer(object):
     """
     AUTHORS:
@@ -57,14 +58,14 @@ class Transformer(object):
         :return: None
         """
         self.__name = name
-        self.__last_index = None
-        self.__transformer_entry = None
-        self.__transformer_index = None
-        self.__last_transforms = []
+        self.last_index = None
+        self.transformer_entry = None
+        self.transformer_index = None
+        self.last_transforms = []
 
         # List of transforms
-        self.__list_transforms = self.__fill_transform_list(transforms)
-        self.__list_mandatory_transforms = self.__fill_transform_list(mandatory_transforms)
+        self.list_transforms = self.__fill_transform_list(transforms)
+        self.list_mandatory_transforms = self.__fill_transform_list(mandatory_transforms)
 
     def summary(self):
         """
@@ -92,15 +93,15 @@ class Transformer(object):
         Notification(DEEP_NOTIF_INFO, "Transformer '" + str(self.__name) + "' summary :")
 
         # MANDATORY TRANSFORMS
-        if len(self.__list_mandatory_transforms) > 0:
+        if len(self.list_mandatory_transforms) > 0:
             Notification(DEEP_NOTIF_INFO, " Mandatory transforms :")
-            for t in self.__list_mandatory_transforms:
+            for t in self.list_mandatory_transforms:
                 Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Method : " + str(t["method"]))
 
         # TRANSFORMS
-        if len(self.__list_transforms) > 0:
+        if len(self.list_transforms) > 0:
             Notification(DEEP_NOTIF_INFO, " Transforms :")
-            for t in self.__list_transforms:
+            for t in self.list_transforms:
                 Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Method : " + str(t["method"]))
 
     def get_pointer(self) -> Tuple[Optional[Flag], Optional[int]]:
@@ -125,7 +126,7 @@ class Transformer(object):
 
         :return: pointer_to_transformer attribute
         """
-        return self.__transformer_entry, self.__transformer_index
+        return self.transformer_entry, self.transformer_index
 
     def reset(self):
         """
@@ -150,8 +151,8 @@ class Transformer(object):
         :return: None
         """
 
-        self.__last_index = None
-        self.__last_transforms = []
+        self.last_index = None
+        self.last_transforms = []
 
     @staticmethod
     def __fill_transform_list(transforms: Union[Namespace, List[dict]]) -> list:
@@ -199,7 +200,7 @@ class Transformer(object):
         """
         pass # Will be overridden
 
-    def __apply_transforms(self, transformed_data, transforms):
+    def apply_transforms(self, transformed_data, transforms):
         """
         AUTHORS:
         --------
@@ -233,10 +234,10 @@ class Transformer(object):
 
             # Update the last transforms used and the last index
             if last_method_used is None:
-                self.__last_transforms.append([transform_name, transform_method, transform_args])
+                self.last_transforms.append([transform_name, transform_method, transform_args])
 
             else:
-                self.__last_transforms.append(last_method_used)
+                self.last_transforms.append(last_method_used)
         return transformed_data
 
     def __transform_image(self, image, key):
