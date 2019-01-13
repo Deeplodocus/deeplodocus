@@ -8,11 +8,17 @@ from deeplodocus.data.transformer.some_of import SomeOf
 from deeplodocus.data.transformer.pointer import Pointer
 from deeplodocus.data.transformer.no_transformer import NoTransformer
 
+# Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.flags.notif import DEEP_NOTIF_FATAL
 from deeplodocus.utils.flags.entry import *
 from deeplodocus.data.entry import Entry
+from deeplodocus.utils.generic_utils import get_corresponding_flag
+
+#Deeplodocus flags
+from deeplodocus.utils.flags.flag_lists import DEEP_LIST_TRANSFORMERS
+from deeplodocus.utils.flags.transformer import *
 
 
 class TransformManager(object):
@@ -288,19 +294,21 @@ class TransformManager(object):
         # TRANSFORMER
         else:
             config = Namespace(config_entry)
-            if not hasattr(config, 'method'):
+            if config.check("method", None) is False:
                 Notification(DEEP_NOTIF_FATAL, "The following transformer does not have any method specified : " + str(config_entry))
-            # Get the config method in lowercases
-            config.method = config.method.lower()
-            # If sequential method selected
-            if config.method == "sequential":
+
+            # Get the corresponding flag
+            flag = get_corresponding_flag(flag_list=DEEP_LIST_TRANSFORMERS, info = config.method, fatal = False)
+
+            # SEQUENTIAL
+            if DEEP_TRANSFORMER_SEQUENTIAL.corresponds(flag):
                 transformer = Sequential(**config.get())
-            # If someOf method selected
-            elif config.method == "someof":
-                transformer = SomeOf(**config.get())
-            # If oneof method selected
-            elif config.method == "oneof":
+            # ONE OF
+            elif DEEP_TRANSFORMER_ONE_OF.corresponds(flag):
                 transformer = OneOf(**config.get())
+            # SOME OF
+            elif DEEP_TRANSFORMER_SOME_OF.corresponds(flag):
+                SomeOf(**config.get())
             # If the method does not exist
             else:
                 Notification(DEEP_NOTIF_FATAL, "The following transformation method does not exist : " + str(config.method))
@@ -308,7 +316,7 @@ class TransformManager(object):
         return transformer
 
     @staticmethod
-    def __is_pointer(source_path : str) -> bool:
+    def __is_pointer(source_path: str) -> bool:
         """
         AUTHORS:
         --------
