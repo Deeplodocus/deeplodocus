@@ -179,16 +179,16 @@ class Transformer(object):
         """
 
         loaded_transforms = []
-        for transform in transforms:
+        if transforms is not None:
+            for transform in transforms:
+                if "module" not in transform:
+                    transform["module"] = None
 
-            if "module" not in transform:
-                transform["module"] = None
-
-            loaded_transforms.append({"name": transform["name"],
-                                      "method": get_module(name= transform["name"],
-                                                           module=transform["module"],
-                                                           browse=DEEP_MODULE_TRANSFORMS),
-                                      "kwargs": transform["kwargs"]})
+                loaded_transforms.append({"name": transform["name"],
+                                          "method": get_module(name= transform["name"],
+                                                               module=transform["module"],
+                                                               browse=DEEP_MODULE_TRANSFORMS),
+                                          "kwargs": transform["kwargs"]})
         return loaded_transforms
 
     def transform(self, data, index):
