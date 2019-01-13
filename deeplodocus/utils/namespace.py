@@ -82,7 +82,7 @@ class Namespace(object):
                 dictionary[key] = item
         return dictionary
 
-    def get(self, key=None):
+    def get(self, key=None, ignore=None):
         """
         Get data from the Namespace as a dictionary given a key or list of keys.
         Note: key can be a list of sub Namespace names for which get() will be called recursively.
@@ -90,14 +90,17 @@ class Namespace(object):
         :return: dict: data retrieved from the Namespace.
         """
         if key is None:
-            return self.__dict__
+            if ignore is None:
+                return self.__dict__
+            else:
+                return self.__remove_keys(self.__dict__, ignore)
         else:
             if isinstance(key, list):
                 key = key[0] if len(key) == 1 else key
             if isinstance(key, list):
-                return self.__dict__[key[0]].get(key[1:])
+                return self.__dict__[key[0]].get(key[1:], ignore=ignore)
             elif isinstance(self.__dict__[key], Namespace):
-                return self.__dict__[key].get()
+                return self.__dict__[key].get(ignore=ignore)
             else:
                 if isinstance(key, list):
                     return [self.__dict__[k] for k in key]
@@ -224,6 +227,14 @@ class Namespace(object):
                 if sub_space not in self.get().keys():
                     self.__dict__.update({sub_space: Namespace()})
                 self.get()[sub_space].__add(dictionary)
+
+    @staticmethod
+    def __remove_keys(dictionary, keys):
+        keys = keys if isinstance(keys, list) else [keys]
+        new_dict = dict(dictionary)
+        for key in keys:
+            del new_dict[key]
+        return new_dict
 
 
 # this is to convert the string written as a tuple into a python tuple
