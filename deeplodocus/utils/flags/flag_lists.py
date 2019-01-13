@@ -3,6 +3,8 @@ from deeplodocus.utils.flags.source import *
 from deeplodocus.utils.flags.load import *
 from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags.lib import *
+from deeplodocus.utils.flags.compare_metric import *
+from deeplodocus.utils.flags.transformer import *
 
 # DATA TYPES
 DEEP_LIST_DTYPE = [DEEP_DTYPE_IMAGE,
@@ -36,3 +38,11 @@ DEEP_LIST_POINTER_ENTRY = [DEEP_ENTRY_INPUT,
 # COMPUTER VISION LIBRARIES
 DEEP_LIST_CV_LIB = [DEEP_LIB_PIL,
                     DEEP_LIB_OPENCV]
+
+# COMPARE TWO SUCCESSIVE METRICS
+DEEP_LIST_COMPARE_METRIC = [DEEP_COMPARE_METRIC_SMALLER,
+                            DEEP_COMPARE_METRIC_BIGGER]
+
+DEEP_LIST_TRANSFORMERS = [DEEP_TRANSFORMER_SEQUENTIAL,
+                          DEEP_TRANSFORMER_ONE_OF,
+                          DEEP_TRANSFORMER_SOME_OF]
