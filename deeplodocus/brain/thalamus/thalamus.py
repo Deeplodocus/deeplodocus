@@ -172,9 +172,6 @@ class Thalamus(metaclass=Singleton):
         event = signal.get_event()
         args = signal.get_arguments()
 
-        print(event.get_description())
-        print(self.connections)
-
         # If the event in the list broadcast the signal
         if event.get_index() in self.connections:
             for connection in self.connections[event.get_index()]:
