@@ -5,10 +5,15 @@ import datetime
 # Import modules from deeplodocus
 from deeplodocus.callbacks.saver import Saver
 from deeplodocus.callbacks.history import History
-from deeplodocus.utils.flags import *
-from deeplodocus.utils.flags.path import DEEP_PATH_HISTORY, DEEP_PATH_SAVE_MODEL
+
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.utils.generic_utils import generate_random_alphanumeric
+
+# Deeplodocus flags
+from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.path import DEEP_PATH_HISTORY, DEEP_PATH_SAVE_MODEL
+from deeplodocus.utils.flags.compare_metric import *
+
 Num = Union[int, float]
 
 
@@ -38,7 +43,7 @@ class Hippocampus(object):
                  verbose:int = DEEP_VERBOSE_BATCH,
                  memorize:int = DEEP_MEMORIZE_BATCHES,
                  history_directory: str = DEEP_PATH_HISTORY,
-                 overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_SMALLER),
+                 overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_METRIC_SMALLER),
                  # Saver
                  save_model_condition:int = DEEP_SAVE_CONDITION_AUTO,
                  save_model_method:int = DEEP_SAVE_NET_FORMAT_PYTORCH,
