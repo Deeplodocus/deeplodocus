@@ -169,3 +169,4 @@ class GenericEvaluator(GenericInferer):
                 result_metrics[metric.get_name()] = temp_metric_result.item()
 
         return result_metrics
+

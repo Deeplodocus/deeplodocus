@@ -5,6 +5,8 @@ from deeplodocus.utils.flags.notif import *
 class Metrics(object):
 
     def __init__(self, metrics=None):
+        super(Metrics).__init__()
+
         if metrics is not None:
             self.__dict__ = metrics
 
@@ -21,13 +23,12 @@ class Metrics(object):
             Notification(DEEP_NOTIF_INFO, "None")
         Notification(DEEP_NOTIF_INFO, "")
 
-    def get(self, item):
-        return self.__dict__[item]
-
 
 class Losses(object):
 
     def __init__(self, losses=None):
+        super(Losses).__init__()
+
         if losses is not None:
             self.__dict__ = losses
 
@@ -43,6 +44,3 @@ class Losses(object):
         if not vars(self):
             Notification(DEEP_NOTIF_INFO, "None")
         Notification(DEEP_NOTIF_INFO, "")
-
-    def get(self, item):
-        return self.__dict__[item]

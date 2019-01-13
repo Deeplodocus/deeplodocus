@@ -1,3 +1,6 @@
+# Python imports
+import weakref
+
 # Backend imports
 import torch
 import torch.nn as nn
@@ -6,7 +9,7 @@ import torch.nn as nn
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.tester import Tester
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.dict_utils import apply_weight
+import deeplodocus.utils.dict_utils as dict_utils
 from deeplodocus.utils.dict_utils import sum_dict
 from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 from deeplodocus.brain.thalamus import Thalamus
@@ -180,10 +183,10 @@ class Trainer(GenericEvaluator):
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
 
-                # TODO: inputs should be a list and use outputs = self.model(*inputs) and put inputs on device
-                #inputs = [i.to(device=self.model.device, dtype=torch.float) for i in inputs]
-                #labels = [l.to(device=self.model.device) for l in labels]
-                #labels = labels[0]
+                # Set the data to the corresponding device
+                inputs = self.to_device(data=inputs, device=self.model.device)
+                labels = self.to_device(data=labels, device=self.model.device)
+                additional_data = self.to_device(data=labels, device=self.model.device)
 
                 # Infer the output of the batch
                 outputs = self.model(*inputs)
@@ -193,7 +196,7 @@ class Trainer(GenericEvaluator):
                 result_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
                 # Add weights to losses
-                result_losses = self.apply_weight(result_losses, self.losses)
+                result_losses = dict_utils.apply_weight(result_losses, vars(self.losses))
 
                 # Sum all the result of the losses
                 total_loss = sum_dict(result_losses)
@@ -234,7 +237,7 @@ class Trainer(GenericEvaluator):
             Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_EPOCH_END,
                                          args={"epoch_index": epoch,
                                                "num_epochs": self.num_epochs,
-                                               "model": self.model,
+                                               "model": weakref.ref(self.model),
                                                "num_minibatches": self.num_minibatches,
                                                "total_validation_loss": total_validation_loss.item(),
                                                "result_validation_losses": result_validation_losses,
@@ -287,11 +290,6 @@ class Trainer(GenericEvaluator):
 
         return outputs, total_loss, result_losses, result_metrics
 
-    @staticmethod
-    def apply_weight(result_metrics, metrics):
-        for key, value in result_metrics.items():
-            result_metrics[key] = value * metrics.get(key).get_weight()
-        return result_metrics
 
 
     def __continue_training(self):
@@ -367,6 +365,9 @@ class Trainer(GenericEvaluator):
         # If a tester is available compute the losses and metrics
         if self.tester is not None:
             total_validation_loss, result_losses, result_metrics = self.tester.evaluate(model=self.model)
+
+        print(total_validation_loss)
+
         return total_validation_loss, result_losses, result_metrics
 
     def saving_required(self, saving_required: bool):

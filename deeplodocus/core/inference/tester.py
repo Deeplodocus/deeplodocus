@@ -97,8 +97,8 @@ class Tester(GenericEvaluator):
         self.model.eval()
 
         # Make dictionaries like losses and metrics but initialised with lists
-        total_losses = dict_utils.like(self.losses, [])
-        total_metrics = dict_utils.like(self.metrics, [])
+        total_losses = dict_utils.like(vars(self.losses), [])
+        total_metrics = dict_utils.like(vars(self.metrics), [])
 
         # Loop through each mini batch
         for minibatch_index, minibatch in enumerate(self.dataloader, 0):
@@ -106,13 +106,13 @@ class Tester(GenericEvaluator):
             # Get the data
             inputs, labels, additional_data = self.clean_single_element_list(minibatch)
 
-            # TODO: setting input dtype here is a bit of a hack
-            inputs = inputs.to(device=self.model.device, dtype=torch.float)
-            labels = labels.to(device=self.model.device, dtype=torch.long)
+            # Set the data to the corresponding device
+            inputs = self.to_device(data=inputs, device=self.model.device)
+            labels = self.to_device(data=labels, device=self.model.device)
+            additional_data = self.to_device(data=labels, device=self.model.device)
 
             # Infer the outputs from the model over the given mini batch
-            # TODO: inputs should be unpacked?? with *inputs
-            outputs = model(inputs)
+            outputs = model(*inputs)
 
             # Detach the tensor from the graph (avoid leaking memory)
             outputs = outputs.detach()
@@ -122,7 +122,8 @@ class Tester(GenericEvaluator):
             batch_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
             # Apply weights to the losses
-            batch_losses = dict_utils.apply_weight(batch_losses, self.losses)
+            #batch_losses = dict_utils.apply_weight(batch_losses, self.losses)
+            batch_losses = dict_utils.apply_weight(batch_losses, vars(self.losses))
 
             # Append the losses and metrics for this batch to the total losses and metrics
             total_losses = dict_utils.apply(total_losses, batch_losses, "append")
