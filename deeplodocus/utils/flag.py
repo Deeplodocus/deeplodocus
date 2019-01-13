@@ -1,12 +1,9 @@
 # Python imports
 from typing import List
 from typing import Union
-from typing import Any
 
 # Deeplodocus imports
 from deeplodocus.utils.flag_indexer import FlagIndexer
-from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags.notif import *
 
 
 class Flag(object):
@@ -102,8 +99,7 @@ class Flag(object):
         """
         return "Flag {0} : (id : {1})".format(self.description, self.index)
 
-    # TODO : Find a way to replace the "Any" typing to "Flag"
-    def corresponds(self, info : Union[str, int, Any, None]) -> bool:
+    def corresponds(self, info : Union[str, int, "Flag", None]) -> bool:
         """
         AUTHORS:
         --------
@@ -151,9 +147,8 @@ class Flag(object):
             else:
                 return False
 
-        # OTHERS
         else:
-            Notification(DEEP_NOTIF_FATAL, "The info %s isn't a string, an index or a Flag instance." % str(info))
+            return False
 
     """
     "

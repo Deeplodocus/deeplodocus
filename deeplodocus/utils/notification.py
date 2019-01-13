@@ -6,6 +6,7 @@ from deeplodocus.utils.flags.msg import DEEP_MSG_NOTIF_UNKNOWN
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import DEEP_PATH_NOTIFICATION
 from deeplodocus.utils.logs import Logs
+from deeplodocus.utils.flag import Flag
 
 
 class Notification(object):
@@ -13,7 +14,8 @@ class Notification(object):
     AUTHORS:
     --------
 
-    :author: Alix Leroy and Samuel Westlake
+    :author: Alix Leroy
+    :author: Samuel Westlake
 
     DESCRIPTION:
     ------------
@@ -22,12 +24,13 @@ class Notification(object):
 
     """
 
-    def __init__(self, notif_type: int, message: str, log: bool = True) -> None:
+    def __init__(self, notif_flag: Flag, message: str, log: bool = True) -> None:
         """
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -50,33 +53,59 @@ class Notification(object):
         """
         self.log = log                          # Whether or not notifications should be written to logs
         self.response = ""                      # Allocated by self.__input(), returned by self.get()
-        if notif_type == DEEP_NOTIF_INFO:
-            self.__info(message)
-        elif notif_type == DEEP_NOTIF_DEBUG:
-            self.__debug(message)
-        elif notif_type == DEEP_NOTIF_SUCCESS:
-            self.__success(message)
-        elif notif_type == DEEP_NOTIF_WARNING:
-            self.__warning(message)
-        elif notif_type == DEEP_NOTIF_ERROR:
-            self.__error(message)
-        elif notif_type == DEEP_NOTIF_FATAL:
-            self.__fatal_error(message)
-        elif notif_type == DEEP_NOTIF_INPUT:
-            self.__input(message)
-        elif notif_type == DEEP_NOTIF_RESULT:
-            self.__result(message)
-        elif notif_type == DEEP_NOTIF_LOVE:
-            self.__love(message)
+
+        if isinstance(notif_flag, Flag):
+            # INFO
+            if DEEP_NOTIF_INFO.corresponds(notif_flag):
+                self.__info(message)
+
+            # DEBUG
+            elif DEEP_NOTIF_DEBUG.corresponds(notif_flag):
+                self.__debug(message)
+
+            # SUCCESS
+            elif DEEP_NOTIF_SUCCESS.corresponds(notif_flag):
+                self.__success(message)
+
+            # WARNING
+            elif DEEP_NOTIF_WARNING.corresponds(notif_flag):
+                self.__warning(message)
+
+            # ERROR
+            elif DEEP_NOTIF_ERROR.corresponds(notif_flag):
+                self.__error(message)
+
+            # FATAL
+            elif DEEP_NOTIF_FATAL.corresponds(notif_flag):
+                self.__fatal_error(message)
+
+            # INPUT
+            elif DEEP_NOTIF_INPUT.corresponds(notif_flag):
+                self.__input(message)
+
+            # RESULT
+            elif DEEP_NOTIF_RESULT.corresponds(notif_flag):
+                self.__result(message)
+
+            # LOVE
+            elif DEEP_NOTIF_LOVE.corresponds(notif_flag):
+                self.__love(message)
+
+            # WRONG FLAG
+            else:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NOTIF_UNKNOWN % notif_flag)
+
+        # WRONG notif_type
         else:
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NOTIF_UNKNOWN % notif_type)
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NOTIF_UNKNOWN % notif_flag)
 
     def get(self) -> str:
         """
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -101,7 +130,8 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -133,7 +163,8 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :auhtor: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -162,7 +193,8 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -191,7 +223,8 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -220,7 +253,8 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -249,7 +283,8 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -278,7 +313,8 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -336,7 +372,8 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -368,7 +405,8 @@ class Notification(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------

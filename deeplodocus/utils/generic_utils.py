@@ -483,4 +483,3 @@ def get_corresponding_flag(flag_list: List[Flag], info : Union[str, int, Flag], 
         Notification(DEEP_NOTIF_FATAL, "No flag with the info '%s' was found in the following list : %s" %(str(info), str([flag.description for flag in flag_list])))
     else:
         return None
-

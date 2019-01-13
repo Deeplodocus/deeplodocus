@@ -64,7 +64,7 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {DEEP_CONFIG_DTYPE: str,
                                    "input_size": {DEEP_CONFIG_DTYPE: [[int]],
                                                   DEEP_CONFIG_DEFAULT: [[None]]},
                                    "kwargs": {DEEP_CONFIG_DTYPE: dict,
-                                              DEEP_CONFIG_DEFAULT: None}
+                                              DEEP_CONFIG_DEFAULT: {}}
                                    },
                DEEP_CONFIG_OPTIMIZER: {"module": {DEEP_CONFIG_DTYPE: str,
                                        DEEP_CONFIG_DEFAULT: None},
