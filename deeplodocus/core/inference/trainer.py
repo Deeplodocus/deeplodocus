@@ -189,7 +189,7 @@ class Trainer(GenericEvaluator):
                 additional_data = self.to_device(data=labels, device=self.model.device)
 
                 # Infer the output of the batch
-                outputs = self.model(*inputs)
+                outputs = self.model(inputs)
 
                 # Compute losses and metrics
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)

@@ -74,7 +74,7 @@ class TransformManager(object):
         self.list_additional_data_transformers = self.__load_transformers(additional_data)
         self.summary()
 
-    def transform(self, data : Any, index : int, entry: Entry) -> Any:
+    def transform(self, data: Any, index: int, entry: Entry, augment: bool) -> Any:
         """
         AUTHORS:
         --------
@@ -92,9 +92,9 @@ class TransformManager(object):
         PARAMETERS:
         -----------
 
-        :param data (Any): The data to transform
-        :param index (int): The index of the data to transform
-        :param entry (Entry): The entry of the data
+        :param data: (Any): The data to transform
+        :param index: (int): The index of the data to transform
+        :param entry: (Entry): The entry of the data
 
 
         RETURN:
@@ -123,7 +123,8 @@ class TransformManager(object):
 
         # WRONG FLAG
         else:
-            Notification(DEEP_NOTIF_FATAL, "The following type of entry does not exist : " + str(entry.get_entry_type().get_description()))
+            Notification(DEEP_NOTIF_FATAL, "The following type of entry does not exist : "
+                         + str(entry.get_entry_type().get_description()))
 
         # If it is a NoTransformer instance
         if list_transformers[entry.get_entry_index()].has_transforms() is False:
@@ -134,7 +135,7 @@ class TransformManager(object):
 
         # If we do not point to another transformer, transform directly the data
         if pointer is None:
-            transformed_data = list_transformers[entry.get_entry_index()].transform(data, index)
+            transformed_data = list_transformers[entry.get_entry_index()].transform(data, index, augment)
 
         #
         # If we point to another transformer, load the transformer then transform the data
@@ -158,7 +159,7 @@ class TransformManager(object):
                 Notification(DEEP_NOTIF_FATAL, "The following type of pointer does not exist : " + str(pointer))
 
             # Transform the data with the freshly loaded transformer
-            transformed_data = list_transformers[pointer_entry_index].transform(data, index)
+            transformed_data = list_transformers[pointer_entry_index].transform(data, index, augment=augment)
 
         return transformed_data
 

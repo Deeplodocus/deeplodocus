@@ -185,13 +185,13 @@ class Transformer(object):
                     transform["module"] = None
 
                 loaded_transforms.append({"name": transform["name"],
-                                          "method": get_module(name= transform["name"],
+                                          "method": get_module(name=transform["name"],
                                                                module=transform["module"],
                                                                browse=DEEP_MODULE_TRANSFORMS),
                                           "kwargs": transform["kwargs"]})
         return loaded_transforms
 
-    def transform(self, data, index):
+    def transform(self, data, index, augment: bool):
         """
         Authors : Alix Leroy,
         :param data: data to transform
