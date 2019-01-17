@@ -330,7 +330,12 @@ class Dataset(object):
 
             entry_data = self.__format_data(entry_data, entry)
             data.append(entry_data)
-        return data
+
+        # If the entry is an input and is single element list we return it as a list so it can be correctly unpacked in the trainer
+        if DEEP_ENTRY_INPUT.corresponds(info=entries[0].get_entry_type()) and len(data) == 1:
+            return [data]
+        else:
+            return data
 
     @staticmethod
     def __format_data(data_entry, entry):
@@ -364,6 +369,7 @@ class Dataset(object):
             data_entry = np.swapaxes(data_entry, 0, 2)
             data_entry = np.swapaxes(data_entry, 1, 2)
 
+            data_entry = data_entry.astype(np.float32)
         # TODO: Formating for other data types
         return data_entry
 
@@ -627,7 +633,7 @@ class Dataset(object):
         else:
             image = image[:, :, np.newaxis]
 
-        return image.astype(np.float32)
+        return image
 
     @staticmethod
     def __convert_bgra2rgba(image):
