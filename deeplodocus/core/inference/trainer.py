@@ -22,6 +22,7 @@ from deeplodocus.utils.flags.event import *
 from deeplodocus.utils.flags.shuffle import *
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 from deeplodocus.utils.flags.flag_lists import DEEP_LIST_SHUFFLE
+from deeplodocus.utils.flags.verbose import *
 
 
 class Trainer(GenericEvaluator):
@@ -47,7 +48,7 @@ class Trainer(GenericEvaluator):
                  batch_size: int = 4,
                  shuffle: Flag = DEEP_SHUFFLE_NONE,
                  num_workers: int = 4,
-                 verbose: int = DEEP_VERBOSE_BATCH,
+                 verbose: Flag = DEEP_VERBOSE_BATCH,
                  tester: Tester = None):
         """
         AUTHORS:
@@ -165,8 +166,6 @@ class Trainer(GenericEvaluator):
         """
         if first_training is True:
             Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_TRAINING_START, args={}))
-        else:
-            self.callbacks.unpause()
 
         for epoch in range(self.initial_epoch+1, self.num_epochs+1):
 
@@ -182,6 +181,7 @@ class Trainer(GenericEvaluator):
             self.model.train()
 
             for minibatch_index, minibatch in enumerate(self.dataloader, 0):
+
                 # Clean the given data
                 inputs, labels, additional_data = self.clean_single_element_list(minibatch)
 
@@ -190,11 +190,11 @@ class Trainer(GenericEvaluator):
 
                 # Set the data to the corresponding device
                 inputs = self.to_device(data=inputs, device=self.model.device)
-                labels = self.to_device(data=labels, device=self.model.device)
-                additional_data = self.to_device(data=labels, device=self.model.device)
+                #labels = self.to_device(data=labels, device=self.model.device)
+                #additional_data = self.to_device(data=labels, device=self.model.device)
 
                 # Infer the output of the batch
-                outputs = self.model(inputs)
+                outputs = self.model(*inputs)
 
                 # Compute losses and metrics
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
@@ -213,6 +213,7 @@ class Trainer(GenericEvaluator):
                 # and the update rule
                 self.optimizer.step()
 
+                # Detach the tensors from the network
                 outputs, total_loss, result_losses, result_metrics = self.detach(outputs=outputs,
                                                                                  total_loss=total_loss,
                                                                                  result_losses=result_losses,
