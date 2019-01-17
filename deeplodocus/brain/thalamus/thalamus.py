@@ -46,7 +46,7 @@ class Thalamus(metaclass=Singleton):
         self.connections = {}                          # Connections store in a dictionary
         Notification(DEEP_NOTIF_SUCCESS, "Brain : Thalamus running")
 
-    def add_signal(self, signal: Signal):
+    def add_signal(self, signal: Signal) -> None:
         """
         AUTHORS:
         --------
@@ -61,20 +61,20 @@ class Thalamus(metaclass=Singleton):
         PARAMETERS:
         -----------
 
-        :param signal(SensorySignal): The signal to add
+        :param signal(Signal): The signal to add to the queue
 
         RETURN:
         -------
 
         :return: None
         """
+        # TODO : Currently not working with a queue (will be useful when going async)
         #self.signals.put(signal)
-
-        # To keep like this until asynchronous brain is implemented
         #signal = self.signals.get()
+
         self.send(signal)
 
-    def connect(self, receiver: callable, event: Flag, expected_arguments = None):
+    def connect(self, receiver: callable, event: Flag, expected_arguments = None) -> None:
         """
         AUTHORS:
         --------
@@ -98,6 +98,7 @@ class Thalamus(metaclass=Singleton):
         :return: None
         """
 
+        # Create a new connection
         connection = Connection(receiver=receiver, expected_arguments=expected_arguments)
 
         # If the event already register then add the reference to the set
@@ -108,7 +109,7 @@ class Thalamus(metaclass=Singleton):
             # Make a list around connection to make it iterable (Use not literal set to make entries unique)
             self.connections[event.get_index()] = set([connection])
 
-    def disconnect(self, receiver: callable, event: Flag):
+    def disconnect(self, receiver: callable, event: Flag) -> None:
         """
         AUTHORS:
         --------
@@ -130,7 +131,7 @@ class Thalamus(metaclass=Singleton):
         RETURN:
         -------
 
-        :return:
+        :return: None
         """
         disconnected = False
         # For all the connections at the specific event

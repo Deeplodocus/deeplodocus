@@ -2,12 +2,18 @@ import random
 import numpy as np
 import cv2
 from typing import Union, List
+from typing import Any
+from typing import Tuple
 
-
+# Deeplodocus imports
 from deeplodocus.utils.flags.lib import *
 
+"""
+This file contains all the default transforms for images
+"""
 
-def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int):
+
+def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> Tuple[Any, dict]:
     """
     AUTHORS:
     --------
@@ -36,11 +42,13 @@ def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int):
     """
     kernel_size = (random.randint(kernel_size_min // 2, kernel_size_max // 2)) * 2 + 1
     image, _ = blur(image, kernel_size)
-    transform = ["blur", blur, {"kernel_size": kernel_size}]
+    transform = {"name": "blur",
+                 "method": blur,
+                 "kwargs": {"kernel_size": kernel_size}}
     return image, transform
 
 
-def blur(image: np.array, kernel_size: int):
+def blur(image: np.array, kernel_size: int) -> Tuple[Any, None]:
     """
     AUTHORS:
     --------
@@ -141,7 +149,7 @@ def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0):
     else:
         image = cv2.resize(image, (shape[0], shape[1]), interpolation=interpolation)
 
-    return image.astype(np.float32), None
+    return image, None
 
 
 def pad(image, shape, value=0):
@@ -224,7 +232,9 @@ def random_rotate(image: np.array):
     """
     angle = (np.random.uniform(0.0, 360.0))
     image, _ = rotate(image, angle)
-    transform = ["rotate", rotate, {"angle": angle}]
+    transform = {"name": "rotate",
+                 "method": rotate,
+                 "kwargs": {"angle": angle}}
     return image, transform
 
 
@@ -255,12 +265,13 @@ def semi_random_rotate(image: np.array, angle: float):
     """
     angle = (2 * np.random.rand() - 1) * angle
     image, _ = rotate(image, angle)
-    transform = ["rotate", rotate, {"angle": angle}]
+    transform = {"name": "rotate",
+                 "method": rotate,
+                 "kwargs": {"angle": angle}}
     return image, transform
 
 
-
-def rotate(image: np.array, angle: float):
+def rotate(image: np.array, angle: float) -> Tuple[Any, None]:
     """
     AUTHORS:
 
@@ -289,7 +300,8 @@ def rotate(image: np.array, angle: float):
     m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
     return cv2.warpAffine(image, m, (cols, rows)).astype(np.float32), None
 
-def normalize_image(image, mean:Union[None, list, int], standard_deviation: float, cv_library: int = DEEP_LIB_OPENCV):
+
+def normalize_image(image, mean:Union[None, list, int], standard_deviation: float, cv_library: int = DEEP_LIB_OPENCV) ->Tuple[Any, None]:
     """
     AUTHORS:
     --------
@@ -341,3 +353,55 @@ def normalize_image(image, mean:Union[None, list, int], standard_deviation: floa
         normalized_image = (image - mean) / standard_deviation  # Norm = (data - mean) / standard deviation
 
     return normalized_image, None
+
+
+def gaussian_blur(image : np.array, kernel_size : int) -> Tuple[Any, None]:
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Apply an gaussian blur to the image
+
+    PARAMETERS:
+    -----------
+
+    :param image:
+    :param kernel_size:
+
+    RETURN:
+    -------
+
+    :return:
+    """
+    return cv2.GaussianBlur(image, (int(kernel_size), int(kernel_size)), 0), None
+
+
+def median_blur(image : np.array, kernel_size : int) -> Tuple[Any, None]:
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Apply an medium blur to the image
+
+    PARAMETERS:
+    -----------
+
+    :param image:
+    :param kernel_size:
+
+    RETURN:
+    -------
+
+    :return:
+    """
+    return cv2.medianBlur(image, int(kernel_size)), None
