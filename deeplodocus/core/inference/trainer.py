@@ -140,8 +140,6 @@ class Trainer(GenericEvaluator):
         """
         self.__train(first_training=first_training)
         Notification(DEEP_NOTIF_SUCCESS, FINISHED_TRAINING)
-        # Prompt if the user want to continue the training
-        self.__continue_training()
 
     def __train(self, first_training=True) -> None:
         """
@@ -293,7 +291,7 @@ class Trainer(GenericEvaluator):
 
         return outputs, total_loss, result_losses, result_metrics
 
-    def __continue_training(self):
+    def continue_training(self):
         """
         AUTHORS:
         --------

@@ -154,6 +154,12 @@ class FrontalLobe(object):
         """
         self.trainer.fit() if self.trainer is not None else Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TRAINER)
 
+    def continue_training(self):
+        """
+        :return:
+        """
+        self.trainer.continue_training()
+
     def evaluate(self):
         """
         AUTHORS:
@@ -562,7 +568,6 @@ class FrontalLobe(object):
             self.metrics.summary()
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_NOT_LOADED)
-
 
     @staticmethod
     def __model_has_multiple_inputs(list_inputs):

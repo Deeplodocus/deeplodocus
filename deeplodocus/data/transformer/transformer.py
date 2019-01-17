@@ -233,7 +233,7 @@ class Transformer(object):
 
             # Update the last transforms used and the last index
             if last_method_used is None:
-                self.last_transforms.append([transform_name, transform_method, transform_args])
+                self.last_transforms.append({"name" :transform_name, "method" : transform_method, "kwargs" : transform_args})
 
             else:
                 self.last_transforms.append(last_method_used)
