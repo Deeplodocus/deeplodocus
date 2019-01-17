@@ -5,6 +5,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 from typing import List
+from typing import Any
 
 # Third party libs
 import cv2
@@ -191,7 +192,8 @@ class Transformer(object):
                                           "kwargs": transform["kwargs"]})
         return loaded_transforms
 
-    def transform(self, data, index, augment: bool):
+
+    def transform(self, data: Any, index: int, augment: bool)-> Any:
         """
         Authors : Alix Leroy,
         :param data: data to transform
@@ -233,7 +235,7 @@ class Transformer(object):
 
             # Update the last transforms used and the last index
             if last_method_used is None:
-                self.last_transforms.append({"name" :transform_name, "method" : transform_method, "kwargs" : transform_args})
+                self.last_transforms.append({"name": transform_name, "method": transform_method, "kwargs": transform_args})
 
             else:
                 self.last_transforms.append(last_method_used)

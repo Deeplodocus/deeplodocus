@@ -67,7 +67,7 @@ class NoTransformer(object):
         :return: None
         """
         Notification(DEEP_NOTIF_INFO, "------------------------------------")
-        Notification(DEEP_NOTIF_INFO, "No Transformer for this entry:")
+        Notification(DEEP_NOTIF_INFO, "No Transformer for this entry")
         Notification(DEEP_NOTIF_INFO, "------------------------------------")
 
     @staticmethod
@@ -106,7 +106,7 @@ class NoTransformer(object):
         DESCRIPTION:
         ------------
 
-        Required for comptibility with Transformers
+        Required for compatibility with Transformers
 
         PARAMETERS:
         -----------
@@ -118,5 +118,4 @@ class NoTransformer(object):
 
         :return: None
         """
-
         pass
