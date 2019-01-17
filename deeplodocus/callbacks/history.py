@@ -21,8 +21,9 @@ from deeplodocus.utils.flags.event import *
 from deeplodocus.utils.flags.ext import DEEP_EXT_CSV
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
-from deeplodocus.utils.flags.compare_metric import *
+from deeplodocus.utils.flags.save import *
 from deeplodocus.utils.flags.verbose import *
+
 
 Num = Union[int, float]
 
@@ -49,9 +50,9 @@ class History(object):
                  validation_filename: str = "history_validation.csv",
                  verbose: Flag = DEEP_VERBOSE_BATCH,
                  memorize: int = DEEP_MEMORIZE_BATCHES,
-                 save_condition: int = DEEP_SAVE_CONDITION_END_EPOCH,    # DEEP_SAVE_CONDITION_END_TRAINING to save at the end of training, DEEP_SAVE_CONDITION_END_EPOCH to save at the end of the epoch,
-                 overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_METRIC_SMALLER)
-                ):
+                 save_condition: Flag = DEEP_SAVE_SIGNAL_END_EPOCH,
+                 overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS,
+                                                                     condition=DEEP_SAVE_CONDITION_LESS)):
 
         self.log_dir = log_dir
         self.verbose = verbose

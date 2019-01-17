@@ -3,12 +3,12 @@ from torch.nn import Module
 import os
 
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.end import End
-from deeplodocus.utils.flags import *
-from deeplodocus.utils.flags.compare_metric import *
+from deeplodocus.utils.flags.save import *
 from deeplodocus.utils.flags.event import *
 from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.path import *
+from deeplodocus.utils.flags.ext import DEEP_EXT_PYTORCH, DEEP_EXT_ONNX
+from deeplodocus.utils.flags.path import DEEP_PATH_SAVE_MODEL
+from deeplodocus.utils.flags.msg import DEEP_MSG_MODEL_SAVED
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.brain.signal import Signal
 from deeplodocus.brain.thalamus import Thalamus
@@ -20,6 +20,7 @@ class Saver(object):
     --------
 
     :author: Alix Leroy
+    :author: Samuel Westlake
 
     DESCRIPTION:
     ------------
@@ -30,19 +31,20 @@ class Saver(object):
     def __init__(self,
                  name: str = "no__model_name",
                  save_directory: str = DEEP_PATH_SAVE_MODEL,
-                 save_condition: int = DEEP_SAVE_CONDITION_AUTO,
-                 save_method = DEEP_SAVE_NET_FORMAT_PYTORCH):
+                 save_condition: Flag = DEEP_SAVE_CONDITION_LESS,
+                 save_format: Flag = DEEP_SAVE_FORMAT_PYTORCH):
 
-        self.save_method = save_method
+        self.save_format = save_format      # Can be onnx or pt
         self.save_condition = save_condition
-        self.directory =save_directory
+        self.directory = save_directory
         self.name = name
         self.best_overwatch_metric = None
 
-        if self.save_method == DEEP_SAVE_NET_FORMAT_ONNX:
-            self.extension = ".onnx"
-        else:
-            self.extension = ".model"
+        # Set the extension
+        if DEEP_SAVE_FORMAT_PYTORCH.corresponds(self.save_format):
+            self.extension = DEEP_EXT_PYTORCH
+        elif DEEP_SAVE_FORMAT_ONNX.corresponds(self.save_format):
+            self.extension = DEEP_EXT_ONNX
 
         if not os.path.isfile(self.directory):
             os.makedirs(self.directory, exist_ok=True)
@@ -51,8 +53,12 @@ class Saver(object):
         Thalamus().connect(receiver=self.is_saving_required,
                            event=DEEP_EVENT_OVERWATCH_METRIC_COMPUTED,
                            expected_arguments=["current_overwatch_metric"])
-        Thalamus().connect(receiver=self.on_training_end, event=DEEP_EVENT_ON_TRAINING_END, expected_arguments=["model"])
-        Thalamus().connect(receiver=self.save_model, event=DEEP_EVENT_SAVE_MODEL, expected_arguments=["model"])
+        Thalamus().connect(receiver=self.on_training_end,
+                           event=DEEP_EVENT_ON_TRAINING_END,
+                           expected_arguments=["model"])
+        Thalamus().connect(receiver=self.save_model,
+                           event=DEEP_EVENT_SAVE_MODEL,
+                           expected_arguments=["model"])
 
     """
     ON BATCH END NOT TO BE IMPLEMENTED FOR EFFICIENCY REASONS
@@ -60,12 +66,13 @@ class Saver(object):
         pass
     """
 
-    def on_overwatch_metric_computed(self, model:Module, current_overwatch_metric:OverWatchMetric)->None:
+    def on_overwatch_metric_computed(self, model: Module, current_overwatch_metric: OverWatchMetric) -> None:
         """
         AUTHORS:
         --------
 
         :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -75,7 +82,8 @@ class Saver(object):
         PARAMETERS:
         -----------
 
-        :param model->torch.nn.Module: The model to be saved if required
+        :param model: torch.nn.Module: The model to be saved if required
+        :param current_overwatch_metric: OverWatchMetric
 
         RETURN:
         -------
@@ -84,15 +92,15 @@ class Saver(object):
         """
 
         # If we want to save the model at each epoch
-        if self.save_condition == DEEP_SAVE_CONDITION_END_EPOCH:
+        if DEEP_SAVE_SIGNAL_END_EPOCH.corresponds(self.save_condition):
             self.save_model(model)
 
         # If we want to save the model only if we had an improvement over a metric
-        elif self.save_condition == DEEP_SAVE_CONDITION_AUTO:
+        elif DEEP_SAVE_SIGNAL_AUTO.corresponds(self.save_condition):
             if self.is_saving_required(current_overwatch_metric=current_overwatch_metric) is True:
                 self.save_model(model)
 
-    def on_training_end(self, model: Module)->None:
+    def on_training_end(self, model: Module) -> None:
         """
         AUTHORS:
         --------
@@ -107,24 +115,23 @@ class Saver(object):
         PARAMETERS:
         -----------
 
-        :param model->torch.nn.Module: The model to be saved if required
+        :param model: torch.nn.Module: The model to be saved if required
 
         RETURN:
         -------
 
         :return: None
         """
-        if self.save_condition == DEEP_SAVE_CONDITION_END_TRAINING:
+        if DEEP_SAVE_SIGNAL_END_TRAINING.corresponds(self.save_condition):
             self.save_model(model)
 
-
-
-    def is_saving_required(self, current_overwatch_metric:OverWatchMetric)-> bool:
+    def is_saving_required(self, current_overwatch_metric: OverWatchMetric) -> bool:
         """
         AUTHORS:
         --------
 
         :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -134,12 +141,12 @@ class Saver(object):
         PARAMETERS:
         -----------
 
-        :param current_overwatch_metric_value->float: The value of the metric to over watch
+        :param current_overwatch_metric: float: The value of the metric to over watch
 
         RETURN:
         -------
 
-        :return->bool: Whether the model should be saved or not
+        :return -> bool: Whether the model should be saved or not
         """
         save = False
 
@@ -149,7 +156,7 @@ class Saver(object):
             save = False
 
         # If  the new metric has to be smaller than the best one
-        if  DEEP_COMPARE_METRIC_SMALLER.corresponds(current_overwatch_metric.get_condition()):
+        if DEEP_SAVE_CONDITION_LESS.corresponds(current_overwatch_metric.get_condition()):
             # If the model improved since last batch => Save
             if self.best_overwatch_metric.get_value() > current_overwatch_metric.get_value():
                 self.best_overwatch_metric = current_overwatch_metric
@@ -160,7 +167,7 @@ class Saver(object):
                 save = False
 
         # If the new metric has to be bigger than the best one (e.g. The accuracy of a classification)
-        elif DEEP_COMPARE_METRIC_BIGGER.corresponds(current_overwatch_metric.get_condition()):
+        elif DEEP_SAVE_CONDITION_GREATER.corresponds(current_overwatch_metric.get_condition()):
             # If the model improved since last batch => Save
             if self.best_overwatch_metric.get_value() < current_overwatch_metric.get_value():
                 self.best_overwatch_metric = current_overwatch_metric
@@ -171,19 +178,19 @@ class Saver(object):
                 save = False
 
         else:
-            Notification(DEEP_NOTIF_FATAL, "The following saving condition does not exist : " + str("test"))
+            Notification(DEEP_NOTIF_FATAL, "The following saving condition does not exist : %s"
+                         % current_overwatch_metric.get_condition())
 
-        Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_SAVING_REQUIRED, args={"saving_required" : save}))
+        Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_SAVING_REQUIRED, args={"saving_required": save}))
+        return save
 
-
-
-
-    def save_model(self, model:Module, input=None)->None:
+    def save_model(self, model: Module, inp=None) -> None:
         """
         AUTHORS:
         --------
 
         :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -194,7 +201,7 @@ class Saver(object):
         -----------
 
         :param model: The model to save
-        :param input: ###
+        :param inp: ###
 
         RETURN:
         -------
@@ -202,32 +209,43 @@ class Saver(object):
         :return: None
         """
 
-        filepath = self.directory + self.name + self.extension
+        file_path = "%s/%s%s" % (self.directory, self.name, self.extension)
 
         # If we want to save to the pytorch format
-        if self.save_method == DEEP_SAVE_NET_FORMAT_PYTORCH:
-            try:
-                torch.save(model.state_dict(), filepath)
-            except:
-                Notification(DEEP_NOTIF_ERROR, "Error while saving the pytorch model and weights" )
-                self.__handle_error_saving(model)
+        if DEEP_SAVE_FORMAT_PYTORCH.corresponds(self.save_format):
+            # TODO: Finish try except statements here after testing...
+            # try:
+            torch.save(torch.save({"epoch": epoch,
+                                   "model_state_dict": model.state_dict(),
+                                   "optimizer_state_dict": optimizer.state_dict(),
+                                   "loss": loss}, file_path))
+            # except:
+            #     Notification(DEEP_NOTIF_ERROR, "Error while saving the pytorch model and weights" )
+            #     self.__handle_error_saving(model)
 
         # If we want to save to the ONNX format
-        elif self.save_method == DEEP_SAVE_NET_FORMAT_ONNX:
-            try:
-                torch.onnx._export(model, input, filepath, export_params=True, verbose=True, input_names=input_names, output_names=output_names)
-            except:
-                Notification(DEEP_NOTIF_ERROR, "Error while saving the ONNX model and weights" )
-                self.__handle_error_saving(model)
+        elif DEEP_SAVE_FORMAT_ONNX.corresponds(self.save_format):
+            # TODO: and here. Also fix onnx export function
+            Notification(DEEP_NOTIF_FATAL, "Save as onnx format not implemented yet")
+            # try:
+            # torch.onnx._export(model, inp, filepath,
+            #                    export_params=True,
+            #                    verbose=True,
+            #                    input_names=input_names,
+            #                    output_names=output_names)
+            # except:
+            #     Notification(DEEP_NOTIF_ERROR, "Error while saving the ONNX model and weights" )
+            #     self.__handle_error_saving(model)
 
-        Notification(DEEP_NOTIF_SUCCESS, "Model and weights saved")
+        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_SAVED % file_path)
 
-    def __handle_error_saving(self, name:str, model:Module)->None:
+    def __handle_error_saving(self, name: str, model: Module)->None:
         """
         AUTHORS:
         --------
 
         :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------

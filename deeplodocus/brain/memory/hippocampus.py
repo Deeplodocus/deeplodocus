@@ -12,7 +12,7 @@ from deeplodocus.utils.generic_utils import generate_random_alphanumeric
 # Deeplodocus flags
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.flags.path import DEEP_PATH_HISTORY, DEEP_PATH_SAVE_MODEL
-from deeplodocus.utils.flags.compare_metric import *
+from deeplodocus.utils.flags.save import *
 
 Num = Union[int, float]
 
@@ -28,7 +28,8 @@ class Hippocampus(object):
     DESCRIPTION:
     ------------
 
-    The Hippocampus class manages all the instances related to the information saved for short and long terms by Deeplodocus
+    The Hippocampus class manages all the instances related to the information saved for short
+    and long terms by Deeplodocus
 
     The following information are handled by the Hippocampus:
         - The history
@@ -39,25 +40,25 @@ class Hippocampus(object):
                  # History
                  losses: dict,
                  metrics: dict,
-                 model_name:str = generate_random_alphanumeric(size=10),
-                 verbose:int = DEEP_VERBOSE_BATCH,
-                 memorize:int = DEEP_MEMORIZE_BATCHES,
+                 model_name: str = generate_random_alphanumeric(size = 10),
+                 verbose: int = DEEP_VERBOSE_BATCH,
+                 memorize: int = DEEP_MEMORIZE_BATCHES,
                  history_directory: str = DEEP_PATH_HISTORY,
-                 overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS, condition=DEEP_COMPARE_METRIC_SMALLER),
+                 overwatch_metric: OverWatchMetric = OverWatchMetric(name = TOTAL_LOSS,
+                                                                     condition = DEEP_SAVE_CONDITION_LESS),
                  # Saver
-                 save_model_condition:int = DEEP_SAVE_CONDITION_AUTO,
-                 save_model_method:int = DEEP_SAVE_NET_FORMAT_PYTORCH,
-                 save_model_directory: str = DEEP_PATH_SAVE_MODEL,
-                ):
+                 save_model_condition: Flag = DEEP_SAVE_SIGNAL_AUTO,
+                 save_model_format: Flag = DEEP_SAVE_FORMAT_PYTORCH,
+                 save_model_directory: str = DEEP_PATH_SAVE_MODEL):
 
         #
         # HISTORY
         #
 
         self.__initialize_history(name=model_name,
-                                  metrics = metrics,
-                                  losses= losses,
-                                  log_dir = history_directory,
+                                  metrics=metrics,
+                                  losses=losses,
+                                  log_dir=history_directory,
                                   verbose=verbose,
                                   memorize=memorize,
                                   overwatch_metric=overwatch_metric)
@@ -69,10 +70,10 @@ class Hippocampus(object):
         self.__initialize_saver(name = model_name,
                                 save_directory=save_model_directory,
                                 save_condition=save_model_condition,
-                                save_method=save_model_method)
+                                save_format=save_model_format)
 
-
-    def __initialize_history(self, name: str, metrics, losses, log_dir, verbose, memorize: int, overwatch_metric) -> None:
+    def __initialize_history(self, name: str, metrics, losses, log_dir, verbose, memorize: int, overwatch_metric) \
+            -> None:
         """
         Authors : Samuel Westlake, Alix Leroy
         Initialise the history
@@ -95,11 +96,8 @@ class Hippocampus(object):
                                memorize=memorize,
                                overwatch_metric=overwatch_metric)
 
-
-    def __initialize_saver(self, name: str, save_directory, save_condition, save_method):
-        self.saver = Saver(name = name,
+    def __initialize_saver(self, name: str, save_directory, save_condition, save_format):
+        self.saver = Saver(name=name,
                            save_directory=save_directory,
                            save_condition=save_condition,
-                           save_method=save_method)
-
-
+                           save_format=save_format)
