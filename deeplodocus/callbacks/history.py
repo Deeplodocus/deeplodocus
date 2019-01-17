@@ -22,6 +22,8 @@ from deeplodocus.utils.flags.ext import DEEP_EXT_CSV
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.save import *
+from deeplodocus.utils.flags.verbose import *
+
 
 Num = Union[int, float]
 
@@ -46,7 +48,7 @@ class History(object):
                  train_batches_filename: str = "history_batches_training.csv",
                  train_epochs_filename: str = "history_epochs_training.csv",
                  validation_filename: str = "history_validation.csv",
-                 verbose: int = DEEP_VERBOSE_BATCH,
+                 verbose: Flag = DEEP_VERBOSE_BATCH,
                  memorize: int = DEEP_MEMORIZE_BATCHES,
                  save_condition: Flag = DEEP_SAVE_SIGNAL_END_EPOCH,
                  overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS,
@@ -157,7 +159,7 @@ class History(object):
         :return: None
         """
 
-        if self.verbose >= DEEP_VERBOSE_BATCH:
+        if DEEP_VERBOSE_BATCH.corresponds(self.verbose) or DEEP_VERBOSE_EPOCH.corresponds(self.verbose):
             Notification(DEEP_NOTIF_INFO, EPOCH_START % (epoch_index, num_epochs))
 
     def on_batch_end(self,
@@ -199,7 +201,7 @@ class History(object):
         self.running_metrics = merge_sum_dict(self.running_metrics, result_metrics)
 
         # If the user wants to print stats for each batch
-        if self.verbose >= DEEP_VERBOSE_BATCH:
+        if DEEP_VERBOSE_BATCH.corresponds(self.verbose):
 
             print_metrics = ", ".join(["%s : %f" % (TOTAL_LOSS, total_loss)]
                                       + ["%s : %f" % (loss_name, value.item())
@@ -262,7 +264,7 @@ class History(object):
         :return: None
         """
         # MANAGE TRAINING HISTORY
-        if self.verbose >= DEEP_VERBOSE_BATCH:
+        if DEEP_VERBOSE_EPOCH.corresponds(self.verbose) or DEEP_VERBOSE_BATCH.corresponds(self.verbose):
 
             print_metrics = ", ".join(["%s : %f" % (TOTAL_LOSS, self.running_total_loss / num_minibatches)]
                                       + ["%s : %f" % (loss_name, value.item() / num_minibatches)
@@ -286,7 +288,7 @@ class History(object):
 
         # MANAGE VALIDATION HISTORY
         if total_validation_loss is not None:
-            if self.verbose >= DEEP_VERBOSE_BATCH:
+            if DEEP_VERBOSE_EPOCH.corresponds(self.verbose) or DEEP_VERBOSE_BATCH.corresponds(self.verbose):
 
                 print_metrics = ", ".join(["%s : %f" % (TOTAL_LOSS, total_validation_loss)]
                                           + ["%s : %f" % (loss_name, value.item() / num_minibatches_validation)
