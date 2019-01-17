@@ -18,6 +18,7 @@ from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
+from deeplodocus.utils.flags.verbose import *
 
 
 class GenericEvaluator(GenericInferer):
@@ -40,7 +41,7 @@ class GenericEvaluator(GenericInferer):
                  losses: dict,
                  batch_size: int = 4,
                  num_workers: int = 4,
-                 verbose: int = DEEP_VERBOSE_BATCH):
+                 verbose: Flag = DEEP_VERBOSE_BATCH):
         """
         AUTHORS:
         --------
@@ -134,25 +135,25 @@ class GenericEvaluator(GenericInferer):
             if DEEP_ENTRY_INPUT in metric_args:
                 if DEEP_ENTRY_LABEL in metric_args:
                     if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
-                        temp_metric_result = metric_method(inputs, outputs, labels, additional_data)
+                        temp_metric_result = metric_method(inputs.cpu(), outputs.cpu(), labels, additional_data)
                     else:
-                        temp_metric_result = metric_method(inputs, outputs, labels)
+                        temp_metric_result = metric_method(inputs.cpu(), outputs.cpu(), labels)
                 else:
                     if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
-                        temp_metric_result = metric_method(inputs, outputs, additional_data)
+                        temp_metric_result = metric_method(inputs.cpu(), outputs.cpu(), additional_data)
                     else:
-                        temp_metric_result = metric_method(inputs, outputs)
+                        temp_metric_result = metric_method(inputs.cpu(), outputs.cpu())
             else:
                 if DEEP_ENTRY_LABEL in metric_args:
                     if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
-                        temp_metric_result = metric_method(outputs, labels, additional_data)
+                        temp_metric_result = metric_method(outputs.cpu(), labels, additional_data)
                     else:
-                        temp_metric_result = metric_method(outputs, labels)
+                        temp_metric_result = metric_method(outputs.cpu(), labels)
                 else:
                     if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
-                        temp_metric_result = metric_method(outputs, additional_data)
+                        temp_metric_result = metric_method(outputs.cpu(), additional_data)
                     else:
-                        temp_metric_result = metric_method(outputs)
+                        temp_metric_result = metric_method(outputs.cpu())
 
             #
             # Add the metric to the dictionary

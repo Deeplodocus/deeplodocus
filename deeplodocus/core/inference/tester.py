@@ -108,11 +108,11 @@ class Tester(GenericEvaluator):
 
             # Set the data to the corresponding device
             inputs = self.to_device(data=inputs, device=self.model.device)
-            labels = self.to_device(data=labels, device=self.model.device)
-            additional_data = self.to_device(data=labels, device=self.model.device)
+            #labels = self.to_device(data=labels, device=self.model.device)
+            #additional_data = self.to_device(data=labels, device=self.model.device)
 
             # Infer the outputs from the model over the given mini batch
-            outputs = model(inputs)
+            outputs = model(*inputs)
 
             # Detach the tensor from the graph (avoid leaking memory)
             outputs = outputs.detach()
