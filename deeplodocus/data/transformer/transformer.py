@@ -179,23 +179,24 @@ class Transformer(object):
         """
 
         loaded_transforms = []
-        for transform in transforms:
+        if transforms is not None:
+            for transform in transforms:
+                if "module" not in transform:
+                    transform["module"] = None
 
-            if "module" not in transform:
-                transform["module"] = None
-
-            loaded_transforms.append({"name": transform["name"],
-                                      "method": get_module(name= transform["name"],
-                                                           module=transform["module"],
-                                                           browse=DEEP_MODULE_TRANSFORMS),
-                                      "kwargs": transform["kwargs"]})
+                loaded_transforms.append({"name": transform["name"],
+                                          "method": get_module(name=transform["name"],
+                                                               module=transform["module"],
+                                                               browse=DEEP_MODULE_TRANSFORMS),
+                                          "kwargs": transform["kwargs"]})
         return loaded_transforms
 
-    def transform(self, data, index):
+    def transform(self, data, index, augment: bool):
         """
         Authors : Alix Leroy,
         :param data: data to transform
         :param index: The index of the instance in the Data Frame
+        :param augment: bool:
         :return: The transformed data
         """
         pass # Will be overridden
@@ -223,7 +224,6 @@ class Transformer(object):
 
         :return transformed_data: The transformed data
         """
-
         # Apply the transforms
         for transform in transforms:
             transform_name = transform["name"]

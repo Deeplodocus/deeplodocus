@@ -231,7 +231,7 @@ class Brain(FrontalLobe):
             for key, file_name in DEEP_CONFIG_FILES.items():
                 config_path = "%s/%s" % (self.config_dir, file_name)
                 if os.path.isfile(config_path):
-                    Notification(DEEP_NOTIF_INFO, DEEP_MSG_CONFIG_LOADING_FILE % config_path)
+                    # Notification(DEEP_NOTIF_INFO, DEEP_MSG_CONFIG_LOADING_FILE % config_path)
                     self.config.add({key: Namespace(config_path)})
                     self.check_config(key=key)
                 else:

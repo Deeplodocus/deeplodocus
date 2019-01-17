@@ -322,10 +322,11 @@ class Dataset(object):
                                                        entry=entry)
 
             # TRANSFORM THE ITEM
-            if is_transformed is False and augment is True:
+            if is_transformed is False:
                 entry_data = self.__transform_data(data=entry_data,
                                                    entry=entry,
-                                                   index=index)
+                                                   index=index,
+                                                   augment=augment)
 
             entry_data = self.__format_data(entry_data, entry)
             data.append(entry_data)
@@ -532,7 +533,8 @@ class Dataset(object):
 
         return loaded_data
 
-    def __transform_data(self, data: Union[Any, List[Any]], index: int, entry: Entry) -> Union[Any, List[Any]]:
+    def __transform_data(self, data: Union[Any, List[Any]], index: int, entry: Entry, augment: bool) \
+            -> Union[Any, List[Any]]:
         """
         AUTHORS:
         --------
@@ -565,14 +567,16 @@ class Dataset(object):
             for d in data:
                 td = self.__transform_data(data=d,
                                            index=index,
-                                           entry=entry)
+                                           entry=entry,
+                                           augment=augment)
                 transformed_data.append(td)
 
         # If it is only one item to transform
         else:
             transformed_data = self.transform_manager.transform(data=data,
                                                                 index=index,
-                                                                entry=entry)
+                                                                entry=entry,
+                                                                augment=augment)
 
         return transformed_data
 
