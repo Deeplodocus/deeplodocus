@@ -4,7 +4,8 @@
 import inspect
 
 # Back-end imports
-from torch import *
+import torch
+import torch.nn as nn
 import torch.nn.functional
 
 # Deeplodocus import
@@ -86,13 +87,44 @@ class FrontalLobe(object):
         self.optimizer = None
         self.hippocampus = None
         self.device = None
+        self.device_ids = None
 
     def set_device(self):
+        """
+        AUTHORS:
+        --------
+
+        Author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Sets self.device and self.device_ids, depending on the config specifications and available hardware.
+
+        If multiple device ids are specified (or found when device_ids = "auto"), the output_device, self.device
+        will be self.device_ids[0]. Note that nn.DataParallel uses this as the output device by default.
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        # If device_ids is auto, grab all available devices, else use devices specified
+        if self.config.project.device_ids == DEEP_CONFIG_AUTO:
+            self.device_ids = list(range(torch.cuda.device_count()))
+        else:
+            self.device_ids = self.config.project.device_ids
+
+        # If device is auto, set as 'cuda:x' or cpu as appropriate, else use specified value
         try:
             if self.config.project.device == DEEP_CONFIG_AUTO:
-                self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+                self.device = torch.device("cuda:%i" % self.device_ids[0] if torch.cuda.is_available() else "cpu")
             else:
-                self.device = torch.device(self.config.project.device)
+                if self.config.project.device == "cuda":
+                    device = "cuda:%i" % self.device_ids[0]
+                else:
+                    device = self.config.project.device
+                self.device = torch.device(device)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_PROJECT_DEVICE % str(self.device))
         except TypeError:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_PROJECT_DEVICE_NOT_FOUND % self.config.project.device)
@@ -121,6 +153,12 @@ class FrontalLobe(object):
         :return: None
         """
         self.trainer.fit() if self.trainer is not None else Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TRAINER)
+
+    def continue_training(self):
+        """
+        :return:
+        """
+        self.trainer.continue_training()
 
     def evaluate(self):
         """
@@ -208,13 +246,9 @@ class FrontalLobe(object):
 
         # Load the model with model.kwargs from the config
         self.model = load_model(**self.config.model.get(),
+                                device=self.device,
+                                device_ids=self.device_ids,
                                 batch_size=self.config.data.dataloader.batch_size)
-
-        # Put model on the required hardware
-        self.model.to(self.device)
-
-        # Store the device the model is on for
-        self.model.device = self.device
 
         # Notify the user of success
         Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED % (self.config.model.name, self.model.__module__))
@@ -534,7 +568,6 @@ class FrontalLobe(object):
             self.metrics.summary()
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_NOT_LOADED)
-
 
     @staticmethod
     def __model_has_multiple_inputs(list_inputs):

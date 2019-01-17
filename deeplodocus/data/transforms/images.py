@@ -149,7 +149,11 @@ def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0):
     else:
         image = cv2.resize(image, (shape[0], shape[1]), interpolation=interpolation)
 
+    if image.ndim < 3:
+        image = image[:, :, np.newaxis]
+
     return image, None
+
 
 
 def pad(image, shape, value=0):

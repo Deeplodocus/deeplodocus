@@ -180,23 +180,25 @@ class Transformer(object):
         """
 
         loaded_transforms = []
-        for transform in transforms:
+        if transforms is not None:
+            for transform in transforms:
+                if "module" not in transform:
+                    transform["module"] = None
 
-            if "module" not in transform:
-                transform["module"] = None
-
-            loaded_transforms.append({"name": transform["name"],
-                                      "method": get_module(name= transform["name"],
-                                                           module=transform["module"],
-                                                           browse=DEEP_MODULE_TRANSFORMS),
-                                      "kwargs": transform["kwargs"]})
+                loaded_transforms.append({"name": transform["name"],
+                                          "method": get_module(name=transform["name"],
+                                                               module=transform["module"],
+                                                               browse=DEEP_MODULE_TRANSFORMS),
+                                          "kwargs": transform["kwargs"]})
         return loaded_transforms
+
 
     def transform(self, data: Any, index: int, augment: bool)-> Any:
         """
         Authors : Alix Leroy,
         :param data: data to transform
         :param index: The index of the instance in the Data Frame
+        :param augment: bool:
         :return: The transformed data
         """
         pass # Will be overridden
@@ -224,7 +226,6 @@ class Transformer(object):
 
         :return transformed_data: The transformed data
         """
-
         # Apply the transforms
         for transform in transforms:
             transform_name = transform["name"]
@@ -234,7 +235,7 @@ class Transformer(object):
 
             # Update the last transforms used and the last index
             if last_method_used is None:
-                self.last_transforms.append({"name" : transform_name, "method" : transform_method, "kwargs" : transform_args})
+                self.last_transforms.append({"name": transform_name, "method": transform_method, "kwargs": transform_args})
 
             else:
                 self.last_transforms.append(last_method_used)

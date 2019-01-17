@@ -140,8 +140,6 @@ class Trainer(GenericEvaluator):
         """
         self.__train(first_training=first_training)
         Notification(DEEP_NOTIF_SUCCESS, FINISHED_TRAINING)
-        # Prompt if the user want to continue the training
-        self.__continue_training()
 
     def __train(self, first_training=True) -> None:
         """
@@ -170,12 +168,19 @@ class Trainer(GenericEvaluator):
         else:
             self.callbacks.unpause()
 
-        for epoch in range(self.initial_epoch+1, self.num_epochs+1):  # loop over the dataset multiple times
+        for epoch in range(self.initial_epoch+1, self.num_epochs+1):
 
-            Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_EPOCH_START, args={"epoch_index": epoch,
-                                                                                       "num_epochs": self.num_epochs}))
+            Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_EPOCH_START,
+                                                args={"epoch_index": epoch,
+                                                      "num_epochs": self.num_epochs}))
+
+            # Shuffle the data if required
+            if self.shuffle is not None:
+                self.dataset.shuffle(self.shuffle)
+
             # Put model into train mode for the start of the epoch
             self.model.train()
+
             for minibatch_index, minibatch in enumerate(self.dataloader, 0):
                 # Clean the given data
                 inputs, labels, additional_data = self.clean_single_element_list(minibatch)
@@ -189,7 +194,7 @@ class Trainer(GenericEvaluator):
                 additional_data = self.to_device(data=labels, device=self.model.device)
 
                 # Infer the output of the batch
-                outputs = self.model(*inputs)
+                outputs = self.model(inputs)
 
                 # Compute losses and metrics
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
@@ -214,7 +219,7 @@ class Trainer(GenericEvaluator):
                                                                                  result_metrics=result_metrics)
 
                 # Send signal batch end
-                Thalamus().add_signal(Signal(event= DEEP_EVENT_ON_BATCH_END,
+                Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_BATCH_END,
                                              args={"minibatch_index": minibatch_index+1,
                                                    "num_minibatches": self.num_minibatches,
                                                    "epoch_index": epoch,
@@ -222,10 +227,6 @@ class Trainer(GenericEvaluator):
                                                    "result_losses": result_losses,
                                                    "result_metrics": result_metrics
                                                    }))
-
-            # Shuffle the data if required
-            if self.shuffle is not None:
-                self.dataset.shuffle(self.shuffle)
 
             # Reset the dataset (transforms cache)
             self.dataset.reset()
@@ -290,9 +291,7 @@ class Trainer(GenericEvaluator):
 
         return outputs, total_loss, result_losses, result_metrics
 
-
-
-    def __continue_training(self):
+    def continue_training(self):
         """
         AUTHORS:
         --------
@@ -365,8 +364,6 @@ class Trainer(GenericEvaluator):
         # If a tester is available compute the losses and metrics
         if self.tester is not None:
             total_validation_loss, result_losses, result_metrics = self.tester.evaluate(model=self.model)
-
-        print(total_validation_loss)
 
         return total_validation_loss, result_losses, result_metrics
 
