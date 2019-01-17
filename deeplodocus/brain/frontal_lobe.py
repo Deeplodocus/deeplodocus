@@ -547,9 +547,9 @@ class FrontalLobe(object):
                                            memorize=self.config.history.memorize,
                                            history_directory=DEEP_PATH_HISTORY,
                                            overwatch_metric=overwatch_metric,
-                                           save_model_condition=self.config.training.save_condition,
+                                           save_model_condition=self.config.training.overwatch.condition,
                                            save_model_directory=DEEP_PATH_SAVE_MODEL,
-                                           save_model_format=self.config.training.save_format)
+                                           save_model_format=self.config.training.saver.format)
 
     def summary(self):
         if self.model is not None:

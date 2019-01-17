@@ -82,7 +82,7 @@ def convert(value, d_type=None):
 def convert2int(value):
     try:
         return int(eval(value))
-    except (ValueError, TypeError, SyntaxError):
+    except (ValueError, TypeError, SyntaxError, NameError):
         pass
     try:
         return int(value)
