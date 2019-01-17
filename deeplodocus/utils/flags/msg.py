@@ -106,6 +106,7 @@ DEEP_MSG_MODEL_LOADED = "Model loaded : %s from %s"
 
 # DEEP_INFO
 DEEP_MSG_MODEL_LOADING = "Loading model : %s"
+DEEP_MSG_MODEL_SAVED = "Model and weights saved to : %s"
 
 ##################
 # DEEP_MSG_OPTIM #

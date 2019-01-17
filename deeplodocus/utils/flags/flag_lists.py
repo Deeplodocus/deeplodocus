@@ -3,9 +3,9 @@ from deeplodocus.utils.flags.source import *
 from deeplodocus.utils.flags.load import *
 from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags.lib import *
-from deeplodocus.utils.flags.compare_metric import *
 from deeplodocus.utils.flags.transformer import *
 from deeplodocus.utils.flags.shuffle import *
+from deeplodocus.utils.flags.save import *
 
 
 # DATA TYPES
@@ -41,9 +41,6 @@ DEEP_LIST_POINTER_ENTRY = [DEEP_ENTRY_INPUT,
 DEEP_LIST_CV_LIB = [DEEP_LIB_PIL,
                     DEEP_LIB_OPENCV]
 
-# COMPARE TWO SUCCESSIVE METRICS
-DEEP_LIST_COMPARE_METRIC = [DEEP_COMPARE_METRIC_SMALLER,
-                            DEEP_COMPARE_METRIC_BIGGER]
 
 # TRANSFORMERS
 DEEP_LIST_TRANSFORMERS = [DEEP_TRANSFORMER_SEQUENTIAL,
@@ -54,4 +51,12 @@ DEEP_LIST_TRANSFORMERS = [DEEP_TRANSFORMER_SEQUENTIAL,
 DEEP_LIST_SHUFFLE = [DEEP_SHUFFLE_NONE,
                      DEEP_SHUFFLE_BATCHES,
                      DEEP_SHUFFLE_ALL]
+
+# SAVE FORMATS
+DEEP_LIST_SAVE_FORMATS = [DEEP_SAVE_FORMAT_ONNX,
+                          DEEP_SAVE_FORMAT_PYTORCH]
+
+# SAVE CONDITIONS
+DEEP_LIST_SAVE_CONDITIONS = [DEEP_SAVE_CONDITION_LESS,
+                             DEEP_SAVE_CONDITION_GREATER]
 

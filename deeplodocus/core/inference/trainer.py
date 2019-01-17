@@ -298,6 +298,7 @@ class Trainer(GenericEvaluator):
         --------
 
         :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -314,26 +315,19 @@ class Trainer(GenericEvaluator):
 
         :return: None
         """
-        continue_training = ""
-        # Ask if the user want to continue the training
-        while continue_training.lower() not in ["y", "n"]:
-            continue_training = Notification(DEEP_NOTIF_INPUT, "Would you like to continue the training ? (Y/N) ").get()
         # If yes ask the number of epochs
-        if continue_training.lower() == "y":
-            while True:
-                epochs = Notification(DEEP_NOTIF_INPUT, "Number of epochs ? ").get()
-                try:
-                    epochs = int(epochs)
-                    break
-                except ValueError:
-                    Notification(DEEP_NOTIF_WARNING, "Number of epochs must be an integer").get()
-            if epochs > 0:
-                self.initial_epoch = self.num_epochs + 1
-                self.num_epochs += epochs
-                # Resume the training
-                self.fit(first_training=False)
-        else:
-            pass
+        while True:
+            epochs = Notification(DEEP_NOTIF_INPUT, "Number of epochs ? ").get()
+            try:
+                epochs = int(epochs)
+                break
+            except ValueError:
+                Notification(DEEP_NOTIF_WARNING, "Number of epochs must be an integer").get()
+        if epochs > 0:
+            self.initial_epoch = self.num_epochs + 1
+            self.num_epochs += epochs
+            # Resume the training
+            self.fit(first_training=False)
 
     def __evaluate_epoch(self):
         """

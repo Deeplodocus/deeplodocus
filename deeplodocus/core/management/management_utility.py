@@ -9,6 +9,7 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.core.project.project_utility import ProjectUtility
 from deeplodocus import __version__
 
+
 class ManagementUtility(object):
 
     def __init__(self, argv=None):

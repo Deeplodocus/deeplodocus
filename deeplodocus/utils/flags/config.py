@@ -90,8 +90,8 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {DEEP_CONFIG_DTYPE: str,
                                                   DEEP_CONFIG_DEFAULT: "None"},
                                       "save_condition": {DEEP_CONFIG_DTYPE: int,
                                                          DEEP_CONFIG_DEFAULT: 1},
-                                      "save_method": {DEEP_CONFIG_DTYPE: int,
-                                                      DEEP_CONFIG_DEFAULT: 1}
+                                      "save_format": {DEEP_CONFIG_DTYPE: str,
+                                                      DEEP_CONFIG_DEFAULT: "pytorch"}
                                       },
                DEEP_CONFIG_DATA: {"dataloader": {"batch_size": {DEEP_CONFIG_DTYPE: int,
                                                                 DEEP_CONFIG_DEFAULT: 32},
