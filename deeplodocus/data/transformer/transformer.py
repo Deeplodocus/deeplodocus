@@ -196,6 +196,7 @@ class Transformer(object):
         Authors : Alix Leroy,
         :param data: data to transform
         :param index: The index of the instance in the Data Frame
+        :param augment: bool:
         :return: The transformed data
         """
         pass # Will be overridden
@@ -223,7 +224,6 @@ class Transformer(object):
 
         :return transformed_data: The transformed data
         """
-
         # Apply the transforms
         for transform in transforms:
             transform_name = transform["name"]

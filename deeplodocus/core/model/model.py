@@ -9,20 +9,28 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags.notif import *
 
 
-def load_model(name, module, kwargs, input_size=None, batch_size=None):
+def load_model(name, module, kwargs, device, device_ids=None, input_size=None, batch_size=None):
     # Get the model, should be nn.Module
     model = get_module(name=name, module=module, browse=DEEP_MODULE_MODELS)
+
+    # Get number of devices
+    n_devices = torch.cuda.device_count() if device_ids is None else len(device_ids)
+
+    if n_devices > 1:
+        model = nn.DataParallel(module=model, device_ids=device_ids)
 
     # Define our model that inherits from the nn.Module
     class Model(model):
 
-        def __init__(self, name, module, input_size, batch_size, kwargs_dict, **kwargs):
+        def __init__(self, name, module, input_size, batch_size, device_ids, device, kwargs_dict, **kwargs):
             super(Model, self).__init__(**kwargs)
             self.name = name
             self.module = module
             self.input_size = input_size
             self.batch_size = batch_size
             self.kwargs_dict = kwargs_dict
+            self.device_ids = device_ids
+            self.device = device
 
         def summary(self):
             """
@@ -167,5 +175,11 @@ def load_model(name, module, kwargs, input_size=None, batch_size=None):
             Notification(DEEP_NOTIF_INFO, "Estimated Total Size (MB): %0.2f" % total_size)
             Notification(DEEP_NOTIF_INFO, "")
 
-    return Model(name, module, input_size, batch_size, kwargs.get(), **kwargs.get())
+    return Model(name=name,
+                 module=module,
+                 input_size=input_size,
+                 batch_size=batch_size,
+                 device_ids=device_ids,
+                 device=device,
+                 kwargs_dict=kwargs.get(), **kwargs.get()).to(device)
 
