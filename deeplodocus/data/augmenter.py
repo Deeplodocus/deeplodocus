@@ -28,7 +28,7 @@ class Augmenter(object):
     # TODO : Most of the functions here are deprecated (Currently not a priority in Deeplodocus development)
     # TODO : Try to make it available through the Visual Cortex
 
-    def __init__(self, dataset, nb_augmentations, save_path = None):
+    def __init__(self, dataset, nb_augmentations, save_path=None):
 
         self.dataset = dataset
         self.nb_augmentation = nb_augmentations
