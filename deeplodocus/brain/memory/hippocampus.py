@@ -47,8 +47,8 @@ class Hippocampus(object):
                  overwatch_metric: OverWatchMetric = OverWatchMetric(name = TOTAL_LOSS,
                                                                      condition = DEEP_SAVE_CONDITION_LESS),
                  # Saver
-                 save_model_condition: Flag = DEEP_SAVE_SIGNAL_AUTO,
-                 save_model_format: Flag = DEEP_SAVE_FORMAT_PYTORCH,
+                 signal: Flag = DEEP_SAVE_SIGNAL_AUTO,
+                 method: Flag = DEEP_SAVE_FORMAT_PYTORCH,
                  save_model_directory: str = DEEP_PATH_SAVE_MODEL):
 
         #
@@ -67,10 +67,10 @@ class Hippocampus(object):
         # SAVER
         #
 
-        self.__initialize_saver(name = model_name,
+        self.__initialize_saver(name=model_name,
                                 save_directory=save_model_directory,
-                                save_condition=save_model_condition,
-                                save_format=save_model_format)
+                                signal=signal,
+                                method=method)
 
     def __initialize_history(self, name: str, metrics, losses, log_dir, verbose, memorize: int, overwatch_metric) \
             -> None:
@@ -96,8 +96,8 @@ class Hippocampus(object):
                                memorize=memorize,
                                overwatch_metric=overwatch_metric)
 
-    def __initialize_saver(self, name: str, save_directory, save_condition, save_format):
+    def __initialize_saver(self, name: str, save_directory, signal, method):
         self.saver = Saver(name=name,
                            save_directory=save_directory,
-                           save_condition=save_condition,
-                           save_format=save_format)
+                           signal=signal,
+                           method=method)

@@ -547,11 +547,31 @@ class FrontalLobe(object):
                                            memorize=self.config.history.memorize,
                                            history_directory=DEEP_PATH_HISTORY,
                                            overwatch_metric=overwatch_metric,
-                                           save_model_condition=self.config.training.overwatch.condition,
-                                           save_model_directory=DEEP_PATH_SAVE_MODEL,
-                                           save_model_format=self.config.training.saver.format)
+                                           **self.config.training.saver.get(),
+                                           save_model_directory=DEEP_PATH_SAVE_MODEL)
 
     def summary(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Print a summary of the model, optimizer, losses and metrics.
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         if self.model is not None:
             self.model.summary()
         else:

@@ -88,7 +88,7 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {DEEP_CONFIG_DTYPE: str,
                                                         DEEP_CONFIG_DEFAULT: 0},
                                       "shuffle": {DEEP_CONFIG_DTYPE: str,
                                                   DEEP_CONFIG_DEFAULT: "None"},
-                                      "saver": {"format": {DEEP_CONFIG_DEFAULT: "pytorch",
+                                      "saver": {"method": {DEEP_CONFIG_DEFAULT: "pytorch",
                                                            DEEP_CONFIG_DTYPE: str},
                                                 "signal": {DEEP_CONFIG_DEFAULT: "auto",
                                                            DEEP_CONFIG_DTYPE: str}
