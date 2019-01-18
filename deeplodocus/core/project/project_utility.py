@@ -3,7 +3,7 @@ from distutils.dir_util import copy_tree
 
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags.config import DEEP_CONFIG
+from deeplodocus.utils.flags.config import *
 from deeplodocus.utils.flags.ext import DEEP_EXT_YAML
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
@@ -89,7 +89,7 @@ class ProjectUtility(object):
             copy_tree(source_project_structure, project_path, update=1)
 
             # Copy the required config files
-            # self.__init_config()
+            self.__init_config()
 
             # Clean the structure (remove __pycache__ folder and __ini__.py files)
             self.__clean_structure(project_path)
@@ -125,12 +125,25 @@ class ProjectUtility(object):
         :return: None
         """
         config = Namespace(DEEP_CONFIG)
-        config = self.__set_config_defaults(config)
+        self.__rename_wildcards(config)
+        self.__set_config_defaults(config)
         config_dir = "%s/%s/config" % (self.main_path, self.project_name)
         os.makedirs(config_dir, exist_ok=True)
         for key, namespace in config.get().items():
             if isinstance(namespace, Namespace):
                 namespace.save("%s/%s%s" % (config_dir, key, DEEP_EXT_YAML))
+
+    def __rename_wildcards(self, namespace):
+        """
+        :param namespace:
+        :return:
+        """
+        for key, item in namespace.get().items():
+            if isinstance(item, Namespace):
+                if DEEP_CONFIG_WILDCARD in item.get():
+                    item.rename(DEEP_CONFIG_WILDCARD, DEEP_CONFIG_WILDCARD_DEFAULT[key])
+                else:
+                    self.__rename_wildcards(item)
 
     def __set_config_defaults(self, namespace):
         """
@@ -139,11 +152,10 @@ class ProjectUtility(object):
         """
         for key, item in namespace.get().items():
             if isinstance(item, Namespace):
-                if "default" in item.get():
-                    namespace.get()[key] = item.get()["default"]
+                if DEEP_CONFIG_DEFAULT in item.get() and DEEP_CONFIG_DTYPE in item.get():
+                    namespace.get()[key] = item.get()[DEEP_CONFIG_DEFAULT]
                 else:
-                    item = self.__set_config_defaults(item)
-        return namespace
+                    self.__set_config_defaults(item)
 
     @staticmethod
     def __clean_structure(deeplodocus_project_path):

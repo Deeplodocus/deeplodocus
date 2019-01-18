@@ -18,8 +18,12 @@ DEEP_CONFIG_DATA = "data"
 DEEP_CONFIG_TRANSFORM = "transform"
 DEEP_CONFIG_OPTIMIZER = "optimizer"
 DEEP_CONFIG_METRICS = "metrics"
-DEEP_CONFIG_LOSS = "losses"
+DEEP_CONFIG_LOSSES = "losses"
 DEEP_CONFIG_HISTORY = "history"
+
+# Wildcard place holders
+DEEP_CONFIG_WILDCARD_DEFAULT = {DEEP_CONFIG_METRICS: "accuracy",
+                                DEEP_CONFIG_LOSSES: "loss"}
 
 # List of all config sections
 DEEP_CONFIG_SECTIONS = [DEEP_CONFIG_PROJECT,
@@ -29,8 +33,11 @@ DEEP_CONFIG_SECTIONS = [DEEP_CONFIG_PROJECT,
                         DEEP_CONFIG_TRANSFORM,
                         DEEP_CONFIG_OPTIMIZER,
                         DEEP_CONFIG_METRICS,
-                        DEEP_CONFIG_LOSS,
+                        DEEP_CONFIG_LOSSES,
                         DEEP_CONFIG_HISTORY]
+
+# A dict of names for each config file
+DEEP_CONFIG_FILES = {item: "%s%s" % (item, DEEP_EXT_YAML) for item in DEEP_CONFIG_SECTIONS}
 
 # Define the expected structure of the project configuration space
 # First level keys define the name of config .yaml files
@@ -173,16 +180,16 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {DEEP_CONFIG_DTYPE: str,
                                                        }
                                               }
                                   },
-               DEEP_CONFIG_LOSS: {DEEP_CONFIG_WILDCARD: {"module": {DEEP_CONFIG_DTYPE: str,
-                                                         DEEP_CONFIG_DEFAULT: None},
-                                                         "name": {DEEP_CONFIG_DTYPE: str,
-                                                                  DEEP_CONFIG_DEFAULT: "CrossEntropyLoss"},
-                                                         "weight": {DEEP_CONFIG_DTYPE: float,
-                                                                    DEEP_CONFIG_DEFAULT: 1},
-                                                         "kwargs": {DEEP_CONFIG_DTYPE: dict,
-                                                                    DEEP_CONFIG_DEFAULT: {}}
-                                                         }
-                                  },
+               DEEP_CONFIG_LOSSES: {DEEP_CONFIG_WILDCARD: {"module": {DEEP_CONFIG_DTYPE: str,
+                                                           DEEP_CONFIG_DEFAULT: None},
+                                                           "name": {DEEP_CONFIG_DTYPE: str,
+                                                                    DEEP_CONFIG_DEFAULT: "CrossEntropyLoss"},
+                                                           "weight": {DEEP_CONFIG_DTYPE: float,
+                                                                      DEEP_CONFIG_DEFAULT: 1},
+                                                           "kwargs": {DEEP_CONFIG_DTYPE: dict,
+                                                                      DEEP_CONFIG_DEFAULT: {}}
+                                                           }
+                                    },
                DEEP_CONFIG_TRANSFORM: {},
                DEEP_CONFIG_METRICS: {DEEP_CONFIG_WILDCARD: {"module": {DEEP_CONFIG_DTYPE: str,
                                                                        DEEP_CONFIG_DEFAULT: None},
@@ -195,6 +202,3 @@ DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {DEEP_CONFIG_DTYPE: str,
                                                             }
                                      }
                }
-
-# A dict of names for each config file
-DEEP_CONFIG_FILES = {item: "%s%s" % (item, DEEP_EXT_YAML) for item in DEEP_CONFIG_SECTIONS}

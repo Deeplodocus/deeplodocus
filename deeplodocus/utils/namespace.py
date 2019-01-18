@@ -42,6 +42,15 @@ class Namespace(object):
         for key, item in self.__dict2namespace(dictionary).get().items():
             self.__add({key: item}, sub_space)
 
+    def rename(self, item, name):
+        """
+        :param item:
+        :param name:
+        :return:
+        """
+        self.__dict__[name] = self.__dict__[item]
+        del(self.__dict__[item])
+
     def load(self, yaml_path, sub_space=None):
         """
         Author: SW

@@ -292,9 +292,9 @@ class Saver(object):
                     response = Notification(DEEP_NOTIF_INPUT, "What format would you like to save ? (pytorch/onnx)").get()
 
                 if response.lower() == "pytorch":
-                    self.save_model_method = DEEP_SAVE_NET_FORMAT_PYTORCH
+                    self.save_model_method = DEEP_SAVE_FORMAT_PYTORCH
                 elif response.lower() == "onnx":
-                    self.save_model_method = DEEP_SAVE_NET_FORMAT_ONNX
+                    self.save_model_method = DEEP_SAVE_FORMAT_ONNX
 
                 self.save_model(model)
 

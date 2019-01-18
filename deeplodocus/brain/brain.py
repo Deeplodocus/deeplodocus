@@ -377,11 +377,28 @@ class Brain(FrontalLobe):
     " Private Methods
     "
     """
-    def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None, index=None):
+    def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
         """
-        :param dictionary:
-        :param sub_space:
-        :return:
+        AUTHORS:
+        --------
+
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Checks the config for missing or invalid values and corrects where necessary.
+
+        PARAMETERS:
+        -----------
+
+        :param dictionary: dictionary to check the config against.
+        :param sub_space: list of strings: for internal use
+
+        RETURN:
+        -------
+
+        :return: None
         """
         sub_space = [] if sub_space is None else sub_space
         sub_space = sub_space if isinstance(sub_space, list) else [sub_space]
@@ -390,18 +407,19 @@ class Brain(FrontalLobe):
                 keys = list(self.config.get(sub_space)) if name is DEEP_CONFIG_WILDCARD else [name]
                 for key in keys:
                     if DEEP_CONFIG_DTYPE in value and DEEP_CONFIG_DEFAULT in value:
-                        default = value[DEEP_CONFIG_DEFAULT]
                         if self.config.check(key, sub_space=sub_space):
-                            d_type = value[DEEP_CONFIG_DTYPE]
-                            if d_type is None:
+                            cond_1 = value[DEEP_CONFIG_DTYPE] is None
+                            cond_2 = self.config.get(sub_space)[key] == value[DEEP_CONFIG_DEFAULT]
+                            # If dtype is none or the item is already the default value, continue
+                            if cond_1 or cond_2:
                                 continue
                             else:
                                 self.config.get(sub_space)[key] = self.__convert(self.config.get(sub_space)[key],
-                                                                                 d_type,
-                                                                                 default,
+                                                                                 value[DEEP_CONFIG_DTYPE],
+                                                                                 value[DEEP_CONFIG_DEFAULT],
                                                                                  sub_space=sub_space + [key])
                         else:
-                            self.__add_to_config(key, default, sub_space)
+                            self.__add_to_config(key, value[DEEP_CONFIG_DEFAULT], sub_space)
                     else:
                         self.__check_config(dictionary=value, sub_space=sub_space + [key])
 
@@ -467,6 +485,10 @@ class Brain(FrontalLobe):
         return new_value
 
     def __get_dtype_name(self, d_type):
+        """
+        :param d_type:
+        :return:
+        """
         if isinstance(d_type, list):
             return [self.__get_dtype_name(dt) for dt in d_type]
         elif isinstance(d_type, dict):
