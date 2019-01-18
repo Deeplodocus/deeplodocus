@@ -31,19 +31,18 @@ class Saver(object):
     def __init__(self,
                  name: str = "no__model_name",
                  save_directory: str = DEEP_PATH_SAVE_MODEL,
-                 save_condition: Flag = DEEP_SAVE_CONDITION_LESS,
-                 save_format: Flag = DEEP_SAVE_FORMAT_PYTORCH):
-
-        self.save_format = save_format      # Can be onnx or pt
-        self.save_condition = save_condition
-        self.directory = save_directory
+                 signal: Flag = DEEP_SAVE_CONDITION_LESS,
+                 method: Flag = DEEP_SAVE_FORMAT_PYTORCH):
         self.name = name
+        self.directory = save_directory
+        self.signal = signal
+        self.method = method      # Can be onnx or pt
         self.best_overwatch_metric = None
 
         # Set the extension
-        if DEEP_SAVE_FORMAT_PYTORCH.corresponds(self.save_format):
+        if DEEP_SAVE_FORMAT_PYTORCH.corresponds(self.method):
             self.extension = DEEP_EXT_PYTORCH
-        elif DEEP_SAVE_FORMAT_ONNX.corresponds(self.save_format):
+        elif DEEP_SAVE_FORMAT_ONNX.corresponds(self.method):
             self.extension = DEEP_EXT_ONNX
 
         if not os.path.isfile(self.directory):
@@ -92,11 +91,11 @@ class Saver(object):
         """
 
         # If we want to save the model at each epoch
-        if DEEP_SAVE_SIGNAL_END_EPOCH.corresponds(self.save_condition):
+        if DEEP_SAVE_SIGNAL_END_EPOCH.corresponds(self.signal):
             self.save_model(model)
 
         # If we want to save the model only if we had an improvement over a metric
-        elif DEEP_SAVE_SIGNAL_AUTO.corresponds(self.save_condition):
+        elif DEEP_SAVE_SIGNAL_AUTO.corresponds(self.signal):
             if self.is_saving_required(current_overwatch_metric=current_overwatch_metric) is True:
                 self.save_model(model)
 
@@ -122,7 +121,7 @@ class Saver(object):
 
         :return: None
         """
-        if DEEP_SAVE_SIGNAL_END_TRAINING.corresponds(self.save_condition):
+        if DEEP_SAVE_SIGNAL_END_TRAINING.corresponds(self.signal):
             self.save_model(model)
 
     def is_saving_required(self, current_overwatch_metric: OverWatchMetric) -> bool:
@@ -212,19 +211,16 @@ class Saver(object):
         file_path = "%s/%s%s" % (self.directory, self.name, self.extension)
 
         # If we want to save to the pytorch format
-        if DEEP_SAVE_FORMAT_PYTORCH.corresponds(self.save_format):
+        if DEEP_SAVE_FORMAT_PYTORCH.corresponds(self.method):
             # TODO: Finish try except statements here after testing...
             # try:
-            torch.save(torch.save({"epoch": epoch,
-                                   "model_state_dict": model.state_dict(),
-                                   "optimizer_state_dict": optimizer.state_dict(),
-                                   "loss": loss}, file_path))
+            torch.save(torch.save({"model_state_dict": model.state_dict()}, file_path))
             # except:
             #     Notification(DEEP_NOTIF_ERROR, "Error while saving the pytorch model and weights" )
             #     self.__handle_error_saving(model)
 
         # If we want to save to the ONNX format
-        elif DEEP_SAVE_FORMAT_ONNX.corresponds(self.save_format):
+        elif DEEP_SAVE_FORMAT_ONNX.corresponds(self.method):
             # TODO: and here. Also fix onnx export function
             Notification(DEEP_NOTIF_FATAL, "Save as onnx format not implemented yet")
             # try:
