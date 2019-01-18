@@ -178,8 +178,11 @@ class Namespace(object):
                         if isinstance(item, Namespace):
                             item = item.__get_summary(tabs=tabs + 2, tab_size=tab_size).lstrip()
                             line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
-                        elif isinstance(item, str):
-                            item = '"%s"' % item
+                        else:
+                            if isinstance(item, str):
+                                item = '"%s"' % item
+                            else:
+                                item = "%s" % item
                             line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
                 else:
                     if isinstance(value, str):
