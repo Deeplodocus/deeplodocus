@@ -5,6 +5,7 @@ import torch.nn.functional as F
 # Deeplodocus imports
 from deeplodocus.app.block.resblock import ResBlock
 
+
 class DarkNet53(nn.Module):
 
     def __init__(self, n_channels=3, n_classes=80, include_top=True):

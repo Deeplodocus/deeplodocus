@@ -44,161 +44,360 @@ DEEP_CONFIG_FILES = {item: "%s%s" % (item, DEEP_EXT_YAML) for item in DEEP_CONFI
 # Second level keys and below should be found in each file
 # Default values and  data types must be given for each configuration
 # NB: if a list of floats is expected, use [float] instead of float
-DEEP_CONFIG = {DEEP_CONFIG_PROJECT: {"name": {DEEP_CONFIG_DTYPE: str,
-                                              DEEP_CONFIG_DEFAULT: "deeplodocus_project"},
-                                     "cv_library": {DEEP_CONFIG_DTYPE: str,
-                                                    DEEP_CONFIG_DEFAULT: "pil"},
-                                     "device": {DEEP_CONFIG_DTYPE: str,
-                                                DEEP_CONFIG_DEFAULT: DEEP_CONFIG_AUTO},
-                                     "device_ids": {DEEP_CONFIG_DTYPE: [int],
-                                                    DEEP_CONFIG_DEFAULT: DEEP_CONFIG_AUTO},
-                                     "logs": {"history_train_batches": {DEEP_CONFIG_DTYPE: bool,
-                                                                        DEEP_CONFIG_DEFAULT: True},
-                                              "history_train_epochs": {DEEP_CONFIG_DTYPE: bool,
-                                                                       DEEP_CONFIG_DEFAULT: True},
-                                              "history_validation": {DEEP_CONFIG_DTYPE: bool,
-                                                                     DEEP_CONFIG_DEFAULT: True},
-                                              "notification": {DEEP_CONFIG_DTYPE: bool,
-                                                               DEEP_CONFIG_DEFAULT: True}
-                                              },
-                                     "on_wake": {DEEP_CONFIG_DTYPE: [str],
-                                                 DEEP_CONFIG_DEFAULT: None}
-                                     },
-               DEEP_CONFIG_MODEL: {"module": {DEEP_CONFIG_DTYPE: str,
-                                              DEEP_CONFIG_DEFAULT: None},
-                                   "name": {DEEP_CONFIG_DTYPE: str,
-                                            DEEP_CONFIG_DEFAULT: "LeNet"},
-                                   "input_size": {DEEP_CONFIG_DTYPE: [[int]],
-                                                  DEEP_CONFIG_DEFAULT: [[None]]},
-                                   "kwargs": {DEEP_CONFIG_DTYPE: dict,
-                                              DEEP_CONFIG_DEFAULT: {}}
-                                   },
-               DEEP_CONFIG_OPTIMIZER: {"module": {DEEP_CONFIG_DTYPE: str,
-                                       DEEP_CONFIG_DEFAULT: None},
-                                       "name": {DEEP_CONFIG_DTYPE: str,
-                                                DEEP_CONFIG_DEFAULT: "Adam"},
-                                       "kwargs": {DEEP_CONFIG_DTYPE: dict,
-                                                  DEEP_CONFIG_DEFAULT: {"lr": 0.001,
-                                                                        "eps": 0.000000001,
-                                                                        "amsgrad": False,
-                                                                        "betas": [0.9, 0.999],
-                                                                        "weight_decay": 0.0}
-                                                  }
-                                       },
-               DEEP_CONFIG_HISTORY: {"verbose": {DEEP_CONFIG_DTYPE: int,
-                                                 DEEP_CONFIG_DEFAULT: 1},
-                                     "memorize": {DEEP_CONFIG_DTYPE: int,
-                                                  DEEP_CONFIG_DEFAULT: 1}},
-               DEEP_CONFIG_TRAINING: {"num_epochs": {DEEP_CONFIG_DTYPE: int,
-                                                     DEEP_CONFIG_DEFAULT: 10},
-                                      "initial_epoch": {DEEP_CONFIG_DTYPE: int,
-                                                        DEEP_CONFIG_DEFAULT: 0},
-                                      "shuffle": {DEEP_CONFIG_DTYPE: str,
-                                                  DEEP_CONFIG_DEFAULT: "None"},
-                                      "saver": {"method": {DEEP_CONFIG_DEFAULT: "pytorch",
-                                                           DEEP_CONFIG_DTYPE: str},
-                                                "signal": {DEEP_CONFIG_DEFAULT: "auto",
-                                                           DEEP_CONFIG_DTYPE: str}
-                                                },
-                                      "overwatch": {"name": {DEEP_CONFIG_DEFAULT: "Total Loss",
-                                                             DEEP_CONFIG_DTYPE: str},
-                                                    "condition": {DEEP_CONFIG_DEFAULT: "less",
-                                                                  DEEP_CONFIG_DTYPE: str}
-                                                    },
-                                      },
-               DEEP_CONFIG_DATA: {"dataloader": {"batch_size": {DEEP_CONFIG_DTYPE: int,
-                                                                DEEP_CONFIG_DEFAULT: 32},
-                                                 "num_workers": {DEEP_CONFIG_DTYPE: int,
-                                                                 DEEP_CONFIG_DEFAULT: 1}
-                                                 },
-                                  DEEP_CONFIG_ENABLED: {"train": {DEEP_CONFIG_DTYPE: bool,
-                                                                  DEEP_CONFIG_DEFAULT: True},
-                                                        "validation": {DEEP_CONFIG_DTYPE: bool,
-                                                                       DEEP_CONFIG_DEFAULT: True},
-                                                        "test": {DEEP_CONFIG_DTYPE: bool,
-                                                                 DEEP_CONFIG_DEFAULT: True}
-                                                        },
-                                  "dataset": {"train": {"inputs": {DEEP_CONFIG_DTYPE: [{"source": [str],
-                                                                                        "join": [str],
-                                                                                        "type": str,
-                                                                                        "load_method": str}],
-                                                                   DEEP_CONFIG_DEFAULT: None},
-                                                        "labels": {DEEP_CONFIG_DTYPE: [{"source": [str],
-                                                                                        "join": [str],
-                                                                                        "type": str,
-                                                                                        "load_method": str}],
-                                                                   DEEP_CONFIG_DEFAULT: None},
-                                                        "additional_data": {DEEP_CONFIG_DTYPE: [{"source": [str],
-                                                                                                 "join": [str],
-                                                                                                 "type": str,
-                                                                                                 "load_method": str}],
-                                                                            DEEP_CONFIG_DEFAULT: None},
-                                                        "number": {DEEP_CONFIG_DTYPE: int,
-                                                                   DEEP_CONFIG_DEFAULT: None},
-                                                        "name": {DEEP_CONFIG_DTYPE: str,
-                                                                 DEEP_CONFIG_DEFAULT: "train"}
-                                                        },
-                                              "validation": {"inputs": {DEEP_CONFIG_DTYPE: [{"source": [str],
-                                                                                             "join": [str],
-                                                                                             "type": str,
-                                                                                             "load_method": str}],
-                                                                        DEEP_CONFIG_DEFAULT: None},
-                                                             "labels": {DEEP_CONFIG_DTYPE: [{"source": [str],
-                                                                                             "join": [str],
-                                                                                             "type": str,
-                                                                                             "load_method": str}],
-                                                                        DEEP_CONFIG_DEFAULT: None},
-                                                             "additional_data": {DEEP_CONFIG_DTYPE: [{"source": [str],
-                                                                                                      "join": [str],
-                                                                                                      "type": str,
-                                                                                                      "load_method": str}],
-                                                                                 DEEP_CONFIG_DEFAULT: None},
-                                                             "number": {DEEP_CONFIG_DTYPE: int,
-                                                                        DEEP_CONFIG_DEFAULT: None},
-                                                             "name": {DEEP_CONFIG_DTYPE: str,
-                                                                      DEEP_CONFIG_DEFAULT: "validation"}
-                                                             },
-                                              "test": {"inputs": {DEEP_CONFIG_DTYPE: [{"source": [str],
-                                                                                       "join": [str],
-                                                                                       "type": str,
-                                                                                       "load_method": str}],
-                                                                  DEEP_CONFIG_DEFAULT: None},
-                                                       "labels": {DEEP_CONFIG_DTYPE: [{"source": [str],
-                                                                                       "join": [str],
-                                                                                       "type": str,
-                                                                                       "load_method": str}],
-                                                                  DEEP_CONFIG_DEFAULT: None},
-                                                       "additional_data": {DEEP_CONFIG_DTYPE: [{"source": [str],
-                                                                                                "join": [str],
-                                                                                                "type": str,
-                                                                                                "load_method": str}],
-                                                                           DEEP_CONFIG_DEFAULT: None},
-                                                       "number": {DEEP_CONFIG_DTYPE: int,
-                                                                  DEEP_CONFIG_DEFAULT: None},
-                                                       "name": {DEEP_CONFIG_DTYPE: str,
-                                                                DEEP_CONFIG_DEFAULT: "test"}
-                                                       }
-                                              }
-                                  },
-               DEEP_CONFIG_LOSSES: {DEEP_CONFIG_WILDCARD: {"module": {DEEP_CONFIG_DTYPE: str,
-                                                           DEEP_CONFIG_DEFAULT: None},
-                                                           "name": {DEEP_CONFIG_DTYPE: str,
-                                                                    DEEP_CONFIG_DEFAULT: "CrossEntropyLoss"},
-                                                           "weight": {DEEP_CONFIG_DTYPE: float,
-                                                                      DEEP_CONFIG_DEFAULT: 1},
-                                                           "kwargs": {DEEP_CONFIG_DTYPE: dict,
-                                                                      DEEP_CONFIG_DEFAULT: {}}
-                                                           }
-                                    },
-               DEEP_CONFIG_TRANSFORM: {},
-               DEEP_CONFIG_METRICS: {DEEP_CONFIG_WILDCARD: {"module": {DEEP_CONFIG_DTYPE: str,
-                                                                       DEEP_CONFIG_DEFAULT: None},
-                                                            "name": {DEEP_CONFIG_DTYPE: str,
-                                                                     DEEP_CONFIG_DEFAULT: "CrossEntropyLoss"},
-                                                            "weight": {DEEP_CONFIG_DTYPE: float,
-                                                                       DEEP_CONFIG_DEFAULT: 1},
-                                                            "kwargs": {DEEP_CONFIG_DTYPE: dict,
-                                                                       DEEP_CONFIG_DEFAULT: {}}
-                                                            }
-                                     }
-               }
+DEEP_CONFIG = {
+    DEEP_CONFIG_PROJECT: {
+        "name": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "deeplodocus_project"
+        },
+        "cv_library": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "pil"
+        },
+        "device": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: DEEP_CONFIG_AUTO
+        },
+        "device_ids": {
+            DEEP_CONFIG_DTYPE: [int],
+            DEEP_CONFIG_DEFAULT: DEEP_CONFIG_AUTO
+        },
+        "logs": {
+            "history_train_batches": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            },
+            "history_train_epochs": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            },
+            "history_validation": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            },
+            "notification": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            }
+        },
+        "on_wake": {
+            DEEP_CONFIG_DTYPE: [str],
+            DEEP_CONFIG_DEFAULT: None
+        }
+    },
+    DEEP_CONFIG_MODEL: {
+        "module": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "deeplodocus.app.model.darknet"
+        },
+        "name": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "DarkNet53"
+        },
+        "input_size": {
+            DEEP_CONFIG_DTYPE: [[int]],
+            DEEP_CONFIG_DEFAULT: [[3, 32, 32]]
+        },
+        "kwargs": {
+            DEEP_CONFIG_DTYPE: dict,
+            DEEP_CONFIG_DEFAULT: {}
+        }
+    },
+    DEEP_CONFIG_OPTIMIZER: {
+        "module": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "torch.optim"
+        },
+        "name": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "Adam"
+        },
+        "kwargs": {
+            DEEP_CONFIG_DTYPE: dict,
+            DEEP_CONFIG_DEFAULT: {
+                "lr": 0.001,
+                "eps": 0.000000001,
+                "amsgrad": False,
+                "betas": [0.9, 0.999],
+                "weight_decay": 0.0
+            }
+        }
+    },
+    DEEP_CONFIG_HISTORY: {
+        "verbose": {
+            DEEP_CONFIG_DTYPE: int,
+            DEEP_CONFIG_DEFAULT: 1
+        },
+        "memorize": {
+            DEEP_CONFIG_DTYPE: int,
+            DEEP_CONFIG_DEFAULT: 1
+        }
+    },
+    DEEP_CONFIG_TRAINING: {
+        "num_epochs": {
+            DEEP_CONFIG_DTYPE: int,
+            DEEP_CONFIG_DEFAULT: 10
+        },
+        "initial_epoch": {
+            DEEP_CONFIG_DTYPE: int,
+            DEEP_CONFIG_DEFAULT: 0
+        },
+        "shuffle": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "None"
+        },
+        "saver": {
+            "method": {
+                DEEP_CONFIG_DEFAULT: "pytorch",
+                DEEP_CONFIG_DTYPE: str
+            },
+            "signal": {
+                DEEP_CONFIG_DEFAULT: "auto",
+                DEEP_CONFIG_DTYPE: str
+            }
+        },
+        "overwatch": {
+            "name": {
+                DEEP_CONFIG_DEFAULT: "Total Loss",
+                DEEP_CONFIG_DTYPE: str
+            },
+            "condition": {
+                DEEP_CONFIG_DEFAULT: "less",
+                DEEP_CONFIG_DTYPE: str
+            }
+        },
+    },
+    DEEP_CONFIG_DATA: {
+        "dataloader": {
+            "batch_size": {
+                DEEP_CONFIG_DTYPE: int,
+                DEEP_CONFIG_DEFAULT: 32
+            },
+            "num_workers": {
+                DEEP_CONFIG_DTYPE: int,
+                DEEP_CONFIG_DEFAULT: 1
+            }
+        },
+        DEEP_CONFIG_ENABLED: {
+            "train": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            },
+            "validation": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            },
+            "test": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            }
+        },
+        "dataset": {
+            "train": {
+                "inputs": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "labels": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "additional_data": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "number": {
+                    DEEP_CONFIG_DTYPE: int,
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "name": {
+                    DEEP_CONFIG_DTYPE: str,
+                    DEEP_CONFIG_DEFAULT: "Training Dataset"
+                }
+            },
+            "validation": {
+                "inputs": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "labels": {DEEP_CONFIG_DTYPE: [{
+                    "source": [str],
+                    "join": [str],
+                    "type": str,
+                    "load_method": str
+                }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "additional_data": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str}],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "number": {
+                    DEEP_CONFIG_DTYPE: int,
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "name": {
+                    DEEP_CONFIG_DTYPE: str,
+                    DEEP_CONFIG_DEFAULT: "Validation Dataset"
+                }
+            },
+            "test": {
+                "inputs": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "labels": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "additional_data": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "number": {
+                    DEEP_CONFIG_DTYPE: int,
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "name": {
+                    DEEP_CONFIG_DTYPE: str,
+                    DEEP_CONFIG_DEFAULT: "Test Dataset"
+                }
+            }
+        }
+    },
+    DEEP_CONFIG_LOSSES: {
+        DEEP_CONFIG_WILDCARD: {
+            "module": {
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_DEFAULT: None
+            },
+            "name": {
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_DEFAULT: "CrossEntropyLoss"
+            },
+            "weight": {
+                DEEP_CONFIG_DTYPE: float,
+                DEEP_CONFIG_DEFAULT: 1
+            },
+            "kwargs": {
+                DEEP_CONFIG_DTYPE: dict,
+                DEEP_CONFIG_DEFAULT: {}
+            }
+        }
+    },
+    DEEP_CONFIG_TRANSFORM: {
+        "train": {
+            "name": {
+                DEEP_CONFIG_DEFAULT: "Train Transform Manager",
+                DEEP_CONFIG_DTYPE: str
+            },
+            "inputs": {
+                DEEP_CONFIG_DEFAULT: "./config/transforms/transform_input.yaml",
+                DEEP_CONFIG_DTYPE: str
+            },
+            "labels": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: str
+            },
+            "additional_data": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: str
+            }
+        },
+        "validation": {
+            "name": {
+                DEEP_CONFIG_DEFAULT: "Train Transform Manager",
+                DEEP_CONFIG_DTYPE: str
+            },
+            "inputs": {
+                DEEP_CONFIG_DEFAULT: "./config/transforms/transform_input.yaml",
+                DEEP_CONFIG_DTYPE: str
+            },
+            "labels": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: str
+            },
+            "additional_data": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: str
+            }
+        },
+        "test": {
+            "name": {
+                DEEP_CONFIG_DEFAULT: "Train Transform Manager",
+                DEEP_CONFIG_DTYPE: str
+            },
+            "inputs": {
+                DEEP_CONFIG_DEFAULT: "./config/transforms/transform_input.yaml",
+                DEEP_CONFIG_DTYPE: str
+            },
+            "labels": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: str
+            },
+            "additional_data":
+                {
+                    DEEP_CONFIG_DEFAULT: None,
+                    DEEP_CONFIG_DTYPE: str
+                }
+        }
+    },
+    DEEP_CONFIG_METRICS: {
+        DEEP_CONFIG_WILDCARD: {
+            "module": {
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_DEFAULT: None
+            },
+            "name": {
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_DEFAULT: "CrossEntropyLoss"
+            },
+            "weight": {DEEP_CONFIG_DTYPE: float,
+                       DEEP_CONFIG_DEFAULT: 1
+                       },
+            "kwargs": {
+                DEEP_CONFIG_DTYPE: dict,
+                DEEP_CONFIG_DEFAULT: {}
+            }
+        }
+    }
+}
