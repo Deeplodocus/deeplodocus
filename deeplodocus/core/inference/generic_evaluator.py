@@ -98,11 +98,11 @@ class GenericEvaluator(GenericInferer):
         PARAMETERS:
         -----------
 
-        :param metrics->dict: The metrics to compute
-        :param inputs->Union[tensor, list]: The inputs
-        :param outputs->Union[tensor, list]: Outputs of the network
-        :param labels->Union[tensor, list]: Labels
-        :param additional_data->Union[tensor, list]: Additional data
+        :param metrics: dict: The metrics to compute
+        :param inputs: Union[tensor, list]: The inputs
+        :param outputs: Union[tensor, list]: Outputs of the network
+        :param labels: Union[tensor, list]: Labels
+        :param additional_data: Union[tensor, list]: Additional data
 
         RETURN:
         -------

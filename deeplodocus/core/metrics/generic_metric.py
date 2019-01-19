@@ -17,7 +17,7 @@ class GenericMetric(object):
     Generic class for Metric and Loss
     """
 
-    def __init__(self, name: str, method:Union[callable, Module]):
+    def __init__(self, name: str, method: Union[callable, Module]):
         """
         AUTHORS:
         --------
