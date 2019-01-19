@@ -389,7 +389,7 @@ DEEP_CONFIG = {
             },
             "name": {
                 DEEP_CONFIG_DTYPE: str,
-                DEEP_CONFIG_DEFAULT: "CrossEntropyLoss"
+                DEEP_CONFIG_DEFAULT: "accuracy"
             },
             "weight": {DEEP_CONFIG_DTYPE: float,
                        DEEP_CONFIG_DEFAULT: 1

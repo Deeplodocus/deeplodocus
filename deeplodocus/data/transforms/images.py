@@ -29,9 +29,9 @@ def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> 
     PARAMETERS:
     -----------
 
-    :param image->np.array: The image to transform
-    :param kernel_size_min->int: Min size of the kernel
-    :param kernel_size_max->int: Max size of the kernel
+    :param image: np.array: The image to transform
+    :param kernel_size_min: int: Min size of the kernel
+    :param kernel_size_max: int: Max size of the kernel
 
 
     RETURN:
@@ -63,8 +63,8 @@ def blur(image: np.array, kernel_size: int) -> Tuple[Any, None]:
     PARAMETERS:
     -----------
 
-    :param image->np.array: The image to transform
-    :param kernel_size->int: Kernel size
+    :param image: np.array: The image to transform
+    :param kernel_size: int: Kernel size
 
     RETURN:
     -------
@@ -90,8 +90,8 @@ def adjust_gamma(image, gamma):
     PARAMETERS:
     -----------
 
-    :param image -> np.array: The image to transform
-    :param gamma -> float: Gamma value
+    :param image: np.array: The image to transform
+    :param gamma: float: Gamma value
 
     RETURN:
     -------
@@ -99,8 +99,8 @@ def adjust_gamma(image, gamma):
     :return: The transformed image
     :return: None
     """
-    invGamma = 1.0 / gamma
-    table = np.array([((i / 255.0) ** invGamma) * 255
+    inv_gamma = 1.0 / gamma
+    table = np.array([((i / 255.0) ** inv_gamma) * 255
                       for i in np.arange(0, 256)]).astype("uint8")
     return cv2.LUT(image, table), None
 
@@ -121,8 +121,8 @@ def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0):
     PARAMETERS:
     -----------
 
-    :param image->np.array: input image
-    :param shape->tuple: target shape
+    :param image: np.array: input image
+    :param shape: tuple: target shape
     :param keep_aspect->bool, whether or not the aspect ration should be kept
     :param padding: int, value for padding if keep_aspect is True
 
@@ -153,7 +153,6 @@ def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0):
         image = image[:, :, np.newaxis]
 
     return image, None
-
 
 
 def pad(image, shape, value=0):
@@ -191,10 +190,9 @@ def pad(image, shape, value=0):
     nb_channels = padded.shape[2]
 
     if nb_channels == 1:
-     padded[y0:y1, x0:x1, 0] = image
+        padded[y0:y1, x0:x1, 0] = image
     else:
-
-     padded[y0:y1, x0:x1, :] = image
+        padded[y0:y1, x0:x1, :] = image
 
     return padded.astype(np.float32), None
 
@@ -290,8 +288,8 @@ def rotate(image: np.array, angle: float) -> Tuple[Any, None]:
     PARAMETERS:
     -----------
 
-    :param image -> np.array: The input image
-    :param angle -> float: The rotation angle
+    :param image: np.array: The input image
+    :param angle: float: The rotation angle
 
     RETURN:
     -------
@@ -305,7 +303,12 @@ def rotate(image: np.array, angle: float) -> Tuple[Any, None]:
     return cv2.warpAffine(image, m, (cols, rows)).astype(np.float32), None
 
 
-def normalize_image(image, mean:Union[None, list, int], standard_deviation: float, cv_library: int = DEEP_LIB_OPENCV) ->Tuple[Any, None]:
+def normalize_image(
+        image,
+        mean: Union[None, list, int],
+        standard_deviation: float,
+        cv_library: int = DEEP_LIB_OPENCV
+) -> Tuple[Any, None]:
     """
     AUTHORS:
     --------
@@ -321,8 +324,9 @@ def normalize_image(image, mean:Union[None, list, int], standard_deviation: floa
     -----------
 
     :param image: an image
-    :param mean->Union[None, list, int]: The mean of the channel(s)
-    :param standard_deviation->int: The standard deviation of the channel(s)
+    :param mean: Union[None, list, int]: The mean of the channel(s)
+    :param standard_deviation: int: The standard deviation of the channel(s)
+    :param cv_library:
 
     RETURN:
     -------
@@ -385,7 +389,7 @@ def gaussian_blur(image : np.array, kernel_size : int) -> Tuple[Any, None]:
     return cv2.GaussianBlur(image, (int(kernel_size), int(kernel_size)), 0), None
 
 
-def median_blur(image : np.array, kernel_size : int) -> Tuple[Any, None]:
+def median_blur(image: np.array, kernel_size : int) -> Tuple[Any, None]:
     """
     AUTHORS:
     --------
