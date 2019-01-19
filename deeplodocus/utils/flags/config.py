@@ -88,7 +88,7 @@ DEEP_CONFIG = {
     DEEP_CONFIG_MODEL: {
         "module": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "deeplodocus.app.model.darknet"
+            DEEP_CONFIG_DEFAULT: None
         },
         "name": {
             DEEP_CONFIG_DTYPE: str,
@@ -106,7 +106,7 @@ DEEP_CONFIG = {
     DEEP_CONFIG_OPTIMIZER: {
         "module": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "torch.optim"
+            DEEP_CONFIG_DEFAULT: None
         },
         "name": {
             DEEP_CONFIG_DTYPE: str,
@@ -331,16 +331,16 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DTYPE: str
             },
             "inputs": {
-                DEEP_CONFIG_DEFAULT: "./config/transforms/transform_input.yaml",
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str]
             },
             "labels": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DTYPE: [str]
             },
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DTYPE: [str]
             }
         },
         "validation": {
@@ -349,16 +349,16 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DTYPE: str
             },
             "inputs": {
-                DEEP_CONFIG_DEFAULT: "./config/transforms/transform_input.yaml",
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str]
             },
             "labels": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DTYPE: [str]
             },
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DTYPE: [str]
             }
         },
         "test": {
@@ -367,17 +367,17 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DTYPE: str
             },
             "inputs": {
-                DEEP_CONFIG_DEFAULT: "./config/transforms/transform_input.yaml",
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str]
             },
             "labels": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DTYPE: [str]
             },
             "additional_data":
                 {
                     DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_DTYPE: str
+                    DEEP_CONFIG_DTYPE: [str]
                 }
         }
     },

@@ -5,7 +5,6 @@
 DEEP_MSG_FILE_NOT_FOUND = "File not found : %s"
 DEEP_MSG_DIR_NOT_FOUND = "Directory not found : %s"
 DEEP_MSG_ILLEGAL_COMMAND = "Illegal command : %s"
-DEEP_MSG_MODULE_NOT_FOUND = "Module %s not found in %s"
 DEEP_MSG_NO_TESTER = "Cannot evaluate : Tester not loaded"
 DEEP_MSG_NO_TRAINER = "Cannot evaluate : Trainer not loaded"
 DEEP_MSG_INVALID_DEVICE = "%s is not a valid input device : Please specify 'cuda' or 'cpu'"
@@ -99,7 +98,9 @@ DEEP_MSG_NOTIF_UNKNOWN = "Unknown notification type : %s"
 ##################
 # DEEP_MSG_MODEL #
 ##################
-DEEP_MSG_MODEL_NOT_LOADED = "Model not loaded"
+
+# DEEP_FATAL
+DEEP_MSG_MODEL_NOT_FOUND = "Model not found : %s"
 
 # DEEP_SUCCESS
 DEEP_MSG_MODEL_LOADED = "Model loaded : %s from %s"
@@ -120,7 +121,9 @@ DEEP_MSG_OPTIM_LOADING = "Loading optimizer : %s"
 DEEP_MSG_OPTIM_NOT_LOADED = "Optimizer not loaded"
 
 # DEEP_FATAL
-DEEP_MSG_OPTIM_LOADED_FAIL = "Could not load optimizer : %s"
+DEEP_MSG_OPTIM_NOT_FOUND = "Optimizer not found : %s"
+DEEP_MSG_OPTIM_MODEL_NOT_LOADED = "Could not load optimizer : Model not loaded"
+
 
 #################
 # DEEP_MSG_LOSS #
@@ -128,13 +131,14 @@ DEEP_MSG_OPTIM_LOADED_FAIL = "Could not load optimizer : %s"
 
 # DEEP_FATAL
 DEEP_MSG_LOSS_NOT_FOUND = "Loss not found : %s"
+DEEP_MSG_LOSS_NOT_TORCH = "Loss is not a torch.nn.Module instance : %s : %s from %s"
 
 # DEEP_SUCCESS
 DEEP_MSG_LOSS_LOADED = "Loss loaded : %s : %s from %s"
 
 # DEEP_INFO
 DEEP_MSG_LOSS_LOADING = "Loading loss : %s"
-DEEP_MSG_LOSS_NONE = "No metrics to load"
+DEEP_MSG_LOSS_NONE = "No losses to load"
 DEEP_MSG_LOSS_NOT_LOADED = "Losses not loaded"
 
 ###################
