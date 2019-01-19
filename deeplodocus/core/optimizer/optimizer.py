@@ -6,9 +6,11 @@ from deeplodocus.utils.flags.notif import *
 
 
 def load_optimizer(name, module, model_parameters, kwargs):
-    optimizer = get_module(name=name,
-                           module=module,
-                           browse=DEEP_MODULE_OPTIMIZERS)
+    optimizer, module = get_module(
+        name=name,
+        module=module,
+        browse=DEEP_MODULE_OPTIMIZERS
+    )
 
     class Optimizer(optimizer):
 
@@ -27,10 +29,12 @@ def load_optimizer(name, module, model_parameters, kwargs):
                     Notification(DEEP_NOTIF_INFO, "%s : %s" % (key, value))
             Notification(DEEP_NOTIF_INFO, "")
 
-    return Optimizer(name,
-                     module,
-                     model_parameters,
-                     kwargs.get(), **kwargs.get())
+    return Optimizer(
+        name,
+        module,
+        model_parameters,
+        kwargs.get(), **kwargs.get()
+    )
 
 
 # Currently not in use

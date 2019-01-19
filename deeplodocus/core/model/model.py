@@ -11,7 +11,10 @@ from deeplodocus.utils.flags.notif import *
 
 def load_model(name, module, kwargs, device, device_ids=None, input_size=None, batch_size=None):
     # Get the model, should be nn.Module
-    model = get_module(name=name, module=module, browse=DEEP_MODULE_MODELS)
+    model, module = get_module(name=name, module=module, browse=DEEP_MODULE_MODELS)
+
+    if model is None:
+        return None
 
     # Get number of devices
     n_devices = torch.cuda.device_count() if device_ids is None else len(device_ids)
@@ -175,11 +178,17 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
             Notification(DEEP_NOTIF_INFO, "Estimated Total Size (MB): %0.2f" % total_size)
             Notification(DEEP_NOTIF_INFO, "")
 
-    return Model(name=name,
-                 module=module,
-                 input_size=input_size,
-                 batch_size=batch_size,
-                 device_ids=device_ids,
-                 device=device,
-                 kwargs_dict=kwargs.get(), **kwargs.get()).to(device)
+    # Initialise the model
+    model = Model(
+        name=name,
+        module=module,
+        input_size=input_size,
+        batch_size=batch_size,
+        device_ids=device_ids,
+        device=device,
+        kwargs_dict=kwargs.get(),
+        **kwargs.get()
+    ).to(device)
+
+    return model
 
