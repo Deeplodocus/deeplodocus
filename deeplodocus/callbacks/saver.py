@@ -214,7 +214,7 @@ class Saver(object):
         if DEEP_SAVE_FORMAT_PYTORCH.corresponds(self.method):
             # TODO: Finish try except statements here after testing...
             # try:
-            torch.save(torch.save({"model_state_dict": model.state_dict()}, file_path))
+            torch.save({"model_state_dict": model.state_dict()}, file_path)
             # except:
             #     Notification(DEEP_NOTIF_ERROR, "Error while saving the pytorch model and weights" )
             #     self.__handle_error_saving(model)
