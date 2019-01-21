@@ -1,14 +1,14 @@
-#
+# Python imports
 import sys
+import os
 
-#
-
-
-#
+# Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.core.project.project_utility import ProjectUtility
 from deeplodocus import __version__
 
+# Deeplodocus flags
+from deeplodocus.utils.flags.notif import *
 
 class ManagementUtility(object):
 
@@ -20,7 +20,6 @@ class ManagementUtility(object):
 
         self.argv = argv or sys.argv[:]
 
-
     def execute_from_command_line(self):
         """
         Authors : Alix Leroy,
@@ -31,13 +30,10 @@ class ManagementUtility(object):
         if len(self.argv) > 1:
 
             if str(self.argv[1]) == "startproject":
-
-                self.__startproject()
-
+                self.__startproject(main_path=os.getcwd())
 
             elif str(self.argv[1]) == "version":
                 self.__version()
-
 
             elif str(self.argv[1]) == "help":
 
@@ -62,20 +58,20 @@ class ManagementUtility(object):
         Notification(DEEP_NOTIF_INFO, "DEEPLODOCUS VERSION : " + str(version),  log=False)
 
 
-    def __startproject(self):
+    def __startproject(self, main_path: str):
         """
         Authors : Alix Leroy,
         Generate the deeplodocus structure to use deeplodocus
         :return: None
         """
 
-        main_path = None
+        main_path = main_path
         name = "deeplodocus_project"
 
-        if len(self.argv)>2:
+        if len(self.argv) > 2:
             name = self.argv[2]
-        if len(self.argv)>3:
-            main__path = self.argv[3]
+        if len(self.argv) > 3:
+            main_path = self.argv[3]
 
-        p = ProjectUtility(project_name=name, main_path =main_path)
+        p = ProjectUtility(project_name=name, main_path=main_path)
         p.generate_structure()
