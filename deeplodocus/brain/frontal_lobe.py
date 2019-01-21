@@ -20,9 +20,9 @@ from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.module import *
+from deeplodocus.utils.flags.log import DEEP_LOGS
 from deeplodocus.utils.flags.config import DEEP_CONFIG_AUTO
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
@@ -588,15 +588,23 @@ class FrontalLobe(object):
             overwatch_metric = OverWatchMetric(**self.config.training.overwatch.get())
 
             # The hippocampus (brain/memory/hippocampus) temporary  handles the saver and the history
+
+            history_directory = "/".join(
+                (get_main_path(), self.config.project.sub_project, "history")
+            )
+            weights_directory = "/".join(
+                (get_main_path(), self.config.project.sub_project, "weights")
+            )
+
             self.hippocampus = Hippocampus(losses=self.losses,
                                            metrics=self.metrics,
                                            model_name=self.config.model.name,
                                            verbose=self.config.history.verbose,
                                            memorize=self.config.history.memorize,
-                                           history_directory=DEEP_PATH_HISTORY,
+                                           history_directory=history_directory,
                                            overwatch_metric=overwatch_metric,
                                            **self.config.training.saver.get(),
-                                           save_model_directory=DEEP_PATH_SAVE_MODEL)
+                                           save_model_directory=weights_directory)
 
     def summary(self):
         """
@@ -623,7 +631,7 @@ class FrontalLobe(object):
         if self.model is not None:
             self.model.summary()
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_NOT_LOADED)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_OPTIM_MODEL_NOT_LOADED)
         if self.optimizer is not None:
             self.optimizer.summary()
         else:

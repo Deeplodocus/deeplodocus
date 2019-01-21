@@ -7,7 +7,6 @@ from deeplodocus.utils.flags.save import *
 from deeplodocus.utils.flags.event import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.ext import DEEP_EXT_PYTORCH, DEEP_EXT_ONNX
-from deeplodocus.utils.flags.path import DEEP_PATH_SAVE_MODEL
 from deeplodocus.utils.flags.msg import DEEP_MSG_MODEL_SAVED
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.brain.signal import Signal
@@ -30,7 +29,7 @@ class Saver(object):
 
     def __init__(self,
                  name: str = "no__model_name",
-                 save_directory: str = DEEP_PATH_SAVE_MODEL,
+                 save_directory: str = "weights",
                  signal: Flag = DEEP_SAVE_CONDITION_LESS,
                  method: Flag = DEEP_SAVE_FORMAT_PYTORCH):
         self.name = name

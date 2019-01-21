@@ -1,10 +1,10 @@
+from deeplodocus.utils import get_main_path
 from deeplodocus.utils.colors import *
 from deeplodocus.utils.deep_error import DeepError
 from deeplodocus.utils.flags.ext import DEEP_EXT_LOGS
 from deeplodocus.utils.flags.log import DEEP_LOG_NOTIFICATION
 from deeplodocus.utils.flags.msg import DEEP_MSG_NOTIF_UNKNOWN
 from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.path import DEEP_PATH_NOTIFICATION
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.flag import Flag
 
@@ -424,4 +424,7 @@ class Notification(object):
         :return: None
 
         """
-        Logs(DEEP_LOG_NOTIFICATION, DEEP_PATH_NOTIFICATION, DEEP_EXT_LOGS).add(message)
+        Logs(
+            log_type=DEEP_LOG_NOTIFICATION,
+            directory=get_main_path(),
+            extension=DEEP_EXT_LOGS).add(message)

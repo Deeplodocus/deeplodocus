@@ -46,9 +46,9 @@ DEEP_CONFIG_FILES = {item: "%s%s" % (item, DEEP_EXT_YAML) for item in DEEP_CONFI
 # NB: if a list of floats is expected, use [float] instead of float
 DEEP_CONFIG = {
     DEEP_CONFIG_PROJECT: {
-        "name": {
+        "sub_project": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "deeplodocus_project"
+            DEEP_CONFIG_DEFAULT: "version01"
         },
         "cv_library": {
             DEEP_CONFIG_DTYPE: str,
