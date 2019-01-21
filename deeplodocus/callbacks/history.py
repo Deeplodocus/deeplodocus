@@ -20,7 +20,6 @@ from deeplodocus.utils.flags import *
 from deeplodocus.utils.flags.event import *
 from deeplodocus.utils.flags.ext import DEEP_EXT_CSV
 from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.path import *
 from deeplodocus.utils.flags.save import *
 from deeplodocus.utils.flags.verbose import *
 
@@ -44,7 +43,7 @@ class History(object):
     def __init__(self,
                  metrics: dict,
                  losses: dict,
-                 log_dir: str = DEEP_PATH_HISTORY,
+                 log_dir: str = "history",
                  train_batches_filename: str = "history_batches_training.csv",
                  train_epochs_filename: str = "history_epochs_training.csv",
                  validation_filename: str = "history_validation.csv",

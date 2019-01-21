@@ -309,9 +309,18 @@ class Brain(FrontalLobe):
         for log_type, (directory, ext) in DEEP_LOGS.items():
             # If forced to closer or log should be kept, close the log
             # NB: config does not have to exist if force is True
+            if log_type == DEEP_LOG_NOTIFICATION:
+                try:
+                    new_directory = "/".join(
+                        (get_main_path(), self.config.project.sub_project, "logs")
+                    )
+                except AttributeError:
+                    new_directory = None
+            else:
+                new_directory = None
             if force or self.config.project.logs.get(log_type):
                 if os.path.isfile("%s/%s%s" % (directory, log_type, ext)):
-                    Logs(log_type, directory, ext).close()
+                    Logs(log_type, directory, ext).close(new_directory)
             else:
                 Logs(log_type, directory, ext).delete()
 

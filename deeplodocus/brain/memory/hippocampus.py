@@ -10,7 +10,6 @@ from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.utils.generic_utils import generate_random_alphanumeric
 
 # Deeplodocus flags
-from deeplodocus.utils.flags.path import DEEP_PATH_HISTORY, DEEP_PATH_SAVE_MODEL
 from deeplodocus.utils.flags.save import *
 from deeplodocus.utils.flags.verbose import DEEP_VERBOSE_BATCH
 from deeplodocus.utils.flags import *
@@ -44,13 +43,13 @@ class Hippocampus(object):
                  model_name: str = generate_random_alphanumeric(size = 10),
                  verbose: int = DEEP_VERBOSE_BATCH,
                  memorize: int = DEEP_MEMORIZE_BATCHES,
-                 history_directory: str = DEEP_PATH_HISTORY,
+                 history_directory: str = "history",
                  overwatch_metric: OverWatchMetric = OverWatchMetric(name = TOTAL_LOSS,
                                                                      condition = DEEP_SAVE_CONDITION_LESS),
                  # Saver
                  signal: Flag = DEEP_SAVE_SIGNAL_AUTO,
                  method: Flag = DEEP_SAVE_FORMAT_PYTORCH,
-                 save_model_directory: str = DEEP_PATH_SAVE_MODEL):
+                 save_model_directory: str = "weights"):
 
         #
         # HISTORY
