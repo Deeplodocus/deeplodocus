@@ -185,13 +185,16 @@ class Transformer(object):
                 if "module" not in transform:
                     transform["module"] = None
 
+                module, module_path = get_module(
+                    name=transform["name"],
+                    module=transform["module"],
+                    browse=DEEP_MODULE_TRANSFORMS
+                )
                 loaded_transforms.append({"name": transform["name"],
-                                          "method": get_module(name=transform["name"],
-                                                               module=transform["module"],
-                                                               browse=DEEP_MODULE_TRANSFORMS),
+                                          "method": module,
+                                          "module_path": module_path,
                                           "kwargs": transform["kwargs"]})
         return loaded_transforms
-
 
     def transform(self, data: Any, index: int, augment: bool)-> Any:
         """
@@ -231,8 +234,7 @@ class Transformer(object):
             transform_name = transform["name"]
             transform_method = transform["method"]  # Create a generic alias for the transform method
             transform_args = transform["kwargs"]  # Dictionary of arguments
-            transformed_data, last_method_used = transform_method(transformed_data, **transform_args)       # Apply the transform
-
+            transformed_data, last_method_used = transform_method(transformed_data, **transform_args)
             # Update the last transforms used and the last index
             if last_method_used is None:
                 self.last_transforms.append({"name": transform_name, "method": transform_method, "kwargs": transform_args})

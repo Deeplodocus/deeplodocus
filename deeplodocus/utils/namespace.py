@@ -42,6 +42,15 @@ class Namespace(object):
         for key, item in self.__dict2namespace(dictionary).get().items():
             self.__add({key: item}, sub_space)
 
+    def rename(self, item, name):
+        """
+        :param item:
+        :param name:
+        :return:
+        """
+        self.__dict__[name] = self.__dict__[item]
+        del(self.__dict__[item])
+
     def load(self, yaml_path, sub_space=None):
         """
         Author: SW
@@ -169,8 +178,11 @@ class Namespace(object):
                         if isinstance(item, Namespace):
                             item = item.__get_summary(tabs=tabs + 2, tab_size=tab_size).lstrip()
                             line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
-                        elif isinstance(item, str):
-                            item = '"%s"' % item
+                        else:
+                            if isinstance(item, str):
+                                item = '"%s"' % item
+                            else:
+                                item = "%s" % item
                             line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
                 else:
                     if isinstance(value, str):

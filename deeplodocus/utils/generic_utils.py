@@ -235,20 +235,18 @@ def is_np_array(data):
         return False
 
 
-def get_specific_module(name, module, silence=False):
+def get_specific_module(name, module):
     """
     Author: Samuel Westlake
     :param module: str: path to the module (separated by '.')
     :param name: str: name of the item to be imported
-    :param silence: bool: whether or not to silence any ImportError
     :return:
     """
     local = {"module": None}
     try:
         exec("from %s import %s\nmodule = %s" % (module, name, name), {}, local)
-    except ImportError as e:
-        if not silence:
-            Notification(DEEP_NOTIF_ERROR, str(e))
+    except ImportError:
+        pass
     return local["module"]
 
 
@@ -278,11 +276,11 @@ def get_module(name: str, module=None, browse=None) -> Union[callable, None]:
     :return module(Union[callable, None]): The loaded module
     """
     if module is not None:
-        return get_specific_module(name, module)
+        return get_specific_module(name, module), module
     elif browse is not None:
         return browse_module(name, browse)
     else:
-        return None
+        return None, None
 
 
 def browse_module(name, modules) -> callable:
@@ -315,63 +313,46 @@ def browse_module(name, modules) -> callable:
     # For all the given modules
     for key, value in modules.items():
         # For all the sub-modules available in the main module
-        for importer, modname, ispkg in pkgutil.walk_packages(path=value["path"],
-                                                              prefix=value["prefix"] + '.',
-                                                              onerror=lambda x: None):
+        for importer, module_path, ispkg in pkgutil.walk_packages(
+                path=value["path"],
+                prefix=value["prefix"] + '.',
+                onerror=lambda x: None
+        ):
 
             # TODO : Remove when torch module is updated to 1.0.1+
             # Fix the loading a of useless torch module(temporary)
-            if modname == "torch.nn.parallel.distributed_c10d":
+            if module_path == "torch.nn.parallel.distributed_c10d":
                 continue
 
             # Try to get the module
-            module = get_specific_module(name, modname, silence=True)
+            module = get_specific_module(name, module_path)
+
             # If the module exists add it to the list
             if module is not None:
-                list_modules.append(module)
+                list_modules.append({"module path": module_path, "module": module})
 
-    # Remove modules found multiple times
-    list_modules = remove_duplicates(items=list_modules)
+    # Remove duplicates
+    modules = []
+    module_paths = []
+    for item in list_modules:
+        if item["module"] not in modules:
+            modules.append(item["module"])
+            module_paths.append(item["module path"])
 
-    # If not module was found
-    if len(list_modules) == 0:
-        Notification(DEEP_NOTIF_FATAL, "Couldn't find the module '%s' anywhere." %name)
-
-    # If only one module was found
-    elif len(list_modules) == 1:
-        return list_modules[0]
-
-    # If more than one module was found we ask the user to select the good one
+    if not list_modules:
+        return None, None
+    elif len(modules) == 1:
+        return modules[0], module_paths[0]
     else:
-        return select_module(list_modules, name)
+        module, module_path = select_module(
+            name=name,
+            modules=modules,
+            module_paths=module_paths
+        )
+        return module, module_path
 
 
-def remove_duplicates(items: list) -> list:
-    """
-    AUTHORS:
-    --------
-
-    :author: Alix Leroy
-
-    DESCRIPTION:
-    ------------
-
-    Remove the duplicate items in a list
-
-    PARAMETERS:
-    -----------
-
-    :param items(list): The list of items
-
-    RETURN:
-    -------
-
-    :return (list): The list of items without the duplicates
-    """
-    return list(set(items))
-
-
-def select_module(list_modules: list, name: str) -> callable:
+def select_module(name: str, modules: list, module_paths: list) -> callable:
     """
     AUTHORS:
     --------
@@ -386,8 +367,9 @@ def select_module(list_modules: list, name: str) -> callable:
     PARAMETERS:
     -----------
 
-    :param list_modules(list): List containing the similar modules
-    :param name(str): Name of the module
+    :param name: (str): Name of the module
+    :param modules: list: List of modules to select from
+    :param module_paths: list: list of module paths to select from
 
     RETURN:
     -------
@@ -395,13 +377,14 @@ def select_module(list_modules: list, name: str) -> callable:
     :return: The desired module(callable)
     """
     Notification(DEEP_NOTIF_WARNING, "The module '%s' was found in multiple locations :" % name)
+
     # Print the list of modules and their corresponding indices
-    for i, module in enumerate(list_modules):
-        Notification(DEEP_NOTIF_WARNING, "%i : %s" % (i, module))
+    for i, path in enumerate(module_paths):
+        Notification(DEEP_NOTIF_WARNING, "%i : %s from %s" % (i, name, path))
 
     # Prompt the user to pick on from the list
     response = -1
-    while response < 0 or response >= len(list_modules):
+    while response < 0 or response >= len(modules):
         response = Notification(DEEP_NOTIF_INPUT, "Which one would you prefer to use ? (Pick a number)").get()
 
         # Check if the response is an integer
@@ -410,7 +393,7 @@ def select_module(list_modules: list, name: str) -> callable:
         else:
             response = int(response)
 
-    return list_modules[response]
+    return modules[response], module_paths[response]
 
 
 def generate_random_alphanumeric(size: int = 16) -> str:
@@ -429,7 +412,7 @@ def generate_random_alphanumeric(size: int = 16) -> str:
     PARAMETERS:
     -----------
 
-    :param size(int): The size of the alphanumeric string
+    :param size: int: The size of the alphanumeric string
 
     RETURN:
     -------
@@ -440,7 +423,11 @@ def generate_random_alphanumeric(size: int = 16) -> str:
     return''.join(random.choices(string.ascii_letters + string.digits, k=size))
 
 
-def get_corresponding_flag(flag_list: List[Flag], info : Union[str, int, Flag], fatal: bool =True, default: Optional[Flag]= None) -> Union[Flag, None]:
+def get_corresponding_flag(
+        flag_list: List[Flag],
+        info: Union[str, int, Flag],
+        fatal: bool =True,
+        default: Optional[Flag]=None) -> Union[Flag, None]:
     """
     AUTHORS:
     --------
@@ -456,9 +443,10 @@ def get_corresponding_flag(flag_list: List[Flag], info : Union[str, int, Flag], 
     PARAMETERS:
     -----------
 
-    :param flag_list (List[Flag]) : The list of flag to browse in
-    :param name (Union[str, int, Flag]): Info (name, index or full Flag) of the flag to search
-    :param fatal(bool, Optional): Whether to raise a DeepError if no flag is found or not
+    :param flag_list: (List[Flag]): The list of flag to browse in
+    :param info: (Union[str, int, Flag]): Info (name, index or full Flag) of the flag to search
+    :param fatal: (bool, Optional): Whether to raise a DeepError if no flag is found or not
+    :param default:
 
     RETURN:
     -------
@@ -474,12 +462,13 @@ def get_corresponding_flag(flag_list: List[Flag], info : Union[str, int, Flag], 
     # If no flag is found
     if default is not None:
         Notification(DEEP_NOTIF_WARNING,
-                     "The following flag does not exist : %s, the default one %s has been selected instead" % (str(info), default.get_description()))
-
+                     "The following flag does not exist : %s, the default one %s has been selected instead"
+                     % (str(info), default.get_description()))
         return default
 
     # If no default
     if fatal is True:
-        Notification(DEEP_NOTIF_FATAL, "No flag with the info '%s' was found in the following list : %s" %(str(info), str([flag.description for flag in flag_list])))
+        Notification(DEEP_NOTIF_FATAL, "No flag with the info '%s' was found in the following list : %s"
+                     % (str(info), str([flag.description for flag in flag_list])))
     else:
         return None
