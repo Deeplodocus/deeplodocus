@@ -1,7 +1,7 @@
 import aiohttp
 from aiohttp import web
 
-from deeplodocus.brain.visual_cortex.views import index, test
+from deeplodocus.brain.visual_cortex.views import index, test, monitor
 from deeplodocus.utils.flags import *
 
 class Routes(object):
@@ -32,8 +32,10 @@ class Routes(object):
 
         routes = [
             ('GET', '/', index, 'homepage'),            # Homepage
-            ('GET', "/test", test, "test-page")         # An example page
+            ('GET', "/test", test, "test-page"),         # An example page
+            ('GET', "/monitor", monitor, "monitor")
         ]
 
-
         return routes
+
+

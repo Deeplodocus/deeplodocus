@@ -1,5 +1,6 @@
 import os
 from distutils.dir_util import copy_tree
+from typing import Optional
 
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification
@@ -23,7 +24,7 @@ class ProjectUtility(object):
     Generate a project deeplodocus ready to use
     """
 
-    def __init__(self, project_name="deeplodocus_project", main_path=None, force_overwrite=False):
+    def __init__(self, project_name="deeplodocus_project", main_path: Optional[str] = None, force_overwrite: bool = False):
         """
         AUTHORS:
         --------
@@ -50,8 +51,11 @@ class ProjectUtility(object):
         """
         self.project_name = project_name
         self.force_overwrite = force_overwrite
+
         if main_path is None:
             self.main_path = get_main_path()
+        else:
+            self.main_path = main_path
 
     def generate_structure(self):
         """

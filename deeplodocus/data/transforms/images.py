@@ -194,18 +194,43 @@ def pad(image, shape, value=0):
     else:
         padded[y0:y1, x0:x1, :] = image
 
-    return padded.astype(np.float32), None
+    return padded, None
 
 
-# TODO: Make the following method functional with Deeplodocus
+def channel_shift(image: np.array, shift: int)-> Tuple[np.array, None]:
+    for ch in range(image.shape[2]):
+        image[:, :, ch] += shift[ch]
 
-# def random_channel_shift(image, shift):
-#     shift = np.random.randint(-shift, shift, image.shape[2])
-#     for ch in range(image.shape[2]):
-#         image[:, :, ch] += shift[ch]
-#     image[image < 0] = 0
-#     image[image > 255] = 255
-#     return image.astype(np.float32)
+    image[image < 0] = 0
+    image[image > 255] = 255
+    return image, None
+
+
+def random_channel_shift(image: np.array, shift: int) ->Tuple[np.array, dict]:
+    """
+    AUTHORS:
+    --------
+
+    :author: Samuel Westlake
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    :param image:
+    :param shift:
+
+    RETURN:
+    -------
+
+    :return image(np.array), transform(dict): The image with the channel shifted and the detail of the random transform
+    """
+    shift = np.random.randint(-shift, shift, image.shape[2])
+    image, _ = channel_shift(image, shift)
+    transform = {"name": "channel_shit",
+                 "method": channel_shift,
+                 "kwargs": {"shift": shift}}
+    return image, transform
 
 
 def random_rotate(image: np.array):
@@ -273,7 +298,7 @@ def semi_random_rotate(image: np.array, angle: float):
     return image, transform
 
 
-def rotate(image: np.array, angle: float) -> Tuple[Any, None]:
+def rotate(image: np.array, angle: float) -> Tuple[np.array, None]:
     """
     AUTHORS:
 
@@ -288,8 +313,8 @@ def rotate(image: np.array, angle: float) -> Tuple[Any, None]:
     PARAMETERS:
     -----------
 
-    :param image: np.array: The input image
-    :param angle: float: The rotation angle
+    :param image (np.array): The input image
+    :param angle (float): The rotation angle
 
     RETURN:
     -------
@@ -300,7 +325,7 @@ def rotate(image: np.array, angle: float) -> Tuple[Any, None]:
     shape = image.shape
     rows, cols = shape[0:2]
     m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
-    return cv2.warpAffine(image, m, (cols, rows)).astype(np.float32), None
+    return cv2.warpAffine(image, m, (cols, rows)), None
 
 
 def normalize_image(
@@ -334,7 +359,8 @@ def normalize_image(
     """
 
     if standard_deviation is None:
-        standard_deviation = 255
+        #standard_deviation = 255
+        standard_deviation = image.std(axis=(0, 1), keepdims=True)
 
     # The normalization compute the mean of the image online if not given
     # The computed mean does not represent the mean of the dataset and therefore this is not recommended
@@ -356,14 +382,15 @@ def normalize_image(
     # Default option
     else:
         if mean is None:
-            mean = np.mean(image, axis=(0, 1))  # Compute the mean on each channel
+            #mean = np.mean(image, axis=(0, 1))
+            mean = image.mean(axis=(0, 1), keepdims=True) # Compute the mean on each channel
 
-        normalized_image = (image - mean) / standard_deviation  # Norm = (data - mean) / standard deviation
+    normalized_image = (image - mean) / standard_deviation  # Norm = (data - mean) / standard deviation
 
-    return normalized_image, None
+    return normalized_image.astype(np.float32), None
 
 
-def gaussian_blur(image : np.array, kernel_size : int) -> Tuple[Any, None]:
+def gaussian_blur(image: np.array, kernel_size: int) -> Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -389,7 +416,8 @@ def gaussian_blur(image : np.array, kernel_size : int) -> Tuple[Any, None]:
     return cv2.GaussianBlur(image, (int(kernel_size), int(kernel_size)), 0), None
 
 
-def median_blur(image: np.array, kernel_size : int) -> Tuple[Any, None]:
+def median_blur(image: np.array, kernel_size: int) -> Tuple[np.array, None]:
+
     """
     AUTHORS:
     --------
