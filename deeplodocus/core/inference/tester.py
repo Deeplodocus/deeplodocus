@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.utils import dict_utils
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.verbose import DEEP_VERBOSE_BATCH
 from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 
 

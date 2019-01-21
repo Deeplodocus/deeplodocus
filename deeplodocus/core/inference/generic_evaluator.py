@@ -19,6 +19,8 @@ from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
 from deeplodocus.utils.flags.verbose import *
+from deeplodocus.utils.generic_utils import get_corresponding_flag
+from deeplodocus.utils.flags.flag_lists import DEEP_LIST_VERBOSE
 
 
 class GenericEvaluator(GenericInferer):
@@ -74,6 +76,7 @@ class GenericEvaluator(GenericInferer):
                          dataset=dataset,
                          batch_size=batch_size,
                          num_workers=num_workers)
+        self.verbose = get_corresponding_flag(DEEP_LIST_VERBOSE, verbose)
         self.verbose = verbose
         self.metrics = metrics
         self.losses = losses

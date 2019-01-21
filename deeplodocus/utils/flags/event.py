@@ -40,22 +40,49 @@ DEEp_EVENT_ON_UPDATE_DATASET = Flag(name="On Update Dataset",
                                     description="Event : On Update Dataset",
                                     names=["update dataset"])
 
-DEEP_EVENT_END_LISTENING = Flag(name="End Listening",
-                                description="Event : End Listening",
-                                names=["end listening"])
+DEEP_EVENT_END_LISTENING = Flag(
+    name="End Listening",
+    description="Event : End Listening",
+    names=["end listening"]
+)
+DEEP_EVENT_OVERWATCH_METRIC_COMPUTED = Flag(
+    name="Overwatch metric computed",
+    description="Event : Overwatch Metric Computed",
+    names=["overwatch", "overwatch metric", "overwatch metric computed"]
+)
+DEEP_EVENT_ON_EPOCH_START = Flag(
+    name="On Epoch Start",
+    description="Event : On Epoch Start",
+    names=["on epoch start"]
+)
+DEEP_EVENT_SAVING_REQUIRED = Flag(
+    name="Is Saving Required",
+    description="Event : Is Saving Required",
+    names=["is saving required"]
+)
+DEEP_EVENT_SAVE_MODEL = Flag(
+    name="Save Model",
+    description="Transformer : Pointer",
+    names=["save model", "save_model"]
+)
+DEEP_EVENT_REQUEST_TRAINING_LOSS = Flag(
+    name="Request training loss",
+    description="Request training loss",
+    names=["request_training_loss"]
+)
+DEEP_EVENT_SEND_TRAINING_LOSS = Flag(
+    name="Send training loss",
+    description="Send training loss",
+    names=["send_training_loss"]
+)
+DEEP_EVENT_REQUEST_SAVE_PARAMS_FROM_TRAINER = Flag(
+    name="Request save params",
+    description="Request save params",
+    names=["request_save_params"]
+)
+DEEP_EVENT_SEND_SAVE_PARAMS_FROM_TRAINER = Flag(
+    name="Send save params",
+    description="Send save params",
+    names=["send_save_params"]
+)
 
-DEEP_EVENT_OVERWATCH_METRIC_COMPUTED = Flag(name="Overwatch metric computed",
-                                            description="Event : Overwatch Metric Computed",
-                                            names=["overwatch", "overwatch metric", "overwatch metric computed"])
-
-DEEP_EVENT_ON_EPOCH_START = Flag(name="On Epoch Start",
-                                 description="Event : On Epoch Start",
-                                 names=["on epoch start"])
-
-DEEP_EVENT_SAVING_REQUIRED = Flag(name="Is Saving Required",
-                                  description="Event : Is Saving Required",
-                                  names=["is saving required"])
-
-DEEP_EVENT_SAVE_MODEL = Flag(name="Save Model",
-                             description="Transformer : Pointer",
-                             names=["save model", "save_model"])
