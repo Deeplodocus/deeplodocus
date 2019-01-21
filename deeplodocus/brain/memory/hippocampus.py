@@ -10,9 +10,10 @@ from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.utils.generic_utils import generate_random_alphanumeric
 
 # Deeplodocus flags
-from deeplodocus.utils.flags import *
 from deeplodocus.utils.flags.path import DEEP_PATH_HISTORY, DEEP_PATH_SAVE_MODEL
 from deeplodocus.utils.flags.save import *
+from deeplodocus.utils.flags.verbose import DEEP_VERBOSE_BATCH
+from deeplodocus.utils.flags import *
 
 Num = Union[int, float]
 

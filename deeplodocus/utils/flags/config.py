@@ -125,8 +125,8 @@ DEEP_CONFIG = {
     },
     DEEP_CONFIG_HISTORY: {
         "verbose": {
-            DEEP_CONFIG_DTYPE: int,
-            DEEP_CONFIG_DEFAULT: 1
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "default"
         },
         "memorize": {
             DEEP_CONFIG_DTYPE: int,

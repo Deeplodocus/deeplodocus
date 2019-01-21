@@ -15,7 +15,7 @@ class Signal(object):
     Signal class to be used to interact with the Thalamus
     """
 
-    def __init__(self, event : Flag, args={}):
+    def __init__(self, event: Flag, args=None):
         """
         AUTHORS:
         --------
@@ -32,6 +32,7 @@ class Signal(object):
         :param event:
         :param args:
         """
+        args = {} if args is None else args
         self.event = event
         self.arguments = args
 

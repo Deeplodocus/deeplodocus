@@ -51,8 +51,10 @@ class History(object):
                  verbose: Flag = DEEP_VERBOSE_BATCH,
                  memorize: int = DEEP_MEMORIZE_BATCHES,
                  save_condition: Flag = DEEP_SAVE_SIGNAL_END_EPOCH,
-                 overwatch_metric: OverWatchMetric = OverWatchMetric(name=TOTAL_LOSS,
-                                                                     condition=DEEP_SAVE_CONDITION_LESS)):
+                 overwatch_metric: OverWatchMetric = OverWatchMetric(
+                     name = TOTAL_LOSS,
+                     condition = DEEP_SAVE_CONDITION_LESS
+                 )):
 
         self.log_dir = log_dir
         self.verbose = verbose
@@ -99,31 +101,47 @@ class History(object):
         self.__load_histories()
 
         # Connect to signals
-        Thalamus().connect(receiver=self.on_batch_end,
-                           event=DEEP_EVENT_ON_BATCH_END)
-        Thalamus().connect(receiver=self.on_epoch_end,
-                           event=DEEP_EVENT_ON_EPOCH_END,
-                           expected_arguments=[
-                               "epoch_index",
-                               "num_epochs",
-                               "num_minibatches",
-                               "total_validation_loss",
-                               "result_validation_losses",
-                               "result_validation_metrics",
-                               "num_minibatches_validation"
-                           ])
-        Thalamus().connect(receiver=self.on_train_begin,
-                           event=DEEP_EVENT_ON_TRAINING_START,
-                           expected_arguments=[])
-        Thalamus().connect(receiver=self.on_train_end,
-                           event=DEEP_EVENT_ON_TRAINING_END,
-                           expected_arguments=[])
-        Thalamus().connect(receiver=self.on_epoch_start,
-                           event=DEEP_EVENT_ON_EPOCH_START,
-                           expected_arguments=[
-                               "epoch_index",
-                               "num_epochs"
-                           ])
+        Thalamus().connect(
+            receiver=self.on_batch_end,
+            event=DEEP_EVENT_ON_BATCH_END
+        )
+        Thalamus().connect(
+            receiver=self.on_epoch_end,
+            event=DEEP_EVENT_ON_EPOCH_END,
+            expected_arguments=[
+                "epoch_index",
+                "num_epochs",
+                "num_minibatches",
+                "total_validation_loss",
+                "result_validation_losses",
+                "result_validation_metrics",
+                "num_minibatches_validation"
+            ]
+        )
+        Thalamus().connect(
+            receiver=self.on_train_begin,
+            event=DEEP_EVENT_ON_TRAINING_START,
+            expected_arguments=[]
+        )
+        Thalamus().connect(
+            receiver=self.on_train_end,
+            event=DEEP_EVENT_ON_TRAINING_END,
+            expected_arguments=[]
+        )
+
+        Thalamus().connect(
+            receiver=self.on_epoch_start,
+            event=DEEP_EVENT_ON_EPOCH_START,
+            expected_arguments=[
+                "epoch_index",
+                "num_epochs"
+            ]
+        )
+        Thalamus().connect(
+            receiver=self.send_training_loss,
+            event=DEEP_EVENT_REQUEST_TRAINING_LOSS,
+            expected_arguments=[]
+        )
 
     def on_train_begin(self):
         """
@@ -307,13 +325,15 @@ class History(object):
 
                 self.validation_history.put(data)
 
-        self.__compute_overwatch_metric(num_minibatches_training = num_minibatches,
-                                        running_total_loss=self.running_total_loss,
-                                        running_losses=self.running_losses,
-                                        running_metrics=self.running_metrics,
-                                        total_validation_loss=total_validation_loss,
-                                        result_validation_losses=result_validation_losses,
-                                        result_validation_metrics=result_validation_metrics)
+        self.__compute_overwatch_metric(
+            num_minibatches_training=num_minibatches,
+            running_total_loss=self.running_total_loss,
+            running_losses=self.running_losses,
+            running_metrics=self.running_metrics,
+            total_validation_loss=total_validation_loss,
+            result_validation_losses=result_validation_losses,
+            result_validation_metrics=result_validation_metrics
+        )
         Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs))
 
         self.save()
@@ -356,8 +376,6 @@ class History(object):
             for i in range(self.validation_history.qsize()):
                 validation_history = ",".join(str(value) for value in self.validation_history.get())
                 self.__add_logs("history_validation", self.log_dir, DEEP_EXT_CSV, validation_history)
-
-
 
     def __load_histories(self):
         """
@@ -504,13 +522,15 @@ class History(object):
         """
         Logs(log_type, log_folder, log_extension).add(message)
 
-    def __compute_overwatch_metric(self, num_minibatches_training,
-                                   running_total_loss,
-                                   running_losses,
-                                   running_metrics,
-                                   total_validation_loss,
-                                   result_validation_losses,
-                                   result_validation_metrics) -> None:
+    def __compute_overwatch_metric(
+            self,
+            num_minibatches_training,
+            running_total_loss,
+            running_losses,
+            running_metrics,
+            total_validation_loss,
+            result_validation_losses,
+            result_validation_metrics) -> None:
 
         # If the validation loss is None (No validation) we take the metric from the training as overwatch metric
         if total_validation_loss is None:
@@ -532,8 +552,20 @@ class History(object):
                     self.overwatch_metric.set_value(value)
                     break
 
-        Thalamus().add_signal(Signal(event=DEEP_EVENT_OVERWATCH_METRIC_COMPUTED,
-                                     args={"current_overwatch_metric" : copy.deepcopy(self.overwatch_metric)}))
+        Thalamus().add_signal(
+            Signal(
+                event=DEEP_EVENT_OVERWATCH_METRIC_COMPUTED,
+                args={"current_overwatch_metric": copy.deepcopy(self.overwatch_metric)}
+            )
+        )
 
     def get_overwatch_metric(self):
         return copy.deepcopy(self.overwatch_metric)
+
+    def send_training_loss(self):
+        Thalamus().add_signal(
+            Signal(
+                event=DEEP_EVENT_SEND_TRAINING_LOSS,
+                args={"training_loss": self.running_total_loss}
+            )
+        )

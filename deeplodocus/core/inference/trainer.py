@@ -37,19 +37,20 @@ class Trainer(GenericEvaluator):
 
     Trainer instance to train a model
     """
-    def __init__(self,
-                 model: nn.Module,
-                 dataset: Dataset,
-                 metrics: dict,
-                 losses: dict,
-                 optimizer,
-                 num_epochs: int,
-                 initial_epoch: int = 1,
-                 batch_size: int = 4,
-                 shuffle: Flag = DEEP_SHUFFLE_NONE,
-                 num_workers: int = 4,
-                 verbose: Flag = DEEP_VERBOSE_BATCH,
-                 tester: Tester = None):
+    def __init__(
+            self,
+            model: nn.Module,
+            dataset: Dataset,
+            metrics: dict,
+            losses: dict,
+            optimizer,
+            num_epochs: int,
+            initial_epoch: int = 1,
+            batch_size: int = 4,
+            shuffle: Flag = DEEP_SHUFFLE_NONE,
+            num_workers: int = 4,
+            verbose: Flag = DEEP_VERBOSE_BATCH,
+            tester: Tester = None):
         """
         AUTHORS:
         --------
@@ -86,19 +87,26 @@ class Trainer(GenericEvaluator):
         :return: None
         """
         # Initialize the GenericEvaluator par
-        super().__init__(model=model,
-                         dataset=dataset,
-                         metrics=metrics,
-                         losses=losses,
-                         batch_size=batch_size,
-                         num_workers=num_workers,
-                         verbose=verbose)
+        super().__init__(
+            model=model,
+            dataset=dataset,
+            metrics=metrics,
+            losses=losses,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            verbose=verbose
+        )
         self.optimizer = optimizer
         self.initial_epoch = initial_epoch
+        self.epoch = None
+        self.validation_loss = None
         self.num_epochs = num_epochs
-        self.shuffle = get_corresponding_flag(DEEP_LIST_SHUFFLE, shuffle,
-                                              fatal=False,
-                                              default=DEEP_SHUFFLE_NONE)
+        self.shuffle = get_corresponding_flag(
+            DEEP_LIST_SHUFFLE,
+            shuffle,
+            fatal=False,
+            default=DEEP_SHUFFLE_NONE
+        )
 
         if isinstance(tester, Tester):
             self.tester = tester          # Tester for validation
@@ -113,9 +121,16 @@ class Trainer(GenericEvaluator):
         #
         # Connect signals
         #
-        Thalamus().connect(receiver=self.saving_required,
-                           event=DEEP_EVENT_SAVING_REQUIRED,
-                           expected_arguments=["saving_required"])
+        Thalamus().connect(
+            receiver=self.saving_required,
+            event=DEEP_EVENT_SAVING_REQUIRED,
+            expected_arguments=["saving_required"]
+        )
+        Thalamus().connect(
+            receiver=self.send_save_params,
+            event=DEEP_EVENT_REQUEST_SAVE_PARAMS_FROM_TRAINER,
+            expected_arguments=[]
+        )
 
     def fit(self, first_training: bool = True)->None:
         """
@@ -168,6 +183,7 @@ class Trainer(GenericEvaluator):
             Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_TRAINING_START, args={}))
 
         for epoch in range(self.initial_epoch+1, self.num_epochs+1):
+            self.epoch = epoch
 
             Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_EPOCH_START,
                                                 args={"epoch_index": epoch,
@@ -214,38 +230,51 @@ class Trainer(GenericEvaluator):
                 self.optimizer.step()
 
                 # Detach the tensors from the network
-                outputs, total_loss, result_losses, result_metrics = self.detach(outputs=outputs,
-                                                                                 total_loss=total_loss,
-                                                                                 result_losses=result_losses,
-                                                                                 result_metrics=result_metrics)
+                outputs, total_loss, result_losses, result_metrics = self.detach(
+                    outputs=outputs,
+                    total_loss=total_loss,
+                    result_losses=result_losses,
+                    result_metrics=result_metrics
+                )
 
                 # Send signal batch end
-                Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_BATCH_END,
-                                             args={"minibatch_index": minibatch_index+1,
-                                                   "num_minibatches": self.num_minibatches,
-                                                   "epoch_index": epoch,
-                                                   "total_loss": total_loss.item(),
-                                                   "result_losses": result_losses,
-                                                   "result_metrics": result_metrics
-                                                   }))
+                Thalamus().add_signal(
+                    Signal(
+                        event=DEEP_EVENT_ON_BATCH_END,
+                        args={
+                            "minibatch_index": minibatch_index+1,
+                            "num_minibatches": self.num_minibatches,
+                            "epoch_index": epoch,
+                            "total_loss": total_loss.item(),
+                            "result_losses": result_losses,
+                            "result_metrics": result_metrics
+                        }
+                    )
+                )
 
             # Reset the dataset (transforms cache)
             self.dataset.reset()
 
             # Evaluate the model
-            total_validation_loss, result_validation_losses, result_validation_metrics = self.__evaluate_epoch()
+            self.validation_loss, result_validation_losses, result_validation_metrics = self.__evaluate_epoch()
 
             # Send signal epoch end
-            Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_EPOCH_END,
-                                         args={"epoch_index": epoch,
-                                               "num_epochs": self.num_epochs,
-                                               "model": weakref.ref(self.model),
-                                               "num_minibatches": self.num_minibatches,
-                                               "total_validation_loss": total_validation_loss.item(),
-                                               "result_validation_losses": result_validation_losses,
-                                               "result_validation_metrics": result_validation_metrics,
-                                               "num_minibatches_validation": self.tester.get_num_minibatches()
-                                               }))
+            Thalamus().add_signal(
+                Signal(
+                    event=DEEP_EVENT_ON_EPOCH_END,
+                    args={
+                        "epoch_index": epoch,
+                        "num_epochs": self.num_epochs,
+                        "model": weakref.ref(self.model),
+                        "num_minibatches": self.num_minibatches,
+                        "total_validation_loss": self.validation_loss.item(),
+                        "result_validation_losses": result_validation_losses,
+                        "result_validation_metrics": result_validation_metrics,
+                        "num_minibatches_validation": self.tester.get_num_minibatches(),
+                    }
+                )
+            )
+
         # Send signal end training
         Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_TRAINING_END,
                                      args={"model": self.model}))
@@ -382,6 +411,23 @@ class Trainer(GenericEvaluator):
         RETURN:
         -------
         """
-
         if saving_required is True:
-            Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_SAVE_MODEL, args={"model": self.model}))
+            Thalamus().add_signal(
+                signal=Signal(
+                    event=DEEP_EVENT_SAVE_MODEL,
+                    args={}
+                )
+            )
+
+    def send_save_params(self, inp=None):
+        Thalamus().add_signal(
+            Signal(
+                event=DEEP_EVENT_SEND_SAVE_PARAMS_FROM_TRAINER,
+                args={"model": self.model,
+                      "optimizer": self.optimizer,
+                      "epoch_index": self.epoch,
+                      "validation_loss": self.validation_loss.item(),
+                      "inp": inp}
+            )
+        )
+
