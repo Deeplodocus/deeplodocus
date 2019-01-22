@@ -91,6 +91,13 @@ DEEP_MSG_DATA_LOADED = "Dataset loaded : %s"
 # DEEP_FATAL
 DEEP_MSG_TRANSFORM_VALUE_ERROR = "Transforms must return two items"
 
+#####################
+# DEEP_MSG_TRAINING #
+#####################
+
+DEEP_MSG_TRAINING_STARTED = "Started training"
+DEEP_MSG_TRAINING_FINISHED = "Finished training !"
+
 #######################
 # DEEP_MSG_CV_LIBRARY #
 #######################
