@@ -11,6 +11,8 @@ from deeplodocus.utils.flags.msg import DEEP_MSG_MODEL_SAVED
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.brain.signal import Signal
 from deeplodocus.brain.thalamus import Thalamus
+from deeplodocus.utils.generic_utils import get_corresponding_flag
+from deeplodocus.utils.flags.flag_lists import DEEP_LIST_SAVE_SIGNAL, DEEP_LIST_SAVE_FORMATS
 
 
 class Saver(object):
@@ -28,14 +30,14 @@ class Saver(object):
     """
 
     def __init__(self,
-                 name: str = "no__model_name",
+                 name: str = "no_model_name",
                  save_directory: str = "weights",
-                 signal: Flag = DEEP_SAVE_CONDITION_LESS,
+                 save_signal: Flag = DEEP_EVENT_ON_EPOCH_END,
                  method: Flag = DEEP_SAVE_FORMAT_PYTORCH):
         self.name = name
         self.directory = save_directory
-        self.signal = signal
-        self.method = method      # Can be onnx or pt
+        self.save_signal = get_corresponding_flag(DEEP_LIST_SAVE_SIGNAL, save_signal)
+        self.method = get_corresponding_flag(DEEP_LIST_SAVE_FORMATS, method)      # Can be onnx or pt
         self.best_overwatch_metric = None
         self.training_loss = None
         self.model = None
@@ -113,7 +115,7 @@ class Saver(object):
 
         :return: None
         """
-        if DEEP_SAVE_SIGNAL_END_TRAINING.corresponds(self.signal):
+        if DEEP_SAVE_SIGNAL_END_TRAINING.corresponds(self.save_signal):
             self.save_model()
 
     def on_overwatch_metric_computed(self, current_overwatch_metric: OverWatchMetric) -> bool:

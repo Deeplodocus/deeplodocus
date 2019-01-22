@@ -138,7 +138,7 @@ class Logs(object):
         # because we may be cleaning up and closing an old logfile from a previous, interrupted run.
         time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         old_path = self.__get_path()
-        self.directory = new_directory
+        self.directory = self.directory if new_directory is None else new_directory
         os.makedirs(self.directory, exist_ok=True)
         new_path = self.__get_path(time)
         shutil.move(old_path, new_path)

@@ -151,7 +151,7 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DEFAULT: "pytorch",
                 DEEP_CONFIG_DTYPE: str
             },
-            "signal": {
+            "save_signal": {
                 DEEP_CONFIG_DEFAULT: "auto",
                 DEEP_CONFIG_DTYPE: str
             }
