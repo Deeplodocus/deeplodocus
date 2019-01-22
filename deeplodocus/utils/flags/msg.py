@@ -65,6 +65,7 @@ DEEP_MSG_DATA_NOT_HANDLED = "The type of the following data is not handled : %s"
 DEEP_MSG_DATA_SOURCE_NOT_FOUND = "Source path not found : %s"
 DEEP_MSG_DATA_IS_NONE = "The following data is None : %s"
 DEEP_MSG_DATA_ENTRY = "Please check the following entry format : %s"
+DEEP_MSG_DATA_INDEX_ERROR = "No input entries given for %s dataset"
 
 # DEEP WARNING
 DEEP_MSG_DATA_SHORTER = "Dataset contains %i instances : Using just %i instances"
@@ -77,10 +78,18 @@ DEEP_MSG_DATA_NO_LENGTH = "Dataset length not given : Using all %i instances"
 DEEP_MSG_DATA_DISABLED = "Dataset disabled : %s"
 DEEP_NOTIF_DATA_LOADING = "Loading dataset : %s"
 DEEP_MSG_DATA_GREATER = "Dataset number (%i) is greater than the number of instances (%i): Additional data will be transformed"
-
+DEEP_MSG_DATA_INDEX_ERROR_SOLUTION_1 = "Make sure inputs are given for your %s dataset in config/data/dataset"
+DEEP_MSG_DATA_INDEX_ERROR_SOLUTION_2 = "Disable your %s dataset in config/data/enabled"
 
 # DEEP_SUCCESS
 DEEP_MSG_DATA_LOADED = "Dataset loaded : %s"
+
+######################
+# DEEP_MSG_TRANSFORM #
+######################
+
+# DEEP_FATAL
+DEEP_MSG_TRANSFORM_VALUE_ERROR = "Transforms must return two items"
 
 #######################
 # DEEP_MSG_CV_LIBRARY #
