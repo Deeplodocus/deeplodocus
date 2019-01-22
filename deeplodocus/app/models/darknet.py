@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # Deeplodocus imports
-from deeplodocus.app.block.resblock import ResBlock
+from deeplodocus.app.blocks.resblock import ResBlock
 
 
 class DarkNet53(nn.Module):

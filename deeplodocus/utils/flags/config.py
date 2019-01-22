@@ -227,7 +227,7 @@ DEEP_CONFIG = {
                 },
                 "name": {
                     DEEP_CONFIG_DTYPE: str,
-                    DEEP_CONFIG_DEFAULT: "Training Dataset"
+                    DEEP_CONFIG_DEFAULT: "Training"
                 }
             },
             "validation": {
@@ -262,7 +262,7 @@ DEEP_CONFIG = {
                 },
                 "name": {
                     DEEP_CONFIG_DTYPE: str,
-                    DEEP_CONFIG_DEFAULT: "Validation Dataset"
+                    DEEP_CONFIG_DEFAULT: "Validation"
                 }
             },
             "test": {
@@ -299,7 +299,7 @@ DEEP_CONFIG = {
                 },
                 "name": {
                     DEEP_CONFIG_DTYPE: str,
-                    DEEP_CONFIG_DEFAULT: "Test Dataset"
+                    DEEP_CONFIG_DEFAULT: "Test"
                 }
             }
         }

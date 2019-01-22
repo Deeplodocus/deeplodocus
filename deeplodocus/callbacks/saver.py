@@ -304,7 +304,7 @@ class Saver(object):
                 if response.lower() == "n":
                     self.__handle_error_saving()
                 else:
-                    End(error=False) #Exiting the program
+                    End(error=False)  #Exiting the program
             else:
                 response = ""
 

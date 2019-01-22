@@ -24,7 +24,7 @@ class Notification(object):
 
     """
 
-    def __init__(self, notif_flag: Flag, message: str, log: bool = True) -> None:
+    def __init__(self, notif_flag: Flag, message: str, log: bool = True, solutions=None) -> None:
         """
         AUTHORS:
         --------
@@ -77,7 +77,7 @@ class Notification(object):
 
             # FATAL
             elif DEEP_NOTIF_FATAL.corresponds(notif_flag):
-                self.__fatal_error(message)
+                self.__fatal_error(message, solutions=solutions)
 
             # INPUT
             elif DEEP_NOTIF_INPUT.corresponds(notif_flag):
@@ -125,7 +125,7 @@ class Notification(object):
         """
         return self.response
 
-    def __fatal_error(self, message: str) -> None:
+    def __fatal_error(self, message: str, solutions=None) -> None:
         """
         AUTHORS:
         --------
@@ -151,11 +151,25 @@ class Notification(object):
         :return: None
 
         """
+        # Print deep fatal errror
         message = "DEEP FATAL ERROR : %s" % message
         print("%s%s%s" % (CREDBG, message, CEND))
         if self.log is True:
             self.__add_log(message)
-        # End(error=True)   # Instead of ending and exiting the program, raise a DeepError which may be caught
+
+        # If possible solutions are given, print them too
+        if solutions is not None:
+            message = "DEEP INFO : %s" % "Possible solutions : "
+            print("%s%s%s" % (CBLUE, message, CEND))
+            if self.log is True:
+                self.__add_log(message)
+            solutions = solutions if isinstance(solutions, list) else [solutions]
+            for i, solution in enumerate(solutions):
+                message = "DEEP INFO : %i : %s" % (i + 1, solution)
+                print("%s%s%s" % (CBLUE, message, CEND))
+                if self.log is True:
+                    self.__add_log(message)
+
         raise DeepError
 
     def __error(self, message: str) -> None:

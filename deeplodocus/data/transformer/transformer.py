@@ -15,6 +15,7 @@ from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flag import Flag
 from deeplodocus.utils.namespace import Namespace
+from deeplodocus.utils.flags.msg import DEEP_MSG_TRANSFORM_VALUE_ERROR
 
 # Deeplodocus flags
 from deeplodocus.utils.flags.module import DEEP_MODULE_TRANSFORMS
@@ -234,7 +235,13 @@ class Transformer(object):
             transform_name = transform["name"]
             transform_method = transform["method"]  # Create a generic alias for the transform method
             transform_args = transform["kwargs"]  # Dictionary of arguments
-            transformed_data, last_method_used = transform_method(transformed_data, **transform_args)
+            try:
+                transformed_data, last_method_used = transform_method(transformed_data, **transform_args)
+            except ValueError as e:
+                Notification(
+                    DEEP_NOTIF_FATAL,
+                    "ValueError : %s : %s" % (str(e), DEEP_MSG_TRANSFORM_VALUE_ERROR)
+                )
             # Update the last transforms used and the last index
             if last_method_used is None:
                 self.last_transforms.append({"name": transform_name, "method": transform_method, "kwargs": transform_args})
