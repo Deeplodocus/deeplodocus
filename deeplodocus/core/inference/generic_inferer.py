@@ -47,12 +47,16 @@ class GenericInferer(object):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.dataset = dataset
-        self.dataloader = DataLoader(dataset=dataset,
-                                     batch_size=batch_size,
-                                     shuffle=False,
-                                     num_workers=num_workers)
-        self.num_minibatches = self.compute_num_minibatches(batch_size=batch_size,
-                                                            length_dataset=dataset.__len__())
+        self.dataloader = DataLoader(
+            dataset=dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers
+        )
+        self.num_minibatches = self.compute_num_minibatches(
+            batch_size=batch_size,
+            length_dataset=dataset.__len__()
+        )
 
     @staticmethod
     def clean_single_element_list(minibatch: list) -> list:

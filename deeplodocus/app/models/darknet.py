@@ -95,7 +95,7 @@ class DarkNet53(nn.Module):
 
     def forward(self, x):
         assert not any(map(lambda i: i % 32, x.shape[2:])), \
-            "Height and Width must be divisible by 32 : Received " % (x.shape[2:])
+            "Height and Width must be divisible by 32 : Received  %s" % str(x.shape[2:])
         x = self.input_layer(x)         # b x nc x h x w
         x = self.downsample_64(x)       # b x 64 x h/2 x w/2
         x = self.res_block_64(x)        # b x 64 x h/2 x w/2

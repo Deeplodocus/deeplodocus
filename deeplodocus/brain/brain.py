@@ -117,7 +117,10 @@ class Brain(FrontalLobe):
         """
         self.__on_wake()
         while True:
-            command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
+            try:
+                command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
+            except KeyboardInterrupt:
+                self.sleep()
             self.__execute_command(command)
 
     def sleep(self):
@@ -553,6 +556,8 @@ class Brain(FrontalLobe):
                         exec("Notification(DEEP_NOTIF_RESULT, self.%s)" % command)
                 except DeepError:
                     time.sleep(0.1)
+                except KeyboardInterrupt:
+                    self.sleep()
 
     def __preprocess_command(self, command):
         """

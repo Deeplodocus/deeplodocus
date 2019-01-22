@@ -1,5 +1,6 @@
 # Python imports
 import weakref
+import time
 
 # Backend imports
 import torch
@@ -16,13 +17,13 @@ from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.brain.signal import Signal
 
 # Deeplodocus flags
-from deeplodocus.utils.flags import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.event import *
 from deeplodocus.utils.flags.shuffle import *
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 from deeplodocus.utils.flags.flag_lists import DEEP_LIST_SHUFFLE
 from deeplodocus.utils.flags.verbose import *
+from deeplodocus.utils.flags.msg import DEEP_MSG_TRAINING_STARTED, DEEP_MSG_TRAINING_FINISHED
 
 
 class Trainer(GenericEvaluator):
@@ -154,8 +155,9 @@ class Trainer(GenericEvaluator):
 
         :return: None
         """
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_TRAINING_STARTED)
         self.__train(first_training=first_training)
-        Notification(DEEP_NOTIF_SUCCESS, FINISHED_TRAINING)
+        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_TRAINING_FINISHED)
 
     def __train(self, first_training=True) -> None:
         """
@@ -182,11 +184,11 @@ class Trainer(GenericEvaluator):
         if first_training is True:
             Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_TRAINING_START, args={}))
 
-        for epoch in range(self.initial_epoch+1, self.num_epochs+1):
-            self.epoch = epoch
+        for self.epoch in range(self.initial_epoch + 1, self.num_epochs + 1):
+            batch_start = time.time()
 
             Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_EPOCH_START,
-                                                args={"epoch_index": epoch,
+                                                args={"epoch_index": self.epoch,
                                                       "num_epochs": self.num_epochs}))
 
             # Shuffle the data if required
@@ -244,7 +246,7 @@ class Trainer(GenericEvaluator):
                         args={
                             "minibatch_index": minibatch_index+1,
                             "num_minibatches": self.num_minibatches,
-                            "epoch_index": epoch,
+                            "epoch_index": self.epoch,
                             "total_loss": total_loss.item(),
                             "result_losses": result_losses,
                             "result_metrics": result_metrics
@@ -263,7 +265,7 @@ class Trainer(GenericEvaluator):
                 Signal(
                     event=DEEP_EVENT_ON_EPOCH_END,
                     args={
-                        "epoch_index": epoch,
+                        "epoch_index": self.epoch,
                         "num_epochs": self.num_epochs,
                         "model": weakref.ref(self.model),
                         "num_minibatches": self.num_minibatches,
@@ -279,7 +281,8 @@ class Trainer(GenericEvaluator):
         Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_TRAINING_END,
                                      args={"model": self.model}))
 
-    def detach(self, outputs, total_loss, result_losses, result_metrics):
+    @staticmethod
+    def detach(outputs, total_loss, result_losses, result_metrics):
         """
         AUTHORS:
         --------
@@ -388,11 +391,12 @@ class Trainer(GenericEvaluator):
         # If a tester is available compute the losses and metrics
         if self.tester is not None:
             total_validation_loss, result_losses, result_metrics = self.tester.evaluate(model=self.model)
-
         return total_validation_loss, result_losses, result_metrics
 
     def saving_required(self, saving_required: bool):
         """
+        NB: NOT STATICMETHOD
+
         AUTHORS:
         --------
 
