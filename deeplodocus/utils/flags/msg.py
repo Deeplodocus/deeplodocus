@@ -27,6 +27,14 @@ DEEP_MSG_CONTINUE = "Do you wish to continue ? (y/n)"
 # Deep Info
 DEEP_MSG_PROJECT_NOT_GENERATED = "Project not generated"
 
+
+#########
+# SAVER #
+#########
+
+DEEP_MSG_SAVER_IMPROVED = "%s improved by %f : Saving weights"
+DEEP_MSG_SAVER_NOT_IMPROVED = "No improvement in %s : Not saving weights"
+
 #########
 # BRAIN #
 #########

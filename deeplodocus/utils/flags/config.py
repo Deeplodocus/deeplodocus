@@ -154,6 +154,10 @@ DEEP_CONFIG = {
             "save_signal": {
                 DEEP_CONFIG_DEFAULT: "auto",
                 DEEP_CONFIG_DTYPE: str
+            },
+            "overwrite": {
+                DEEP_CONFIG_DEFAULT: False,
+                DEEP_CONFIG_DTYPE: bool
             }
         },
         "overwatch": {
