@@ -185,7 +185,6 @@ class Trainer(GenericEvaluator):
             Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_TRAINING_START, args={}))
 
         for self.epoch in range(self.initial_epoch + 1, self.num_epochs + 1):
-            batch_start = time.time()
 
             Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_EPOCH_START,
                                                 args={"epoch_index": self.epoch,

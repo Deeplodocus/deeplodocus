@@ -27,6 +27,13 @@ DEEP_MSG_CONTINUE = "Do you wish to continue ? (y/n)"
 # Deep Info
 DEEP_MSG_PROJECT_NOT_GENERATED = "Project not generated"
 
+#########
+# BRAIN #
+#########
+
+DEEP_MSG_BRAIN_CLEAR = "Clearing files from %s"
+DEEP_MSG_BRAIN_CLEARED = "Files cleared from %s"
+
 ####################
 # DEEP_MSG_PROJECT #
 ####################

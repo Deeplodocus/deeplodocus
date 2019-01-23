@@ -199,7 +199,12 @@ class Saver(object):
         :return: None
         """
 
-        file_path = "%s/%s%s" % (self.directory, self.name, self.extension)
+        file_path = "%s/%s_%s%s" % (
+            self.directory,
+            self.name,
+            str(self.epoch_index).zfill(3),
+            self.extension
+        )
 
         # Set training_loss
         Thalamus().add_signal(
