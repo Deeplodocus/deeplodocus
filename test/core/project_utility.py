@@ -1,6 +1,8 @@
 """
 Test projectStructure class
 """
+
+
 import argparse
 
 from deeplodocus.core.project.project_utility import ProjectUtility

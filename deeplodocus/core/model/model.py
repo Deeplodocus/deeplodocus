@@ -12,15 +12,8 @@ from deeplodocus.utils.flags.notif import *
 def load_model(name, module, kwargs, device, device_ids=None, input_size=None, batch_size=None):
     # Get the model, should be nn.Module
     model, module = get_module(name=name, module=module, browse=DEEP_MODULE_MODELS)
-
     if model is None:
         return None
-
-    # Get number of devices
-    n_devices = torch.cuda.device_count() if device_ids is None else len(device_ids)
-
-    if n_devices > 1:
-        model = nn.DataParallel(module=model, device_ids=device_ids)
 
     # Define our model that inherits from the nn.Module
     class Model(model):
@@ -188,7 +181,16 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
         device=device,
         kwargs_dict=kwargs.get(),
         **kwargs.get()
-    ).to(device)
+    )
+
+    # Get number of devices
+    n_devices = torch.cuda.device_count() if device_ids is None else len(device_ids)
+
+    # If there are multiple GPUs, use DataParallel
+    if n_devices > 1:
+        model = nn.DataParallel(module=model)
+
+    # Send to the appropriate device
+    model.to(device)
 
     return model
-

@@ -10,3 +10,7 @@ DEEP_LOGS = {DEEP_LOG_NOTIFICATION: [get_main_path(), DEEP_EXT_LOGS],
              DEEP_LOG_HISTORY_TRAIN_BATCHES: [get_main_path(), DEEP_EXT_CSV],
              DEEP_LOG_HISTORY_TRAIN_EPOCHS: [get_main_path(), DEEP_EXT_CSV],
              DEEP_LOG_HISTORY_VALIDATION: [get_main_path(), DEEP_EXT_CSV]}
+
+
+DEEP_LOG_RESULT_DIRECTORIES = ["logs", "weights", "history"]
+

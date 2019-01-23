@@ -162,21 +162,16 @@ class Brain(FrontalLobe):
             if isinstance(namespace, Namespace):
                 namespace.save("%s/%s%s" % (self.config_dir, key, DEEP_EXT_YAML))
 
-    def clear_config(self):
+    def clear(self):
         """
-       AUTHORS:
-       --------
-       :author: Samuel Westlake
-
-       DESCRIPTION:
-       ------------
-       Reset self.config to an empty Namespace
-
-       RETURN:
-       -------
-       :return: None
-       """
-        self.config = Namespace()
+        :return:
+        """
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_BRAIN_CLEAR % self.config.project.sub_project)
+        for directory in DEEP_LOG_RESULT_DIRECTORIES:
+            path = "/".join((self.config.project.sub_project, directory))
+            for file in os.listdir(path):
+                os.remove("/".join((path, file)))
+        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_BRAIN_CLEARED % self.config.project.sub_project)
 
     def restore_config(self):
         """
@@ -229,7 +224,7 @@ class Brain(FrontalLobe):
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_CONFIG_LOADING_DIR % self.config_dir)
         # If the config directory exists
         if os.path.isdir(self.config_dir):
-            self.clear_config()
+            self.config = Namespace()
             # For each expected configuration file
             for key, file_name in DEEP_CONFIG_FILES.items():
                 config_path = "%s/%s" % (self.config_dir, file_name)
@@ -238,7 +233,7 @@ class Brain(FrontalLobe):
                     self.config.add({key: Namespace(config_path)})
                     self.check_config(key=key)
                 else:
-                    self.clear_config()
+                    self.config = Namespace()
                     Notification(DEEP_NOTIF_FATAL, DEEP_MSG_FILE_NOT_FOUND % config_path)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_CONFIG_COMPLETE)
         else:
