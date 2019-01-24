@@ -138,7 +138,7 @@ class GenericEvaluator(GenericInferer):
                     if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
                         temp_metric_result = metric_method(inputs, outputs, labels, additional_data)
                     else:
-                        temp_metric_result = metric_method(outputs, labels)
+                        temp_metric_result = metric_method(inputs, labels)
                 else:
                     if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
                         temp_metric_result = metric_method(inputs, outputs, additional_data)
