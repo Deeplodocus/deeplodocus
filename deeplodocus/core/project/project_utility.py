@@ -153,7 +153,10 @@ class ProjectUtility(object):
         for key, item in namespace.get().items():
             if isinstance(item, Namespace):
                 if DEEP_CONFIG_DEFAULT in item.get() and DEEP_CONFIG_DTYPE in item.get():
-                    namespace.get()[key] = item.get()[DEEP_CONFIG_DEFAULT]
+                    try:
+                        namespace.get()[key] = item.get()[DEEP_CONFIG_INIT]
+                    except KeyError:
+                        namespace.get()[key] = item.get()[DEEP_CONFIG_DEFAULT]
                 else:
                     self.__set_config_defaults(item)
 

@@ -180,7 +180,10 @@ class GenericInferer(object):
 
         :return:
         """
-        if isinstance(data, list):
-            return [d.to(device=device) for d in data]
-        else:
+        try:
             return data.to(device)
+        except AttributeError:
+            try:
+                return [d.to(device=device) for d in data if d is not None]
+            except TypeError:
+                return None

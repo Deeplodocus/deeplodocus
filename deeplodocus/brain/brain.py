@@ -169,8 +169,11 @@ class Brain(FrontalLobe):
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_BRAIN_CLEAR % self.config.project.sub_project)
         for directory in DEEP_LOG_RESULT_DIRECTORIES:
             path = "/".join((self.config.project.sub_project, directory))
-            for file in os.listdir(path):
-                os.remove("/".join((path, file)))
+            try:
+                for file in os.listdir(path):
+                    os.remove("/".join((path, file)))
+            except FileNotFoundError:
+                pass
         Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_BRAIN_CLEARED % self.config.project.sub_project)
 
     def restore_config(self):

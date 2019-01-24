@@ -365,9 +365,11 @@ class FrontalLobe(object):
 
                 # Create the loss
                 if isinstance(method, torch.nn.Module):
-                    losses[str(key)] = Loss(name=str(key),
-                                            weight=float(config.weight),
-                                            loss=method)
+                    losses[str(key)] = Loss(
+                        name=str(key),
+                        weight=float(config.weight),
+                        loss=method
+                    )
                     Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOSS_LOADED % (key, config.name, module))
                 else:
                     Notification(DEEP_NOTIF_FATAL, DEEP_MSG_LOSS_NOT_TORCH % (key, config.name, module))
@@ -379,22 +381,15 @@ class FrontalLobe(object):
         """
         AUTHORS:
         --------
-
         :author: Alix Leroy
-
         DESCRIPTION:
         ------------
-
         Load the metrics
-
         PARAMETERS:
         -----------
-
         None
-
         RETURN:
         -------
-
         :return loss_functions->dict: The metrics
         """
         metrics = {}
@@ -414,17 +409,24 @@ class FrontalLobe(object):
                 metric, module = get_module(
                     name=config.name,
                     module=config.module,
-                    browse=DEEP_MODULE_METRICS
+                    browse={**DEEP_MODULE_METRICS, **DEEP_MODULE_LOSSES}
                 )
 
+                # If metric is not found by get_module
+                if metric is None:
+                    Notification(DEEP_NOTIF_FATAL, DEEP_MSG_METRIC_NOT_FOUND % config.name)
+
+                # Check fi the metric is a class or a stand-alone function
                 if inspect.isclass(metric):
                     method = metric(**config.kwargs.get())
                 else:
                     method = metric
 
+                # Add to the dictionary of metrics and notify of success
                 metrics[str(key)] = Metric(name=str(key), method=method)
-
                 Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOSS_LOADED % (key, config.name, module))
+
+            # Initialise class of metrics
             self.metrics = Metrics(metrics)
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_NONE)

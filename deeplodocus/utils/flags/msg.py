@@ -180,7 +180,7 @@ DEEP_MSG_LOSS_NOT_LOADED = "Losses not loaded"
 DEEP_MSG_METRIC_NOT_FOUND = "Metric not found : %s"
 
 # DEEP_SUCCESS
-DEEP_MSG_METRIC_LOADED = "Metric loaded : %s (%s) from %s"
+DEEP_MSG_METRIC_LOADED = "Metric loaded : %s : %s from %s"
 
 # DEEP_INFO
 DEEP_MSG_METRIC_LOADING = "Loading metrics : %s"
