@@ -23,7 +23,7 @@ from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.module import *
 from deeplodocus.utils.flags.log import DEEP_LOGS
-from deeplodocus.utils.flags.config import DEEP_CONFIG_AUTO
+# from deeplodocus.utils.flags.config import DEEP_CONFIG_AUTO
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
@@ -110,14 +110,14 @@ class FrontalLobe(object):
         :return: None
         """
         # If device_ids is auto, grab all available devices, else use devices specified
-        if self.config.project.device_ids == DEEP_CONFIG_AUTO:
+        if self.config.project.device_ids == "auto":
             self.device_ids = list(range(torch.cuda.device_count()))
         else:
             self.device_ids = self.config.project.device_ids
 
         # If device is auto, set as 'cuda:x' or cpu as appropriate, else use specified value
         try:
-            if self.config.project.device == DEEP_CONFIG_AUTO:
+            if self.config.project.device == "auto":
                 self.device = torch.device("cuda:%i" % self.device_ids[0] if torch.cuda.is_available() else "cpu")
             else:
                 if self.config.project.device == "cuda":

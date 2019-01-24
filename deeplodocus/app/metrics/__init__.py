@@ -1,8 +1,6 @@
 import torch
 
 
-def accuracy(inputs, labels):
-    _, inputs = inputs.max(1)
-    return torch.mean((inputs == labels).float())
-
-
+def accuracy(output, labels):
+    _, output = output.max(1)
+    return torch.mean((output == labels).float())
