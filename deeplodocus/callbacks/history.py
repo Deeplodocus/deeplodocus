@@ -283,11 +283,13 @@ class History(object):
         # MANAGE TRAINING HISTORY
         if DEEP_VERBOSE_EPOCH.corresponds(self.verbose) or DEEP_VERBOSE_BATCH.corresponds(self.verbose):
 
-            print_metrics = ", ".join(["%s : %f" % (TOTAL_LOSS, self.running_total_loss / num_minibatches)]
-                                      + ["%s : %f" % (loss_name, value.item() / num_minibatches)
-                                         for (loss_name, value) in self.running_losses.items()]
-                                      + ["%s : %f" % (metric_name, value / num_minibatches)
-                                         for (metric_name, value) in self.running_metrics.items()])
+            print_metrics = ", ".join(
+                ["%s : %f" % (TOTAL_LOSS, self.running_total_loss / num_minibatches)]
+                + ["%s : %f" % (loss_name, value.item() / num_minibatches)
+                   for (loss_name, value) in self.running_losses.items()]
+                + ["%s : %f" % (metric_name, value / num_minibatches)
+                   for (metric_name, value) in self.running_metrics.items()]
+            )
             Notification(DEEP_NOTIF_RESULT, "%s : %s" % (TRAINING, print_metrics))
             
             if self.memorize >= DEEP_MEMORIZE_BATCHES:
@@ -307,20 +309,26 @@ class History(object):
         if total_validation_loss is not None:
             if DEEP_VERBOSE_EPOCH.corresponds(self.verbose) or DEEP_VERBOSE_BATCH.corresponds(self.verbose):
 
-                print_metrics = ", ".join(["%s : %f" % (TOTAL_LOSS, total_validation_loss)]
-                                          + ["%s : %f" % (loss_name, value.item() / num_minibatches_validation)
-                                             for (loss_name, value) in result_validation_losses.items()]
-                                          + ["%s : %f" % (metric_name, value / num_minibatches_validation)
-                                             for (metric_name, value) in result_validation_metrics.items()])
+                print_metrics = ", ".join(
+                    ["%s : %f" % (TOTAL_LOSS, total_validation_loss)]
+                    + ["%s : %f" % (loss_name, value.item())
+                       for (loss_name, value) in result_validation_losses.items()]
+                    + ["%s : %f" % (metric_name, value)
+                       for (metric_name, value) in result_validation_metrics.items()]
+                )
                 Notification(DEEP_NOTIF_RESULT, "%s: %s" % (VALIDATION, print_metrics))
 
             if self.memorize >= DEEP_MEMORIZE_BATCHES:
-                data = [datetime.datetime.now().strftime(TIME_FORMAT),
-                        self.__time(),
-                        epoch_index,
-                        total_validation_loss / num_minibatches_validation] \
-                       + [value.item() / num_minibatches_validation for (loss_name, value) in result_validation_losses.items()] \
-                       + [value / num_minibatches_validation for (metric_name, value) in result_validation_metrics.items()]
+                data = [
+                    datetime.datetime.now().strftime(TIME_FORMAT),
+                    self.__time(),
+                    epoch_index,
+                    total_validation_loss / num_minibatches_validation
+                        ] \
+                        + [value.item() / num_minibatches_validation
+                            for (loss_name, value) in result_validation_losses.items()] \
+                        + [value / num_minibatches_validation
+                            for (metric_name, value) in result_validation_metrics.items()]
 
                 self.validation_history.put(data)
 

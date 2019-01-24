@@ -15,7 +15,6 @@ import torch
 # Deeplodocus imports
 #
 from deeplodocus.utils.flags.entry import *
-from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
 from deeplodocus.utils.flags.verbose import *
@@ -134,29 +133,28 @@ class GenericEvaluator(GenericInferer):
             #
             # Select the good type of input
             #
-
             if DEEP_ENTRY_INPUT in metric_args:
                 if DEEP_ENTRY_LABEL in metric_args:
                     if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
-                        temp_metric_result = metric_method(inputs.cpu(), outputs.cpu(), labels, additional_data)
+                        temp_metric_result = metric_method(inputs, outputs, labels, additional_data)
                     else:
-                        temp_metric_result = metric_method(inputs.cpu(), outputs.cpu(), labels)
+                        temp_metric_result = metric_method(outputs, labels)
                 else:
                     if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
-                        temp_metric_result = metric_method(inputs.cpu(), outputs.cpu(), additional_data)
+                        temp_metric_result = metric_method(inputs, outputs, additional_data)
                     else:
-                        temp_metric_result = metric_method(inputs.cpu(), outputs.cpu())
+                        temp_metric_result = metric_method(inputs, outputs)
             else:
                 if DEEP_ENTRY_LABEL in metric_args:
                     if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
-                        temp_metric_result = metric_method(outputs.cpu(), labels, additional_data)
+                        temp_metric_result = metric_method(outputs, labels, additional_data)
                     else:
-                        temp_metric_result = metric_method(outputs.cpu(), labels)
+                        temp_metric_result = metric_method(outputs, labels)
                 else:
                     if DEEP_ENTRY_ADDITIONAL_DATA in metric_args:
-                        temp_metric_result = metric_method(outputs.cpu(), additional_data)
+                        temp_metric_result = metric_method(outputs, additional_data)
                     else:
-                        temp_metric_result = metric_method(outputs.cpu())
+                        temp_metric_result = metric_method(outputs)
 
             #
             # Add the metric to the dictionary
@@ -171,6 +169,5 @@ class GenericEvaluator(GenericInferer):
                 if isinstance(temp_metric_result, torch.nn.Module):
                     temp_metric_result = temp_metric_result.detach()
                 result_metrics[metric.get_name()] = temp_metric_result.item()
-
         return result_metrics
 
