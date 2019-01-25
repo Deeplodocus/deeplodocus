@@ -18,10 +18,10 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
     # Define our model that inherits from the nn.Module
     class Model(model):
 
-        def __init__(self, name, module, input_size, batch_size, device_ids, device, kwargs_dict, **kwargs):
+        def __init__(self, name, python_module, input_size, batch_size, device_ids, device, kwargs_dict, **kwargs):
             super(Model, self).__init__(**kwargs)
             self.name = name
-            self.module = module
+            self.python_module = python_module
             self.input_size = input_size
             self.batch_size = batch_size
             self.kwargs_dict = kwargs_dict
