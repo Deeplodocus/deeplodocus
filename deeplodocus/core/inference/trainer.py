@@ -206,9 +206,9 @@ class Trainer(GenericEvaluator):
                 self.optimizer.zero_grad()
 
                 # Set the data to the corresponding device
-                inputs = self.to_device(inputs, self.model.module.device)
-                labels = self.to_device(labels, self.model.module.device)
-                additional_data = self.to_device(additional_data, self.model.module.device)
+                inputs = self.to_device(inputs, self.model.device)
+                labels = self.to_device(labels, self.model.device)
+                additional_data = self.to_device(additional_data, self.model.device)
 
                 # Infer the output of the batch
                 outputs = self.model(*inputs)

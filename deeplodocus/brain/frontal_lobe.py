@@ -259,7 +259,7 @@ class FrontalLobe(object):
             self.model = model
             Notification(
                 DEEP_NOTIF_SUCCESS,
-                DEEP_MSG_MODEL_LOADED % (self.config.model.name, self.model.module.module)
+                DEEP_MSG_MODEL_LOADED % (self.model.name, self.model.origin)
             )
 
     def load_optimizer(self):
