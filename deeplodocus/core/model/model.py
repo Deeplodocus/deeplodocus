@@ -18,10 +18,10 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
     # Define our model that inherits from the nn.Module
     class Model(model):
 
-        def __init__(self, name, python_module, input_size, batch_size, device_ids, device, kwargs_dict, **kwargs):
+        def __init__(self, name, module, input_size, batch_size, device_ids, device, kwargs_dict, **kwargs):
             super(Model, self).__init__(**kwargs)
             self.name = name
-            self.python_module = python_module
+            self.module = module
             self.input_size = input_size
             self.batch_size = batch_size
             self.kwargs_dict = kwargs_dict
@@ -171,10 +171,12 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
             Notification(DEEP_NOTIF_INFO, "Estimated Total Size (MB): %0.2f" % total_size)
             Notification(DEEP_NOTIF_INFO, "")
 
+    # model = nn.DataParallel(module=model)
+
     # Initialise the model
     model = Model(
         name=name,
-        python_module=module,
+        module=module,
         input_size=input_size,
         batch_size=batch_size,
         device_ids=device_ids,
@@ -184,11 +186,11 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
     )
 
     # Get number of devices
-    n_devices = torch.cuda.device_count() if device_ids is None else len(device_ids)
+    # n_devices = torch.cuda.device_count() if device_ids is None else len(device_ids)
 
     # If there are multiple GPUs, use DataParallel
-    if n_devices > 1:
-        model = nn.DataParallel(module=model)
+    # if n_devices > 1:
+    model = nn.DataParallel(module=model, device_ids=device_ids)
 
     # Send to the appropriate device
     model.to(device)
