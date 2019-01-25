@@ -107,9 +107,9 @@ class Tester(GenericEvaluator):
             inputs, labels, additional_data = self.clean_single_element_list(minibatch)
 
             # Set the data to the corresponding device
-            inputs = self.to_device(inputs, self.model.device)
-            labels = self.to_device(labels, self.model.device)
-            additional_data = self.to_device(labels, self.model.device)
+            inputs = self.to_device(inputs, self.model.module.device)
+            labels = self.to_device(labels, self.model.module.device)
+            additional_data = self.to_device(labels, self.model.module.device)
 
             # Infer the outputs from the model over the given mini batch
             outputs = model(*inputs)
