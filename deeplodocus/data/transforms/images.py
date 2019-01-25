@@ -1,3 +1,4 @@
+import os
 import random
 import numpy as np
 import cv2
@@ -12,8 +13,11 @@ from deeplodocus.utils.flags.lib import *
 This file contains all the default transforms for images
 """
 
+def cloudy(images, clouds_dir):
+    clouds = cv2.imread(random.choice(os.listdir(clouds_dir)))
 
-def random_crop(image, output_size=None, output_ratio=None, scale=None, coord=None):
+
+def random_crop(image, output_size=None, output_ratio=None, scale=None):
     # Set the cropped image width and height (dx, dy)
     if output_size is not None:
         # If output_size is a list of lists, i.e. ((lower_bound, upper_bound), (lower_bound, upper_bound))
@@ -48,29 +52,31 @@ def random_crop(image, output_size=None, output_ratio=None, scale=None, coord=No
         # Set the crop size to the size of the image
         dx, dy = image.shape[0:2]
 
-    # Set the lower x and y coordinates for the cropped image
-    if coord is None:
-        # Define random lower x and y coordinates
-        x0 = np.random.randint(0, image.shape[1] - dx)
-        y0 = np.random.randint(0, image.shape[0] - dy)
-    else:
-        # Extract the lower x and y coordinates
-        x0, y0 = coord
-
-    # Define the upper x and y coordinates of the cropped image
+    # Define the coordinates of the crop
+    x0 = np.random.randint(0, image.shape[1] - dx)
+    y0 = np.random.randint(0, image.shape[0] - dy)
     x1 = x0 + dx
     y1 = y0 + dy
 
     # Store the parameters that were selected
     transform = {
-        "output_size": output_size,
-        "output_ratio": output_ratio,
-        "scale": scale,
-        "coord": (x0, y0)
+        "name": "crop",
+        "method": crop,
+        "coords": (x0, y0, x1, y1)
         }
 
     # Return the cropped image and transform kwargs
-    return image[y0: y1, x0: x1, ...], transform
+    return crop(image, (x0, y0, x1, y1)), transform
+
+
+def crop(image, coords):
+    """
+    :param image:
+    :param coords:
+    :return:
+    """
+    x0, y0, x1, y1 = coords
+    return image[y0: y1, x0: x1, ...], None
 
 
 def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> Tuple[Any, dict]:

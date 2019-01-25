@@ -174,7 +174,7 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
     # Initialise the model
     model = Model(
         name=name,
-        module=module,
+        python_module=module,
         input_size=input_size,
         batch_size=batch_size,
         device_ids=device_ids,

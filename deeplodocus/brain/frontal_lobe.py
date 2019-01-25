@@ -22,8 +22,6 @@ from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.module import *
-from deeplodocus.utils.flags.log import DEEP_LOGS
-# from deeplodocus.utils.flags.config import DEEP_CONFIG_AUTO
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
@@ -259,7 +257,10 @@ class FrontalLobe(object):
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_MODEL_NOT_FOUND % model_path)
         else:
             self.model = model
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED % (self.config.model.name, self.model.module))
+            Notification(
+                DEEP_NOTIF_SUCCESS,
+                DEEP_MSG_MODEL_LOADED % (self.config.model.name, self.model.python_module)
+            )
 
     def load_optimizer(self):
         """
