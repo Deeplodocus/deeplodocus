@@ -132,6 +132,7 @@ OPERATIONS = {"*": operator.mul,
               "^": operator.pow,
               "append": append}
 
+
 if __name__ == "__main__":
     # For testing
     d = {"a": [1,2,3], "b": [5, 43, 1, 65, 312]}

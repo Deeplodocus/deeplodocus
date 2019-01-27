@@ -6,6 +6,7 @@ from deeplodocus.utils.flags.lib import *
 from deeplodocus.utils.flags.transformer import *
 from deeplodocus.utils.flags.shuffle import *
 from deeplodocus.utils.flags.save import *
+from deeplodocus.utils.flags.verbose import *
 
 
 # DATA TYPES
@@ -57,6 +58,21 @@ DEEP_LIST_SAVE_FORMATS = [DEEP_SAVE_FORMAT_ONNX,
                           DEEP_SAVE_FORMAT_PYTORCH]
 
 # SAVE CONDITIONS
-DEEP_LIST_SAVE_CONDITIONS = [DEEP_SAVE_CONDITION_LESS,
-                             DEEP_SAVE_CONDITION_GREATER]
+DEEP_LIST_SAVE_CONDITIONS = [
+    DEEP_SAVE_CONDITION_LESS,
+    DEEP_SAVE_CONDITION_GREATER
+]
 
+DEEP_LIST_VERBOSE = [
+    DEEP_VERBOSE_BATCH,
+    DEEP_VERBOSE_EPOCH,
+    DEEP_VERBOSE_TRAINING
+]
+
+
+DEEP_LIST_SAVE_SIGNAL = [
+    DEEP_SAVE_SIGNAL_END_BATCH,
+    DEEP_SAVE_SIGNAL_END_EPOCH,
+    DEEP_SAVE_SIGNAL_END_TRAINING,
+    DEEP_SAVE_SIGNAL_AUTO
+]

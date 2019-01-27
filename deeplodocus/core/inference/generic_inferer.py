@@ -47,12 +47,16 @@ class GenericInferer(object):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.dataset = dataset
-        self.dataloader = DataLoader(dataset=dataset,
-                                     batch_size=batch_size,
-                                     shuffle=False,
-                                     num_workers=num_workers)
-        self.num_minibatches = self.compute_num_minibatches(batch_size=batch_size,
-                                                            length_dataset=dataset.__len__())
+        self.dataloader = DataLoader(
+            dataset=dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers
+        )
+        self.num_minibatches = self.compute_num_minibatches(
+            batch_size=batch_size,
+            length_dataset=dataset.__len__()
+        )
 
     @staticmethod
     def clean_single_element_list(minibatch: list) -> list:
@@ -176,7 +180,10 @@ class GenericInferer(object):
 
         :return:
         """
-        if isinstance(data, list):
-            return [d.to(device=device) for d in data]
-        else:
+        try:
             return data.to(device)
+        except AttributeError:
+            try:
+                return [d.to(device=device) for d in data if d is not None]
+            except TypeError:
+                return None

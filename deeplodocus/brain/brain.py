@@ -117,7 +117,10 @@ class Brain(FrontalLobe):
         """
         self.__on_wake()
         while True:
-            command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
+            try:
+                command = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
+            except KeyboardInterrupt:
+                self.sleep()
             self.__execute_command(command)
 
     def sleep(self):
@@ -159,21 +162,19 @@ class Brain(FrontalLobe):
             if isinstance(namespace, Namespace):
                 namespace.save("%s/%s%s" % (self.config_dir, key, DEEP_EXT_YAML))
 
-    def clear_config(self):
+    def clear(self):
         """
-       AUTHORS:
-       --------
-       :author: Samuel Westlake
-
-       DESCRIPTION:
-       ------------
-       Reset self.config to an empty Namespace
-
-       RETURN:
-       -------
-       :return: None
-       """
-        self.config = Namespace()
+        :return:
+        """
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_BRAIN_CLEAR % self.config.project.sub_project)
+        for directory in DEEP_LOG_RESULT_DIRECTORIES:
+            path = "/".join((self.config.project.sub_project, directory))
+            try:
+                for file in os.listdir(path):
+                    os.remove("/".join((path, file)))
+            except FileNotFoundError:
+                pass
+        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_BRAIN_CLEARED % self.config.project.sub_project)
 
     def restore_config(self):
         """
@@ -226,7 +227,7 @@ class Brain(FrontalLobe):
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_CONFIG_LOADING_DIR % self.config_dir)
         # If the config directory exists
         if os.path.isdir(self.config_dir):
-            self.clear_config()
+            self.config = Namespace()
             # For each expected configuration file
             for key, file_name in DEEP_CONFIG_FILES.items():
                 config_path = "%s/%s" % (self.config_dir, file_name)
@@ -235,7 +236,7 @@ class Brain(FrontalLobe):
                     self.config.add({key: Namespace(config_path)})
                     self.check_config(key=key)
                 else:
-                    self.clear_config()
+                    self.config = Namespace()
                     Notification(DEEP_NOTIF_FATAL, DEEP_MSG_FILE_NOT_FOUND % config_path)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_CONFIG_COMPLETE)
         else:
@@ -309,9 +310,18 @@ class Brain(FrontalLobe):
         for log_type, (directory, ext) in DEEP_LOGS.items():
             # If forced to closer or log should be kept, close the log
             # NB: config does not have to exist if force is True
+            if log_type == DEEP_LOG_NOTIFICATION:
+                try:
+                    new_directory = "/".join(
+                        (get_main_path(), self.config.project.sub_project, "logs")
+                    )
+                except AttributeError:
+                    new_directory = None
+            else:
+                new_directory = None
             if force or self.config.project.logs.get(log_type):
                 if os.path.isfile("%s/%s%s" % (directory, log_type, ext)):
-                    Logs(log_type, directory, ext).close()
+                    Logs(log_type, directory, ext).close(new_directory)
             else:
                 Logs(log_type, directory, ext).delete()
 
@@ -544,6 +554,8 @@ class Brain(FrontalLobe):
                         exec("Notification(DEEP_NOTIF_RESULT, self.%s)" % command)
                 except DeepError:
                     time.sleep(0.1)
+                except KeyboardInterrupt:
+                    self.sleep()
 
     def __preprocess_command(self, command):
         """

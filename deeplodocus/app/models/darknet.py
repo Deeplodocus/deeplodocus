@@ -3,15 +3,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # Deeplodocus imports
-from deeplodocus.app.block.resblock import ResBlock
+from deeplodocus.app.blocks.resblock import ResBlock
 
 
 class DarkNet53(nn.Module):
 
-    def __init__(self, n_channels=3, n_classes=80, include_top=True):
+    def __init__(self, num_channels=3, num_classes=80, include_top=True):
         super(DarkNet53, self).__init__()
 
-        self.n_channels = int(n_channels)
+        self.num_channels = int(num_channels)
 
         # Whether or not to include classifying layers
         self.include_top = include_top
@@ -21,7 +21,7 @@ class DarkNet53(nn.Module):
 
         # INPUT LAYER
         self.input_layer = nn.Sequential(
-            nn.Conv2d(in_channels=self.n_channels, out_channels=32, kernel_size=3, bias=False, padding=1),
+            nn.Conv2d(in_channels=self.num_channels, out_channels=32, kernel_size=3, bias=False, padding=1),
             nn.BatchNorm2d(32),
             nn.LeakyReLU(negative_slope=0.1)
         )
@@ -84,18 +84,18 @@ class DarkNet53(nn.Module):
         self.res_block_1024_3 = ResBlock(1024)
 
         if include_top:
-            self.n_classes = int(n_classes)
+            self.num_classes = int(num_classes)
             # CLASSIFYING LAYER
             self.classifier = nn.Sequential(
                 nn.Linear(in_features=1024, out_features=1000),
                 nn.ReLU(),
-                nn.Linear(in_features=1000, out_features=self.n_classes),
+                nn.Linear(in_features=1000, out_features=self.num_classes),
                 nn.Softmax(dim=1)
             )
 
     def forward(self, x):
         assert not any(map(lambda i: i % 32, x.shape[2:])), \
-            "Height and Width must be divisible by 32 : Received " % (x.shape[2:])
+            "Height and Width must be divisible by 32 : Received  %s" % str(x.shape[2:])
         x = self.input_layer(x)         # b x nc x h x w
         x = self.downsample_64(x)       # b x 64 x h/2 x w/2
         x = self.res_block_64(x)        # b x 64 x h/2 x w/2

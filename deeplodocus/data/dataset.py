@@ -84,6 +84,7 @@ class Dataset(object):
 
         :return: None
         """
+        self.name = name
         self.list_inputs = self.__generate_entries(entries=self.__check_null_entry(inputs),
                                                    entry_type=DEEP_ENTRY_INPUT)
         self.list_labels = self.__generate_entries(entries=self.__check_null_entry(labels),
@@ -93,7 +94,6 @@ class Dataset(object):
         self.number_raw_instances = self.__calculate_number_raw_instances()
         self.length = self.__compute_length(desired_length=number,
                                             num_raw_instances=self.number_raw_instances)
-        self.name = name
         self.transform_manager = transform_manager
         self.use_raw_data = use_raw_data
         self.warning_video = None
@@ -268,7 +268,17 @@ class Dataset(object):
         :return num_raw_instances (int): theoretical number of instances in each epoch
         """
         # Calculate for the first entry
-        num_raw_instances = self.list_inputs[0].__len__()
+        try:
+            num_raw_instances = self.list_inputs[0].__len__()
+        except IndexError as e:
+            Notification(
+                DEEP_NOTIF_FATAL,
+                "IndexError : %s : %s" % (str(e), DEEP_MSG_DATA_INDEX_ERROR % self.name),
+                solutions=[
+                    DEEP_MSG_DATA_INDEX_ERROR_SOLUTION_1 % self.name,
+                    DEEP_MSG_DATA_INDEX_ERROR_SOLUTION_2 % self.name
+                ]
+            )
 
         # Gather all the entries in one list
         entries = self.list_inputs + self.list_labels + self.list_additional_data
@@ -860,7 +870,7 @@ class Dataset(object):
         # ALL DATASET
         if DEEP_SHUFFLE_ALL.corresponds(info=method):
             self.item_order = np.random.randint(0, high=self.length, size=(self.length,))
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_SHUFFLE_COMPLETE % method.name)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_SHUFFLE_COMPLETE % method.name)
 
         # NONE
         elif DEEP_SHUFFLE_NONE.corresponds(info=method):

@@ -4,10 +4,9 @@ from deeplodocus.utils.flags.ext import DEEP_EXT_YAML
 DEEP_CONFIG_DIVIDER = "/"
 
 # Keywords
+DEEP_CONFIG_INIT = "INIT"
 DEEP_CONFIG_DEFAULT = "DEFAULT"
 DEEP_CONFIG_DTYPE = "DTYPE"
-DEEP_CONFIG_AUTO = "auto"
-DEEP_CONFIG_ENABLED = "enabled"
 DEEP_CONFIG_WILDCARD = "*"
 
 # Names of each section of the config fle
@@ -46,9 +45,9 @@ DEEP_CONFIG_FILES = {item: "%s%s" % (item, DEEP_EXT_YAML) for item in DEEP_CONFI
 # NB: if a list of floats is expected, use [float] instead of float
 DEEP_CONFIG = {
     DEEP_CONFIG_PROJECT: {
-        "name": {
+        "sub_project": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "deeplodocus_project"
+            DEEP_CONFIG_DEFAULT: "version01"
         },
         "cv_library": {
             DEEP_CONFIG_DTYPE: str,
@@ -56,11 +55,11 @@ DEEP_CONFIG = {
         },
         "device": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: DEEP_CONFIG_AUTO
+            DEEP_CONFIG_DEFAULT: "auto"
         },
         "device_ids": {
             DEEP_CONFIG_DTYPE: [int],
-            DEEP_CONFIG_DEFAULT: DEEP_CONFIG_AUTO
+            DEEP_CONFIG_DEFAULT: "auto"
         },
         "logs": {
             "history_train_batches": {
@@ -88,25 +87,32 @@ DEEP_CONFIG = {
     DEEP_CONFIG_MODEL: {
         "module": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: None
+            DEEP_CONFIG_DEFAULT: None,
+            DEEP_CONFIG_INIT: "torchvision.models"
         },
         "name": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "DarkNet53"
+            DEEP_CONFIG_DEFAULT: "vgg16_bn"
         },
         "input_size": {
             DEEP_CONFIG_DTYPE: [[int]],
-            DEEP_CONFIG_DEFAULT: [[3, 32, 32]]
+            DEEP_CONFIG_DEFAULT: None,
+            DEEP_CONFIG_INIT: [[3, 224, 224]]
         },
         "kwargs": {
             DEEP_CONFIG_DTYPE: dict,
-            DEEP_CONFIG_DEFAULT: {}
+            DEEP_CONFIG_DEFAULT: None,
+            DEEP_CONFIG_INIT: {
+                "num_classes": 1000,
+                "pretrained": True
+            }
         }
     },
     DEEP_CONFIG_OPTIMIZER: {
         "module": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: None
+            DEEP_CONFIG_DEFAULT: None,
+            DEEP_CONFIG_INIT: "torch.optim"
         },
         "name": {
             DEEP_CONFIG_DTYPE: str,
@@ -125,8 +131,8 @@ DEEP_CONFIG = {
     },
     DEEP_CONFIG_HISTORY: {
         "verbose": {
-            DEEP_CONFIG_DTYPE: int,
-            DEEP_CONFIG_DEFAULT: 1
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "default"
         },
         "memorize": {
             DEEP_CONFIG_DTYPE: int,
@@ -144,16 +150,20 @@ DEEP_CONFIG = {
         },
         "shuffle": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "None"
+            DEEP_CONFIG_DEFAULT: "default"
         },
         "saver": {
             "method": {
                 DEEP_CONFIG_DEFAULT: "pytorch",
                 DEEP_CONFIG_DTYPE: str
             },
-            "signal": {
+            "save_signal": {
                 DEEP_CONFIG_DEFAULT: "auto",
                 DEEP_CONFIG_DTYPE: str
+            },
+            "overwrite": {
+                DEEP_CONFIG_DEFAULT: False,
+                DEEP_CONFIG_DTYPE: bool
             }
         },
         "overwatch": {
@@ -178,7 +188,7 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DEFAULT: 1
             }
         },
-        DEEP_CONFIG_ENABLED: {
+        "enabled": {
             "train": {
                 DEEP_CONFIG_DTYPE: bool,
                 DEEP_CONFIG_DEFAULT: True
@@ -227,7 +237,7 @@ DEEP_CONFIG = {
                 },
                 "name": {
                     DEEP_CONFIG_DTYPE: str,
-                    DEEP_CONFIG_DEFAULT: "Training Dataset"
+                    DEEP_CONFIG_DEFAULT: "Training"
                 }
             },
             "validation": {
@@ -262,7 +272,7 @@ DEEP_CONFIG = {
                 },
                 "name": {
                     DEEP_CONFIG_DTYPE: str,
-                    DEEP_CONFIG_DEFAULT: "Validation Dataset"
+                    DEEP_CONFIG_DEFAULT: "Validation"
                 }
             },
             "test": {
@@ -299,7 +309,7 @@ DEEP_CONFIG = {
                 },
                 "name": {
                     DEEP_CONFIG_DTYPE: str,
-                    DEEP_CONFIG_DEFAULT: "Test Dataset"
+                    DEEP_CONFIG_DEFAULT: "Test"
                 }
             }
         }
@@ -345,7 +355,7 @@ DEEP_CONFIG = {
         },
         "validation": {
             "name": {
-                DEEP_CONFIG_DEFAULT: "Train Transform Manager",
+                DEEP_CONFIG_DEFAULT: "Validation Transform Manager",
                 DEEP_CONFIG_DTYPE: str
             },
             "inputs": {
@@ -363,7 +373,7 @@ DEEP_CONFIG = {
         },
         "test": {
             "name": {
-                DEEP_CONFIG_DEFAULT: "Train Transform Manager",
+                DEEP_CONFIG_DEFAULT: "Test Transform Manager",
                 DEEP_CONFIG_DTYPE: str
             },
             "inputs": {
