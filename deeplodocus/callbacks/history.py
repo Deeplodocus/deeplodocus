@@ -103,7 +103,13 @@ class History(object):
         # Connect to signals
         Thalamus().connect(
             receiver=self.on_batch_end,
-            event=DEEP_EVENT_ON_BATCH_END
+            event=DEEP_EVENT_ON_BATCH_END,
+            expected_arguments=["minibatch_index",
+                                "num_minibatches",
+                                "epoch_index",
+                                "total_loss",
+                                "result_losses",
+                                "result_metrics"]
         )
         Thalamus().connect(
             receiver=self.on_epoch_end,
@@ -539,7 +545,7 @@ class History(object):
             total_validation_loss,
             result_validation_losses,
             result_validation_metrics) -> None:
-
+        """
         :author: Alix Leroy
 
         DESCRIPTION:
