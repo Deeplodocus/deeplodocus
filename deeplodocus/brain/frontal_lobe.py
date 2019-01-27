@@ -268,6 +268,7 @@ class FrontalLobe(object):
                         batch_size=self.config.data.dataloader.batch_size,
                         **self.config.model.get_all(ignore=["from_file", "file", "name", "module"]),
                         model_state_dict=model_state_dict,
+                        weights_path=self.config.model.file,
                         notif=DEEP_NOTIF_WARNING
                     )
 
@@ -280,6 +281,7 @@ class FrontalLobe(object):
                         batch_size=self.config.data.dataloader.batch_size,
                         **self.config.model.get_all(ignore=["from_file", "file"]),
                         model_state_dict=model_state_dict,
+                        weights_path=self.config.model.file,
                         notif=DEEP_NOTIF_FATAL
                     )
             self.model = model
@@ -679,6 +681,7 @@ class FrontalLobe(object):
             batch_size=None,
             model_state_dict=None,
             notif=DEEP_NOTIF_WARNING,
+            weights_path="Unknown",
             **kwargs
     ):
         """
@@ -696,6 +699,7 @@ class FrontalLobe(object):
             model_path = "%s from default modules" % name
         else:
             model_path = "%s from %s" % (name, module)
+
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % model_path)
         model = load_model(
             name=name,
@@ -709,7 +713,10 @@ class FrontalLobe(object):
         if model is None:
             Notification(notif, DEEP_MSG_MODEL_NOT_FOUND % model_path)
         else:
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED % (model.name, model.origin))
+            model_path = "%s from %s" % (model.name, model.origin)
+            if model_state_dict is not None:
+                model_path += " with weights from %s" % weights_path
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED % model_path)
         return model
 
     @staticmethod
