@@ -9,14 +9,19 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags.notif import *
 
 
-def load_model(name, module, kwargs, device, device_ids=None, input_size=None, batch_size=None):
+def load_model(
+        name, module, kwargs, device,
+        model_state_dict=None,
+        device_ids=None,
+        input_size=None,
+        batch_size=None
+):
     # Get the model, should be nn.Module
     module, origin = get_module(name=name, module=module, browse=DEEP_MODULE_MODELS)
     if module is None:
         return None
 
-
-   # Define our model that inherits from the nn.Module
+    # Define our model that inherits from the nn.Module
     class Model(module):
 
         def __init__(self, name, origin, device,
@@ -31,7 +36,7 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
             self.device_ids = device_ids
             self.input_size = input_size
             self.batch_size = batch_size
-            self.model_dict = {} if model_dict else model_dict
+            self.model_dict = {} if model_dict is None else model_dict
             self.device = device
 
         def summary(self):
@@ -161,7 +166,7 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
             Notification(DEEP_NOTIF_INFO, "Forward/backward pass size (MB): %0.2f" % total_output_size)
             Notification(DEEP_NOTIF_INFO, "Params size (MB): %0.2f" % total_params_size)
             Notification(DEEP_NOTIF_INFO, "Estimated Total Size (MB): %0.2f" % total_size)
-            Notification(DEEP_NOTIF_INFO, "")
+            Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
 
     # Initialise the model
     model = Model(
@@ -171,9 +176,14 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
         device_ids=device_ids,
         input_size=input_size,
         batch_size=batch_size,
-        model_dict=kwargs.get(),
-        **kwargs.get()
+        model_dict=kwargs,
+        **kwargs
     )
+
+    if model_state_dict is not None:
+        model_state_dict = {k[7:]: v for k, v in model_state_dict.items() if k.startswith("module.")}
+
+        model.load_state_dict(model_state_dict)
 
     n_devices = torch.cuda.device_count() if device_ids is None else len(device_ids)
     if n_devices > 1:
