@@ -126,7 +126,7 @@ class Metric(GenericMetric):
         arguments = []
 
         if isinstance(method, Module):
-            arguments_list =  inspect.getfullargspec(method.forward)[0]
+            arguments_list = inspect.getfullargspec(method.forward)[0]
         else:
             arguments_list = inspect.getfullargspec(method)[0]
 

@@ -239,7 +239,19 @@ class FrontalLobe(object):
         optimizer_flag = False
 
         # If loading from file, load data from the given path
-        checkpoint = torch.load(self.config.model.file) if self.config.model.from_file else None
+        try:
+            checkpoint = torch.load(self.config.model.file) if self.config.model.from_file else None
+        except AttributeError:
+            Notification(
+                DEEP_NOTIF_FATAL,
+                DEEP_MSG_MODEL_NO_FILE,
+                solutions=[
+                    "Enter a path to a model file in config/model/file",
+                    "Disable load model from file by setting config/model/from_file to False",
+                ]
+            )
+        except FileNotFoundError:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_MODEL_FILE_NOT_FOUND % self.config.model.file)
 
         # If the data is a dictionary, or none, we need to load the model form a python module
         if isinstance(checkpoint, dict) or checkpoint is None:
