@@ -83,6 +83,7 @@ class History(object):
                                       + list(vars(losses).keys())
                                       + list(vars(metrics).keys()))
 
+        # Create teh history files
         self.__add_logs("history_train_batches", log_dir, ".csv", train_batches_headers)
         self.__add_logs("history_train_epochs", log_dir, ".csv", train_epochs_headers)
         self.__add_logs("history_validation", log_dir, ".csv", validation_headers)
@@ -102,7 +103,13 @@ class History(object):
         # Connect to signals
         Thalamus().connect(
             receiver=self.on_batch_end,
-            event=DEEP_EVENT_ON_BATCH_END
+            event=DEEP_EVENT_ON_BATCH_END,
+            expected_arguments=["minibatch_index",
+                                "num_minibatches",
+                                "epoch_index",
+                                "total_loss",
+                                "result_losses",
+                                "result_metrics"]
         )
         Thalamus().connect(
             receiver=self.on_epoch_end,
@@ -538,6 +545,31 @@ class History(object):
             total_validation_loss,
             result_validation_losses,
             result_validation_metrics) -> None:
+        """
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Compute the overwatch metric and send it to the saver
+
+        PARAMETERS:
+        -----------
+
+        :param num_minibatches_training:
+        :param running_total_loss:
+        :param running_losses:
+        :param running_metrics:
+        :param total_validation_loss:
+        :param result_validation_losses:
+        :param result_validation_metrics:
+
+
+        RETURN:
+        -------
+
+        :return:
+        """
 
         # If the validation loss is None (No validation) we take the metric from the training as overwatch metric
         if total_validation_loss is None:
@@ -566,7 +598,30 @@ class History(object):
             )
         )
 
-    def get_overwatch_metric(self):
+    def get_overwatch_metric(self) -> OverWatchMetric:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get a deep copy of the over watched metric
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return (OverwatchMetric) : A deep copy of the over watched metric
+        """
+
+        # Always return a deep copy of the over watch metric to avoid any issue
         return copy.deepcopy(self.overwatch_metric)
 
     def send_training_loss(self):
