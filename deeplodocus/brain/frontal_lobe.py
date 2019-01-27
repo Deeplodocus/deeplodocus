@@ -235,32 +235,45 @@ class FrontalLobe(object):
 
         :return model->torch.nn.Module:  The model
         """
-        # If a module is specified, edit the model name to include the module (for notification purposes)
-        if self.config.model.module is None:
-            model_path = "%s from default modules" % self.config.model.name
-        else:
-            model_path = "%s from %s" % (self.config.model.name, self.config.model.module)
+        model = None
+        optimizer_flag = False
 
-        # Notify the user which model is being collected and from where
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % model_path)
+        # If loading from file, load data from the given path
+        checkpoint = torch.load(self.config.model.file) if self.config.model.from_file else None
 
-        # Load the model with model.kwargs from the config
-        model = load_model(
-            **self.config.model.get(),
-            device=self.device,
-            device_ids=self.device_ids,
-            batch_size=self.config.data.dataloader.batch_size
-        )
+        # If the data is a dictionary, or none, we need to load the model form a python module
+        if isinstance(checkpoint, dict) or checkpoint is None:
+            model_state_dict = None if checkpoint is None else checkpoint["model_state_dict"]
 
-        # If model exists, load the into the frontal lobe
-        if model is None:
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_MODEL_NOT_FOUND % model_path)
-        else:
+            # Load a model from the name and origin in the checkpoint, if they are given
+            if checkpoint is not None and "name" in checkpoint and "origin" in checkpoint:
+                    # Initialise the model from the details in the file
+                    model = self.__load_model(
+                        name=checkpoint["name"],
+                        module=checkpoint["origin"],
+                        device=self.device,
+                        device_ids=self.device_ids,
+                        batch_size=self.config.data.dataloader.batch_size,
+                        **self.config.model.get_all(ignore=["from_file", "file", "name", "module"]),
+                        model_state_dict=model_state_dict,
+                        notif=DEEP_NOTIF_WARNING
+                    )
+
+            # If not loading from file, initialising model from file failed, load model from config
+            if not self.config.model.from_file or model is None:
+                if model is None:
+                    model = self.__load_model(
+                        device=self.device,
+                        device_ids=self.device_ids,
+                        batch_size=self.config.data.dataloader.batch_size,
+                        **self.config.model.get_all(ignore=["from_file", "file"]),
+                        model_state_dict=model_state_dict,
+                        notif=DEEP_NOTIF_FATAL
+                    )
             self.model = model
-            Notification(
-                DEEP_NOTIF_SUCCESS,
-                DEEP_MSG_MODEL_LOADED % (self.model.name, self.model.origin)
-            )
+        else:
+            self.model = checkpoint
+        return optimizer_flag
 
     def load_optimizer(self):
         """
@@ -404,7 +417,7 @@ class FrontalLobe(object):
                     metric_path = "%s : %s from %s" % (key, config.name, config.module)
 
                 # Notify the user which loss is being collected and from where
-                Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOSS_LOADING % metric_path)
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_LOADING % metric_path)
 
                 # Get the metric object
                 metric, module = get_module(
@@ -647,6 +660,45 @@ class FrontalLobe(object):
             self.metrics.summary()
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_NOT_LOADED)
+
+    @staticmethod
+    def __load_model(
+            name, module, device, device_ids,
+            batch_size=None,
+            model_state_dict=None,
+            notif=DEEP_NOTIF_WARNING,
+            **kwargs
+    ):
+        """
+        :param name:
+        :param module:
+        :param device:
+        :param device_ids:
+        :param batch_size:
+        :param model_state_dict:
+        :param notif:
+        :param kwargs:
+        :return:
+        """
+        if module is None:
+            model_path = "%s from default modules" % name
+        else:
+            model_path = "%s from %s" % (name, module)
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % model_path)
+        model = load_model(
+            name=name,
+            module=module,
+            device=device,
+            device_ids=device_ids,
+            batch_size=batch_size,
+            model_state_dict=model_state_dict,
+            **kwargs
+        )
+        if model is None:
+            Notification(notif, DEEP_MSG_MODEL_NOT_FOUND % model_path)
+        else:
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED % (model.name, model.origin))
+        return model
 
     @staticmethod
     def __model_has_multiple_inputs(list_inputs):
