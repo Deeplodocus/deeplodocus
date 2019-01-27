@@ -61,7 +61,7 @@ class Thalamus(metaclass=Singleton):
         PARAMETERS:
         -----------
 
-        :param signal(Signal): The signal to add to the queue
+        :param signal: (Signal): The signal to add to the queue
 
         RETURN:
         -------
@@ -71,10 +71,9 @@ class Thalamus(metaclass=Singleton):
         # TODO : Currently not working with a queue (will be useful when going async)
         #self.signals.put(signal)
         #signal = self.signals.get()
-
         self.send(signal)
 
-    def connect(self, receiver: callable, event: Flag, expected_arguments = None) -> None:
+    def connect(self, receiver: callable, event: Flag, expected_arguments=None) -> None:
         """
         AUTHORS:
         --------
@@ -89,8 +88,8 @@ class Thalamus(metaclass=Singleton):
         PARAMETERS:
         -----------
 
-        :param receiver(callable): The method to call when firing the signal
-        :param event(Flag): The type of event
+        :param receiver: (callable): The method to call when firing the signal
+        :param event: (Flag): The type of event
 
         RETURN:
         -------
@@ -125,8 +124,8 @@ class Thalamus(metaclass=Singleton):
         PARAMETERS:
         -----------
 
-        :param receiver(callable): The method to call on the event is fired
-        :param event(Flag): The type of event
+        :param receiver: (callable): The method to call on the event is fired
+        :param event: (Flag): The type of event
 
         RETURN:
         -------
@@ -145,7 +144,7 @@ class Thalamus(metaclass=Singleton):
                 break
 
         if disconnected is False:
-            Notification(DEEP_NOTIF_ERROR, "The following receiver %s could not be disconnected from %i." %(str(receiver), event))
+            Notification(DEEP_NOTIF_ERROR, "The following receiver %s could not be disconnected from %i." % (str(receiver), event))
 
     def send(self, signal: Signal) -> None:
         """
@@ -162,7 +161,7 @@ class Thalamus(metaclass=Singleton):
         PARAMETERS:
         -----------
 
-        :param signal (Signal): A signal to send
+        :param signal: (Signal): A signal to send
 
         RETURN:
         -------
@@ -181,7 +180,11 @@ class Thalamus(metaclass=Singleton):
 
                 # If only some specific keys have to be kept
                 if expected_arguments is not None:
-                    args = self.keep_arguments(receiver=receiver, expected_arguments=expected_arguments, arguments=args)
+                    args = self.keep_arguments(
+                        receiver=receiver,
+                        expected_arguments=expected_arguments,
+                        arguments=args
+                    )
                 receiver()(**args)  # Need twice the brackets because of the weak method reference
 
         # Else display an error notification
@@ -223,9 +226,9 @@ class Thalamus(metaclass=Singleton):
         PARAMETERS:
         -----------
 
-        :param receiver (callable): The function to receive the signal
-        :param expected_arguments (list): The list of desired arguments
-        :param arguments (dict): The dictionary to filter
+        :param receiver: (callable): The function to receive the signal
+        :param expected_arguments: (list): The list of desired arguments
+        :param arguments: (dict): The dictionary to filter
 
         RETURN:
         -------
@@ -235,7 +238,11 @@ class Thalamus(metaclass=Singleton):
         try:
             kept_args = {key: arguments[key] for key in expected_arguments}
             return kept_args
-        except:
-            print(receiver)
-            print(arguments)
-            print(expected_arguments)
+        except (KeyError, TypeError) as e:
+            Notification(DEEP_NOTIF_DEBUG, "Signal Error")
+            Notification(DEEP_NOTIF_DEBUG, receiver)
+            Notification(DEEP_NOTIF_DEBUG, "Expected arguments:")
+            Notification(DEEP_NOTIF_DEBUG, str(expected_arguments))
+            Notification(DEEP_NOTIF_DEBUG, "Available arguments:")
+            Notification(DEEP_NOTIF_DEBUG, str(arguments))
+            Notification(DEEP_NOTIF_FATAL, "KeyError/TypeError: %s" % str(e))

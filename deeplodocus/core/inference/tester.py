@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.utils import dict_utils
-from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.verbose import DEEP_VERBOSE_BATCH
 from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
 
 
@@ -107,9 +107,9 @@ class Tester(GenericEvaluator):
             inputs, labels, additional_data = self.clean_single_element_list(minibatch)
 
             # Set the data to the corresponding device
-            inputs = self.to_device(data=inputs, device=self.model.device)
-            #labels = self.to_device(data=labels, device=self.model.device)
-            #additional_data = self.to_device(data=labels, device=self.model.device)
+            inputs = self.to_device(inputs, self.model.device)
+            labels = self.to_device(labels, self.model.device)
+            additional_data = self.to_device(labels, self.model.device)
 
             # Infer the outputs from the model over the given mini batch
             outputs = model(*inputs)
@@ -122,7 +122,6 @@ class Tester(GenericEvaluator):
             batch_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
             # Apply weights to the losses
-            #batch_losses = dict_utils.apply_weight(batch_losses, self.losses)
             batch_losses = dict_utils.apply_weight(batch_losses, vars(self.losses))
 
             # Append the losses and metrics for this batch to the total losses and metrics

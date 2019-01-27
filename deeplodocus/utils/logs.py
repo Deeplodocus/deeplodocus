@@ -1,11 +1,8 @@
 import os
-import re
 import shutil
 import datetime
 
 from deeplodocus.utils.flags.ext import DEEP_EXT_CSV
-
-import __main__
 
 
 class Logs(object):
@@ -22,7 +19,7 @@ class Logs(object):
     """
 
     def __init__(self, log_type: str,
-                 directory: str = "%s/logs" % os.path.dirname(os.path.abspath(__main__.__file__)),
+                 directory: str = "%s/logs",
                  extension: str = DEEP_EXT_CSV,
                  write_time=True) -> None:
         """
@@ -113,7 +110,7 @@ class Logs(object):
         except FileNotFoundError:
             pass
 
-    def close(self):
+    def close(self, new_directory=None):
         """
         AUTHORS:
         --------
@@ -139,15 +136,12 @@ class Logs(object):
         # We need a timestamp to give the log file a unique name.
         # The timestamp from the last line of the log file is preferred over datetime.now() ...
         # because we may be cleaning up and closing an old logfile from a previous, interrupted run.
-        with open(self.__get_path(), "r") as file:
-            lines = file.readlines()
-        try:
-            time = re.split("-| |:", lines[-1].split(".")[0])
-            tuple(map(int, time))
-            time = "%s-%s-%s_%s-%s-%s" % tuple(time)
-        except (IndexError, ValueError):
-            time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        shutil.move(self.__get_path(), self.__get_path(time))
+        time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        old_path = self.__get_path()
+        self.directory = self.directory if new_directory is None else new_directory
+        os.makedirs(self.directory, exist_ok=True)
+        new_path = self.__get_path(time)
+        shutil.move(old_path, new_path)
 
     def __check_exists(self) -> None:
         """

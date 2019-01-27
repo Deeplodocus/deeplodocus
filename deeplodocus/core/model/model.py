@@ -11,51 +11,43 @@ from deeplodocus.utils.flags.notif import *
 
 def load_model(name, module, kwargs, device, device_ids=None, input_size=None, batch_size=None):
     # Get the model, should be nn.Module
-    model, module = get_module(name=name, module=module, browse=DEEP_MODULE_MODELS)
-
-    if model is None:
+    module, origin = get_module(name=name, module=module, browse=DEEP_MODULE_MODELS)
+    if module is None:
         return None
 
-    # Get number of devices
-    n_devices = torch.cuda.device_count() if device_ids is None else len(device_ids)
 
-    if n_devices > 1:
-        model = nn.DataParallel(module=model, device_ids=device_ids)
+   # Define our model that inherits from the nn.Module
+    class Model(module):
 
-    # Define our model that inherits from the nn.Module
-    class Model(model):
-
-        def __init__(self, name, module, input_size, batch_size, device_ids, device, kwargs_dict, **kwargs):
+        def __init__(self, name, origin, device,
+                     device_ids=None,
+                     input_size=None,
+                     batch_size=None,
+                     model_dict=None,
+                     **kwargs):
             super(Model, self).__init__(**kwargs)
             self.name = name
-            self.module = module
+            self.origin = origin
+            self.device_ids = device_ids
             self.input_size = input_size
             self.batch_size = batch_size
-            self.kwargs_dict = kwargs_dict
-            self.device_ids = device_ids
+            self.model_dict = {} if model_dict else model_dict
             self.device = device
 
         def summary(self):
             """
             AUTHORS:
             --------
-
             :author: Alix Leroy
             :author: Samuel Westlake
-
             DESCRIPTION:
             ------------
-
             Summarise the model
-
             PARAMETERS:
             -----------
-
             None
-
             RETURN:
             -------
-
             :return: None
             """
 
@@ -68,23 +60,16 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
             """
             AUTHORS:
             --------
-
             :author:  https://github.com/sksq96/pytorch-summary
             :author: Alix Leroy
-
             DESCRIPTION:
             ------------
-
             Print a summary of the current model
-
             PARAMETERS:
             -----------
-
             None
-
             RETURN:
             -------
-
             :return: None
             """
 
@@ -138,7 +123,7 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
                 h.remove()
 
             Notification(DEEP_NOTIF_INFO, '================================================================')
-            Notification(DEEP_NOTIF_INFO, "MODEL : %s from %s" % (self.name, self.module))
+            Notification(DEEP_NOTIF_INFO, "MODEL : %s from %s" % (self.name, self.origin))
             Notification(DEEP_NOTIF_INFO, '================================================================')
             line_new = '{:>20}  {:>25} {:>15}'.format('Layer (type)', 'Output Shape', 'Param #')
             Notification(DEEP_NOTIF_INFO, line_new)
@@ -165,7 +150,7 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
             Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
             Notification(DEEP_NOTIF_INFO, "Input size : %s" % self.input_size)
             Notification(DEEP_NOTIF_INFO, "Batch size : %s" % self.batch_size)
-            for key, item in self.kwargs_dict.items():
+            for key, item in self.model_dict.items():
                 Notification(DEEP_NOTIF_INFO, "%s : %s" % (key, item))
             Notification(DEEP_NOTIF_INFO, '----------------------------------------------------------------')
             Notification(DEEP_NOTIF_INFO, 'Total params: {0:,}'.format(total_params))
@@ -181,14 +166,32 @@ def load_model(name, module, kwargs, device, device_ids=None, input_size=None, b
     # Initialise the model
     model = Model(
         name=name,
-        module=module,
+        origin=origin,
+        device=device,
+        device_ids=device_ids,
         input_size=input_size,
         batch_size=batch_size,
-        device_ids=device_ids,
-        device=device,
-        kwargs_dict=kwargs.get(),
+        model_dict=kwargs.get(),
         **kwargs.get()
-    ).to(device)
+    )
+
+    n_devices = torch.cuda.device_count() if device_ids is None else len(device_ids)
+    if n_devices > 1:
+        model = DataParallelModel(module=model)
+
+    # Send to the appropriate device
+    model.to(device)
 
     return model
 
+
+class DataParallelModel(nn.DataParallel):
+
+    def __init__(self, module):
+        super(DataParallelModel, self).__init__(module, device_ids=module.device_ids)
+        self.name = module.name
+        self.origin = module.origin,
+        self.device = module.device
+
+    def summary(self):
+        self.module.summary()

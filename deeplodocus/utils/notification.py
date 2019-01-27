@@ -1,10 +1,10 @@
+from deeplodocus.utils import get_main_path
 from deeplodocus.utils.colors import *
 from deeplodocus.utils.deep_error import DeepError
 from deeplodocus.utils.flags.ext import DEEP_EXT_LOGS
 from deeplodocus.utils.flags.log import DEEP_LOG_NOTIFICATION
 from deeplodocus.utils.flags.msg import DEEP_MSG_NOTIF_UNKNOWN
 from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.path import DEEP_PATH_NOTIFICATION
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.flag import Flag
 
@@ -24,7 +24,7 @@ class Notification(object):
 
     """
 
-    def __init__(self, notif_flag: Flag, message: str, log: bool = True) -> None:
+    def __init__(self, notif_flag: Flag, message: str, log: bool = True, solutions=None) -> None:
         """
         AUTHORS:
         --------
@@ -77,7 +77,7 @@ class Notification(object):
 
             # FATAL
             elif DEEP_NOTIF_FATAL.corresponds(notif_flag):
-                self.__fatal_error(message)
+                self.__fatal_error(message, solutions=solutions)
 
             # INPUT
             elif DEEP_NOTIF_INPUT.corresponds(notif_flag):
@@ -125,7 +125,7 @@ class Notification(object):
         """
         return self.response
 
-    def __fatal_error(self, message: str) -> None:
+    def __fatal_error(self, message: str, solutions=None) -> None:
         """
         AUTHORS:
         --------
@@ -151,11 +151,25 @@ class Notification(object):
         :return: None
 
         """
+        # Print deep fatal errror
         message = "DEEP FATAL ERROR : %s" % message
         print("%s%s%s" % (CREDBG, message, CEND))
         if self.log is True:
             self.__add_log(message)
-        # End(error=True)   # Instead of ending and exiting the program, raise a DeepError which may be caught
+
+        # If possible solutions are given, print them too
+        if solutions is not None:
+            message = "DEEP INFO : %s" % "Possible solutions : "
+            print("%s%s%s" % (CBLUE, message, CEND))
+            if self.log is True:
+                self.__add_log(message)
+            solutions = solutions if isinstance(solutions, list) else [solutions]
+            for i, solution in enumerate(solutions):
+                message = "DEEP INFO : %i : %s" % (i + 1, solution)
+                print("%s%s%s" % (CBLUE, message, CEND))
+                if self.log is True:
+                    self.__add_log(message)
+
         raise DeepError
 
     def __error(self, message: str) -> None:
@@ -424,4 +438,7 @@ class Notification(object):
         :return: None
 
         """
-        Logs(DEEP_LOG_NOTIFICATION, DEEP_PATH_NOTIFICATION, DEEP_EXT_LOGS).add(message)
+        Logs(
+            log_type=DEEP_LOG_NOTIFICATION,
+            directory=get_main_path(),
+            extension=DEEP_EXT_LOGS).add(message)

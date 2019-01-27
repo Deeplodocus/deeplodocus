@@ -1,3 +1,4 @@
+import os
 import random
 import numpy as np
 import cv2
@@ -11,6 +12,71 @@ from deeplodocus.utils.flags.lib import *
 """
 This file contains all the default transforms for images
 """
+
+def cloudy(images, clouds_dir):
+    clouds = cv2.imread(random.choice(os.listdir(clouds_dir)))
+
+
+def random_crop(image, output_size=None, output_ratio=None, scale=None):
+    # Set the cropped image width and height (dx, dy)
+    if output_size is not None:
+        # If output_size is a list of lists, i.e. ((lower_bound, upper_bound), (lower_bound, upper_bound))
+        if any(isinstance(item, list) or isinstance(item, tuple) for item in output_size):
+            # Define a random output_size between the given bounds
+            output_size = {
+                np.random.randint(*output_size[0]),
+                np.random.randint(*output_size[1])
+            }
+        # Calculate the height and width of the cropped patch
+        dx = output_size[0]
+        dy = output_size[1]
+    elif output_ratio is not None:
+        # If output_ratio is a list of lists, i.e. ((lower_bound, upper_bound), (lower_bound, upper_bound))
+        if any(isinstance(item, list) or isinstance(item, tuple) for item in output_ratio):
+            # Define a random output_ratio between the given bounds
+            output_ratio = (
+                image.shape[1] / np.random.randint(*output_size[0]),
+                image.shape[0] / np.random.randint(*output_size[1])
+            )
+        # Calculate the height and width of the cropped patch
+        dx = int(image.shape[1] / output_ratio[0])
+        dy = int(image.shape[0] / output_ratio[1])
+    elif scale is not None:
+        if isinstance(scale, list) or isinstance(scale, tuple):
+            # Define a random scale between the given bounds
+            scale = np.random.randint(*scale)
+        # Calculate the height and width of the cropped patch
+        dx = int(image.shape[1] * scale)
+        dy = int(image.shape[0] * scale)
+    else:
+        # Set the crop size to the size of the image
+        dx, dy = image.shape[0:2]
+
+    # Define the coordinates of the crop
+    x0 = np.random.randint(0, image.shape[1] - dx)
+    y0 = np.random.randint(0, image.shape[0] - dy)
+    x1 = x0 + dx
+    y1 = y0 + dy
+
+    # Store the parameters that were selected
+    transform = {
+        "name": "crop",
+        "method": crop,
+        "coords": (x0, y0, x1, y1)
+        }
+
+    # Return the cropped image and transform kwargs
+    return crop(image, (x0, y0, x1, y1)), transform
+
+
+def crop(image, coords):
+    """
+    :param image:
+    :param coords:
+    :return:
+    """
+    x0, y0, x1, y1 = coords
+    return image[y0: y1, x0: x1, ...], None
 
 
 def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> Tuple[Any, dict]:
