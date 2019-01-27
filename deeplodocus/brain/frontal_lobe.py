@@ -438,7 +438,7 @@ class FrontalLobe(object):
 
                 # Add to the dictionary of metrics and notify of success
                 metrics[str(key)] = Metric(name=str(key), method=method)
-                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOSS_LOADED % (key, config.name, module))
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, config.name, module))
 
             # Initialise class of metrics
             self.metrics = Metrics(metrics)

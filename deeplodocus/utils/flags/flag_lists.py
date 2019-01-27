@@ -7,7 +7,7 @@ from deeplodocus.utils.flags.transformer import *
 from deeplodocus.utils.flags.shuffle import *
 from deeplodocus.utils.flags.save import *
 from deeplodocus.utils.flags.verbose import *
-
+from deeplodocus.utils.flags.event import *
 
 # DATA TYPES
 DEEP_LIST_DTYPE = [DEEP_DTYPE_IMAGE,

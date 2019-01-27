@@ -11,3 +11,7 @@ async def index(request):
 async def test(request):
     return {'name': 'Andrew',
             'surname': 'Svetlov'}
+
+@aiohttp_jinja2.template('monitor.html')
+async def monitor(request):
+    return {}
