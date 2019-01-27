@@ -404,7 +404,7 @@ class FrontalLobe(object):
                     metric_path = "%s : %s from %s" % (key, config.name, config.module)
 
                 # Notify the user which loss is being collected and from where
-                Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOSS_LOADING % metric_path)
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_LOADING % metric_path)
 
                 # Get the metric object
                 metric, module = get_module(
@@ -425,7 +425,7 @@ class FrontalLobe(object):
 
                 # Add to the dictionary of metrics and notify of success
                 metrics[str(key)] = Metric(name=str(key), method=method)
-                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOSS_LOADED % (key, config.name, module))
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, config.name, module))
 
             # Initialise class of metrics
             self.metrics = Metrics(metrics)
