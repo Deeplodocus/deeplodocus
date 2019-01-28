@@ -35,7 +35,7 @@ setup(
                       'pandas>=0.23.1',
                       'matplotlib>=2.2.2',
                       'aiohttp>=3.4.0',
-                      'aiohttp_jinja2>=1.1.0'
+                      'aiohttp_jinja2>=1.1.0',
                       'psutil>=5-4.8'],
     extras_require={
         "cv2": ["opencv-python >= 3.4.1"]
