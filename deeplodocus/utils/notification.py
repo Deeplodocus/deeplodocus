@@ -441,4 +441,5 @@ class Notification(object):
         Logs(
             log_type=DEEP_LOG_NOTIFICATION,
             directory=get_main_path(),
-            extension=DEEP_EXT_LOGS).add(message)
+            extension=DEEP_EXT_LOGS
+        ).add(message)
