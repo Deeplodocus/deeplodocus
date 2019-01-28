@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional
 
 from deeplodocus.utils import get_main_path
-import deeplodocus.data.transforms as deep_tfm
+import deeplodocus.app.transforms as deep_tfm
 import deeplodocus.app.optimizers as deep_optim
 import deeplodocus.app.models as deep_models
 import deeplodocus.app.losses as deep_losses
