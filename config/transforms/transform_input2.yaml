@@ -1,0 +1,41 @@
+#___________________________________
+#
+# ---- TRANSFORM SOMEOF EXAMPLE ----
+# __________________________________
+#
+
+method: "someof"
+name: "SomeOf example"
+num_transformations : 3             #If used, comment "num_transformations_min" and  "num_transformations_max"
+#num_transformations_min : 1        #If used, comment "num_transformations"
+#num_transformations_max : 5        #If used, comment "num_transformations"
+
+
+mandatory_transforms:
+#    #  - resize :
+#    #      shape : [512, 512, 3]
+#    #      keep_aspect : True
+#    #      padding : 0
+  normalize_image:
+      name: "normalize_image"
+      kwargs:
+        mean: [128, 128, 128]
+        standard_deviation: 255
+
+transforms:
+  blur :
+    # module: "" #optional
+    name: "blur"
+    kwargs:
+      kernel_size : 3
+  random blur :
+    # module :"" # optional
+    name : "random_blur"
+    kwargs:
+      kernel_size_min: 15
+      kernel_size_max : 21
+  example_function:
+    # module : "" # optional
+    name : "example_function"
+    kwargs :
+      parameters : 1

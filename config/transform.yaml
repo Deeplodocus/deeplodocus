@@ -1,0 +1,30 @@
+train:
+  name: "Train Transform Manager"
+  inputs:
+   - "./config/transforms/transform_input1.yaml"
+   - Null
+  labels:
+   - Null
+   - Null
+  additional_data:
+   - Null
+validation:
+  name: "Validation Transform Manager"
+  inputs:
+   - "./config/transforms/transform_input1.yaml"
+   - "*input:0"
+  labels:
+   - Null
+   - Null
+  additional_data:
+   - Null
+test:
+  name: "Test Transform Manager"
+  inputs:
+   - Null
+   - Null
+  labels:
+   - Null
+   - Null
+  additional_data:
+   - Null
