@@ -1,4 +1,0 @@
-#module: "modules.models.TestNet"
-name: "TestNet2"
-input_size : [3, 216, 384]
-kwargs:
