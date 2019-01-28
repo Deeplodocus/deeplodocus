@@ -1,0 +1,18 @@
+CrossEntropyLoss1:
+  #module: "torch.nn"  Optional line
+  name : CrossEntropyLoss
+  #kwargs:
+    #class_weights: [0, 1]
+
+
+CrossEntropyLoss2:
+  #module: "torch.nn"  Optional line
+  name : CrossEntropyLoss
+  #kwargs:
+    #class_weights: [0, 1]
+
+Accuracy:
+  #module: "modules.metrics.accuracy" # Optional line
+  name : accuracy
+  #kwargs:
+    #class_weights: [0, 1]
