@@ -11,6 +11,7 @@ from deeplodocus.utils.generic_utils import generate_random_alphanumeric
 
 # Deeplodocus flags
 from deeplodocus.utils.flags.save import *
+from deeplodocus.utils.flags.event import *
 from deeplodocus.utils.flags.verbose import DEEP_VERBOSE_BATCH
 from deeplodocus.utils.flags import *
 

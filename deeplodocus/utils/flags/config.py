@@ -85,6 +85,10 @@ DEEP_CONFIG = {
         }
     },
     DEEP_CONFIG_MODEL: {
+        "from_file": {
+            DEEP_CONFIG_DTYPE: bool,
+            DEEP_CONFIG_DEFAULT: False
+        },
         "module": {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: None,
@@ -101,7 +105,7 @@ DEEP_CONFIG = {
         },
         "kwargs": {
             DEEP_CONFIG_DTYPE: dict,
-            DEEP_CONFIG_DEFAULT: None,
+            DEEP_CONFIG_DEFAULT: {},
             DEEP_CONFIG_INIT: {
                 "num_classes": 1000,
                 "pretrained": True

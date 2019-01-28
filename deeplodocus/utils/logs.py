@@ -136,11 +136,12 @@ class Logs(object):
         # We need a timestamp to give the log file a unique name.
         # The timestamp from the last line of the log file is preferred over datetime.now() ...
         # because we may be cleaning up and closing an old logfile from a previous, interrupted run.
-        time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        with open(self.__get_path(), "r") as file:
+            timestamp = file.readline().split(".")[0].replace(":", "-").replace(" ", "_")
         old_path = self.__get_path()
         self.directory = self.directory if new_directory is None else new_directory
         os.makedirs(self.directory, exist_ok=True)
-        new_path = self.__get_path(time)
+        new_path = self.__get_path(timestamp)
         shutil.move(old_path, new_path)
 
     def __check_exists(self) -> None:

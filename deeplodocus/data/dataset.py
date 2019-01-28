@@ -4,6 +4,7 @@ import numpy as np
 from typing import List
 from typing import Union
 from typing import Any
+import random
 
 # Deeplodocus imports
 from deeplodocus.data.entry import Entry
@@ -879,6 +880,12 @@ class Dataset(object):
         # BATCHES
         elif DEEP_SHUFFLE_BATCHES.corresponds(info=method):
             Notification(DEEP_NOTIF_ERROR, "Batch shuffling not implemented yet.")
+
+        # RANDOM PICK
+        elif DEEP_SHUFFLE_RANDOM_PICK.corresponds(info=method):
+            self.item_order = random.sample(range(0, self.number_raw_instances), self.length)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_SHUFFLE_COMPLETE % method.name)
+
 
         # WRONG FLAG
         else:

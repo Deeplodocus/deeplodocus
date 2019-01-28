@@ -132,9 +132,11 @@ DEEP_MSG_NOTIF_UNKNOWN = "Unknown notification type : %s"
 
 # DEEP_FATAL
 DEEP_MSG_MODEL_NOT_FOUND = "Model not found : %s"
+DEEP_MSG_MODEL_NO_FILE = "No model file was given"
+DEEP_MSG_MODEL_FILE_NOT_FOUND = "Model file not found : %s"
 
 # DEEP_SUCCESS
-DEEP_MSG_MODEL_LOADED = "Model loaded : %s from %s"
+DEEP_MSG_MODEL_LOADED = "Model loaded : %s"
 
 # DEEP_INFO
 DEEP_MSG_MODEL_LOADING = "Loading model : %s"

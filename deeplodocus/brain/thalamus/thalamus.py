@@ -43,7 +43,7 @@ class Thalamus(metaclass=Singleton):
         Initialize connections with a dictionary (values are sets)
         """
         self.signals = multiprocessing.Manager().Queue()                   # To be used once asynchronous brain is implemented
-        self.connections = {}                          # Connections store in a dictionary
+        self.connections = {}                                              # Connections store in a dictionary
         Notification(DEEP_NOTIF_SUCCESS, "Brain : Thalamus running")
 
     def add_signal(self, signal: Signal) -> None:
@@ -190,6 +190,24 @@ class Thalamus(metaclass=Singleton):
         # Else display an error notification
         else:
             Notification(DEEP_NOTIF_ERROR, "The following event '%s' is not connected to any receiver." % str(event.get_description()))
+
+
+    def send_to_pipe(self, signal : Signal, receiver : callable) -> Signal:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Send a signal through a pipe and expect a direct response from the receiving pipe end
+
+        PARAMETERS:
+        -----------
+        :return:
+        """
 
     @staticmethod
     def keep_arguments(receiver: callable, expected_arguments: list, arguments: dict) -> dict:

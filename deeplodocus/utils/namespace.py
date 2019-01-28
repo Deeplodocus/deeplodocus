@@ -70,13 +70,14 @@ class Namespace(object):
         """
         return copy.deepcopy(self)
 
-    def get_all(self):
+    def get_all(self, ignore=None):
         """
         Author: SW
         :return: Self and all sub-spaces as a dictionary
         """
         dictionary = {}
-        for key, item in self.__dict__.items():
+        ignore = [] if ignore is None else ignore
+        for key, item in self.__remove_keys(self.__dict__, ignore).items():
             if isinstance(item, Namespace):
                 dictionary[key] = item.get_all()
             elif isinstance(item, list):
