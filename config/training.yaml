@@ -1,8 +1,0 @@
-num_epochs : 2
-initial_epoch : 0
-shuffle : 1
-save_condition : 2
-save_method : 1
-overwatch:
-  name: "total loss"
-  condition: "smaller"
