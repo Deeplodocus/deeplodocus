@@ -37,7 +37,7 @@ class Transformer(object):
     The transformer loads the transforms in memory and allows the data to be transformed
     """
 
-    def __init__(self, name, mandatory_transforms : Union[Namespace, List[dict]], transforms: Union[Namespace, List[dict]]):
+    def __init__(self, name, mandatory_transforms_start : Union[Namespace, List[dict]], transforms: Union[Namespace, List[dict]], mandatory_transforms_end : Union[Namespace, List[dict]]):
         """
         AUTHORS:
         --------
@@ -67,7 +67,9 @@ class Transformer(object):
 
         # List of transforms
         self.list_transforms = self.__fill_transform_list(transforms)
-        self.list_mandatory_transforms = self.__fill_transform_list(mandatory_transforms)
+        self.list_mandatory_transforms_start = self.__fill_transform_list(mandatory_transforms_start)
+        self.list_mandatory_transforms_end = self.__fill_transform_list(mandatory_transforms_end)
+
 
     def summary(self):
         """
@@ -94,17 +96,24 @@ class Transformer(object):
 
         Notification(DEEP_NOTIF_INFO, "Transformer '" + str(self.__name) + "' summary :")
 
-        # MANDATORY TRANSFORMS
-        if len(self.list_mandatory_transforms) > 0:
-            Notification(DEEP_NOTIF_INFO, " Mandatory transforms :")
-            for t in self.list_mandatory_transforms:
-                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Method : " + str(t["method"]))
+        # MANDATORY TRANSFORMS START
+        if len(self.list_mandatory_transforms_start) > 0:
+            Notification(DEEP_NOTIF_INFO, " Mandatory transforms at start:")
+            for t in self.list_mandatory_transforms_start:
+                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Module path: " + str(t["module_path"]))
 
         # TRANSFORMS
         if len(self.list_transforms) > 0:
             Notification(DEEP_NOTIF_INFO, " Transforms :")
             for t in self.list_transforms:
-                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Method : " + str(t["method"]))
+                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Module path: " + str(t["module_path"]))
+
+
+        # MANDATORY TRANSFORMS END
+        if len(self.list_mandatory_transforms_end) > 0:
+            Notification(DEEP_NOTIF_INFO, " Mandatory transforms at end:")
+            for t in self.list_mandatory_transforms_end:
+                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Module path: " + str(t["module_path"]))
 
     def get_pointer(self) -> Tuple[Optional[Flag], Optional[int]]:
         """
@@ -234,6 +243,7 @@ class Transformer(object):
         for transform in transforms:
             transform_name = transform["name"]
             transform_method = transform["method"]  # Create a generic alias for the transform method
+            transform_module_path = transform["module_path"]
             transform_args = transform["kwargs"]  # Dictionary of arguments
             try:
                 transformed_data, last_method_used = transform_method(transformed_data, **transform_args)
@@ -244,7 +254,10 @@ class Transformer(object):
                 )
             # Update the last transforms used and the last index
             if last_method_used is None:
-                self.last_transforms.append({"name": transform_name, "method": transform_method, "kwargs": transform_args})
+                self.last_transforms.append({"name": transform_name,
+                                             "method": transform_method,
+                                             "module_path": transform_module_path,
+                                             "kwargs": transform_args})
 
             else:
                 self.last_transforms.append(last_method_used)
@@ -327,30 +340,6 @@ class Transformer(object):
         else:
             Notification(DEEP_NOTIF_FATAL, "This transformation function does not exist : " + str(transformation))
         return image
-
-    def random_blur(self, image, kernel_size_min, kernel_size_max):
-
-        kernel_size = (random.randint(kernel_size_min//2, kernel_size_max//2)) * 2 + 1
-        image, _ = self.blur(image, kernel_size)
-        transform =  ["blur", self.blur, {"kernel_size": kernel_size}]
-        return image, transform
-
-    def blur(self, image, kernel_size):
-        #kernel = tuple(int(kernel_size), int(kernel_size))
-        kernel = (int(kernel_size), int(kernel_size))
-        image = cv2.blur(image, kernel)
-        return image, None
-
-    def normalize_video(self, video):
-        """
-        Author: Alix Leroy
-        :param video: sequence of frames
-        :return: a normalized sequence of frames
-        """
-
-        video = [self.normalize_image(frame) for frame in video]
-
-        return video
 
     @staticmethod
     def has_transforms():

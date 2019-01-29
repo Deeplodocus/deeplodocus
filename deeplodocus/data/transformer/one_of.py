@@ -1,4 +1,5 @@
 import random
+from typing import Any
 
 from deeplodocus.data.transformer.transformer import Transformer
 
@@ -39,7 +40,7 @@ class OneOf(Transformer):
         """
         Transformer.__init__(self, name, mandatory_transforms, transforms)
 
-    def transform(self, transformed_data, index):
+    def transform(self, transformed_data: Any, index: int, augment: bool):
         """
         AUTHORS:
         --------
@@ -56,6 +57,8 @@ class OneOf(Transformer):
 
         :param data: The data to transform
         :param index: The index of the data
+        :param augment(bool): Whether to apply non mondatory transforms to the instance
+
 
         RETURN:
         -------
@@ -67,9 +70,13 @@ class OneOf(Transformer):
             transforms += self.last_transforms
 
         else: # Get ALL the mandatory transforms + one transform randomly selected
-            transforms += self.list_mandatory_transforms                                    # Get the mandatory transforms
-            random_transform_index = random.randint(0, len(self.list_transforms) -1)        # Get a random transform among the ones available in the list
-            transforms += self.list_transforms[random_transform_index]                      # Get the one function
+            transforms += self.list_mandatory_transforms_start                                    # Get the mandatory transforms at the start
+
+            if augment is True:
+                random_transform_index = random.randint(0, len(self.list_transforms))        # Get a random transform among the ones available in the list
+                transforms += self.list_transforms[random_transform_index]                      # Get the one function
+            transforms += self.list_mandatory_transforms_end                                    # Get the mandatory transforms at the end
+
 
         # Reinitialize the last transforms
         self.last_transforms = []

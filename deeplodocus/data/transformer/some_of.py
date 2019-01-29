@@ -46,23 +46,23 @@ class SomeOf(Transformer):
 
         # Compute the number of transformation required
         if number_transformations is None :
-            self.number_transformation = None
+            self.num_transformations = None
 
             if number_transformations_min is None:
-                self.number_transformations_min = 1
+                self.num_transformations_min = 1
             else:
-                self.number_transformations_min = int(number_transformations_min)
+                self.num_transformations_min = int(number_transformations_min)
 
             if num_transformations_max is None:
-                self.number_transformations_max = len(self.list_transforms)
+                self.num_transformations_max = len(self.list_transforms)
             else:
-                self.number_transformations_max = int(num_transformations_max)
+                self.num_transformations_max = int(num_transformations_max)
         else:
-            self.number_transformation = number_transformations
-            self.number_transformation_min = None
-            self.number_num_transformations_max = None
+            self.num_transformations = number_transformations
+            self.num_transformations_min = None
+            self.num_transformations_max = None
 
-    def transform(self, transformed_data: Any, index: int) -> Any:
+    def transform(self, transformed_data: Any, index: int, augment: bool) -> Any:
         """
         AUTHORS:
         --------
@@ -79,6 +79,7 @@ class SomeOf(Transformer):
 
         :param transformed_data: The data to transform
         :param index: The index of the data
+        :param augment(bool): Whether to apply non mondatory transforms to the instance
 
         RETURN:
         -------
@@ -91,23 +92,28 @@ class SomeOf(Transformer):
             transforms += self.last_transforms
 
         else:
-            # Add the mandatory transforms
-            transforms += self.list_mandatory_transforms
+            # Add the mandatory transforms at start
+            transforms += self.list_mandatory_transforms_start
 
-            # If an exact number of transformations is defined
-            if self.__number_transformation is not None:
-                number_transforms_applied = self.number_transformation
+            # If we want to applied transforms
+            if augment is True:
+                # If an exact number of transformations is defined
+                if self.num_transformations is not None:
+                    number_transforms_applied = self.num_transformations
 
-            # Else pick a random number between the boundaries
-            else:
-                number_transforms_applied = random.randint(self.number_transformations_min, self.number_transformations_max)
+                # Else pick a random number between the boundaries
+                else:
+                    number_transforms_applied = random.randint(self.num_transformations_min, self.num_transformations_max)
 
-            # Select random transforms from the list
-            index_transforms_applied = random.sample(range(len(self.list_transforms)), number_transforms_applied ).sort()       # Sort the list numerically
+                # Select random transforms from the list
+                index_transforms_applied = random.sample(range(len(self.list_transforms)), number_transforms_applied ).sort()       # Sort the list numerically
 
-            # Add the randomly selected transforms to the transform list
-            for index in index_transforms_applied:
-                transforms.append(self.list_transforms[index])
+                # Add the randomly selected transforms to the transform list
+                for index in index_transforms_applied:
+                    transforms.append(self.list_transforms[index])
+
+            # Apply mandatory transforms at the end
+            transforms += self.list_mandatory_transforms_end
 
         # Reinitialize the last transforms
         self.last_transforms = []
