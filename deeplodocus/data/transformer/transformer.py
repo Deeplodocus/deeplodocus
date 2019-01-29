@@ -200,6 +200,7 @@ class Transformer(object):
                     module=transform["module"],
                     browse=DEEP_MODULE_TRANSFORMS
                 )
+
                 loaded_transforms.append({"name": transform["name"],
                                           "method": module,
                                           "module_path": module_path,

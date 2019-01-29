@@ -18,7 +18,7 @@ class Sequential(Transformer):
     Sequential class inheriting from Transformer which compute the list of transforms sequentially
     """
 
-    def __init__(self, name, mandatory_transforms, transforms):
+    def __init__(self, name, mandatory_transforms_start, transforms, mandatory_transforms_end):
         """
         AUTHORS:
         --------
@@ -40,7 +40,7 @@ class Sequential(Transformer):
 
         :return: None
         """
-        Transformer.__init__(self, name, mandatory_transforms, transforms)
+        Transformer.__init__(self, name, mandatory_transforms_start, transforms, mandatory_transforms_end)
 
     def transform(self, transformed_data: Any, index: int, augment: bool) -> Any:
         """

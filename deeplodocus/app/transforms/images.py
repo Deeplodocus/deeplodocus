@@ -62,6 +62,7 @@ def random_crop(image, output_size=None, output_ratio=None, scale=None):
     transform = {
         "name": "crop",
         "method": crop,
+        "module_path": __name__,
         "coords": (x0, y0, x1, y1)
         }
 
@@ -110,6 +111,7 @@ def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> 
     image, _ = blur(image, kernel_size)
     transform = {"name": "blur",
                  "method": blur,
+                 "module_path": __name__,
                  "kwargs": {"kernel_size": kernel_size}}
     return image, transform
 
@@ -295,6 +297,7 @@ def random_channel_shift(image: np.array, shift: int) ->Tuple[np.array, dict]:
     image, _ = channel_shift(image, shift)
     transform = {"name": "channel_shit",
                  "method": channel_shift,
+                 "module_path": __name__,
                  "kwargs": {"shift": shift}}
     return image, transform
 
@@ -327,6 +330,7 @@ def random_rotate(image: np.array):
     image, _ = rotate(image, angle)
     transform = {"name": "rotate",
                  "method": rotate,
+                 "module_path": __name__,
                  "kwargs": {"angle": angle}}
     return image, transform
 
@@ -360,6 +364,7 @@ def semi_random_rotate(image: np.array, angle: float):
     image, _ = rotate(image, angle)
     transform = {"name": "rotate",
                  "method": rotate,
+                 "module_path": __name__,
                  "kwargs": {"angle": angle}}
     return image, transform
 
