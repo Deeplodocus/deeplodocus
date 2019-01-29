@@ -507,3 +507,31 @@ def median_blur(image: np.array, kernel_size: int) -> Tuple[np.array, None]:
     :return:
     """
     return cv2.medianBlur(image, int(kernel_size)), None
+
+
+def bilateral_blur(image: np.array, diameter: int, sigma_color: int, sigma_space: int) -> Tuple[np.array, None]:
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Apply an bilateral blur to the image
+
+    PARAMETERS:
+    -----------
+
+    :param image:
+    :param diameter:
+    :param sigma_color:
+    :param sigma_space:
+
+    RETURN:
+    -------
+
+    :return:
+    """
+    return cv2.bilateralFilter(image, diameter, sigma_color, sigma_space), None

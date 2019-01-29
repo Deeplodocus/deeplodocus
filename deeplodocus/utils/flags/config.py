@@ -89,6 +89,10 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DTYPE: bool,
             DEEP_CONFIG_DEFAULT: False
         },
+        "file": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: ""
+        },
         "module": {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: None,
@@ -139,8 +143,8 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DEFAULT: "default"
         },
         "memorize": {
-            DEEP_CONFIG_DTYPE: int,
-            DEEP_CONFIG_DEFAULT: 1
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "batch"
         }
     },
     DEEP_CONFIG_TRAINING: {
