@@ -39,7 +39,7 @@ class Dataset(object):
         - Data transform (through the TransformManager class)
 
 
-    The dataset is splitted into 3 subsets :
+    The dataset is split into 3 subsets :
         - Inputs : Data given as input to the network
         - Labels : Data given as output (ground truth) to the network (optional)
         - Additional data : Data given to the loss function (optional)
