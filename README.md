@@ -141,12 +141,15 @@ The Deeplodocus team develops a web interface permitting to :
 Deeplodocus comes with a notification system. The current system is composed of 5 different notification categories :
 
 - Info (blue) : Display a generic information to the user (default)
+- Debug (Cyan) : Debug message (not visible for the end user)
 - Success (green) : Display a successful action result
 - Warning (yellow) : Display a warning
 - Error (red) : Display a no-blocking error to the user
 - Fatal error (white with red background) : Display a blocking error to the user. Stops the brain
 - Result (white) : Display a training result
 - Input (Blanking white) : Ask the user for an keyboard input
+- Love<3 (Pink) : Exit message
+- 
 
 All notifications are saved into a log file in `logs/notification-datetime.logs`
 
@@ -173,37 +176,69 @@ data.yaml
 #
 
 dataloader:
-  batch_size: 4                                                                     # Number of instances loaded in on batch
-  num_workers: 4                                                                    # Number of processes or threads used for loading the data in memory
-
+  batch_size: 4
+  num_workers: 4
+enabled:
+  train: True
+  validation: True
+  test: True
 dataset:
-  train:                                                                              # Training entries
-      inputs :
-        - ["input1-1.txt", "input1-2.txt"]
-        - "input2.txt"
-      labels :
-        - "labels1.txt"
-        - "labels2.txt"
-      additional_data:
-        - "additional.txt"
-  validation:                                                                        # Validation entries
-      inputs:
-        - ["input1-1.txt", "input1-2.txt"]
-        - "input2.txt"
-      labels:
-        - "labels1.txt"
-        - "labels2.txt"
-      additional_data:
-        - "additional.txt"
-  test:                                                                               # Test entries
-      inputs:
-        - ["input1-1.txt", "input1-2.txt"]
-        - "input2.txt"
-      labels:
-        - "labels1.txt"
-        - "labels2.txt"
-      additional_data:
-        - "additional.txt"
+  train:
+    name: "Train set"
+    number: 100
+    inputs:
+      - source: ['../../data/input1.txt']
+        join: ["../../data/"] # Null, auto, "some/path"      # (Optional) Null, auto, "some/path"
+        type: "image"                             # (Optional) image, video, integer, label,
+        load_method: "default" #default (online), offline, online
+      - source: ['../../data/input2.txt']
+        join: ["../../data/"]                                # (Optional) Null, auto, "some/path"
+        type: "image"                             # (Optional) image, video, integer, label,
+        load_method: "default" #default (online), offline, online
+    labels:
+      - source: ['../../data/label1.txt']
+        join: Null
+        type: "integer"
+        load_method: "default" #default (online), offline, online
+    additional_data:
+      - Null
+  validation:
+    name: "Validation set"
+    number : 7
+    inputs:
+      - source: ['../../data/input1.txt']
+        join: Null # Null, auto, "some/path"      # (Optional) Null, auto, "some/path"
+        type: "image"                             # (Optional) image, video, integer, label,
+        load_method: "default" #default (online), offline, online
+      - source: ['../../data/input2.txt']
+        join: Null                                # (Optional) Null, auto, "some/path"
+        type: "image"                             # (Optional) image, video, integer, label,
+        load_method: "default" #default (online), offline, online
+    labels:
+      - source: ['../../data/label1.txt']
+        type: "integer"
+        load_method: "default" #default (online), offline, online
+    additional_data:
+      - Null
+  test:
+    name: "Test set"
+    number : 7
+    inputs:
+      - source: ['../../data/input1.txt']
+        join: Null # Null, auto, "some/path"      # (Optional) Null, auto, "some/path"
+        type: "image"                             # (Optional) image, video, integer, label,
+        load_method: "default" #default (online), offline, online
+      - source: ['../../data/input2.txt']
+        join: Null                                # (Optional) Null, auto, "some/path"
+        type: "image"                             # (Optional) image, video, integer, label,
+        load_method: "default" #default (online), offline, online
+    labels:
+      - source: ['../../data/label1.txt']
+        type: "integer"
+        load_method: "default" #default (online), offline, online
+    additional_data:
+      - Null
+
 ```
 
 Deeplodocus accepts to load data referenced in text files (images path, video path, numbers, text, numpy array path, etc...) and also files inside folder.
@@ -217,11 +252,11 @@ NOTE: Relative paths are relative to the main file
 
 train:
     inputs:
-      - "input1.txt"            # Works
+      - source: "input1.txt"            # Works
 
 train:
     inputs:
-      - "./path_to_folder/"     # Works as well
+      - source: "./path_to_folder/"     # Works as well
 ```
 
 
@@ -233,8 +268,9 @@ If you have multiple entries, please add the item below:
 
 train:
     inputs:
-      - "input1.txt"            # Input 1
-      - "input2.txt"            # Input 2
+      - source: "input1.txt"  # Input 1
+      - source: "input2.txt"  # Input 2 
+
 ```
 
 If one entry is split in to different location, you can merge these to sources in one using brackets:
@@ -244,8 +280,8 @@ If one entry is split in to different location, you can merge these to sources i
 
 train:
     inputs:
-      - ["input1-1.txt", "input1-2.txt"]            # Input 1 = input1-1 + input1-2
-      - "input2.txt"                                # Input 2
+      - source: ["input1-1.txt", "input1-2.txt"]            # Input 1 = input1-1 + input1-2
+      - source: "input2.txt"                                # Input 2
 ```
 
  
@@ -401,26 +437,46 @@ Here is an example of config file for a `SomeOf` transformer:
 
 ```yaml
 # someof_example.yaml
-
-#___________________________________
+# _________________________________
 #
-# ---- TRANSFORM SOMEOF EXAMPLE ----
-# __________________________________
+# ---- TRANSFORM SOME OF EXAMPLE ----
+# _________________________________
 #
 
 method: "someof"
-name: "SomeOf example"
-num_transformations : 3             #If used, comment "num_transformations_min" and  "num_transformations_max"
-#num_transformations_min : 1        #If used, comment "num_transformations"
-#num_transformations_max : 5        #If used, comment "num_transformations"
+name: "Some Of example"
+
+mandatory_transforms_start:
+    - name: "resize"
+      # module : "deeplodocus.app.transforms.image"
+      kwargs:
+          shape : [512, 512, 3]
+          keep_aspect : True
+          padding : 0
+
 
 transforms:
-  - blur :
-      kernel_size : 3
-  - random_blur:
-      kernel_size_min: 15
-      kernel_size_max : 21
+    - # module: "" #optional
+      name: "blur"
+      kwargs:
+        kernel_size : 3
+    - # module :"" # optional
+      name : "random_blur"
+      kwargs:
+        kernel_size_min: 15
+        kernel_size_max : 21
+    - # module : "" # optional
+      name : "example_function"
+      kwargs :
+        parameters : 1
 
+
+mandatory_transforms_end:
+      - name: "normalize_image"
+        #module:
+        kwargs:
+          mean: [127.5, 127.5, 127.5]
+          standard_deviation: 255
 
 ```
 
