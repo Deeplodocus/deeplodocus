@@ -132,7 +132,6 @@ class GenericInferer(object):
 
         return num_minibatches
 
-
     def get_num_minibatches(self):
         """
         AUTHORS:

@@ -299,7 +299,7 @@ class History(object):
             )
             Notification(DEEP_NOTIF_RESULT, "%s : %s" % (TRAINING, print_metrics))
             
-            if self.memorize >= DEEP_MEMORIZE_BATCHES:
+            if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize):
                 data = [datetime.datetime.now().strftime(TIME_FORMAT),
                         self.__time(),
                         epoch_index,
