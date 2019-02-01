@@ -7,6 +7,7 @@ from deeplodocus.utils.flags.module import DEEP_MODULE_MODELS
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags.notif import *
+from deeplodocus.utils.flags.msg import DEEP_MSG_MODEL_CHECK_CHANNELS
 
 
 def load_model(
@@ -121,7 +122,19 @@ def load_model(
             self.apply(register_hook)
 
             # Make a forward pass
-            self.forward(*x)
+            try:
+                self.forward(*x)
+            except RuntimeError as e:
+                if "channels" in str(e):
+                    Notification(
+                        DEEP_NOTIF_FATAL,
+                        str(e),
+                        solutions=[
+                            DEEP_MSG_MODEL_CHECK_CHANNELS
+                        ]
+                    )
+                else:
+                    Notification(DeprecationWarning, str(e))
 
             # Remove these hooks
             for h in hooks:
@@ -192,6 +205,9 @@ def load_model(
     # Send to the appropriate device
     model.to(device)
 
+    # inp = torch.zeros((2, 3, 416, 416)).to(model.device)
+    # output = model(inp)
+    # print(output.shape)
     return model
 
 

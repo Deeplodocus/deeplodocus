@@ -235,18 +235,24 @@ def is_np_array(data):
         return False
 
 
-def get_specific_module(name, module):
+def get_specific_module(name, module, silence=False, fatal=False):
     """
     Author: Samuel Westlake
     :param module: str: path to the module (separated by '.')
     :param name: str: name of the item to be imported
+    :param silence: bool
+    :param fatal:
     :return:
     """
     local = {"module": None}
     try:
         exec("from %s import %s\nmodule = %s" % (module, name, name), {}, local)
-    except ImportError:
-        pass
+    except ImportError as e:
+        if not silence:
+            notif = DEEP_NOTIF_FATAL if fatal else DEEP_NOTIF_WARNING
+            # Capitalize first letter only (e.capitalize() seems to make subsequent letters lowercase)
+            e = str(e)[0].capitalize() + str(e)[1:]
+            Notification(notif, e)
     return local["module"]
 
 
