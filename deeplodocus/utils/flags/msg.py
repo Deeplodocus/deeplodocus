@@ -134,6 +134,7 @@ DEEP_MSG_NOTIF_UNKNOWN = "Unknown notification type : %s"
 DEEP_MSG_MODEL_NOT_FOUND = "Model not found : %s"
 DEEP_MSG_MODEL_NO_FILE = "No model file was given"
 DEEP_MSG_MODEL_FILE_NOT_FOUND = "Model file not found : %s"
+DEEP_MSG_MODEL_CHECK_CHANNELS = "Check that the config/data/input_size corresponds to the number of channels given in config/data/kwargs"
 
 # DEEP_SUCCESS
 DEEP_MSG_MODEL_LOADED = "Model loaded : %s"

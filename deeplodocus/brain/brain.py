@@ -481,7 +481,7 @@ class Brain(FrontalLobe):
                 Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_SET % (sub_space, default))
             new_value = default
         # If value is set
-        else:
+        elif d_type is not dict:
             new_value = convert(value, d_type)
             # If value cannot be converted
             if new_value is None:
@@ -491,7 +491,11 @@ class Brain(FrontalLobe):
                                                                                   self.__get_dtype_name(d_type),
                                                                                   default))
                 new_value = default
-        new_value = Namespace(new_value) if isinstance(new_value, dict) else new_value
+        else:
+            if isinstance(value, Namespace):
+                new_value = value
+            else:
+                new_value = default
         return new_value
 
     def __get_dtype_name(self, d_type):
