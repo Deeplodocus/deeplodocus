@@ -27,7 +27,9 @@ def convert(value, d_type=None):
     if value is None:
         return None
     elif d_type is None:
-        if isinstance(value, list):
+        if value is None:
+            return None
+        elif isinstance(value, list):
             return [convert(item) for item in value]
         else:
             new_value = convert2float(value)
@@ -36,14 +38,11 @@ def convert(value, d_type=None):
                     return int(new_value)
                 else:
                     return new_value
-            new_value = convert2bool(value)
-            if new_value is not None:
-                return new_value
-            new_value = convert2bool(value)
-            if new_value is not None:
-                return new_value
-            else:
-                return str(value)
+            if isinstance(new_value, str) and new_value.lower() in ["true", "false"]:
+                new_value = convert2bool(value)
+                if new_value is not None:
+                    return new_value
+            return str(value)
     elif d_type is str:
         return str(value)
     elif d_type is int:

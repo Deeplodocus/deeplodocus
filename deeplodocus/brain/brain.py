@@ -5,6 +5,7 @@ from deeplodocus import __version__
 from deeplodocus.brain.frontal_lobe import FrontalLobe
 from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.brain.visual_cortex import VisualCortex
+from deeplodocus.utils.dict_utils import convert_dict
 from deeplodocus.utils.flags.cmd import *
 from deeplodocus.utils.flags.config import *
 from deeplodocus.utils.flags.exit import *
@@ -493,7 +494,7 @@ class Brain(FrontalLobe):
                 new_value = default
         else:
             if isinstance(value, Namespace):
-                new_value = value
+                new_value = Namespace(convert_dict(value.get_all()))
             else:
                 new_value = default
         return new_value

@@ -1,6 +1,19 @@
 import operator
 from collections import defaultdict
 
+from deeplodocus.utils.generic_utils import convert
+
+
+def convert_dict(dictionary):
+    converted_dict = {}
+    for key, item in dictionary.items():
+        if isinstance(item, dict):
+            item = convert_dict(item)
+        else:
+            item = convert(item)
+        converted_dict[key] = item
+    return converted_dict
+
 
 def remove_keys(dictionary, keys):
     keys = keys if isinstance(keys, list) else [keys]
