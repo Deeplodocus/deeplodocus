@@ -255,7 +255,7 @@ def get_specific_module(name, module, silence=False, fatal=False):
     return local["module"]
 
 
-def get_module(name: str, module=None, browse=None) -> Union[callable, None]:
+def get_module(name: str, module=None, browse=None, silence=True, fatal=False) -> Union[callable, None]:
     """
     AUTHORS:
     --------
@@ -274,6 +274,8 @@ def get_module(name: str, module=None, browse=None) -> Union[callable, None]:
     :param name: str: the name of the object to load
     :param module: str: the name of the specific module
     :param browse: dict: a DEEP_MODULE dictionary to browse through
+    :param silence: bool: whether or not to print import errors
+    :param fatal: bool: whether or not to raise DeepFatal on failure to find the module
 
     RETURN:
     -------
@@ -281,14 +283,14 @@ def get_module(name: str, module=None, browse=None) -> Union[callable, None]:
     :return module(Union[callable, None]): The loaded module
     """
     if module is not None:
-        return get_specific_module(name, module), module
+        return get_specific_module(name, module, silence=silence, fatal=fatal), module
     elif browse is not None:
-        return browse_module(name, browse)
+        return browse_module(name, browse, silence=silence, fatal=fatal)
     else:
         return None, None
 
 
-def browse_module(name, modules) -> callable:
+def browse_module(name, modules, silence=False, fatal=False) -> callable:
     """
     AUTHORS:
     --------
@@ -330,7 +332,7 @@ def browse_module(name, modules) -> callable:
                 continue
 
             # Try to get the module
-            module = get_specific_module(name, module_path)
+            module = get_specific_module(name, module_path, silence=silence, fatal=fatal)
 
             # If the module exists add it to the list
             if module is not None:
