@@ -170,11 +170,13 @@ class Namespace(object):
         line = ""
         for key, value in self.__dict__.items():
             if isinstance(value, Namespace):
-                line += "%s%s:\n" % (" " * tab_size * tabs, key)
+                line += "%s%s:" % (" " * tab_size * tabs, key)
+                line = line + "\n" if vars(value) else line + " {}\n"
                 line += value.__get_summary(tabs=tabs + 1)
             else:
                 if isinstance(value, list):
-                    line += "%s%s:\n" % (" " * tab_size * tabs, key)
+                    line += "%s%s:" % (" " * tab_size * tabs, key)
+                    line = line + "\n" if value else line + " []\n"
                     for item in value:
                         if isinstance(item, Namespace):
                             item = item.__get_summary(tabs=tabs + 2, tab_size=tab_size).lstrip()

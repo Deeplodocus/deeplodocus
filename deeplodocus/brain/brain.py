@@ -474,29 +474,22 @@ class Brain(FrontalLobe):
         """
         sub_space = [] if sub_space is None else sub_space
         sub_space = DEEP_CONFIG_DIVIDER.join(sub_space)
+
         # If the value is not set
-        if value is None:
-            # If the value needs to be set
-            if default not in [None, {}]:
-                # Notify user that default is being used
-                Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_SET % (sub_space, default))
+        if value is None and default is not None:
+            # Notify user that default is being used
+            Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_SET % (sub_space, default))
             new_value = default
-        # If value is set
-        elif d_type is not dict:
+        elif d_type is dict:
+            new_value = Namespace(convert_dict(value.get_all()))
+        else:
             new_value = convert(value, d_type)
-            # If value cannot be converted
             if new_value is None:
                 # Notify user that default is being used
                 Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_CONVERTED % (sub_space,
                                                                                   value,
                                                                                   self.__get_dtype_name(d_type),
                                                                                   default))
-                new_value = default
-        else:
-            if isinstance(value, Namespace):
-                new_value = Namespace(convert_dict(value.get_all()))
-            else:
-                new_value = default
         return new_value
 
     def __get_dtype_name(self, d_type):
