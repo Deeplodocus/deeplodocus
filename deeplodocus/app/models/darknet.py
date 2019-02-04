@@ -8,9 +8,14 @@ from deeplodocus.app.blocks.resblock import ResBlock
 
 class Darknet53(nn.Module):
 
+    """
+    Original article: https://pjreddie.com/media/files/papers/YOLOv3.pdf
+    """
+
     def __init__(self, num_channels=3, include_top=True, num_classes=80):
         super(Darknet53, self).__init__()
 
+        # Set the number of input channels
         self.num_channels = int(num_channels)
 
         # Whether or not to include classifying layers
@@ -26,7 +31,7 @@ class Darknet53(nn.Module):
             nn.LeakyReLU(negative_slope=0.1)
         )
 
-        # DOWNSAMPLE
+        # DOWNSAMPLE LAYERS
         self.downsample_64 = nn.Sequential(
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=1, bias=False, stride=2),
             nn.BatchNorm2d(64),
@@ -111,7 +116,7 @@ class Darknet53(nn.Module):
         x = self.res_block_256_5(x)     # b x 256 x h/8 x w/8
         x = self.res_block_256_6(x)     # b x 256 x h/8 x w/8
         x = self.res_block_256_7(x)     # b x 256 x h/8 x w/8
-        self.skip[36] = x             # Store activation for skip connection
+        self.skip[36] = x               # Store activation for skip connection
         x = self.downsample_512(x)      # b x 512 x h/16 x w/16
         x = self.res_block_512_0(x)     # b x 512 x h/16 x w/16
         x = self.res_block_512_1(x)     # b x 512 x h/16 x w/16
@@ -121,7 +126,7 @@ class Darknet53(nn.Module):
         x = self.res_block_512_5(x)     # b x 512 x h/16 x w/16
         x = self.res_block_512_6(x)     # b x 512 x h/16 x w/16
         x = self.res_block_512_7(x)     # b x 512 x h/16 x w/16
-        self.skip[61] = x             # Store activation for skip connection
+        self.skip[61] = x               # Store activation for skip connection
         x = self.downsample_1024(x)     # b x 1024 x h/32 x w/32
         x = self.res_block_1024_0(x)    # b x 1024 x h/32 x w/32
         x = self.res_block_1024_1(x)    # b x 1024 x h/32 x w/32
