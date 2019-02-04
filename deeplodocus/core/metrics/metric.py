@@ -1,6 +1,6 @@
 import inspect
 from typing import Union
-from torch.nn import Module
+import torch.nn as nn
 
 from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags.notif import DEEP_NOTIF_FATAL
@@ -21,7 +21,7 @@ class Metric(GenericMetric):
     A class which contains any metric to be computed
 
     """
-    def __init__(self, name: str, method: Union[callable, Module]):
+    def __init__(self, name: str, method: Union[callable, nn.Module]):
         """
         AUTHORS:
         --------
@@ -49,7 +49,7 @@ class Metric(GenericMetric):
         self.arguments = self.__check_arguments(method)
 
     @staticmethod
-    def __check_method(method: Union[callable, Module])->callable:
+    def __check_method(method: Union[callable, nn.Module])->callable:
         """
         AUTHORS:
         --------
@@ -71,7 +71,7 @@ class Metric(GenericMetric):
 
         :return: The method to be computed
         """
-        if isinstance(method, Module):
+        if isinstance(method, nn.Module):
             return method.forward
         else:
             return method
@@ -100,7 +100,7 @@ class Metric(GenericMetric):
         """
         return False
 
-    def __check_arguments(self, method: Union[callable, Module])-> list:
+    def __check_arguments(self, method: Union[callable, nn.Module])-> list:
         """
         AUTHORS:
         --------
@@ -125,10 +125,18 @@ class Metric(GenericMetric):
 
         arguments = []
 
-        if isinstance(method, Module):
+        if isinstance(method, nn.Module):
             arguments_list = inspect.getfullargspec(method.forward)[0]
         else:
-            arguments_list = inspect.getfullargspec(method)[0]
+            try:
+                arguments_list = inspect.getfullargspec(method)[0]
+            except TypeError as e:
+                Notification(
+                    DEEP_NOTIF_FATAL,
+                    "Could not load metric : " + str(e).capitalize(),
+                    solutions=["Ensure module and name are specified correctly in config/metrics",
+                               "If using a custom metric, ensure it is defined correctly"]
+                )
 
         input_list= ["input", "x", "inputs"]
         output_list = ["out", "y_pred", "y_predicted", "output", "outputs"]
@@ -137,7 +145,7 @@ class Metric(GenericMetric):
 
         for arg in arguments_list:
             if arg in input_list:
-                if isinstance(method, Module):
+                if isinstance(method, nn.Module):
                     arguments.append(DEEP_ENTRY_OUTPUT)
                 else:
                     arguments.append(DEEP_ENTRY_INPUT)

@@ -437,7 +437,8 @@ class FrontalLobe(object):
                 metric, module = get_module(
                     name=config.name,
                     module=config.module,
-                    browse={**DEEP_MODULE_METRICS, **DEEP_MODULE_LOSSES}
+                    browse={**DEEP_MODULE_METRICS, **DEEP_MODULE_LOSSES},
+                    silence=True
                 )
 
                 # If metric is not found by get_module
@@ -451,6 +452,7 @@ class FrontalLobe(object):
                     method = metric
 
                 # Add to the dictionary of metrics and notify of success
+                metrics[str(key)] = Metric(name=str(key), method=method)
                 metrics[str(key)] = Metric(name=str(key), method=method)
                 Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, config.name, module))
 
