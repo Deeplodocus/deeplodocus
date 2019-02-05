@@ -86,7 +86,10 @@ def load_model(
                     module_idx = len(summary)
                     m_key = "%s-%i" % (class_name, module_idx + 1)
                     summary[m_key] = OrderedDict()
-                    summary[m_key]["input_shape"] = list(input[0].size())
+                    if isinstance(input[0], list) is True:
+                        summary[m_key]["input_shape"] = list(input[0][0].size())
+                    else:
+                        summary[m_key]["input_shape"] = list(input[0].size())
                     summary[m_key]["input_shape"][0] = self.batch_size
                     if isinstance(output, (list, tuple)):
                         summary[m_key]["output_shape"] = [[-1] + list(o.size())[1:] for o in output]
