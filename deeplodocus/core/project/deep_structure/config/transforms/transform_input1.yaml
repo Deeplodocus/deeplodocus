@@ -12,26 +12,23 @@ mandatory_transforms:
 #    #      shape : [512, 512, 3]
 #    #      keep_aspect : True
 #    #      padding : 0
-  normalize_image:
-      name: "normalize_image"
-      kwargs:
-        mean: [128.0, 128.0, 128.0]
-        standard_deviation: 255
+      - name: "normalize_image"
+        # module : "" optional
+        kwargs:
+          mean: [128.0, 128.0, 128.0]
+          standard_deviation: 255
 
 transforms:
-  blur :
-    # module: "" #optional
-    name: "blur"
-    kwargs:
-      kernel_size : 3
-  random blur :
-    # module :"" # optional
-    name : "random_blur"
-    kwargs:
-      kernel_size_min: 15
-      kernel_size_max : 21
-  example_function:
-    # module : "" # optional
-    name : "example_function"
-    kwargs :
-      parameters : 1
+    - # module: "" #optional
+      name: "blur"
+      kwargs:
+        kernel_size : 3
+    - # module :"" # optional
+      name : "random_blur"
+      kwargs:
+        kernel_size_min: 15
+        kernel_size_max : 21
+    - # module : "" # optional
+      name : "example_function"
+      kwargs :
+        parameters : 1

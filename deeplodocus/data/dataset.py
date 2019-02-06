@@ -39,7 +39,7 @@ class Dataset(object):
         - Data transform (through the TransformManager class)
 
 
-    The dataset is splitted into 3 subsets :
+    The dataset is split into 3 subsets :
         - Inputs : Data given as input to the network
         - Labels : Data given as output (ground truth) to the network (optional)
         - Additional data : Data given to the loss function (optional)
@@ -375,7 +375,11 @@ class Dataset(object):
 
         :return: the formatted data entry
         """
-        if entry.data_type() == DEEP_DTYPE_IMAGE():
+        if DEEP_DTYPE_IMAGE.corresponds(entry.data_type):
+            # Check if no transform return a grayscale image as a 2D image
+            if data_entry.ndim <= 2:
+                data_entry = data_entry[:, :, np.newaxis]
+
             # Make image (ch, h, w)
             data_entry = np.swapaxes(data_entry, 0, 2)
             data_entry = np.swapaxes(data_entry, 1, 2)

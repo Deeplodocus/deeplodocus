@@ -62,6 +62,7 @@ def random_crop(image, output_size=None, output_ratio=None, scale=None):
     transform = {
         "name": "crop",
         "method": crop,
+        "module_path": __name__,
         "coords": (x0, y0, x1, y1)
         }
 
@@ -110,6 +111,7 @@ def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> 
     image, _ = blur(image, kernel_size)
     transform = {"name": "blur",
                  "method": blur,
+                 "module_path": __name__,
                  "kwargs": {"kernel_size": kernel_size}}
     return image, transform
 
@@ -292,6 +294,7 @@ def random_channel_shift(image: np.array, shift: int) ->Tuple[np.array, dict]:
     image, _ = channel_shift(image, shift)
     transform = {"name": "channel_shit",
                  "method": channel_shift,
+                 "module_path": __name__,
                  "kwargs": {"shift": shift}}
     return image, transform
 
@@ -324,6 +327,7 @@ def random_rotate(image: np.array):
     image, _ = rotate(image, angle)
     transform = {"name": "rotate",
                  "method": rotate,
+                 "module_path": __name__,
                  "kwargs": {"angle": angle}}
     return image, transform
 
@@ -357,6 +361,7 @@ def semi_random_rotate(image: np.array, angle: float):
     image, _ = rotate(image, angle)
     transform = {"name": "rotate",
                  "method": rotate,
+                 "module_path": __name__,
                  "kwargs": {"angle": angle}}
     return image, transform
 
@@ -504,3 +509,114 @@ def median_blur(image: np.array, kernel_size: int) -> Tuple[np.array, None]:
     :return:
     """
     return cv2.medianBlur(image, int(kernel_size)), None
+
+
+def bilateral_blur(image: np.array, diameter: int, sigma_color: int, sigma_space: int) -> Tuple[np.array, None]:
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Apply an bilateral blur to the image
+
+    PARAMETERS:
+    -----------
+
+    :param image:
+    :param diameter:
+    :param sigma_color:
+    :param sigma_space:
+
+    RETURN:
+    -------
+
+    :return:
+    """
+    return cv2.bilateralFilter(image, diameter, sigma_color, sigma_space), None
+
+
+def grayscale(image: np.array) -> Tuple[np.array, None]:
+
+    _, _, channels = image.shape
+
+    if channels == 4:
+        image, _ = convert_rgba2bgra(image)
+        return cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY), None
+    elif channels == 3:
+        image, _ = convert_rgba2bgra(image)
+        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), None
+    else:
+        return image, None
+
+
+
+def convert_bgra2rgba(image):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Convert BGR(alpha) image to RGB(alpha) image
+
+    PARAMETERS:
+    -----------
+
+    :param image: image to convert
+
+    RETURN:
+    -------
+
+    :return: a RGB(alpha) image
+    """
+
+    # Get the number of channels in the image
+    _, _, channels = image.shape
+
+    # Handle BGR and BGR(A) images
+    if channels == 3:
+        image = image[:, :, (2, 1, 0)]
+    elif channels == 4:
+        image = image[:, :, (2, 1, 0, 3)]
+    return image, None
+
+
+def convert_rgba2bgra(image):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Convert RGB(alpha) image to BGR(alpha) image
+
+    PARAMETERS:
+    -----------
+
+    :param image: image to convert
+
+    RETURN:
+    -------
+
+    :return: a RGB(alpha) image
+    """
+
+    # Get the number of channels in the image
+    _, _, channels = image.shape
+
+    # Handle RGB and RGB(A) images
+    if channels == 3:
+        image = image[:, :, (2, 1, 0)]
+    elif channels == 4:
+        image = image[:, :, (2, 1, 0, 3)]
+    return image, None

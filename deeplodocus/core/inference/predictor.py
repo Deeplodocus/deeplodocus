@@ -57,13 +57,13 @@ class Predictor(GenericInferer):
 
         :return outputs->dict: the total losses and total metrics for the model over the test data set
         """
-        # Initialise an empty tensor to store outputs
-        outputs = Tensor()
+        # Initialise an empty list to store outputs
+        outputs = []
         for minibatch_index, minibatch in enumerate(self.dataloader, 0):
             inputs, labels, additional_data = self.clean_single_element_list(minibatch)
             # Infer the outputs from the model over the given mini batch
             minibatch_output = self.model(*inputs)
             # Append mini_batch output to the output tensor
-            outputs.cat(minibatch_output.detach())
+            outputs.append(self.recursive_detach(minibatch_output))
         return outputs
 

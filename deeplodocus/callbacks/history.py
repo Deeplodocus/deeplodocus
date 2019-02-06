@@ -14,6 +14,7 @@ from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.utils.logs import Logs
 from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.brain.signal import Signal
+from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 # Deeplodocus flags
 from deeplodocus.utils.flags import *
@@ -22,7 +23,7 @@ from deeplodocus.utils.flags.ext import DEEP_EXT_CSV
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.save import *
 from deeplodocus.utils.flags.verbose import *
-
+from deeplodocus.utils.flags.memorize import *
 
 Num = Union[int, float]
 
@@ -48,7 +49,7 @@ class History(object):
                  train_epochs_filename: str = "history_epochs_training.csv",
                  validation_filename: str = "history_validation.csv",
                  verbose: Flag = DEEP_VERBOSE_BATCH,
-                 memorize: int = DEEP_MEMORIZE_BATCHES,
+                 memorize: Flag = DEEP_MEMORIZE_BATCHES,
                  save_condition: Flag = DEEP_SAVE_SIGNAL_END_EPOCH,
                  overwatch_metric: OverWatchMetric = OverWatchMetric(
                      name = TOTAL_LOSS,
@@ -59,7 +60,7 @@ class History(object):
         self.verbose = verbose
         self.metrics = metrics
         self.losses = losses
-        self.memorize = memorize
+        self.memorize = get_corresponding_flag([DEEP_MEMORIZE_BATCHES, DEEP_MEMORIZE_EPOCHS], info=memorize)
         self.save_condition = save_condition
         self.overwatch_metric = overwatch_metric
 
@@ -235,7 +236,7 @@ class History(object):
             Notification(DEEP_NOTIF_RESULT, "[%i/%i] : %s" % (minibatch_index, num_minibatches, print_metrics))
 
         # Save the data in memory
-        if self.memorize == DEEP_MEMORIZE_BATCHES:
+        if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize):
             # Save the history in memory
             data = [datetime.datetime.now().strftime(TIME_FORMAT),
                     self.__time(),
@@ -244,10 +245,10 @@ class History(object):
                     total_loss] + \
                     [value.item() for (loss_name, value) in result_losses.items()] + \
                     [value for (metric_name, value) in result_metrics.items()]
-
             self.train_batches_history.put(data)
 
-        # Save the history
+
+        # Save the history after 10 batches
         if self.train_batches_history.qsize() > 10:
             self.save(only_batches=True)
 
@@ -299,14 +300,14 @@ class History(object):
             )
             Notification(DEEP_NOTIF_RESULT, "%s : %s" % (TRAINING, print_metrics))
             
-            if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize):
-                data = [datetime.datetime.now().strftime(TIME_FORMAT),
-                        self.__time(),
-                        epoch_index,
-                        self.running_total_loss / num_minibatches] \
-                       + [value.item() / num_minibatches for (loss_name, value) in self.running_losses.items()] \
-                       + [value / num_minibatches for (metric_name, value) in self.running_metrics.items()]
-                self.train_epochs_history.put(data)
+        if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize) or DEEP_MEMORIZE_EPOCHS.corresponds(self.memorize):
+            data = [datetime.datetime.now().strftime(TIME_FORMAT),
+                    self.__time(),
+                    epoch_index,
+                    self.running_total_loss / num_minibatches] \
+                   + [value.item() / num_minibatches for (loss_name, value) in self.running_losses.items()] \
+                   + [value / num_minibatches for (metric_name, value) in self.running_metrics.items()]
+            self.train_epochs_history.put(data)
 
         self.running_total_loss = 0
         self.running_losses = {}
@@ -325,19 +326,18 @@ class History(object):
                 )
                 Notification(DEEP_NOTIF_RESULT, "%s: %s" % (VALIDATION, print_metrics))
 
-            if self.memorize >= DEEP_MEMORIZE_BATCHES:
-                data = [
-                    datetime.datetime.now().strftime(TIME_FORMAT),
-                    self.__time(),
-                    epoch_index,
-                    total_validation_loss / num_minibatches_validation
-                        ] \
-                        + [value.item() / num_minibatches_validation
-                            for (loss_name, value) in result_validation_losses.items()] \
-                        + [value / num_minibatches_validation
-                            for (metric_name, value) in result_validation_metrics.items()]
-
-                self.validation_history.put(data)
+        if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize) or DEEP_MEMORIZE_EPOCHS.corresponds(self.memorize):
+            data = [
+                datetime.datetime.now().strftime(TIME_FORMAT),
+                self.__time(),
+                epoch_index,
+                total_validation_loss / num_minibatches_validation
+                    ] \
+                    + [value.item() / num_minibatches_validation
+                        for (loss_name, value) in result_validation_losses.items()] \
+                    + [value / num_minibatches_validation
+                        for (metric_name, value) in result_validation_metrics.items()]
+            self.validation_history.put(data)
 
         self.__compute_overwatch_metric(
             num_minibatches_training=num_minibatches,

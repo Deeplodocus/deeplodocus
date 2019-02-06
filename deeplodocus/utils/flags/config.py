@@ -89,6 +89,10 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DTYPE: bool,
             DEEP_CONFIG_DEFAULT: False
         },
+        "file": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: ""
+        },
         "module": {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: None,

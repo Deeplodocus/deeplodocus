@@ -533,6 +533,8 @@ class FrontalLobe(object):
         """
         # If the validation step is enabled
         if self.config.data.enabled.validation:
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.validation.name)
+
             # Transform Manager
             transform_manager = TransformManager(**self.config.transform.validation.get())
 
@@ -575,6 +577,7 @@ class FrontalLobe(object):
         """
         # If the test step is enabled
         if self.config.data.enabled.test:
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.test.name)
 
             # Transform Manager
             transform_manager = TransformManager(**self.config.transform.test.get())

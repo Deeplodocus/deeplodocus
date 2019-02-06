@@ -1,5 +1,11 @@
+from typing import Tuple
+from typing import Union
+from typing import List
+
+
 from torch.utils.data import DataLoader
 from torch.nn import Module
+from torch import Tensor
 
 from deeplodocus.data.dataset import Dataset
 
@@ -37,10 +43,10 @@ class GenericInferer(object):
         PARAMETERS:
         -----------
 
-        :param model->torch.nn.Module: The model to infer
-        :param dataset->Dataset: A dataset
-        :param batch_size->int: The number of instances per batch
-        :param num_workers->int: The number of processes / threads used for data loading
+        :param model (torch.nn.Module): The model to infer
+        :param dataset (Dataset): A dataset
+        :param batch_size (int): The number of instances per batch
+        :param num_workers (int): The number of processes / threads used for data loading
         """
 
         self.model = model
@@ -102,7 +108,7 @@ class GenericInferer(object):
         return cleaned_minibatch
 
     @staticmethod
-    def compute_num_minibatches(length_dataset: int, batch_size: int):
+    def compute_num_minibatches(length_dataset: int, batch_size: int) -> int:
         """
         AUTHORS:
         --------
@@ -132,7 +138,7 @@ class GenericInferer(object):
 
         return num_minibatches
 
-    def get_num_minibatches(self):
+    def get_num_minibatches(self) -> int:
         """
         AUTHORS:
         --------
@@ -186,3 +192,41 @@ class GenericInferer(object):
                 return [d.to(device=device) for d in data if d is not None]
             except TypeError:
                 return None
+
+    def recursive_detach(self, outputs: Union[Tuple, List, Tensor]) ->Union[Tuple, List, Tensor]:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Recusively detach tensors whether they are located in lists or tuples
+
+        PARAMETERS:
+        -----------
+
+
+        :param outputs:
+
+
+        :return:
+        """
+        if isinstance(outputs, list):
+            for i, o in enumerate(outputs):
+                outputs[i] = self.recursive_detach(o)
+
+        elif isinstance(outputs, tuple):
+            tuple_list = []
+            for o in outputs:
+                i = self.recursive_detach(o)
+                tuple_list.append(i)
+
+            outputs = tuple(tuple_list)
+
+        else:
+            outputs = outputs.detach()
+
+        return outputs
