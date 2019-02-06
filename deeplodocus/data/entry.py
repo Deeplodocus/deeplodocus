@@ -315,7 +315,7 @@ class Entry(object):
         item_list = self.__read_folders(source.get_source())
 
         # generate the absolute path to the file
-        filepath = DEEP_ENTRY_BASE_FILE_NAME %(self.entry_type, self.entry_index)
+        filepath = DEEP_ENTRY_BASE_FILE_NAME %(self.entry_type.get_name(), self.entry_index)
 
         # Create the folders if required
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
