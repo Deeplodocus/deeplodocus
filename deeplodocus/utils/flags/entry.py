@@ -22,4 +22,4 @@ DEEP_ENTRY_ADDITIONAL_DATA = Flag(name="Additional data",
                                   description="Additional Data entry",
                                   names=["additional_data", "additional data"])
 
-DEEP_ENTRY_BASE_FILE_NAME = get_main_path() + "data/auto-generated_entry_%s_%i.dat"
+DEEP_ENTRY_BASE_FILE_NAME = get_main_path() + "/data/auto-generated_entry_%s_%i.dat"

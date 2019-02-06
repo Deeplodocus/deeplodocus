@@ -114,8 +114,8 @@ class Tester(GenericEvaluator):
             # Infer the outputs from the model over the given mini batch
             outputs = model(*inputs)
 
-            # Detach the tensor from the graph (avoid leaking memory)
-            outputs = outputs.detach()
+            # Detach the tensor from the graph (avoids leaking memory)
+            outputs = self.recursive_detach(outputs)
 
             # Compute the losses and metrics
             batch_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)

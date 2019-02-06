@@ -540,3 +540,86 @@ def bilateral_blur(image: np.array, diameter: int, sigma_color: int, sigma_space
     :return:
     """
     return cv2.bilateralFilter(image, diameter, sigma_color, sigma_space), None
+
+
+def grayscale(image: np.array) -> Tuple[np.array, None]:
+
+    _, _, channels = image.shape
+
+    if channels == 4:
+        image, _ = convert_rgba2bgra(image)
+        return cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY), None
+    elif channels == 3:
+        image, _ = convert_rgba2bgra(image)
+        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), None
+    else:
+        return image, None
+
+
+
+def convert_bgra2rgba(image):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Convert BGR(alpha) image to RGB(alpha) image
+
+    PARAMETERS:
+    -----------
+
+    :param image: image to convert
+
+    RETURN:
+    -------
+
+    :return: a RGB(alpha) image
+    """
+
+    # Get the number of channels in the image
+    _, _, channels = image.shape
+
+    # Handle BGR and BGR(A) images
+    if channels == 3:
+        image = image[:, :, (2, 1, 0)]
+    elif channels == 4:
+        image = image[:, :, (2, 1, 0, 3)]
+    return image, None
+
+
+def convert_rgba2bgra(image):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Convert RGB(alpha) image to BGR(alpha) image
+
+    PARAMETERS:
+    -----------
+
+    :param image: image to convert
+
+    RETURN:
+    -------
+
+    :return: a RGB(alpha) image
+    """
+
+    # Get the number of channels in the image
+    _, _, channels = image.shape
+
+    # Handle RGB and RGB(A) images
+    if channels == 3:
+        image = image[:, :, (2, 1, 0)]
+    elif channels == 4:
+        image = image[:, :, (2, 1, 0, 3)]
+    return image, None

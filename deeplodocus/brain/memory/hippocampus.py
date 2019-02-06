@@ -14,6 +14,7 @@ from deeplodocus.utils.flags.save import *
 from deeplodocus.utils.flags.event import *
 from deeplodocus.utils.flags.verbose import DEEP_VERBOSE_BATCH
 from deeplodocus.utils.flags import *
+from deeplodocus.utils.flags.memorize import *
 
 Num = Union[int, float]
 
@@ -42,8 +43,8 @@ class Hippocampus(object):
                  losses: dict,
                  metrics: dict,
                  model_name: str = generate_random_alphanumeric(size = 10),
-                 verbose: int = DEEP_VERBOSE_BATCH,
-                 memorize: int = DEEP_MEMORIZE_BATCHES,
+                 verbose: Flag = DEEP_VERBOSE_BATCH,
+                 memorize: Flag = DEEP_MEMORIZE_BATCHES,
                  history_directory: str = "history",
                  overwatch_metric: OverWatchMetric = OverWatchMetric(name = TOTAL_LOSS,
                                                                      condition = DEEP_SAVE_CONDITION_LESS),
