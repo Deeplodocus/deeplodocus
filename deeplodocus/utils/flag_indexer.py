@@ -1,5 +1,6 @@
 from deeplodocus.utils.singleton import Singleton
 
+
 class FlagIndexer(metaclass=Singleton):
     """
     AUTHORS:
@@ -16,7 +17,6 @@ class FlagIndexer(metaclass=Singleton):
     Can be called anywhere in Deeplodocus
     """
 
-
     def __init__(self):
         """
         AUTHORS:
@@ -31,8 +31,7 @@ class FlagIndexer(metaclass=Singleton):
         The first index is zero
         Each new index is incremented
         """
-        self.index = -1 # Initialize at -1 so that the first index is 0 after increment
-
+        self.index = -1  # Initialize at -1 so that the first index is 0 after increment
 
     def generate_unique_index(self):
         """
@@ -59,4 +58,3 @@ class FlagIndexer(metaclass=Singleton):
 
         self.index += 1
         return self.index
-
