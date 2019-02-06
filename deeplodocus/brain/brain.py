@@ -94,7 +94,7 @@ class Brain(FrontalLobe):
         self._config = None
         self.load_config()
         self.set_device()
-        Thalamus()                          # Signal Manager
+        Thalamus()                          # Initialize the Signal Manager
 
     """
     "
