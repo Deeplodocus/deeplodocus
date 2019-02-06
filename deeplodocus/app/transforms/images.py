@@ -248,19 +248,16 @@ def pad(image, shape, value=0):
     :return: Padded image
     :return: None
     """
-    padded = np.empty(shape, dtype=np.uint8)
+    num_channels = 1 if image.ndim == 2 else image.shape[2]
+
+    padded = np.zeros((*shape, num_channels))
     padded.fill(value)
     y0 = int((shape[0] - image.shape[0]) / 2)
     x0 = int((shape[1] - image.shape[1]) / 2)
     y1 = y0 + image.shape[0]
     x1 = x0 + image.shape[1]
 
-    nb_channels = padded.shape[2]
-
-    if nb_channels == 1:
-        padded[y0:y1, x0:x1, 0] = image
-    else:
-        padded[y0:y1, x0:x1, :] = image
+    padded[y0:y1, x0:x1, 0] = image
 
     return padded, None
 

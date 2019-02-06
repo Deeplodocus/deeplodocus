@@ -455,11 +455,10 @@ class FrontalLobe(object):
                 metrics[str(key)] = Metric(name=str(key), method=method)
                 metrics[str(key)] = Metric(name=str(key), method=method)
                 Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (key, config.name, module))
-
-            # Initialise class of metrics
-            self.metrics = Metrics(metrics)
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_NONE)
+
+        self.metrics = Metrics(metrics)
 
     def load_trainer(self):
         """
