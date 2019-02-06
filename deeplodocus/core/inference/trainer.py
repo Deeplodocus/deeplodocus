@@ -280,8 +280,8 @@ class Trainer(GenericEvaluator):
         Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_TRAINING_END,
                                      args={"model": self.model}))
 
-    @staticmethod
-    def detach(outputs, total_loss, result_losses, result_metrics):
+
+    def detach(self, outputs, total_loss, result_losses, result_metrics):
         """
         AUTHORS:
         --------
@@ -311,7 +311,8 @@ class Trainer(GenericEvaluator):
         """
 
         total_loss = total_loss.detach()
-        outputs = outputs.detach()
+
+        outputs = self.recursive_detach(outputs)
 
         for key, value in result_losses.items():
             result_losses[key] = value.detach()

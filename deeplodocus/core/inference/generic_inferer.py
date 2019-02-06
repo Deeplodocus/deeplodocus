@@ -186,3 +186,21 @@ class GenericInferer(object):
                 return [d.to(device=device) for d in data if d is not None]
             except TypeError:
                 return None
+
+    def recursive_detach(self, outputs):
+        if isinstance(outputs, list):
+            for i, o in enumerate(outputs):
+                outputs[i] = self.recursive_detach(o)
+
+        elif isinstance(outputs, tuple):
+            tuple_list = []
+            for o in outputs:
+                i = self.recursive_detach(o)
+                tuple_list.append(i)
+
+            outputs = tuple(tuple_list)
+
+        else:
+            outputs = outputs.detach()
+
+        return outputs

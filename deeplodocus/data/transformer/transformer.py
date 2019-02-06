@@ -246,6 +246,7 @@ class Transformer(object):
             transform_method = transform["method"]  # Create a generic alias for the transform method
             transform_module_path = transform["module_path"]
             transform_args = transform["kwargs"]  # Dictionary of arguments
+
             try:
                 transformed_data, last_method_used = transform_method(transformed_data, **transform_args)
             except ValueError as e:
