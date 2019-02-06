@@ -283,9 +283,12 @@ class Trainer(GenericEvaluator):
             )
 
         # Send signal end training
-        Thalamus().add_signal(Signal(event=DEEP_EVENT_ON_TRAINING_END,
-                                     args={"model": self.model}))
-
+        Thalamus().add_signal(
+            Signal(
+                event=DEEP_EVENT_ON_TRAINING_END,
+                args={"model": self.model}
+            )
+        )
 
     def detach(self, outputs, total_loss, result_losses, result_metrics):
         """
