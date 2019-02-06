@@ -144,7 +144,7 @@ class Entry(object):
         :return item (str): The item at the selected index in string format
         """
 
-        item= None
+        item = None
         is_loaded = False
         is_transformed = False
 

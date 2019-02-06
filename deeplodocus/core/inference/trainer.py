@@ -2,6 +2,9 @@
 import weakref
 import time
 
+import cv2
+import numpy as np
+
 # Backend imports
 import torch
 import torch.nn as nn
@@ -211,7 +214,10 @@ class Trainer(GenericEvaluator):
                 additional_data = self.to_device(additional_data, self.model.device)
 
                 # Infer the output of the batch
-                outputs = self.model(*inputs)
+                try:
+                    outputs = self.model(*inputs)
+                except RuntimeError as e:
+                    Notification(DEEP_NOTIF_FATAL, "RuntimeError : %s" % str(e))
 
                 # Compute losses and metrics
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)

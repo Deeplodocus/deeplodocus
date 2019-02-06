@@ -507,7 +507,6 @@ class Dataset(object):
 
         # Make sure the data contains something
         if data is not None:
-
             # If data is a sequence we use the function in a recursive fashion
             # SEQUENCE
             if dtype_flag_index == DEEP_DTYPE_SEQUENCE():
@@ -523,6 +522,7 @@ class Dataset(object):
             elif dtype_flag_index == DEEP_DTYPE_IMAGE():
                 # Load image
                 loaded_data = self.__load_image(data)
+
             # VIDEO
             elif dtype_flag_index == DEEP_DTYPE_VIDEO():
                 loaded_data = self.__load_video(data)
@@ -535,14 +535,18 @@ class Dataset(object):
             elif dtype_flag_index == DEEP_DTYPE_FLOAT():
                 loaded_data = float(data)
 
+            elif dtype_flag_index == DEEP_DTYPE_STRING():
+                loaded_data = str(data)
+
             # NUMPY ARRAY
             elif dtype_flag_index == DEEP_DTYPE_NP_ARRAY():
                 loaded_data = np.load(data)
 
             # Data type not recognized
             else:
+
                 Notification(DEEP_NOTIF_FATAL,
-                             "The following data could not be loaded because its type is not recognize : %s.\n"
+                             "The following data could not be loaded because its type is not recognized : %s.\n"
                              "Please check the documentation online to see the supported types" % data)
         # If the data is None
         else:
