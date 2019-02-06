@@ -415,13 +415,29 @@ Here is an example of config file for a `OneOf` transformer:
 method: "oneof"
 name: "OneOf example"
 
+mandatory_transforms_start:
+    - name: "resize"
+      # module : "deeplodocus.app.transforms.image"
+      kwargs:
+          shape : [512, 512, 3]
+          keep_aspect : True
+          padding : 0
+
+
 transforms:
   - blur :
       kernel_size : 3
   - random_blur:
       kernel_size_min: 15
       kernel_size_max : 21
-
+      
+    
+mandatory_transforms_end:
+      - name: "normalize_image"
+        #module:
+        kwargs:
+          mean: [127.5, 127.5, 127.5]
+          standard_deviation: 255
 ```
 
 For more details on each transform please check the corresponding documentation
@@ -445,6 +461,10 @@ Here is an example of config file for a `SomeOf` transformer:
 
 method: "someof"
 name: "Some Of example"
+
+num_transformations : 3             #If used, comment "num_transformations_min" and  "num_transformations_max"
+#num_transformations_min : 1        #If used, comment "num_transformations"
+#num_transformations_max : 5        #If used, comment "num_transformations"
 
 mandatory_transforms_start:
     - name: "resize"
@@ -510,16 +530,11 @@ To define a Pointer, instead of the path to the transformer config file, enter
 
 Note : A `Pointer` cannot point to another `Pointer`
 
-
-
-
-
 #### Offline
 
 Offline data augmentation is not available
 
 #### Custom transforms
-
 
 Not only Deeplodocus provides a rich list of standard builtin transformation operations, it also allows you to define your own transforms !
 
@@ -532,23 +547,66 @@ import random
 import numpy as np
 import cv2
 
-def blur(image: np.array, kernel_size: int):
-    kernel = (int(kernel_size), int(kernel_size))
-    image = cv2.blur(image, kernel)
-    
-    # No need to return the info on the current transform operation because there isn't any random parameter here.
-    # Make sure to replace the info of the current transform by None
-    return image, None
+def blur(image: np.array, kernel_size: int) -> Tuple[Any, None]:
+    """
+    AUTHORS:
+    --------
 
-def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int):
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Apply a blur to the image
+
+    PARAMETERS:
+    -----------
+
+    :param image: np.array: The image to transform
+    :param kernel_size: int: Kernel size
+
+    RETURN:
+    -------
+
+    :return: The blurred image
+    :return: None
+    """
+    return cv2.blur(image, (int(kernel_size), int(kernel_size))), None
+
+
+def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> Tuple[Any, dict]:
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Apply a random blur to the image
+
+
+    PARAMETERS:
+    -----------
+
+    :param image: np.array: The image to transform
+    :param kernel_size_min: int: Min size of the kernel
+    :param kernel_size_max: int: Max size of the kernel
+
+
+    RETURN:
+    -------
+
+    :return: The blurred image
+    :return: The last transform data
+    """
     kernel_size = (random.randint(kernel_size_min // 2, kernel_size_max // 2)) * 2 + 1
     image, _ = blur(image, kernel_size)
-    
-    # Return the info on the last operation used (Required for the Pointer !)
-    # ["Name", method, dictionary of arguments required]
-    transform = ["blur", blur, {"kernel_size": kernel_size}]
-    
-    # Return the result of the transform and the info of the current transform operation
+    transform = {"name": "blur",
+                 "method": blur,
+                 "module_path": __name__,
+                 "kwargs": {"kernel_size": kernel_size}}
     return image, transform
 ```
 
