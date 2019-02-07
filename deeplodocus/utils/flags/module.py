@@ -8,6 +8,8 @@ import deeplodocus.app.models as deep_models
 import deeplodocus.app.losses as deep_losses
 import deeplodocus.app.metrics as deep_metrics
 
+import torchvision.datasets as tv_data
+
 DEEP_MODULE_OPTIMIZERS = {"pytorch": {"path": torch.optim.__path__,
                                       "prefix": torch.optim.__name__},
                           "deeplodocus": {"path": deep_optim.__path__,
@@ -42,4 +44,12 @@ DEEP_MODULE_TRANSFORMS = {"deeplodocus": {"path": deep_tfm.__path__,
                                           "prefix": deep_tfm.__name__},
                           "custom": {"path": [get_main_path() + "/modules/transforms"],
                                      "prefix": "modules.transforms"}
+                          }
+
+
+DEEP_MODULE_DATASETS = {"torchvision": {"path": tv_data.__path__,
+                                          "prefix": tv_data.__name__},
+
+                          "custom": {"path": [get_main_path() + "/modules/datasets"],
+                                     "prefix": "modules.datasets"}
                           }

@@ -23,3 +23,7 @@ DEEP_SOURCE_SERVER = Flag(name="Server",
 DEEP_SOURCE_SPARK = Flag(name="Spark",
                          description="Source: Spark access",
                          names=["spark"])
+
+DEEP_SOURCE_PREMADE_DATASET = Flag(name="Pre-made dataset",
+                                   description="Source: A pre-made dataset",
+                                   names=["dataset", "premade", "pre-made"])

@@ -200,7 +200,7 @@ def get_int_or_float(data):
     try:
         number_as_float = float(data)
         number_as_int = int(number_as_float)
-        return DEEP_TYPE_INTEGER if number_as_float == number_as_int else DEEP_TYPE_FLOAT
+        return DEEP_DTYPE_INTEGER if number_as_float == number_as_int else DEEP_DTYPE_FLOAT
     except ValueError:
         return False
 
@@ -314,7 +314,7 @@ def browse_module(name, modules, silence=False, fatal=False) -> callable:
     RETURN:
     -------
 
-    :return (callable): The loaded module
+    :return (callable, str): The loaded module and its correponding module path
     """
     list_modules = []
     # For all the given modules
@@ -453,7 +453,7 @@ def get_corresponding_flag(
     :param flag_list: (List[Flag]): The list of flag to browse in
     :param info: (Union[str, int, Flag]): Info (name, index or full Flag) of the flag to search
     :param fatal: (bool, Optional): Whether to raise a DeepError if no flag is found or not
-    :param default:
+    :param default (Flag, Optional) : The default flag to use if no flag is found
 
     RETURN:
     -------

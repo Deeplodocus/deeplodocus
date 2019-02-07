@@ -41,9 +41,9 @@ class Notification(object):
         PARAMETERS:
         -----------
 
-        :param notif_type: int : Index of the notification type flag.
-        :param message: str : Message to display.
-        :param log: bool: Whether or not to write message to log file.
+        :param notif_type (int): Index of the notification type flag.
+        :param message (str): Message to display.
+        :param log (bool): Whether or not to write message to log file.
 
         RETURN:
         -------
@@ -95,7 +95,7 @@ class Notification(object):
             else:
                 Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NOTIF_UNKNOWN % notif_flag)
 
-        # WRONG notif_type
+        # WRONG notification_type
         else:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NOTIF_UNKNOWN % notif_flag)
 
@@ -120,7 +120,7 @@ class Notification(object):
         RETURN:
         -------
 
-        :return self.response: str: The response given by the user.
+        :return self.response (str): The response given by the user.
 
         """
         return self.response
@@ -143,7 +143,7 @@ class Notification(object):
         PARAMETERS:
         -----------
 
-        :param message: str: The message to display.
+        :param message (str): The message to display.
 
         RETURN:
         -------
@@ -189,7 +189,7 @@ class Notification(object):
         PARAMETERS:
         -----------
 
-        :param message: str: The message to display.
+        :param message (str): The message to display.
 
         RETURN:
         -------
@@ -219,7 +219,7 @@ class Notification(object):
         PARAMETERS:
         -----------
 
-        :param message: str: The message to display.
+        :param message (str): The message to display.
 
         RETURN:
         -------
@@ -249,7 +249,7 @@ class Notification(object):
         PARAMETERS:
         -----------
 
-        :param message: str: The message to display.
+        :param message (str): The message to display.
 
         RETURN:
         -------
@@ -279,7 +279,7 @@ class Notification(object):
         PARAMETERS:
         -----------
 
-        :param message: str: The message to display.
+        :param message (str): The message to display.
 
         RETURN:
         -------
@@ -309,7 +309,7 @@ class Notification(object):
         PARAMETERS:
         -----------
 
-        :param message: str: The message to display.
+        :param message (str): The message to display.
 
         RETURN:
         -------
@@ -339,7 +339,7 @@ class Notification(object):
         PARAMETERS:
         -----------
 
-        :param message: str: The message to display.
+        :param message (str): The message to display.
 
         RETURN:
         -------
@@ -368,7 +368,7 @@ class Notification(object):
         PARAMETERS:
         -----------
 
-        :param message: str: The message to display.
+        :param message (str): The message to display.
 
         RETURN:
         -------
@@ -397,7 +397,7 @@ class Notification(object):
         PARAMETERS:
         -----------
 
-        :param message: str: The message to display.
+        :param message (str): The message to display.
 
         RETURN:
         -------
@@ -430,7 +430,7 @@ class Notification(object):
         PARAMETERS:
         -----------
 
-        :param message: str: The message to save in the logs.
+        :param message (str): The message to save in the logs.
 
         RETURN:
         -------
