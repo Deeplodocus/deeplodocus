@@ -27,6 +27,7 @@ from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
 from deeplodocus.brain.memory.hippocampus import Hippocampus
 from deeplodocus.core.metrics import Metrics, Losses
+from deeplodocus.callbacks.printer import Printer
 
 
 class FrontalLobe(object):
@@ -86,6 +87,7 @@ class FrontalLobe(object):
         self.hippocampus = None
         self.device = None
         self.device_ids = None
+        self.printer = Printer()
 
     def set_device(self):
         """
@@ -158,7 +160,7 @@ class FrontalLobe(object):
         """
         self.trainer.continue_training()
 
-    def evaluate(self):
+    def test(self):
         """
         AUTHORS:
         --------
@@ -181,7 +183,18 @@ class FrontalLobe(object):
 
         :return: None
         """
-        self.tester.fit() if self.tester is not None else Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TESTER)
+        if self.tester is None:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NO_TESTER)
+        else:
+            total_loss, losses, metrics = self.tester.evaluate(self.model)
+            self.printer.validation_epoch_end(losses, total_loss, metrics)
+
+    def validate(self):
+        if self.validator is None:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NO_VALIDATOR)
+        else:
+            total_loss, losses, metrics = self.validator.evaluate(self.model)
+            self.printer.validation_epoch_end(losses, total_loss, metrics)
 
     def load(self):
         """
@@ -624,15 +637,20 @@ class FrontalLobe(object):
                 (get_main_path(), self.config.project.sub_project, "weights")
             )
 
-            self.hippocampus = Hippocampus(losses=self.losses,
-                                           metrics=self.metrics,
-                                           model_name=self.config.model.name,
-                                           verbose=self.config.history.verbose,
-                                           memorize=self.config.history.memorize,
-                                           history_directory=history_directory,
-                                           overwatch_metric=overwatch_metric,
-                                           **self.config.training.saver.get(),
-                                           save_model_directory=weights_directory)
+            self.hippocampus = Hippocampus(
+                losses=self.losses,
+                metrics=self.metrics,
+                model_name=self.config.model.name,
+                verbose=self.config.history.verbose,
+                memorize=self.config.history.memorize,
+                history_directory=history_directory,
+                overwatch_metric=overwatch_metric,
+                **self.config.training.saver.get(),
+                save_model_directory=weights_directory
+            )
+
+    def predict(self):
+        pass
 
     def summary(self):
         """
