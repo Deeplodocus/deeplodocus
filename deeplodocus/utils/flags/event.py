@@ -4,42 +4,51 @@ from deeplodocus.utils.flag import Flag
 # EVENT TYPES
 #
 
-DEEP_EVENT_UNDEFINED = Flag(name="Undefined",
-                            description="Event : Undefined",
-                            names=["none", "undefined"])
-
-DEEP_EVENT_ON_BATCH_END = Flag(name="On Batch End",
-                               description="Event : On Batch End",
-                               names=["batch end", "end batch", "end_batch", "on_batch_end"])
-
-DEEP_EVENT_ON_EPOCH_END = Flag(name="On Epoch End",
-                               description="Event : On Epoch End",
-                               names=["epoch end", "end epoch", "on epoch end"])
-
-DEEP_EVENT_ON_TRAINING_START = Flag(name="On Training Start",
-                                    description="Event : On Training Start",
-                                    names=["training start", "on training start"])
-
-DEEP_EVENT_ON_TRAINING_END = Flag(name="On Training End",
-                                  description="Event : On Training End",
-                                  names=["training end", "on training end"])
-
-DEEP_EVENT_ON_UPDATE_ALL = Flag(name="On Update all",
-                                description="Event : On Update All",
-                                names=["update all"])
-
-DEEP_EVENT_ON_UPDATE_MODEL = Flag(name="On Update Model",
-                                  description="Event : On Update Model",
-                                  names=["update model"])
-
-DEEP_EVENT_ON_UPDATE_OPTIMIZER = Flag(name="On Update Optimizer",
-                                      description="Event : On Update Optimizer",
-                                      names=["update optimizer"])
-
-DEEp_EVENT_ON_UPDATE_DATASET = Flag(name="On Update Dataset",
-                                    description="Event : On Update Dataset",
-                                    names=["update dataset"])
-
+DEEP_EVENT_UNDEFINED = Flag(
+    name="Undefined",
+    description="Event : Undefined",
+    names=["none", "undefined"]
+)
+DEEP_EVENT_ON_BATCH_END = Flag(
+    name="On Batch End",
+    description="Event : On Batch End",
+    names=["batch end", "end batch", "end_batch", "on_batch_end"]
+)
+DEEP_EVENT_ON_EPOCH_END = Flag(
+    name="On Epoch End",
+    description="Event : On Epoch End",
+    names=["epoch end", "end epoch", "on epoch end"]
+)
+DEEP_EVENT_ON_TRAINING_START = Flag(
+    name="On Training Start",
+    description="Event : On Training Start",
+    names=["training start", "on training start"]
+)
+DEEP_EVENT_ON_TRAINING_END = Flag(
+    name="On Training End",
+    description="Event : On Training End",
+    names=["training end", "on training end"]
+)
+DEEP_EVENT_ON_UPDATE_ALL = Flag(
+    name="On Update all",
+    description="Event : On Update All",
+    names=["update all"]
+)
+DEEP_EVENT_ON_UPDATE_MODEL = Flag(
+    name="On Update Model",
+    description="Event : On Update Model",
+    names=["update model"]
+)
+DEEP_EVENT_ON_UPDATE_OPTIMIZER = Flag(
+    name="On Update Optimizer",
+    description="Event : On Update Optimizer",
+    names=["update optimizer"]
+)
+DEEp_EVENT_ON_UPDATE_DATASET = Flag(
+    name="On Update Dataset",
+    description="Event : On Update Dataset",
+    names=["update dataset"]
+)
 DEEP_EVENT_END_LISTENING = Flag(
     name="End Listening",
     description="Event : End Listening",
@@ -86,6 +95,25 @@ DEEP_EVENT_SEND_SAVE_PARAMS_FROM_TRAINER = Flag(
     names=["send_save_params"]
 )
 
+
+#
+# PRINT SIGNALS
+#
+DEEP_EVENT_PRINT_TRAINING_EPOCH_END = Flag(
+    name="Print training epoch end",
+    description="Print training results on epoch end",
+    names=["print_training_epoch_end"]
+)
+DEEP_EVENT_PRINT_VALIDATION_EPOCH_END = Flag(
+    name="Print validation epoch end",
+    description="Print validation results on epoch end",
+    names=["print_validation_epoch_end"]
+)
+DEEP_EVENT_PRINT_TRAINING_BATCH_END = Flag(
+    name="Print training epoch end",
+    description="Print training results on batch end",
+    names=["print_training_batch_end"]
+)
 
 #
 # MODEL SIGNALS

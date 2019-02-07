@@ -228,12 +228,19 @@ class History(object):
         # If the user wants to print stats for each batch
         if DEEP_VERBOSE_BATCH.corresponds(self.verbose):
 
-            print_metrics = ", ".join(["%s : %f" % (TOTAL_LOSS, total_loss)]
-                                      + ["%s : %f" % (loss_name, value.item())
-                                         for (loss_name, value) in result_losses.items()]
-                                      + ["%s :%f " % (metric_name, value)
-                                         for (metric_name, value) in result_metrics.items()])
-            Notification(DEEP_NOTIF_RESULT, "[%i/%i] : %s" % (minibatch_index, num_minibatches, print_metrics))
+            # Print training loss and metrics on batch end
+            Thalamus().add_signal(
+                Signal(
+                    event=DEEP_EVENT_PRINT_TRAINING_BATCH_END,
+                    args={
+                        "losses": {key: value / num_minibatches for key, value in self.running_losses.items()},
+                        "total_loss": self.running_total_loss / num_minibatches,
+                        "metrics": {key: value / num_minibatches for key, value in self.running_metrics.items()},
+                        "num_minibatches": num_minibatches,
+                        "minibatch_index": minibatch_index
+                    }
+                )
+            )
 
         # Save the data in memory
         if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize):
@@ -246,7 +253,6 @@ class History(object):
                     [value.item() for (loss_name, value) in result_losses.items()] + \
                     [value for (metric_name, value) in result_metrics.items()]
             self.train_batches_history.put(data)
-
 
         # Save the history after 10 batches
         if self.train_batches_history.qsize() > 10:
@@ -291,14 +297,17 @@ class History(object):
         # MANAGE TRAINING HISTORY
         if DEEP_VERBOSE_EPOCH.corresponds(self.verbose) or DEEP_VERBOSE_BATCH.corresponds(self.verbose):
 
-            print_metrics = ", ".join(
-                ["%s : %f" % (TOTAL_LOSS, self.running_total_loss / num_minibatches)]
-                + ["%s : %f" % (loss_name, value.item() / num_minibatches)
-                   for (loss_name, value) in self.running_losses.items()]
-                + ["%s : %f" % (metric_name, value / num_minibatches)
-                   for (metric_name, value) in self.running_metrics.items()]
+            # Print the training loss and metrics on epoch end
+            Thalamus().add_signal(
+                Signal(
+                    event=DEEP_EVENT_PRINT_TRAINING_EPOCH_END,
+                    args={
+                        "losses": {key: value / num_minibatches for key, value in self.running_losses.items()},
+                        "total_loss": self.running_total_loss / num_minibatches,
+                        "metrics": {key: value / num_minibatches for key, value in self.running_metrics.items()},
+                    }
+                )
             )
-            Notification(DEEP_NOTIF_RESULT, "%s : %s" % (TRAINING, print_metrics))
             
         if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize) or DEEP_MEMORIZE_EPOCHS.corresponds(self.memorize):
             data = [datetime.datetime.now().strftime(TIME_FORMAT),
@@ -317,14 +326,17 @@ class History(object):
         if total_validation_loss is not None:
             if DEEP_VERBOSE_EPOCH.corresponds(self.verbose) or DEEP_VERBOSE_BATCH.corresponds(self.verbose):
 
-                print_metrics = ", ".join(
-                    ["%s : %f" % (TOTAL_LOSS, total_validation_loss)]
-                    + ["%s : %f" % (loss_name, value.item())
-                       for (loss_name, value) in result_validation_losses.items()]
-                    + ["%s : %f" % (metric_name, value)
-                       for (metric_name, value) in result_validation_metrics.items()]
+                # Print the validation loss and metrics on epoch end
+                Thalamus().add_signal(
+                    Signal(
+                        event=DEEP_EVENT_PRINT_VALIDATION_EPOCH_END,
+                        args={
+                            "losses": result_validation_losses,
+                            "total_loss": total_validation_loss,
+                            "metrics": result_validation_metrics,
+                        }
+                    )
                 )
-                Notification(DEEP_NOTIF_RESULT, "%s: %s" % (VALIDATION, print_metrics))
 
         if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize) or DEEP_MEMORIZE_EPOCHS.corresponds(self.memorize):
             data = [
