@@ -148,7 +148,7 @@ DEEP_MSG_MODEL_SAVED = "Model and weights saved to : %s"
 ##################
 
 # DEEP_SUCCESS
-DEEP_MSG_OPTIM_LOADED = "Optimizer loaded : %s from %s"
+DEEP_MSG_OPTIM_LOADED = "Optimizer loaded : %s"
 
 # DEEP_INFO
 DEEP_MSG_OPTIM_LOADING = "Loading optimizer : %s"

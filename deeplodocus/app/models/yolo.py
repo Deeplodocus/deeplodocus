@@ -25,6 +25,7 @@ class YOLOv3(nn.Module):
                 ((30, 61), (62, 45), (59, 119)),
                 ((10, 13), (16, 30), (22, 23))
             ),
+            predict=False
     ):
         super(YOLOv3, self).__init__()
         # Default backbone arguments
@@ -37,7 +38,7 @@ class YOLOv3(nn.Module):
                     "include_top": False
                 }
             }
-
+        self.predicting = predict
         # Get the number of anchor boxes
         num_anchors = len(anchors)
 
@@ -85,6 +86,7 @@ class YOLOv3(nn.Module):
             image_shape=input_shape,
             anchors=anchors[2]
         )
+        self.predict(predict)
 
     def forward(self, x):
         # BACKBONE
@@ -118,10 +120,16 @@ class YOLOv3(nn.Module):
         output_3 = self.yolo_layer_3(output_3)
 
         # Return the concatenation of all three yolo layers
-        if self.training:
-            return output_1, output_2, output_3
-        else:
+        if self.predicting:
             return torch.cat((output_1, output_2, output_3), 1)
+        else:
+            return output_1, output_2, output_3
+
+    def predict(self, value=True):
+        self.predicting = value
+        self.yolo_layer_1.predicting = value
+        self.yolo_layer_2.predicting = value
+        self.yolo_layer_3.predicting = value
 
 
 class ConvBlock(nn.Module):
@@ -201,7 +209,7 @@ class ConvLayer(nn.Module):
 
 class YoloLayer(nn.Module):
 
-    def __init__(self, anchors, num_classes, image_shape, num_anchors=3):
+    def __init__(self, anchors, num_classes, image_shape, num_anchors=3, predict=False):
         super(YoloLayer, self).__init__()
         self.num_classes = num_classes
         self.num_anchors = len(anchors)
@@ -212,6 +220,7 @@ class YoloLayer(nn.Module):
         self.mse_loss = nn.MSELoss(size_average=True)   # Coordinate loss
         self.bce_loss = nn.BCELoss(size_average=True)   # Objectiveness loss
         self.ce_loss = nn.CrossEntropyLoss()            # Class loss
+        self.predicting = predict
 
     def forward(self, x):
         # Stride should be 32, 16 or 8
@@ -267,9 +276,7 @@ class YoloLayer(nn.Module):
         pred_boxes[..., 2] = torch.exp(bw.data) * anchor_w
         pred_boxes[..., 3] = torch.exp(bh.data) * anchor_h
 
-        if self.training:
-            return prediction, scaled_anchors
-        else:
+        if self.predicting:
             return torch.cat(
                 (
                     pred_boxes.view(batch_size, -1, 4) * stride[0],
@@ -278,3 +285,5 @@ class YoloLayer(nn.Module):
                 ),
                 -1,
             )
+        else:
+            return prediction, scaled_anchors
