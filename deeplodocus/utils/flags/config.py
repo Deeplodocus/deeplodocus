@@ -319,6 +319,51 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_DTYPE: str,
                     DEEP_CONFIG_DEFAULT: "Test"
                 }
+            },
+            "predict": {
+                "device": {
+                    DEEP_CONFIG_DTYPE: str,
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "batch_size": {
+                    DEEP_CONFIG_DTYPE: int,
+                    DEEP_CONFIG_DEFAULT: None,
+                },
+                "num_workers": {
+                    DEEP_CONFIG_DTYPE: int,
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "output_dir": {
+                    DEEP_CONFIG_DTYPE: str,
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "inputs": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "labels": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "additional_data": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                }
             }
         }
     },
