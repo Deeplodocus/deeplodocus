@@ -200,7 +200,7 @@ def get_int_or_float(data):
     try:
         number_as_float = float(data)
         number_as_int = int(number_as_float)
-        return DEEP_TYPE_INTEGER if number_as_float == number_as_int else DEEP_TYPE_FLOAT
+        return DEEP_DTYPE_INTEGER if number_as_float == number_as_int else DEEP_DTYPE_FLOAT
     except ValueError:
         return False
 
