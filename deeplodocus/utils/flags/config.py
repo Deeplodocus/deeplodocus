@@ -91,7 +91,7 @@ DEEP_CONFIG = {
         },
         "file": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: ""
+            DEEP_CONFIG_DEFAULT: None
         },
         "module": {
             DEEP_CONFIG_DTYPE: str,
