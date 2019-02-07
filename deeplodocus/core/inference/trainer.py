@@ -1,9 +1,8 @@
 # Python imports
 import weakref
 import time
-
-import cv2
 import numpy as np
+import cv2
 
 # Backend imports
 import torch
@@ -319,14 +318,17 @@ class Trainer(GenericEvaluator):
         :return result_metrics:
         """
 
+        # Detach the total loss
         total_loss = total_loss.detach()
 
+        # Detach the outputs recursively (Tuple + list)
         outputs = self.recursive_detach(outputs)
 
+        # Detach the losses
         for key, value in result_losses.items():
             result_losses[key] = value.detach()
 
-        # Tensors already detached in compute metrics for more efficiency
+        # Metric tensors already detached in self.compute_metrics for more efficiency
         # for key, value in result_metrics.items():
         #     if isinstance(value, Tensor):
         #         result_metrics[key] = value.detach()
@@ -344,7 +346,7 @@ class Trainer(GenericEvaluator):
         DESCRIPTION:
         ------------
 
-        Ask if we want to continue once the training ended
+        Function to know the number of epochs when continuing the training
 
         PARAMETERS:
         -----------
@@ -356,7 +358,7 @@ class Trainer(GenericEvaluator):
 
         :return: None
         """
-        # If yes ask the number of epochs
+        # If the user wants to continue the training, ask the number of epochs
         while True:
             epochs = Notification(DEEP_NOTIF_INPUT, "Number of epochs ? ").get()
             try:

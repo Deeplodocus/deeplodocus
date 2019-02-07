@@ -507,43 +507,42 @@ class Dataset(object):
         loaded_data = None
 
         # Get data type index (only use the index for efficiency in the loop)
-        dtype_flag_index = entry.get_data_type()()
+        data_type = entry.get_data_type()
 
         # Make sure the data contains something
         if data is not None:
-            # If data is a sequence we use the function in a recursive fashion
+
             # SEQUENCE
-            if dtype_flag_index == DEEP_DTYPE_SEQUENCE():
-                # Get the content of the list
-                sequence_raw_data = data.split()  # Generate a list from the sequence
+            if isinstance(data, list):
+                # If data is a sequence we use the function in a recursive fashion
                 loaded_data = []
-                for d in sequence_raw_data:
+                for d in data:
                     ld = self.__load_data_from_str(data=d,
                                                    entry=entry)
                     loaded_data.append(ld)
 
             # IMAGE
-            elif dtype_flag_index == DEEP_DTYPE_IMAGE():
+            elif DEEP_DTYPE_IMAGE.corresponds(data_type):
                 # Load image
                 loaded_data = self.__load_image(data)
 
             # VIDEO
-            elif dtype_flag_index == DEEP_DTYPE_VIDEO():
+            elif DEEP_DTYPE_VIDEO.corresponds(data_type):
                 loaded_data = self.__load_video(data)
 
             # INTEGER
-            elif dtype_flag_index == DEEP_DTYPE_INTEGER():
+            elif DEEP_DTYPE_INTEGER.corresponds(data_type):
                 loaded_data = int(data)
 
             # FLOAT NUMBER
-            elif dtype_flag_index == DEEP_DTYPE_FLOAT():
+            elif DEEP_DTYPE_FLOAT.corresponds(data_type):
                 loaded_data = float(data)
 
-            elif dtype_flag_index == DEEP_DTYPE_STRING():
+            elif DEEP_DTYPE_STRING.corresponds(data_type):
                 loaded_data = str(data)
 
             # NUMPY ARRAY
-            elif dtype_flag_index == DEEP_DTYPE_NP_ARRAY():
+            elif DEEP_DTYPE_NP_ARRAY.corresponds(data_type):
                 loaded_data = np.load(data)
 
             # Data type not recognized
