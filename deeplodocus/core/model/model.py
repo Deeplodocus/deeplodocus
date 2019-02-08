@@ -197,8 +197,7 @@ def load_model(
     )
 
     if model_state_dict is not None:
-        model_state_dict = {k[7:]: v for k, v in model_state_dict.items() if k.startswith("module.")}
-
+        model_state_dict = dict((k[7:], v) if k.startswith("module.") else (k, v) for k, v in model_state_dict.items())
         model.load_state_dict(model_state_dict)
 
     n_devices = torch.cuda.device_count() if device_ids is None else len(device_ids)
@@ -208,9 +207,6 @@ def load_model(
     # Send to the appropriate device
     model.to(device)
 
-    # inp = torch.zeros((2, 3, 416, 416)).to(model.device)
-    # output = model(inp)
-    # print(output.shape)
     return model
 
 

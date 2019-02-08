@@ -10,6 +10,7 @@ import torch.nn.functional
 
 # Deeplodocus import
 from deeplodocus.core.inference.tester import Tester
+from deeplodocus.core.inference.predictor import Predictor
 from deeplodocus.core.inference.trainer import Trainer
 from deeplodocus.core.metrics.loss import Loss
 from deeplodocus.core.metrics.metric import Metric
@@ -27,7 +28,9 @@ from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.notification import Notification
 from deeplodocus.brain.memory.hippocampus import Hippocampus
 from deeplodocus.core.metrics import Metrics, Losses
+from deeplodocus.callbacks.printer import Printer
 from deeplodocus.utils.generic_utils import get_corresponding_flag
+
 
 class FrontalLobe(object):
     """
@@ -80,12 +83,14 @@ class FrontalLobe(object):
         self.trainer = None
         self.validator = None
         self.tester = None
+        self.predictor = None
         self.metrics = None
         self.losses = None
         self.optimizer = None
         self.hippocampus = None
         self.device = None
         self.device_ids = None
+        self.printer = Printer()
 
     def set_device(self):
         """
@@ -158,7 +163,7 @@ class FrontalLobe(object):
         """
         self.trainer.continue_training()
 
-    def evaluate(self):
+    def test(self):
         """
         AUTHORS:
         --------
@@ -181,7 +186,25 @@ class FrontalLobe(object):
 
         :return: None
         """
-        self.tester.fit() if self.tester is not None else Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TESTER)
+        if self.tester is None:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NO_TESTER)
+        else:
+            total_loss, losses, metrics = self.tester.evaluate(self.model)
+            self.printer.validation_epoch_end(losses, total_loss, metrics)
+
+    def validate(self):
+        if self.validator is None:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NO_VALIDATOR)
+        else:
+            total_loss, losses, metrics = self.validator.evaluate(self.model)
+            self.printer.validation_epoch_end(losses, total_loss, metrics)
+
+    def predict(self):
+        if self.predictor is None:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NO_PREDICTOR)
+        else:
+            inputs, outputs = self.predictor.predict(self.model)
+        self.visualise(inputs, outputs)
 
     def load(self):
         """
@@ -210,8 +233,9 @@ class FrontalLobe(object):
         self.load_losses()
         self.load_metrics()
         self.load_validator()       # Always load the validator before the trainer
-        self.load_trainer()
         self.load_tester()
+        self.load_trainer()
+        self.load_predictor()
         self.load_memory()
 
     def load_model(self):
@@ -236,58 +260,47 @@ class FrontalLobe(object):
         :return model->torch.nn.Module:  The model
         """
         model = None
-        optimizer_flag = False
 
-        # If loading from file, load data from the given path
-        try:
-            checkpoint = torch.load(self.config.model.file) if self.config.model.from_file else None
-        except AttributeError:
-            Notification(
-                DEEP_NOTIF_FATAL,
-                DEEP_MSG_MODEL_NO_FILE,
-                solutions=[
-                    "Enter a path to a model file in config/model/file",
-                    "Disable load model from file by setting config/model/from_file to False",
-                ]
-            )
-        except FileNotFoundError:
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_MODEL_FILE_NOT_FOUND % self.config.model.file)
+        checkpoint = self.__load_checkpoint()
 
-        # If the data is a dictionary, or none, we need to load the model form a python module
-        if isinstance(checkpoint, dict) or checkpoint is None:
-            model_state_dict = None if checkpoint is None else checkpoint["model_state_dict"]
-
-            # Load a model from the name and origin in the checkpoint, if they are given
-            if checkpoint is not None and "name" in checkpoint and "origin" in checkpoint:
-                    # Initialise the model from the details in the file
-                    model = self.__load_model(
-                        name=checkpoint["name"],
-                        module=checkpoint["origin"],
-                        device=self.device,
-                        device_ids=self.device_ids,
-                        batch_size=self.config.data.dataloader.batch_size,
-                        **self.config.model.get_all(ignore=["from_file", "file", "name", "module"]),
-                        model_state_dict=model_state_dict,
-                        weights_path=self.config.model.file,
-                        notif=DEEP_NOTIF_WARNING
-                    )
-
-            # If not loading from file, initialising model from file failed, load model from config
-            if not self.config.model.from_file or model is None:
-                if model is None:
-                    model = self.__load_model(
-                        device=self.device,
-                        device_ids=self.device_ids,
-                        batch_size=self.config.data.dataloader.batch_size,
-                        **self.config.model.get_all(ignore=["from_file", "file"]),
-                        model_state_dict=model_state_dict,
-                        weights_path=self.config.model.file,
-                        notif=DEEP_NOTIF_FATAL
-                    )
-            self.model = model
+        if self.config.model.from_file:
+            # If model name, origin and state_dict are all specified in the checkpoint
+            if all(key in checkpoint for key in ("name", "origin", "model_state_dict")):
+                model = self.__load_model(
+                    name=checkpoint["name"],
+                    module=checkpoint["origin"],
+                    device=self.device,
+                    device_ids=self.device_ids,
+                    batch_size=self.config.data.dataloader.batch_size,
+                    **self.config.model.get_all(ignore=["from_file", "file", "name", "module"]),
+                    model_state_dict=checkpoint["model_state_dict"],
+                    weights_path=self.config.model.file,
+                    notif=DEEP_NOTIF_WARNING
+                )
+            elif model is None:
+                name = self.config.model.name
+                origin = self.config.model.module
+                model_state_dict = checkpoint["model_state_dict"] if "model_state_dict" in checkpoint else checkpoint
+                model = self.__load_model(
+                    name=name,
+                    module=origin,
+                    device=self.device,
+                    device_ids=self.device_ids,
+                    batch_size=self.config.data.dataloader.batch_size,
+                    **self.config.model.get_all(ignore=["from_file", "file", "name", "module"]),
+                    model_state_dict=model_state_dict,
+                    weights_path=self.config.model.file,
+                    notif=DEEP_NOTIF_WARNING
+                )
         else:
-            self.model = checkpoint
-        return optimizer_flag
+            model = self.__load_model(
+                device=self.device,
+                device_ids=self.device_ids,
+                batch_size=self.config.data.dataloader.batch_size,
+                **self.config.model.get_all(ignore=["from_file", "file"]),
+                notif=DEEP_NOTIF_FATAL
+            )
+        self.model = model
 
     def load_optimizer(self):
         """
@@ -328,14 +341,19 @@ class FrontalLobe(object):
                 model_parameters=self.model.parameters(),
                 **self.config.optimizer.get()
             )
+            msg = "%s from %s" % (self.config.optimizer.name, optimizer.module)
+            if self.config.model.from_file:
+                checkpoint = self.__load_checkpoint()
+                if "optimizer_state_dict" in checkpoint:
+                    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+                    msg += " with state dict from %s" % self.config.model.file
 
             # If model exists, load the into the frontal lobe
             if optimizer is None:
                 Notification(DEEP_NOTIF_FATAL, DEEP_MSG_OPTIM_NOT_FOUND % optimizer_path)
             else:
                 self.optimizer = optimizer
-                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIM_LOADED
-                             % (self.config.optimizer.name, self.optimizer.module))
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIM_LOADED % msg)
 
         # Notify the user that a model must be loaded
         else:
@@ -596,6 +614,29 @@ class FrontalLobe(object):
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.test.name)
 
+    def load_predictor(self):
+        # If the predict step is enabled
+        if self.config.data.enabled.predict:
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.predict.name)
+
+            # Transform Manager
+            transform_manager = TransformManager(**self.config.transform.predict.get(ignore="outputs"))
+
+            # Dataset
+            dataset = Dataset(
+                **self.config.data.dataset.predict.get(),
+                transform_manager=transform_manager,
+                cv_library=self.config.project.cv_library
+            )
+            # Predictor
+            self.predictor = Predictor(
+                **self.config.data.dataloader.get(),
+                model=self.model,
+                dataset=dataset
+            )
+        else:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.predict.name)
+
     def load_memory(self):
         """
         AUTHORS:
@@ -631,15 +672,17 @@ class FrontalLobe(object):
                 (get_main_path(), self.config.project.sub_project, "weights")
             )
 
-            self.hippocampus = Hippocampus(losses=self.losses,
-                                           metrics=self.metrics,
-                                           model_name=self.config.model.name,
-                                           verbose=self.config.history.verbose,
-                                           memorize=self.config.history.memorize,
-                                           history_directory=history_directory,
-                                           overwatch_metric=overwatch_metric,
-                                           **self.config.training.saver.get(),
-                                           save_model_directory=weights_directory)
+            self.hippocampus = Hippocampus(
+                losses=self.losses,
+                metrics=self.metrics,
+                model_name=self.config.model.name,
+                verbose=self.config.history.verbose,
+                memorize=self.config.history.memorize,
+                history_directory=history_directory,
+                overwatch_metric=overwatch_metric,
+                **self.config.training.saver.get(),
+                save_model_directory=weights_directory
+            )
 
     def summary(self):
         """
@@ -679,6 +722,22 @@ class FrontalLobe(object):
             self.metrics.summary()
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_METRIC_NOT_LOADED)
+
+    def __load_checkpoint(self):
+        # If loading from file, load data from the given path
+        try:
+            return torch.load(self.config.model.file) if self.config.model.from_file else None
+        except AttributeError:
+            Notification(
+                DEEP_NOTIF_FATAL,
+                DEEP_MSG_MODEL_NO_FILE,
+                solutions=[
+                    "Enter a path to a model file in config/model/file",
+                    "Disable load model from file by setting config/model/from_file to False",
+                ]
+            )
+        except FileNotFoundError:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_MODEL_FILE_NOT_FOUND % self.config.model.file)
 
     @staticmethod
     def __load_model(

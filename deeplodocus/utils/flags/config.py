@@ -91,7 +91,7 @@ DEEP_CONFIG = {
         },
         "file": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: ""
+            DEEP_CONFIG_DEFAULT: None
         },
         "module": {
             DEEP_CONFIG_DTYPE: str,
@@ -208,6 +208,10 @@ DEEP_CONFIG = {
             "test": {
                 DEEP_CONFIG_DTYPE: bool,
                 DEEP_CONFIG_DEFAULT: True
+            },
+            "predict": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
             }
         },
         "dataset": {
@@ -319,6 +323,43 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_DTYPE: str,
                     DEEP_CONFIG_DEFAULT: "Test"
                 }
+            },
+            "predict": {
+                "inputs": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "labels": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "additional_data": {
+                    DEEP_CONFIG_DTYPE: [{
+                        "source": [str],
+                        "join": [str],
+                        "type": str,
+                        "load_method": str
+                    }],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "name": {
+                    DEEP_CONFIG_DEFAULT: "Prediction",
+                    DEEP_CONFIG_DTYPE: str
+                },
+                "number": {
+                    DEEP_CONFIG_DTYPE: int,
+                    DEEP_CONFIG_DEFAULT: None
+                }
             }
         }
     },
@@ -392,13 +433,34 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str]
             },
-            "additional_data":
-                {
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_DTYPE: [str]
+            "additional_data": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str]
+            }
+        },
+        "predict": {
+            "name": {
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_DEFAULT: "Predict Transform Manager",
+            },
+            "inputs": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str]
+            },
+            "labels": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str]
+            },
+            "additional_data": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str]
+            },
+            "outputs": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str]
                 }
-        }
-    },
+            }
+        },
     DEEP_CONFIG_METRICS: {
         DEEP_CONFIG_WILDCARD: {
             "module": {

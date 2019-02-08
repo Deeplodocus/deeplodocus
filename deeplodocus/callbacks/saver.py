@@ -250,7 +250,7 @@ class Saver(object):
                 "epoch": self.epoch_index,
                 "training_loss": self.training_loss,
                 "validation_loss": self.validation_loss,
-                "optimizer_state_dict:": self.optimizer.state_dict()
+                "optimizer_state_dict": self.optimizer.state_dict()
             }, file_path)
             # except:
             #     Notification(DEEP_NOTIF_ERROR, "Error while saving the pytorch model and weights" )

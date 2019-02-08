@@ -102,7 +102,6 @@ class Tester(GenericEvaluator):
 
         # Loop through each mini batch
         for minibatch_index, minibatch in enumerate(self.dataloader, 0):
-
             # Get the data
             inputs, labels, additional_data = self.clean_single_element_list(minibatch)
 
