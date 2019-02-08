@@ -45,7 +45,7 @@ class TransformManager(object):
     This method is very efficient and allows to have exactly the same output on mulitple inputs (e.g. left and right image of stereo vision)
     """
 
-    def __init__(self, name: str, inputs: List[Optional[str]], labels: List[Optional[str]], additional_data: List[Optional[str]]) -> None:
+    def __init__(self, name: str, inputs: List[Optional[str]], labels: List[Optional[str]], additional_data: List[Optional[str]], outputs: List[Optional[str]] = None) -> None:
         """
         AUTHORS:
         --------
@@ -72,6 +72,7 @@ class TransformManager(object):
         self.list_input_transformers = self.__load_transformers(inputs)
         self.list_label_transformers = self.__load_transformers(labels)
         self.list_additional_data_transformers = self.__load_transformers(additional_data)
+        self.list_output_transformers = self.__load_transformers(outputs)
         self.summary()
 
     def transform(self, data: Any, index: int, entry: Entry, augment: bool) -> Any:
@@ -121,6 +122,10 @@ class TransformManager(object):
         elif DEEP_ENTRY_ADDITIONAL_DATA.corresponds(info=entry.get_entry_type()):
             list_transformers = self.list_additional_data_transformers
 
+        # OUTPUT
+        elif DEEP_ENTRY_OUTPUT.corresponds(info=entry.get_entry_type()):
+            list_transformers = self.list_output_transformers
+
         # WRONG FLAG
         else:
             Notification(DEEP_NOTIF_FATAL, "The following type of entry does not exist : "
@@ -153,6 +158,10 @@ class TransformManager(object):
             # ADDITIONAL DATA
             elif DEEP_ENTRY_ADDITIONAL_DATA.corresponds(pointer):
                 list_transformers = self.list_additional_data_transformers
+
+            # OUTPUT
+            elif DEEP_ENTRY_OUTPUT.corresponds(pointer):
+                list_transformers = self.list_output_transformers
 
             # WRONG FLAG
             else:
@@ -201,6 +210,11 @@ class TransformManager(object):
             if transformer is not None and isinstance(transformer, Pointer) is False:
                 transformer.reset()
 
+        # Outputs
+        for transformer in self.list_output_transformers:
+            if transformer is not None and isinstance(transformer, Pointer) is False:
+                transformer.reset()
+
     def summary(self):
         """
         AUTHORS:
@@ -236,6 +250,11 @@ class TransformManager(object):
 
         # Additional data
         for transformer in self.list_additional_data_transformers:
+            if transformer is not None:
+                transformer.summary()
+
+        # Output
+        for transformer in self.list_output_transformers:
             if transformer is not None:
                 transformer.summary()
 
