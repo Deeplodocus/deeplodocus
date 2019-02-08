@@ -3,9 +3,6 @@
 # Python imports
 import inspect
 
-import cv2
-import numpy as np
-
 # Back-end imports
 import torch
 import torch.nn as nn
@@ -33,6 +30,7 @@ from deeplodocus.brain.memory.hippocampus import Hippocampus
 from deeplodocus.core.metrics import Metrics, Losses
 from deeplodocus.callbacks.printer import Printer
 from deeplodocus.utils.generic_utils import get_corresponding_flag
+
 
 class FrontalLobe(object):
     """
@@ -207,26 +205,6 @@ class FrontalLobe(object):
         else:
             inputs, outputs = self.predictor.predict(self.model)
         self.visualise(inputs, outputs)
-
-    def visualise(self, inputs, outputs):
-        for input, output in zip(inputs, outputs):
-            image = input[0][0, 0, :, :]
-            image += 1
-            image *= 127.5
-            image = image.numpy().astype(np.uint8)
-            output = output[0]
-            obj = output[:, 4]
-            cls = output[:, 5:]
-            cls, _ = torch.max(cls, 1)
-            conf = obj * cls
-            row = torch.argmax(conf)
-            x, y, w, h = output[row, 0:4]
-            cls = torch.argmax(output[row, 5:])
-            p1 = (int(x - w/2), int(y - h/2))
-            p2 = (int(x + w/2), int(y + h/2))
-            cv2.rectangle(image, p1, p2, thickness=1, color=255)
-            cv2.imshow("image", image)
-            cv2.waitKey(0)
 
     def load(self):
         """
