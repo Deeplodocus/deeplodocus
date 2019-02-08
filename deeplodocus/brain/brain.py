@@ -19,6 +19,7 @@ from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification, DeepError
+from deeplodocus.utils.vis_utils import plot_history
 
 
 class Brain(FrontalLobe):
@@ -382,6 +383,9 @@ class Brain(FrontalLobe):
             self.visual_cortex = None
         else:
             Notification(DEEP_NOTIF_ERROR, "The Visual Cortex is already asleep.")
+
+    def plot_history(self):
+        plot_history("/".join((self.config.project.sub_project, "history")))
 
     """
     "
