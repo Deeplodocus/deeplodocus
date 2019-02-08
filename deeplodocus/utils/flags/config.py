@@ -208,6 +208,10 @@ DEEP_CONFIG = {
             "test": {
                 DEEP_CONFIG_DTYPE: bool,
                 DEEP_CONFIG_DEFAULT: True
+            },
+            "predict": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
             }
         },
         "dataset": {
@@ -321,22 +325,6 @@ DEEP_CONFIG = {
                 }
             },
             "predict": {
-                "device": {
-                    DEEP_CONFIG_DTYPE: str,
-                    DEEP_CONFIG_DEFAULT: None
-                },
-                "batch_size": {
-                    DEEP_CONFIG_DTYPE: int,
-                    DEEP_CONFIG_DEFAULT: None,
-                },
-                "num_workers": {
-                    DEEP_CONFIG_DTYPE: int,
-                    DEEP_CONFIG_DEFAULT: None
-                },
-                "output_dir": {
-                    DEEP_CONFIG_DTYPE: str,
-                    DEEP_CONFIG_DEFAULT: None
-                },
                 "inputs": {
                     DEEP_CONFIG_DTYPE: [{
                         "source": [str],
@@ -367,6 +355,10 @@ DEEP_CONFIG = {
                 "name": {
                     DEEP_CONFIG_DEFAULT: "Prediction",
                     DEEP_CONFIG_DTYPE: str
+                },
+                "number": {
+                    DEEP_CONFIG_DTYPE: int,
+                    DEEP_CONFIG_DEFAULT: None
                 }
             }
         }
@@ -453,18 +445,22 @@ DEEP_CONFIG = {
             },
             "inputs": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DTYPE: [str]
             },
             "labels": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DTYPE: [str]
             },
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DTYPE: [str]
+            },
+            "outputs": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str]
+                }
             }
-        }
-    },
+        },
     DEEP_CONFIG_METRICS: {
         DEEP_CONFIG_WILDCARD: {
             "module": {

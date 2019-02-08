@@ -4,6 +4,7 @@ from torch import Tensor
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
 
+
 class Predictor(GenericInferer):
     """
     AUTHORS:
@@ -24,7 +25,7 @@ class Predictor(GenericInferer):
                  dataset: Dataset,
                  batch_size: int = 4,
                  num_workers: int = 4,
-                 verbose: int=2):
+                 verbose: int = 2):
 
         super().__init__(model=model,
                          dataset=dataset,
@@ -33,8 +34,7 @@ class Predictor(GenericInferer):
 
         self.verbose = verbose
 
-
-    def predict(self):
+    def predict(self, model=None):
         """
         AUTHORS:
         --------
@@ -57,13 +57,17 @@ class Predictor(GenericInferer):
 
         :return outputs->dict: the total losses and total metrics for the model over the test data set
         """
+        self.model = self.model if model is None else model
+
         # Initialise an empty list to store outputs
+        inputs = []
         outputs = []
         for minibatch_index, minibatch in enumerate(self.dataloader, 0):
-            inputs, labels, additional_data = self.clean_single_element_list(minibatch)
+            inp, labels, additional_data = self.clean_single_element_list(minibatch)
             # Infer the outputs from the model over the given mini batch
-            minibatch_output = self.model(*inputs)
+            minibatch_output = self.model(*inp)
             # Append mini_batch output to the output tensor
             outputs.append(self.recursive_detach(minibatch_output))
-        return outputs
+            inputs.append(inp)
+        return inputs, outputs
 

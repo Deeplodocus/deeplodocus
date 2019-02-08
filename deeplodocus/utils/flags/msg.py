@@ -7,6 +7,7 @@ DEEP_MSG_DIR_NOT_FOUND = "Directory not found : %s"
 DEEP_MSG_ILLEGAL_COMMAND = "Illegal command : %s"
 DEEP_MSG_NO_TESTER = "Cannot evaluate : Tester not loaded"
 DEEP_MSG_NO_VALIDATOR = "Cannot validate : Validator not loaded"
+DEEP_MSG_NO_PREDICTOR = "Cannot validate : Predictor not loaded"
 DEEP_MSG_NO_TRAINER = "Cannot evaluate : Trainer not loaded"
 DEEP_MSG_INVALID_DEVICE = "%s is not a valid input device : Please specify 'cuda' or 'cpu'"
 
