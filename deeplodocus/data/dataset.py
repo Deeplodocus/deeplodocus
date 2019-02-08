@@ -893,7 +893,6 @@ class Dataset(object):
             self.item_order = random.sample(range(0, self.number_raw_instances), self.length)
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_SHUFFLE_COMPLETE % method.name)
 
-
         # WRONG FLAG
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_SHUFFLE_NOT_FOUND % method.name)

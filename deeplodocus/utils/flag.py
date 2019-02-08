@@ -99,7 +99,7 @@ class Flag(object):
         """
         return "Flag {0} : (id : {1})".format(self.description, self.index)
 
-    def corresponds(self, info : Union[str, int, "Flag", None]) -> bool:
+    def corresponds(self, info : Union[str, int, "Flag", None, bool]) -> bool:
         """
         AUTHORS:
         --------
@@ -123,7 +123,7 @@ class Flag(object):
         :return (bool): Whether the info corresponds to the Flag
         """
         # NONE
-        if info is None:
+        if info is None or False:
             return False
 
         # NAME COMPARISON

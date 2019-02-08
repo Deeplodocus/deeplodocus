@@ -441,7 +441,7 @@ class Entry(object):
         """
 
         if data_type is None:
-            instance_example = self.__getitem__(index=0)
+            instance_example, _, _ = self.__getitem__(index=0)
             # Automatically check the data type
             data_type = self.__estimate_data_type(instance_example)
         else:
@@ -449,8 +449,7 @@ class Entry(object):
                                                info=data_type)
         return data_type
 
-    @staticmethod
-    def __estimate_data_type(data) -> int:
+    def __estimate_data_type(self, data: str) -> Flag:
         """
         AUTHORS:
         --------
@@ -472,31 +471,47 @@ class Entry(object):
 
         :return: The integer flag of the corresponding type
         """
-        mime = mimetypes.guess_type(data)
-        if mime[0] is not None:
-            mime = mime[0].split("/")[0]
 
-        # IMAGE
-        if mime == "image":
-            return DEEP_TYPE_IMAGE
-        # VIDEO
-        elif mime == "video":
-            return DEEP_TYPE_VIDEO
-        # FLOAT
-        elif get_int_or_float(data) == DEEP_TYPE_FLOAT():
-            return DEEP_TYPE_FLOAT
-        # INTEGER
-        elif get_int_or_float(data) == DEEP_TYPE_INTEGER():
-            return DEEP_TYPE_INTEGER
-        # SEQUENCE
-        elif type(data) is list:
-            return DEEP_TYPE_SEQUENCE
-        # NUMPY ARRAY
-        if is_np_array(data) is True:
-            return DEEP_TYPE_NP_ARRAY
-        # Type not handled
+        # If we have a list of item, we check that they all contain the same type
+        if isinstance(data, list):
+            dtypes = []
+            # Get all the data type
+            for d in data:
+                dt = self.__estimate_data_type(d)
+                dtypes.append(dt)
+
+            # Check the data types are all the same
+            for dt in dtypes:
+                if dtypes[0].corresponds(dt) is False:
+                    Notification(DEEP_NOTIF_FATAL, "Data type in your sequence of data are not all the same")
+
+            # If all the same then return the data type
+            return dtypes[0]
+
+        # If not a list
         else:
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_NOT_HANDLED % data)
+            mime = mimetypes.guess_type(data)
+            if mime[0] is not None:
+                mime = mime[0].split("/")[0]
+
+            # IMAGE
+            if mime == "image":
+                return DEEP_DTYPE_IMAGE
+            # VIDEO
+            elif mime == "video":
+                return DEEP_DTYPE_VIDEO
+            # FLOAT
+            elif DEEP_DTYPE_FLOAT.corresponds(get_int_or_float(data)):
+                return DEEP_DTYPE_FLOAT
+            # INTEGER
+            elif DEEP_DTYPE_INTEGER.corresponds(get_int_or_float(data)):
+                return DEEP_DTYPE_INTEGER
+            # NUMPY ARRAY
+            if is_np_array(data) is True:
+                return DEEP_DTYPE_NP_ARRAY
+            # Type not handled
+            else:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_NOT_HANDLED % data)
 
     @staticmethod
     def __check_load_method(load_method : Union[str, int, Flag, None]) -> Flag:
