@@ -233,9 +233,9 @@ class History(object):
                 Signal(
                     event=DEEP_EVENT_PRINT_TRAINING_BATCH_END,
                     args={
-                        "losses": {key: value / num_minibatches for key, value in self.running_losses.items()},
-                        "total_loss": self.running_total_loss / num_minibatches,
-                        "metrics": {key: value / num_minibatches for key, value in self.running_metrics.items()},
+                        "losses": result_losses,
+                        "total_loss": total_loss,
+                        "metrics": result_metrics,
                         "num_minibatches": num_minibatches,
                         "minibatch_index": minibatch_index
                     }
