@@ -3,6 +3,9 @@
 # Python imports
 import inspect
 
+import cv2
+import numpy as np
+
 # Back-end imports
 import torch
 import torch.nn as nn
@@ -10,6 +13,7 @@ import torch.nn.functional
 
 # Deeplodocus import
 from deeplodocus.core.inference.tester import Tester
+from deeplodocus.core.inference.predictor import Predictor
 from deeplodocus.core.inference.trainer import Trainer
 from deeplodocus.core.metrics.loss import Loss
 from deeplodocus.core.metrics.metric import Metric
@@ -81,6 +85,7 @@ class FrontalLobe(object):
         self.trainer = None
         self.validator = None
         self.tester = None
+        self.predictor = None
         self.metrics = None
         self.losses = None
         self.optimizer = None
@@ -196,6 +201,33 @@ class FrontalLobe(object):
             total_loss, losses, metrics = self.validator.evaluate(self.model)
             self.printer.validation_epoch_end(losses, total_loss, metrics)
 
+    def predict(self):
+        if self.predictor is None:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NO_PREDICTOR)
+        else:
+            inputs, outputs = self.predictor.predict(self.model)
+        self.visualise(inputs, outputs)
+
+    def visualise(self, inputs, outputs):
+        for input, output in zip(inputs, outputs):
+            image = input[0][0, 0, :, :]
+            image += 1
+            image *= 127.5
+            image = image.numpy().astype(np.uint8)
+            output = output[0]
+            obj = output[:, 4]
+            cls = output[:, 5:]
+            cls, _ = torch.max(cls, 1)
+            conf = obj * cls
+            row = torch.argmax(conf)
+            x, y, w, h = output[row, 0:4]
+            cls = torch.argmax(output[row, 5:])
+            p1 = (int(x - w/2), int(y - h/2))
+            p2 = (int(x + w/2), int(y + h/2))
+            cv2.rectangle(image, p1, p2, thickness=1, color=255)
+            cv2.imshow("image", image)
+            cv2.waitKey(0)
+
     def load(self):
         """
         AUTHORS:
@@ -223,8 +255,9 @@ class FrontalLobe(object):
         self.load_losses()
         self.load_metrics()
         self.load_validator()       # Always load the validator before the trainer
-        self.load_trainer()
         self.load_tester()
+        self.load_trainer()
+        self.load_predictor()
         self.load_memory()
 
     def load_model(self):
@@ -602,6 +635,29 @@ class FrontalLobe(object):
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.test.name)
 
+    def load_predictor(self):
+        # If the predict step is enabled
+        if self.config.data.enabled.predict:
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.predict.name)
+
+            # Transform Manager
+            transform_manager = TransformManager(**self.config.transform.predict.get(ignore="outputs"))
+
+            # Dataset
+            dataset = Dataset(
+                **self.config.data.dataset.predict.get(),
+                transform_manager=transform_manager,
+                cv_library=self.config.project.cv_library
+            )
+            # Predictor
+            self.predictor = Predictor(
+                **self.config.data.dataloader.get(),
+                model=self.model,
+                dataset=dataset
+            )
+        else:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.predict.name)
+
     def load_memory(self):
         """
         AUTHORS:
@@ -648,9 +704,6 @@ class FrontalLobe(object):
                 **self.config.training.saver.get(),
                 save_model_directory=weights_directory
             )
-
-    def predict(self):
-        pass
 
     def summary(self):
         """
