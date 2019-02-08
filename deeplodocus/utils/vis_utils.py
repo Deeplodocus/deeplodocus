@@ -38,7 +38,7 @@ def plot_history(history_dir, line_width=0.5, alpha=1, y_scale="linear"):
             )
     # Plot training data for each epoch (only if batch data is None)
     elif epoch_data is not None:
-        pass
+        print("Plotting for training epoch not implemented yet")
     # Plot validation data for each epoch
     if val_data is not None:
         col_names = list(val_data)
