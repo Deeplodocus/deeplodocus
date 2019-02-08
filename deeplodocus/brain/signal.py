@@ -1,3 +1,7 @@
+# Python imports
+from typing import Optional
+
+# Deeplodocus imports
 from deeplodocus.utils.flag import Flag
 
 
@@ -15,7 +19,7 @@ class Signal(object):
     Signal class to be used to interact with the Thalamus
     """
 
-    def __init__(self, event: Flag, args=None):
+    def __init__(self, event: Flag, args: Optional[dict] = None) -> None:
         """
         AUTHORS:
         --------
@@ -29,8 +33,8 @@ class Signal(object):
 
         PARAMETERS:
         -----------
-        :param event:
-        :param args:
+        :param event(Flag): The event the signal belongs to
+        :param args(dict): The arguments to send with the signal
         """
         args = {} if args is None else args
         self.event = event
@@ -60,7 +64,7 @@ class Signal(object):
         """
         return self.event
 
-    def get_arguments(self):
+    def get_arguments(self) -> dict:
         """
         AUTHORS:
         --------
@@ -80,6 +84,6 @@ class Signal(object):
         RETURN:
         -------
 
-        :return: arguments attribute
+        :return: arguments attribute (dict)
         """
         return self.arguments

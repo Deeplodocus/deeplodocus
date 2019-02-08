@@ -3,6 +3,7 @@ import os
 from typing import List
 from typing import Any
 from typing import Tuple
+from typing import Union
 
 # Deeplodocus imports
 from deeplodocus.utils.notification import Notification
@@ -42,6 +43,7 @@ class Source(object):
         self.join = join
         self.data_in_memory = None
         self.length = None
+        self.delimiter = ";"
     """
     "
     " LOAD ITEM
@@ -75,7 +77,7 @@ class Source(object):
         is_transformed = False
 
         # FILE
-        if self.type() == DEEP_SOURCE_FILE():
+        if DEEP_SOURCE_FILE.corresponds(self.type):
             data = get_specific_line(filename=self.source,
                                      index=index)
             is_loaded = False
@@ -86,7 +88,7 @@ class Source(object):
         # TODO: Add binary files
 
         # FOLDER
-        elif self.type() == DEEP_SOURCE_FOLDER():
+        elif DEEP_SOURCE_FOLDER.corresponds(self.type):
             Notification(DEEP_NOTIF_FATAL, "Load from hard drive with a source folder is supposed to "
                                            "be converted to a source file."
                                            "Please check the documentation to see how to use the Dataset class")
@@ -94,14 +96,24 @@ class Source(object):
             is_transformed = False
 
         # DATABASE
-        elif self.type()() == DEEP_SOURCE_DATABASE():
+        elif DEEP_SOURCE_DATABASE.corresponds(self.type):
             Notification(DEEP_NOTIF_FATAL, "Load from hard drive with a source database not implemented yet")
             is_loaded = False
             is_transformed = False
 
+        # PREMADE DATASET
+        elif DEEP_SOURCE_PREMADE_DATASET.corresponds(self.type):
+            Notification(DEEP_NOTIF_FATAL, "Load from Premade dataset not implemented yet")
+            is_loaded = True
+            is_transformed = False
+
+        if isinstance(data, str):
+            data = data.split(self.delimiter)  # Generate a list from the sequence
+            if len(data) == 1:
+                data = data[0]
+
         # Format the data if it is a path to a specific file
         # Formatting will automatically join the adequate parent directory to a relative path
-
         if self.join is not None:
             data = self.__format_path(data)
 
@@ -222,7 +234,7 @@ class Source(object):
     "
     """
 
-    def add_item_to_memory(self, item: Any, index: int):
+    def add_item_to_memory(self, item: Any, index: int) -> None:
         """
         AUTHORS:
         --------
@@ -248,7 +260,7 @@ class Source(object):
 
         self.data_in_memory[index] = item
 
-    def initialize_memory(self, instances : int) -> None:
+    def initialize_memory(self, instances: int) -> None:
         """
         AUTHORS:
         --------
@@ -274,7 +286,7 @@ class Source(object):
         self.data_in_memory = [0 for k in range(instances)]
 
 
-    def __check_source_type(self, source : str) -> Flag:
+    def __check_source_type(self, source: str) -> Flag:
         """
         AUTHORS:
         --------
@@ -308,6 +320,10 @@ class Source(object):
         elif self.__is_source_database(source):
             return DEEP_SOURCE_DATABASE
 
+        # PRE-MADE DATASET
+        elif self.__is_source_premade_dataset(source):
+            return DEEP_SOURCE_PREMADE_DATASET
+
         else:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_SOURCE_NOT_FOUND % source)
 
@@ -337,7 +353,7 @@ class Source(object):
         PARAMETERS:
         -----------
 
-        :param f:
+        :param source (str): The source string given by the user in the config file
 
         RETURN:
         -------
@@ -355,13 +371,38 @@ class Source(object):
         else:
             return False
 
+    def __is_source_premade_dataset(self, source: str) -> bool:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check if the source is a premade dataset
+
+        PARAMETERS:
+        -----------
+
+        :param source (str): The source string given by the user in the config file
+
+        RETURN:
+        -------
+
+        :return (bool): Whether the source is a database or not
+        """
+
+        NotImplemented("Loading from premade dataset not implemented yet.")
+
 
     """
     "
     " JOIN
     "
     """
-    def __format_path(self, data: str):
+    def __format_path(self, data: Union[str, list]) -> Union[list, str]:
         """
         AUTHORS:
         --------
@@ -382,12 +423,18 @@ class Source(object):
 
         :return data(str): The data formatted to join the
         """
-        if self.join.lower() == "auto":
-            data = "/".join([os.path.dirname(self.source), data])
-        elif os.path.isdir(self.join):
-            data = "/".join([self.join, data])
+
+        if isinstance(data, list):
+            for i, d in enumerate(data):
+                data[i] = self.__format_path(d)
         else:
-            Notification(DEEP_NOTIF_FATAL, "The following folder couldn't be joined to the filepath : %s " % str(self.join))
+            if self.join.lower() == "auto":
+                data = "/".join([os.path.dirname(self.source), data])
+            elif os.path.isdir(self.join):
+                data = "/".join([self.join, data])
+            else:
+                Notification(DEEP_NOTIF_FATAL, "The following folder couldn't be joined to the filepath : %s " % str(self.join))
+
         return data
 
 
@@ -415,11 +462,11 @@ class Source(object):
     "
     """
 
-    def set_source(self, source : str):
+    def set_source(self, source: str) -> None:
         self.source = source
 
-    def set_type(self, type : Flag):
+    def set_type(self, type: Flag) -> None:
         self.type = type
 
-    def set_data_in_memory(self, content : List[Any]):
+    def set_data_in_memory(self, content: List[Any]) -> None:
         self.data_in_memory = content

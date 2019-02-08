@@ -30,7 +30,7 @@ class Logo(object):
         PARAMETERS:
         -----------
 
-        :param version->str: Version of Deeplodocus
+        :param version(str): Version of Deeplodocus
 
         RETURN:
         -------
@@ -56,10 +56,11 @@ class Logo(object):
         PARAMETERS:
         -----------
 
-        :param version->str: Version of Deeplodocus
+        :param version(str): Version of Deeplodocus
 
         RETURN:
         -------
+
         :return: None
         """
 

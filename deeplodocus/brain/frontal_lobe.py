@@ -32,7 +32,7 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.brain.memory.hippocampus import Hippocampus
 from deeplodocus.core.metrics import Metrics, Losses
 from deeplodocus.callbacks.printer import Printer
-
+from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 class FrontalLobe(object):
     """
@@ -426,7 +426,8 @@ class FrontalLobe(object):
 
                 # Check the weight
                 if self.config.losses.check("weight", key):
-                    if get_int_or_float(config.weight) not in (DEEP_TYPE_INTEGER, DEEP_TYPE_FLOAT):
+                    if get_corresponding_flag(flag_list=[DEEP_DTYPE_INTEGER, DEEP_DTYPE_FLOAT],
+                                              info=get_int_or_float(config.weight), fatal=False) is None:
                         Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have a correct weight argument" % key)
                 else:
                     Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have any weight argument" % key)
