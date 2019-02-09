@@ -55,6 +55,34 @@ class FrontalLobe(object):
         - Evaluate the model on the test dataset
         - Display the summaries
 
+    PUBLIC METHODS:
+    ---------------
+
+    :method set_device: Set the device to be used for training or inference
+    :method train: Start the training of the network
+    :method test: Start the test of the network on the Test set
+    :method validate: Start the test of the network on the Validation set
+    :method continue_training: Continue the training of the network
+    :method predict: Predict outputs of the data in the prediction set
+    :method load: Load the content of the config into the Frontal Lobe
+    :method load_model:
+    :method load_optimizer:
+    :method load_trainer:
+    :method load_tester:
+    :method load_validator:
+    :method load_predicto:
+    :method load_losses:
+    :method load_metrics:
+    :method load_memory:
+    :method summary:
+
+    PRIVATE METHODS:
+    ----------------
+
+    :method __init__: Initialize the frontal lobe of Deeplodocus
+    :method __load_checkpoint:
+    :method __load_model:
+    :method __model_has_multiple_inputs: Check wether the model has multiple inputs or not
     """
     def __init__(self):
         """
@@ -71,7 +99,7 @@ class FrontalLobe(object):
         PARAMETERS:
         -----------
 
-        :param config->Namespace: The config
+        :param config(Namespace): The config
 
         RETURN:
         -------
@@ -429,12 +457,15 @@ class FrontalLobe(object):
         AUTHORS:
         --------
         :author: Alix Leroy
+
         DESCRIPTION:
         ------------
         Load the metrics
+
         PARAMETERS:
         -----------
         None
+
         RETURN:
         -------
         :return loss_functions->dict: The metrics
@@ -521,7 +552,7 @@ class FrontalLobe(object):
                                    optimizer=self.optimizer,
                                    num_epochs=self.config.training.num_epochs,
                                    initial_epoch=self.config.training.initial_epoch,
-                                   shuffle=self.config.training.shuffle,
+                                   shuffle_method=self.config.training.shuffle,
                                    verbose=self.config.history.verbose,
                                    tester=self.validator)
         else:
