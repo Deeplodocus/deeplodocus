@@ -28,6 +28,9 @@ class VisualCortex(object):
     ------------
 
     A User Interface accessible via a Web Browser
+
+    TODO : Include Plotly for better visualization
+
     """
 
     def __init__(self):
