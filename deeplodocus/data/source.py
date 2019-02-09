@@ -119,7 +119,6 @@ class Source(object):
 
         return data, is_loaded, is_transformed
 
-
     def __len__(self, load_method : Flag) -> int:
         """
         AUTHORS:
@@ -188,26 +187,30 @@ class Source(object):
         length = 0
 
         # FILE
-        if self.type() == DEEP_SOURCE_FILE():
+        if DEEP_SOURCE_FILE.corresponds(self.type):
             with open(self.source) as f:
                 for l in f:
                     length += 1
 
         # FOLDER
-        elif self.type() == DEEP_SOURCE_FOLDER():
+        elif DEEP_SOURCE_FOLDER.corresponds(self.type):
             Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for the folder")
 
         # DATABASE
-        elif self.type() == DEEP_SOURCE_DATABASE():
+        elif DEEP_SOURCE_DATABASE.corresponds(self.type):
             Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for the database")
 
         # SERVER
-        elif self.type() == DEEP_SOURCE_SERVER():
+        elif DEEP_SOURCE_SERVER.corresponds(self.type):
             Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for a remote server")
 
         # SPARK
-        elif self.type() == DEEP_SOURCE_SPARK():
+        elif DEEP_SOURCE_SPARK.corresponds(self.type):
             Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for spark")
+
+        # PREMADE DATASET
+        elif DEEP_SOURCE_PREMADE_DATASET.corresponds(self.type):
+            Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for premade datasets")
 
         # OTHERS
         else:

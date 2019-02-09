@@ -46,23 +46,36 @@ class Entry(object):
         - Join a parent directory if a relative path is given in data
         - Store data in memory if requested by the user
 
-    METHODS:
-    --------
+    PUBLIC METHODS:
+    ---------------
 
-    public methods :
-                    - get_source
-                    - get_source_type
-                    - get_join
-                    - get_entry_index
-                    - get_entry_type
-                    - get data_type
-                    - get load_method
-                    - get_data_from_memory
+    :method get_source:
+    :method get_source_type:
+    :method get_join:
+    :method get_data_type:
+    :method get_load_method:
+    :method get_entry_index:
+    method get_entry_type:
 
-    private methods :
-                     -
+    PRIVATE METHODS:
+    ----------------
 
-
+    :method __init__: Initialize an Entry instance
+    :method __len__: Get the length of the Entry
+    :method __getitem__: Get the selected item
+    :method __get_data_from_memory:
+    :method __load_online:
+    :method __compute_source_indices:
+    :method __convert_source_folder_to_file: Convert the folder sources to files for efficiency
+    :method __check_sources:
+    :method __check_join:
+    :method __check_data_type:
+    :method __estimate_data_type:
+    :method __check_load_method:
+    :method __check_entry_type:
+    :method __check_folders:
+    :method __load_content_in_memory:
+    :method __read_folders:
     """
 
     def __init__(self,
@@ -122,7 +135,33 @@ class Entry(object):
         # Evaluate the length of the entry
         self.__len__()
 
-    def __getitem__(self, index : int) -> Tuple[Any, bool, bool]:
+    def __len__(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the length of the entry.
+        The length of the entry is computed differently whether the loading method is offline or online.
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return (int): The length of the entry
+        """
+        self.length = sum([s.__len__(load_method=self.load_method) for s in self.sources])
+        return self.length
+
+    def __getitem__(self, index: int) -> Tuple[Any, bool, bool]:
         """
         AUTHORS:
         --------
@@ -149,19 +188,25 @@ class Entry(object):
         is_loaded = False
         is_transformed = False
 
+        # Get the corresponding source
+        source_index, index_in_source = self.__compute_source_indices(index=index)
+
+
         # OFFLINE
         if self.load_method() == DEEP_LOAD_METHOD_OFFLINE():
-            item = self.__get_data_from_memory(index=index)
+            # Get the data
+            item, _, _ = self.sources[source_index].__getitem__(index_in_source)
             is_loaded = True
             is_transformed = True
 
         # SEMI-ONLINE
         #elif self.load_method() == DEEP_LOAD_METHOD_SEMI_ONLINE():
-        #    item, is_loaded, is_transformed = self.__load_semi_online(index=index)
+        #    item, is_loaded, is_transformed = self.__load_semi_online(index=index_in_source)
 
         # ONLINE
         elif self.load_method() == DEEP_LOAD_METHOD_ONLINE():
-            item, is_loaded, is_transformed = self.__load_online(index=index)
+            # Get the data
+            item, is_loaded, is_transformed = self.sources[source_index].__getitem__(index_in_source)
 
         # OTHERS
         else:
@@ -169,66 +214,8 @@ class Entry(object):
 
         return item, is_loaded, is_transformed
 
-    def __get_data_from_memory(self, index: int) -> Any:
-        """
-        AUTHORS:
-        --------
 
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Get a specific data from the memory
-
-        PARAMETERS:
-        -----------
-
-        :param index(int): The index of the data
-
-        RETURN:
-        -------
-
-        :return (Any): The requested data
-        """
-
-        # Get the corresponding source
-        source_index, index_in_source = self.__compute_source_indexes(index=index)
-
-        # Get the data
-        return self.sources[source_index].__getitem__(index_in_source)
-
-    def __load_online(self, index: int) -> Tuple[Any, bool, bool]:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Load the data directly from the hard drive without accessing the memory
-        The method access the source file, folder or database (entry.path) to load the data
-        This might be slower because of the multiple reads in files
-        This function does not write any content in the file and therefore can be called with a Multiprocessing / Multithreading Dataloader
-
-        PARAMETERS:
-        -----------
-
-        :param index (int): The specific index to load
-
-        RETURN:
-        -------
-
-        :return: data(Any): The data returned
-        """
-        # Get the corresponding source
-        source_index, index_in_source = self.__compute_source_indexes(index=index)
-        source = self.sources[source_index]
-        return source.__getitem__(index=index_in_source)
-
-    def __compute_source_indexes(self, index: int) -> Tuple[int, int]:
+    def __compute_source_indices(self, index: int) -> Tuple[int, int]:
         """
         AUTHORS:
         --------
@@ -264,31 +251,7 @@ class Entry(object):
 
         Notification(DEEP_NOTIF_DEBUG, "Error in computing the source index... Please check the algorithm")
 
-    def __len__(self):
-        """
-        AUTHORS:
-        --------
 
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Get the length of the entry.
-        The length of the entry is computed differently whether the loading method is offline or online.
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return (int): The length of the entry
-        """
-        self.length = sum([s.__len__(load_method=self.load_method) for s in self.sources])
-        return self.length
 
     def __convert_source_folder_to_file(self, source : Source):
         """
@@ -783,6 +746,13 @@ class Entry(object):
             return [s.get_join() for s in self.sources]
         else:
             return self.sources[index].get_join()
+
+    """
+    "
+    " GETTERS
+    "
+    """
+
 
     def get_data_type(self) -> Flag:
         return self.data_type
