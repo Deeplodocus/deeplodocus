@@ -106,7 +106,8 @@ class Brain(FrontalLobe):
         """
         AUTHORS:
         --------
-        :author: Samuel Westlake, Alix Leroy
+        :author: Samuel Westlake
+        :author: Alix Leroy
 
         DESCRIPTION:
         ------------
@@ -128,7 +129,8 @@ class Brain(FrontalLobe):
         """
         AUTHORS:
         --------
-        :author: Samuel Westlake, Alix Leroy
+        :author: Samuel Westlake
+        :author: Alix Leroy
 
         DESCRIPTION:
         ------------
