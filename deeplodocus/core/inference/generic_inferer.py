@@ -95,7 +95,6 @@ class GenericInferer(object):
         # Else -> Do not change
 
         for entry in minibatch:
-
             if isinstance(entry, list) and len(entry) == 1:
                 cleaned_minibatch.append(entry[0])
 
@@ -104,7 +103,6 @@ class GenericInferer(object):
 
             else:
                 cleaned_minibatch.append(entry)
-
         return cleaned_minibatch
 
     @staticmethod
@@ -185,13 +183,21 @@ class GenericInferer(object):
 
         :return:
         """
-        try:
-            return data.to(device)
-        except AttributeError:
+        if isinstance(data, list):
+            l_data = []
+            for d in data:
+                td = self.to_device(d, device)
+                l_data.append(td)
+            return l_data
+
+        else:
             try:
-                return [d.to(device=device) for d in data if d is not None]
-            except TypeError:
-                return None
+                return data.to(device)
+            except AttributeError:
+                try:
+                    return [d.to(device=device) for d in data if d is not None]
+                except TypeError:
+                    return None
 
     def recursive_detach(self, outputs: Union[Tuple, List, Tensor]) ->Union[Tuple, List, Tensor]:
         """

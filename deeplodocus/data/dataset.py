@@ -325,6 +325,7 @@ class Dataset(object):
 
         # Gather the item of each entry
         for entry in entries:
+
             entry_data, is_loaded, is_transformed = entry.__getitem__(index=index_raw_instance)
 
             # LOAD THE ITEM
@@ -348,8 +349,7 @@ class Dataset(object):
         else:
             return data
 
-    @staticmethod
-    def __format_data(data_entry, entry):
+    def __format_data(self, data_entry, entry):
         """
         AUTHORS:
         --------
@@ -375,16 +375,27 @@ class Dataset(object):
 
         :return: the formatted data entry
         """
-        if DEEP_DTYPE_IMAGE.corresponds(entry.data_type):
-            # Check if no transform return a grayscale image as a 2D image
-            if data_entry.ndim <= 2:
-                data_entry = data_entry[:, :, np.newaxis]
+        # If we have to format a list of items
+        if isinstance(data_entry, list):
+            formated_data = []
 
-            # Make image (ch, h, w)
-            data_entry = np.swapaxes(data_entry, 0, 2)
-            data_entry = np.swapaxes(data_entry, 1, 2)
+            for d in data_entry:
 
-            data_entry = data_entry.astype(np.float32)
+                fd = self.__format_data(d, entry)
+                formated_data.append(fd)
+            data_entry = formated_data
+        # Else it is a unique item
+        else:
+            if DEEP_DTYPE_IMAGE.corresponds(entry.data_type):
+                # Check if no transform return a grayscale image as a 2D image
+                if data_entry.ndim <= 2:
+                    data_entry = data_entry[:, :, np.newaxis]
+
+                # Make image (ch, h, w)
+                data_entry = np.swapaxes(data_entry, 0, 2)
+                data_entry = np.swapaxes(data_entry, 1, 2)
+
+                data_entry = data_entry.astype(np.float32)
         # TODO: Formating for other data types
         return data_entry
 
