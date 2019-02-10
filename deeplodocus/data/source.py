@@ -436,7 +436,7 @@ class Source(object):
             elif os.path.isdir(self.join):
                 data = "/".join([self.join, data])
             else:
-                Notification(DEEP_NOTIF_FATAL, "The following folder couldn't be joined to the filepath : %s " % str(self.join))
+                Notification(DEEP_NOTIF_FATAL, "The following folder couldn't be joined to the filepath : %s" % str(self.join))
 
         return data
 

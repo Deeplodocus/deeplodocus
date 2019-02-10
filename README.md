@@ -614,3 +614,56 @@ def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> 
 The custom transforms can be saved inside the `config/modules/transforms` folder in any python file. This architecture allows your to structure your files as you wish.
 
 
+## Model
+
+### Pytorch Model
+
+### Custom Model
+
+Deeplodocus is compatible with any PyTorch custom model with the following structure.
+
+```python
+
+import torch.nn as nn
+
+class CustomModel(nn.Module):
+
+    def __init__(self, resize_method):
+        super(CustomModel, self).__init__()
+        
+        # DEFINE THE DIFFERENT MODULES OF YOUR MODEL
+        
+    def forward(self, input):
+        
+        # DEFINE THE FORWARD PASS OF YOUR MODEL
+        
+        return output
+```
+
+If your Deeplodocus project contains multiple input entries, they will be available in the forward function as follow:
+
+
+```python
+    def forward(self, input1, input2, input3):
+        
+        # DEFINE THE FORWARD PASS OF YOUR MODEL
+        
+        return output
+```
+
+If your input entry contains a sequence of data, the sequence will be available in a list as follow:
+
+```python
+    def forward(self, sequence):
+        
+        # Method1
+        item1, item2, item3 = sequence
+        
+        #Method2
+        for item in sequence:
+            # DO SOMETHING
+        
+        # DEFINE THE FORWARD PASS OF YOUR MODEL
+        
+        return output
+```
