@@ -1,6 +1,3 @@
-import numpy as np
-import math
-
 import torch
 import torch.nn as nn
 
@@ -25,6 +22,7 @@ class YOLOv3(nn.Module):
                 ((30, 61), (62, 45), (59, 119)),
                 ((10, 13), (16, 30), (22, 23))
             ),
+            normalized_anchors=False,
             predict=False
     ):
         super(YOLOv3, self).__init__()
@@ -38,6 +36,11 @@ class YOLOv3(nn.Module):
                     "include_top": False
                 }
             }
+
+        # Scale anchors by image dimensions if the anchors are normalized
+        if normalized_anchors:
+            anchors = [[(a[0] * input_shape[1], a[1] * input_shape[0]) for a in anchor] for anchor in anchors]
+
         self.predicting = predict
         # Get the number of anchor boxes
         num_anchors = len(anchors)
@@ -223,34 +226,33 @@ class YoloLayer(nn.Module):
         self.predicting = predict
 
     def forward(self, x):
-        # Stride should be 32, 16 or 8
-        # h, w = image_shape / stride
-
-        # Tensors for CUDA support
         FloatTensor = torch.cuda.FloatTensor if x.is_cuda else torch.FloatTensor
+        batch_size, _, h, w = x.shape
 
-        batch_size, _, h, w = x.shape      # Extract batch_size, height and width
+        # Stride should be 32, 16 or 8
+        stride = self.image_shape[1] / w
 
-        stride = (
-            self.image_shape[0] / h,
-            self.image_shape[1] / w
-        )                                                       # stride[0] should always equal stride[1]
-
+        # Unpack predictions b x num_anchors x h x w x [num_classes + 5]
         prediction = x.view(
             batch_size,
             self.num_anchors,
             self.num_classes + 5,
             h,
             w
-        ).permute(0, 1, 3, 4, 2).contiguous()       # Unpack predictions b x num_anchors x h x w x [num_classes + 5]
+        ).permute(0, 1, 3, 4, 2).contiguous()
+
+        # Scaled anchor width and height and cell offsets
+        scaled_anchors = FloatTensor(self.anchors) / stride
+        cx = torch.arange(w).repeat(h, 1).view([1, 1, h, w]).type(FloatTensor)
+        cy = torch.arange(h).repeat(w, 1).t().view([1, 1, h, w]).type(FloatTensor)
 
         # Get all outputs
-        bx = torch.sigmoid(prediction[..., 0])      # b x num_anchors x h x w
-        by = torch.sigmoid(prediction[..., 1])      # b x num_anchors x h x w
-        bw = prediction[..., 2]                     # b x num_anchors x h x w
-        bh = prediction[..., 3]                     # b x num_anchors x h x w
-        obj = torch.sigmoid(prediction[..., 4])     # b x num_anchors x h x w (objectiveness)
-        cls = torch.sigmoid(prediction[..., 5:])    # b x num_anchors x h x w x num_classes (class scores)
+        bx = torch.sigmoid(prediction[..., 0]) + cx
+        by = torch.sigmoid(prediction[..., 1]) + cy
+        bw = scaled_anchors[:, 0].view(1, self.num_anchors, 1, 1) * torch.exp(prediction[..., 2])
+        bh = scaled_anchors[:, 1].view(1, self.num_anchors, 1, 1) * torch.exp(prediction[..., 3])
+        obj = torch.sigmoid(prediction[..., 4])
+        cls = torch.sigmoid(prediction[..., 5:])
 
         # Recombine predictions after activations have been applied
         prediction = torch.cat((
@@ -262,28 +264,12 @@ class YoloLayer(nn.Module):
             cls
         ), 4)
 
-        # Calculate offsets
-        grid_x = torch.arange(w).repeat(h, 1).view([1, 1, h, w]).type(FloatTensor)
-        grid_y = torch.arange(h).repeat(w, 1).t().view([1, 1, h, w]).type(FloatTensor)
-        scaled_anchors = FloatTensor([(a_w / stride[1], a_h / stride[0]) for a_w, a_h in self.anchors])
-        anchor_w = scaled_anchors[:, 0:1].view((1, self.num_anchors, 1, 1))
-        anchor_h = scaled_anchors[:, 1:2].view((1, self.num_anchors, 1, 1))
-
-        # Add offset and scale with anchors
-        pred_boxes = FloatTensor(prediction[..., :4].shape)
-        pred_boxes[..., 0] = bx.data + grid_x
-        pred_boxes[..., 1] = by.data + grid_y
-        pred_boxes[..., 2] = torch.exp(bw.data) * anchor_w
-        pred_boxes[..., 3] = torch.exp(bh.data) * anchor_h
-
         if self.predicting:
-            return torch.cat(
-                (
-                    pred_boxes.view(batch_size, -1, 4) * stride[0],
-                    obj.view(batch_size, -1, 1),
-                    cls.view(batch_size, -1, self.num_classes),
-                ),
-                -1,
-            )
+            # Scale up by stride
+            prediction[..., 0:4] *= stride
+
+            # Return flattened predictions
+            return prediction.view(-1, self.num_classes + 5)
         else:
+            # If not in prediction mode, return predictions without offsets and with anchors
             return prediction, scaled_anchors
