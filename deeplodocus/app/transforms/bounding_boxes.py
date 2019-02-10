@@ -1,10 +1,8 @@
-import numpy as np
-
 
 def rect2xywh(rect, indices=(0, 1, 2, 3)):
     a, b, c, d = indices
     rect = rect.T
-    xywh = np.zeros_like(rect)
+    xywh = rect.copy()
     xywh[a] = (rect[a] + rect[c]) / 2
     xywh[b] = (rect[b] + rect[d]) / 2
     xywh[c] = rect[c] - rect[a]
@@ -12,7 +10,7 @@ def rect2xywh(rect, indices=(0, 1, 2, 3)):
     return xywh.T, None
 
 
-def scale_boxes(box, image_shape, indices=(0, 1, 2, 3)):
+def normalize_boxes(box, image_shape, indices=(0, 1, 2, 3)):
     a, b, c, d = indices
     box = box.T
     box[a] /= image_shape[0]
