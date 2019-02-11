@@ -44,6 +44,7 @@ def plot_history(history_dir, line_width=0.5, alpha=1, y_scale="linear"):
         col_names = list(val_data)
         # Plot total validation loss
         plt.plot(
+            val_data["Epoch"],
             val_data["Total Loss"],
             label="Total Loss (validation)",
             linewidth=line_width
@@ -51,6 +52,7 @@ def plot_history(history_dir, line_width=0.5, alpha=1, y_scale="linear"):
         # Plot validation sub-losses
         for i in range(4, val_data.shape[1]):
             plt.plot(
+                val_data["Epoch"],
                 val_data.iloc[:, i],
                 label=col_names[i] + " (validation)",
                 linewidth=line_width,
@@ -65,6 +67,7 @@ def plot_history(history_dir, line_width=0.5, alpha=1, y_scale="linear"):
 
 
 if __name__ == "__main__":
-    plot_history("/home/samuel/Cranfield University/Code/deeplodocus-dev/test/core/YOLOv3/v03/history",
+    plot_history("/home/samuel/Cranfield University/Code/deeplodocus-dev/test/core/YOLOv3/v04/history",
+                 line_width=3,
                  alpha=0.5,
                  y_scale="linear")

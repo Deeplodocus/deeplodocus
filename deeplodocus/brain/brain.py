@@ -166,19 +166,36 @@ class Brain(FrontalLobe):
             if isinstance(namespace, Namespace):
                 namespace.save("%s/%s%s" % (self.config_dir, key, DEEP_EXT_YAML))
 
-    def clear(self):
+    def clear(self, force=False):
         """
         :return:
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_BRAIN_CLEAR % self.config.project.sub_project)
-        for directory in DEEP_LOG_RESULT_DIRECTORIES:
-            path = "/".join((self.config.project.sub_project, directory))
-            try:
-                for file in os.listdir(path):
-                    os.remove("/".join((path, file)))
-            except FileNotFoundError:
-                pass
-        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_BRAIN_CLEARED % self.config.project.sub_project)
+        if force:
+            do_clear = True
+        else:
+            # Ask user if they really want to clear
+            while True:
+                do_clear = Notification(
+                    DEEP_NOTIF_INPUT,
+                    "Are you sure you want to clear session : %s ? (yes / no)" % self.config.project.sub_project
+                ).get()
+                if do_clear.lower() in ["yes", "y"]:
+                    do_clear = True
+                    break
+                elif do_clear.lower() in ["no", "n"]:
+                    do_clear = False
+                    break
+
+        if do_clear:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_BRAIN_CLEAR % self.config.project.sub_project)
+            for directory in DEEP_LOG_RESULT_DIRECTORIES:
+                path = "/".join((self.config.project.sub_project, directory))
+                try:
+                    for file in os.listdir(path):
+                        os.remove("/".join((path, file)))
+                except FileNotFoundError:
+                    pass
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_BRAIN_CLEARED % self.config.project.sub_project)
 
     def restore_config(self):
         """
@@ -386,8 +403,8 @@ class Brain(FrontalLobe):
         else:
             Notification(DEEP_NOTIF_ERROR, "The Visual Cortex is already asleep.")
 
-    def plot_history(self):
-        plot_history("/".join((self.config.project.sub_project, "history")))
+    def plot_history(self, *args, **kwargs):
+        plot_history("/".join((self.config.project.sub_project, "history")), *args, **kwargs)
 
     """
     "
