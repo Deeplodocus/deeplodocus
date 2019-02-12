@@ -42,6 +42,7 @@ class Source(object):
         self.premade_dataset = None
         self.source = source
         self.type = self.__check_source_type(source)
+        self.dataset = None
         self.join = join
         self.data_in_memory = None
         self.length = None
@@ -212,7 +213,7 @@ class Source(object):
 
         # PREMADE DATASET
         elif DEEP_SOURCE_PREMADE_DATASET.corresponds(self.type):
-            return self.premade_dataset["source"].__len__()
+            Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for premade datasets")
 
         # OTHERS
         else:
@@ -399,35 +400,7 @@ class Source(object):
         :return (bool): Whether the source is a database or not
         """
 
-        split_name = source.split("::")
-
-        if len(split_name) >= 2:
-            if is_string_an_integer(split_name[1]):
-
-                if len(split_name) == 2:
-                    module = None
-                    name = split_name[0]
-                else:
-                    module = split_name[0]
-                    name = split_name[1]
-
-                dataset, module = get_module(
-                    name=name,
-                    module=module,
-                    browse=DEEP_MODULE_DATASETS
-                )
-                if dataset is None:
-                    return False
-                else:
-                    self.premade_dataset = {"source": dataset(),
-                                            "name": name,
-                                            "module": module}
-                    return True
-
-            else:
-                return False
-        else:
-            return False
+        NotImplemented("Loading from premade dataset not implemented yet.")
 
 
     """
