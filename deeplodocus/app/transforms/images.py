@@ -623,3 +623,30 @@ def convert_rgba2bgra(image):
     elif channels == 4:
         image = image[:, :, (2, 1, 0, 3)]
     return image, None
+
+
+def remove_channel(image: np.array, index_channel: int):
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Remove a channel from the image
+
+    PARAMETERS:
+    -----------
+
+    :param image (np.array): The input image
+    :param index_channel (int): The index of the channel to remove
+
+    RETURN:
+    -------
+
+    :return matrix (np.array): The image without the selected channel
+    """
+    return np.delete(image, index_channel, -1), None
+
