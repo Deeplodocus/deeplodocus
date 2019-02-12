@@ -92,7 +92,7 @@ def pyramidal_images(image, n=4):
 "
 """
 
-def aboluste_end_point_error(outputs, labels):
+def absolute_end_point_error(outputs, labels):
     """
     AUTHORS:
     --------
@@ -230,16 +230,30 @@ def supervised_depth_eigen2014a(outputs, labels):
 
 def supervised_depth_eigen2014b(outputs, labels):
     """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
     Loss for depth estimation in supervised learning
     D. Eigen and al. (2014b)
     Title : Predicting Depth, Surface Normals and Semantic Labels with a Common Multi-Scale Convolutional Architecture
     Paragraph 4.1 "Depth"
     Link : https://arxiv.org/abs/1411.4734
 
-    IMPLEMENTATION:
-    ---------------
+    PARAMETERS:
+    -----------
 
-    :implementer: Alix Leroy
+    :param outputs (Tensor): Output tensors
+    :param labels (Tensor): Target tensors
+
+    RETURN:
+    -------
+
+    :return L_depth(Tensor): The depth loss
     """
     # Size
     batch_size, channels, height, width = labels.shape
@@ -262,6 +276,7 @@ def supervised_depth_eigen2014b(outputs, labels):
     gx = gradient_x(d)
     gy = gradient_y(d)
 
+    #First Order Matching
     FOM = (gx.pow(2).sum() + gy.pow(2).sum()).div(n)
 
     # Final loss
