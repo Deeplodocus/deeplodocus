@@ -5,6 +5,7 @@ from typing import List
 from typing import Union
 from typing import Any
 import random
+import weakref
 
 # Deeplodocus imports
 from deeplodocus.data.entry import Entry
@@ -422,6 +423,9 @@ class Dataset(object):
 
         :return generated_entries (List(Entry)): The list of Entry instances generated
         """
+        # Create a weakref to the dataset
+        ref = weakref.ref(self)
+
         # List of generated entries to an Entry class format
         generated_entries = []
 
@@ -436,7 +440,8 @@ class Dataset(object):
                               data_type=entry.type,
                               load_method=entry.load_method,
                               entry_index=index,
-                              entry_type=entry_type)
+                              entry_type=entry_type,
+                              dataset=ref)
             generated_entries.append(new_entry)
 
         return generated_entries
@@ -932,3 +937,57 @@ class Dataset(object):
         """
         if self.transform_manager is not None:
             self.transform_manager.reset()
+
+    """
+    "
+    " GETTERS
+    "
+    """
+
+    def get_name(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the name of the dataset
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return (str): The name of the dataset
+        """
+        return self.name
+
+    def get_transform_manager(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the Transform Manager linked to the dataset
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return (TransformManager): The transform manager
+        """
+        return self.transform_manager

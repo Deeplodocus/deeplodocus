@@ -83,6 +83,7 @@ class Entry(object):
                  join: Union[str, List[str], None],
                  entry_index: int,
                  entry_type: Union[str, int, Flag],
+                 dataset,
                  data_type: Union[str, int, Flag, None] = None,
                  load_method: Union[str, int, Flag, None] = "default"):
 
@@ -114,6 +115,7 @@ class Entry(object):
 
         :return: None
         """
+        self.dataset = dataset
         self.sources = self.__check_sources(sources=sources, join=join)
         self.data_type = self.__check_data_type(data_type)
         self.load_method = self.__check_load_method(load_method)
@@ -253,7 +255,7 @@ class Entry(object):
 
 
 
-    def __convert_source_folder_to_file(self, source : Source):
+    def __convert_source_folder_to_file(self, source : Source, source_index : int):
         """
         AUTHORS:
         --------
@@ -279,7 +281,7 @@ class Entry(object):
         item_list = self.__read_folders(source.get_source())
 
         # generate the absolute path to the file
-        filepath = DEEP_ENTRY_BASE_FILE_NAME %(self.entry_type.get_name(), self.entry_index)
+        filepath = DEEP_ENTRY_BASE_FILE_NAME %(self.dataset.get_name(), self.entry_type.get_name(), self.entry_index, source_index)
 
         # Create the folders if required
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -571,9 +573,9 @@ class Entry(object):
         """
 
         for i, source in enumerate(self.sources):
-            if source.get_type()() == DEEP_SOURCE_FOLDER():
+            if DEEP_SOURCE_FOLDER.corresponds(source.get_type()):
                 folder = source.get_source()
-                filepath = self.__convert_source_folder_to_file(source)
+                filepath = self.__convert_source_folder_to_file(source, i)
                 source.set_source(filepath)
                 source.set_type(DEEP_SOURCE_FILE)
 
