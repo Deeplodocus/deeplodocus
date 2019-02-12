@@ -64,6 +64,7 @@ class Predictor(GenericInferer):
         outputs = []
         for minibatch_index, minibatch in enumerate(self.dataloader, 0):
             inp, labels, additional_data = self.clean_single_element_list(minibatch)
+            inp, labels = self.to_device(inp, model.device), self.to_device(labels, model.device)
             # Infer the outputs from the model over the given mini batch
             minibatch_output = self.model(*inp)
             # Append mini_batch output to the output tensor

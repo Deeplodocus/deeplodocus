@@ -25,6 +25,7 @@ class ObjectLoss(nn.Module):
 
         for output, anchors in outputs:                                     # For outputs and anchors from each layer
             batch_size, num_anchors, h, w, _ = output.shape
+            anchors = anchors[0:num_anchors, :]
 
             # Make a tensor of zeros (a x 2) to stack onto the anchors (for IOU)
             zeros = torch.zeros((num_anchors, 2))
@@ -140,6 +141,7 @@ class BoxLoss(nn.Module):
         # For the output of each layer and the corresponding anchors
         for output, anchors in outputs:
             batch_size, num_anchors, h, w, _ = output.shape
+            anchors = anchors[0:num_anchors, :]
 
             # Make a tensor of zeros (a x 2) to stack onto the anchors (for IOU)
             zeros = torch.zeros((num_anchors, 2))

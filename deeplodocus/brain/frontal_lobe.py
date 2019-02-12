@@ -185,11 +185,11 @@ class FrontalLobe(object):
         """
         self.trainer.fit() if self.trainer is not None else Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TRAINER)
 
-    def continue_training(self):
+    def continue_training(self, epochs=None):
         """
         :return:
         """
-        self.trainer.continue_training()
+        self.trainer.continue_training(epochs=epochs)
 
     def test(self):
         """
@@ -757,7 +757,7 @@ class FrontalLobe(object):
     def __load_checkpoint(self):
         # If loading from file, load data from the given path
         try:
-            return torch.load(self.config.model.file) if self.config.model.from_file else None
+            return torch.load(self.config.model.file, map_location=self.device) if self.config.model.from_file else None
         except AttributeError:
             Notification(
                 DEEP_NOTIF_FATAL,

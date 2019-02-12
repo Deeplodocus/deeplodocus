@@ -405,7 +405,7 @@ class Trainer(GenericEvaluator):
 
         return outputs, total_loss, result_losses, result_metrics
 
-    def continue_training(self):
+    def continue_training(self, epochs=None):
         """
         AUTHORS:
         --------
@@ -428,16 +428,17 @@ class Trainer(GenericEvaluator):
 
         :return: None
         """
-        # If the user wants to continue the training, ask the number of epochs
-        while True:
-            epochs = Notification(DEEP_NOTIF_INPUT, "Number of epochs ? ").get()
-            try:
-                epochs = int(epochs)
-                break
-            except ValueError:
-                Notification(DEEP_NOTIF_WARNING, "Number of epochs must be an integer").get()
+        if epochs is None:
+            # If the user wants to continue the training, ask the number of epochs
+            while True:
+                epochs = Notification(DEEP_NOTIF_INPUT, "Number of epochs ? ").get()
+                try:
+                    epochs = int(epochs)
+                    break
+                except ValueError:
+                    Notification(DEEP_NOTIF_WARNING, "Number of epochs must be an integer").get()
         if epochs > 0:
-            self.initial_epoch = self.num_epochs + 1
+            self.initial_epoch = self.num_epochs
             self.num_epochs += epochs
             # Resume the training
             self.fit(first_training=False)

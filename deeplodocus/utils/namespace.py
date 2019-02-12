@@ -6,7 +6,7 @@ Data can added on initialisation as a dictionary, a path to a directory and/or a
 import yaml
 import copy
 import re
-
+import os
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flags.notif import *
@@ -125,6 +125,10 @@ class Namespace(object):
         :param tab_size: int: number of spaces to use per tab.
         :return: None
         """
+        if len(file_path.split("/")) > 1:
+            directory = file_path.split("/")[:-1]
+            os.makedirs("/".join(directory), exist_ok=True)
+
         with open(file_path, "w") as file:
             file.write(self.__get_summary(tab_size=tab_size).replace(" None", " Null"))
 
