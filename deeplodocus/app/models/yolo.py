@@ -1,3 +1,5 @@
+import cv2
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -23,7 +25,8 @@ class YOLOv3(nn.Module):
                 ((10, 13), (16, 30), (22, 23))
             ),
             normalized_anchors=False,
-            predict=False
+            predict=False,
+            play=False
     ):
         super(YOLOv3, self).__init__()
         # Default backbone arguments
@@ -42,6 +45,7 @@ class YOLOv3(nn.Module):
             anchors = [[(a[0] * input_shape[1], a[1] * input_shape[0]) for a in anchor] for anchor in anchors]
 
         self.predicting = predict
+        self.playing = play
         # Get the number of anchor boxes
         num_anchors = len(anchors)
 
@@ -93,6 +97,10 @@ class YOLOv3(nn.Module):
 
     def forward(self, x):
         # BACKBONE
+        if self.playing:
+            img = x
+        else:
+            img = None
         x = self.backbone(x)                                            # b x 1024 x h/32 x w/32
 
         # DETECTION ON LARGEST SCALE
@@ -128,7 +136,16 @@ class YOLOv3(nn.Module):
         else:
             return output_1, output_2, output_3
 
+
     def predict(self, value=True):
+        """
+        :param value:
+        :return:
+        """
+        if value:
+            # Put model into evaluation mode
+            self.eval()
+        # Set predicting here and for all yolo layers
         self.predicting = value
         self.yolo_layer_1.predicting = value
         self.yolo_layer_2.predicting = value
@@ -267,9 +284,8 @@ class YoloLayer(nn.Module):
         if self.predicting:
             # Scale up by stride
             prediction[..., 0:4] *= stride
-
             # Return flattened predictions
-            return prediction.view(-1, self.num_classes + 5)
+            return prediction.view(batch_size, -1, self.num_classes + 5)
         else:
             # If not in prediction mode, return predictions without offsets and with anchors
             return prediction, scaled_anchors

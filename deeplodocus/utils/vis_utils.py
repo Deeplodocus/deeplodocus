@@ -19,7 +19,7 @@ def plot_history(history_dir, line_width=0.5, alpha=1, y_scale="linear"):
     if batch_data is not None:
         col_names = list(batch_data)
         num_batches = max(batch_data["Batch"])
-        t = batch_data["Epoch"] - 1 + (batch_data["Batch"] - 1) / num_batches
+        t = batch_data["Epoch"] - 1 + (batch_data["Batch"]) / num_batches
         # Plot sub losses
         plt.plot(
             t,
