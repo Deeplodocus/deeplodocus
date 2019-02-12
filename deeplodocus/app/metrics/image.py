@@ -285,19 +285,8 @@ def supervised_depth_eigen2014b(outputs, labels):
     return L_depth
 
 
-def delta_smaller_1_25_p(outputs, labels, p=1):
 
-    v1 = torch.div(outputs, labels)
-    v2 = torch.div(labels, outputs)
-    delta = torch.max(v1, v2)
 
-    # Compute the number of occurences smaller than teh treshold
-    occurences = (delta < 1.25**p).sum().type(torch.FloatTensor)
-
-    #Compute teh number of items
-    n = float(delta.numel())
-
-    return occurences/n
 
 
 """
