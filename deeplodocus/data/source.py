@@ -8,14 +8,15 @@ from typing import Union
 # Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.file import get_specific_line
-
+from deeplodocus.utils.generic_utils import is_string_an_integer
+from deeplodocus.utils.generic_utils import get_module
 
 # Deeplodocus flags
 from deeplodocus.utils.flags.source import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.load import *
-
+from deeplodocus.utils.flags.module import DEEP_MODULE_DATASETS
 
 class Source(object):
     """
@@ -40,6 +41,7 @@ class Source(object):
     def __init__(self, source: str, join: str):
         self.source = source
         self.type = self.__check_source_type(source)
+        self.dataset = None
         self.join = join
         self.data_in_memory = None
         self.length = None
@@ -103,7 +105,7 @@ class Source(object):
 
         # PREMADE DATASET
         elif DEEP_SOURCE_PREMADE_DATASET.corresponds(self.type):
-            Notification(DEEP_NOTIF_FATAL, "Load from Premade dataset not implemented yet")
+            data = self.dataset["dataset"].__getitem__(index)
             is_loaded = True
             is_transformed = False
 
@@ -210,7 +212,7 @@ class Source(object):
 
         # PREMADE DATASET
         elif DEEP_SOURCE_PREMADE_DATASET.corresponds(self.type):
-            Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for premade datasets")
+            return self.dataset["dataset"].__len__()
 
         # OTHERS
         else:
@@ -397,8 +399,80 @@ class Source(object):
         :return (bool): Whether the source is a database or not
         """
 
+        is_premade_dataset = False
+
         NotImplemented("Loading from premade dataset not implemented yet.")
 
+        split_name = source.split("::")
+
+        if len(split_name) >= 2:
+            if is_string_an_integer(split_name[2]):
+
+                if len(split_name) == 2:
+                    module = None
+                    name = split_name[0]
+                else:
+                    module = split_name[0]
+                    name = split_name[1]
+
+                dataset, module = get_module(
+                    name=name,
+                    module=module,
+                    browse=DEEP_MODULE_DATASETS
+                )
+                if dataset is None:
+                    return False
+                else:
+                    return True
+
+            else:
+                return False
+        else:
+            return False
+
+    def __load_dataset(self, source: str) -> dict:
+
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Load the dataset into a dictionary
+
+        PARAMETERS:
+        -----------
+
+
+        :return:
+        """
+
+        split_name = source.split("::")
+
+        if len(split_name) >= 2:
+            if is_string_an_integer(split_name[2]):
+
+                if len(split_name) == 2:
+                    module = None
+                    name = split_name[0]
+                else:
+                    module = split_name[0]
+                    name = split_name[1]
+
+                dataset, module = get_module(
+                    name=name,
+                    module=module,
+                    browse=DEEP_MODULE_DATASETS
+                )
+
+            dataset = {"dataset": dataset,
+                       "name": name,
+                       "module": module}
+
+            return dataset
 
     """
     "
@@ -458,6 +532,7 @@ class Source(object):
 
     def get_length(self):
         return self.length
+
 
     """
     "

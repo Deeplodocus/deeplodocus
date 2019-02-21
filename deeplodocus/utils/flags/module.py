@@ -50,6 +50,6 @@ DEEP_MODULE_TRANSFORMS = {"deeplodocus": {"path": deep_tfm.__path__,
 DEEP_MODULE_DATASETS = {"torchvision": {"path": tv_data.__path__,
                                           "prefix": tv_data.__name__},
 
-                          "custom": {"path": [get_main_path() + "/modules/datasets"],
-                                     "prefix": "modules.datasets"}
-                          }
+                        "custom": {"path": [get_main_path() + "/modules/datasets"],
+                                   "prefix": "modules.datasets"}
+                        }
