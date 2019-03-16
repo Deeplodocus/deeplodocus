@@ -170,7 +170,8 @@ class ProjectUtility(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and SW
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
