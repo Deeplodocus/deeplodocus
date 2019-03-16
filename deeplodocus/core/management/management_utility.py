@@ -83,8 +83,8 @@ class ManagementUtility(object):
         else:
             self.__help()
 
-
-    def __help(self):
+    @staticmethod
+    def __help():
         """
         AUTHORS:
         --------
@@ -110,8 +110,8 @@ class ManagementUtility(object):
         for flag in DEEP_LIST_ADMIN:
             Notification(DEEP_NOTIF_INFO, str(flag.get_description()), log=False)
 
-
-    def __version(self):
+    @staticmethod
+    def __version():
         """
         AUTHORS:
         --------
@@ -135,7 +135,6 @@ class ManagementUtility(object):
         """
         version = str(__version__)
         Notification(DEEP_NOTIF_INFO, "DEEPLODOCUS VERSION : " + str(version),  log=False)
-
 
     def __startproject(self, main_path: str):
         """
