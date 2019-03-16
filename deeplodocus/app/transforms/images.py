@@ -401,8 +401,8 @@ def rotate(image: np.array, angle: float) -> Tuple[np.array, None]:
 
 def normalize_image(
         image,
-        mean: Union[None, list, int],
-        standard_deviation: float,
+        mean: Union[None, list, int, float],
+        standard_deviation: Union[float, int],
         cv_library: int = DEEP_LIB_OPENCV
 ) -> Tuple[Any, None]:
     """
@@ -429,6 +429,7 @@ def normalize_image(
     :return: a normalized image
     """
 
+
     if standard_deviation is None:
         #standard_deviation = 255
         standard_deviation = image.std(axis=(0, 1), keepdims=True)
@@ -448,15 +449,17 @@ def normalize_image(
         if mean is None:
             mean = cv2.mean(image)
 
-        normalized_image = (image - mean[:channels]) / standard_deviation  # Norm = (data - mean) / standard deviation
+        if isinstance(mean, list) or isinstance(mean, tuple):
+            mean = mean[:channels]
 
     # Default option
     else:
         if mean is None:
-            #mean = np.mean(image, axis=(0, 1))
             mean = image.mean(axis=(0, 1), keepdims=True) # Compute the mean on each channel
 
+
     normalized_image = (image - mean) / standard_deviation  # Norm = (data - mean) / standard deviation
+
 
     return normalized_image.astype(np.float32), None
 
