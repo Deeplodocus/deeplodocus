@@ -190,7 +190,9 @@ class Trainer(GenericEvaluator):
         # If a tester is available compute the losses and metrics
         if self.tester is not None:
             total_validation_loss, result_losses, result_metrics = self.tester.evaluate(model=self.model)
-        return total_validation_loss, result_losses, result_metrics
+            return total_validation_loss.item(), result_losses, result_metrics
+        else:
+            return total_validation_loss, result_losses, result_metrics
 
     def __train(self, first_training: bool = True) -> None:
         """
@@ -300,6 +302,13 @@ class Trainer(GenericEvaluator):
             # Evaluate the model
             self.validation_loss, result_validation_losses, result_validation_metrics = self.__evaluate_epoch()
 
+
+            #
+            if self.tester is not None:
+                num_minibatches_validation = self.tester.get_num_minibatches()
+            else:
+                num_minibatches_validation = None
+
             # Send signal epoch end
             Thalamus().add_signal(
                 Signal(
@@ -309,10 +318,10 @@ class Trainer(GenericEvaluator):
                         "num_epochs": self.num_epochs,
                         "model": weakref.ref(self.model),
                         "num_minibatches": self.num_minibatches,
-                        "total_validation_loss": self.validation_loss.item(),
+                        "total_validation_loss": self.validation_loss,
                         "result_validation_losses": result_validation_losses,
                         "result_validation_metrics": result_validation_metrics,
-                        "num_minibatches_validation": self.tester.get_num_minibatches(),
+                        "num_minibatches_validation": num_minibatches_validation,
                     }
                 )
             )
@@ -501,7 +510,7 @@ class Trainer(GenericEvaluator):
                 args={"model": self.model,
                       "optimizer": self.optimizer,
                       "epoch_index": self.epoch,
-                      "validation_loss": self.validation_loss.item(),
+                      "validation_loss": self.validation_loss,
                       "inp": inp}
             )
         )
