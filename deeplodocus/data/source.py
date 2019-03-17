@@ -39,9 +39,9 @@ class Source(object):
     """
 
     def __init__(self, source: str, join: str):
+        self.premade_dataset = None
         self.source = source
         self.type = self.__check_source_type(source)
-        self.dataset = None
         self.join = join
         self.data_in_memory = None
         self.length = None
@@ -105,7 +105,7 @@ class Source(object):
 
         # PREMADE DATASET
         elif DEEP_SOURCE_PREMADE_DATASET.corresponds(self.type):
-            data = self.dataset["dataset"].__getitem__(index)
+            data = self.premade_dataset["dataset"].__getitem__(index)
             is_loaded = True
             is_transformed = False
 
@@ -212,7 +212,7 @@ class Source(object):
 
         # PREMADE DATASET
         elif DEEP_SOURCE_PREMADE_DATASET.corresponds(self.type):
-            return self.dataset["dataset"].__len__()
+            return self.premade_dataset["source"].__len__()
 
         # OTHERS
         else:
@@ -399,14 +399,10 @@ class Source(object):
         :return (bool): Whether the source is a database or not
         """
 
-        is_premade_dataset = False
-
-        NotImplemented("Loading from premade dataset not implemented yet.")
-
         split_name = source.split("::")
 
         if len(split_name) >= 2:
-            if is_string_an_integer(split_name[2]):
+            if is_string_an_integer(split_name[1]):
 
                 if len(split_name) == 2:
                     module = None
@@ -423,6 +419,9 @@ class Source(object):
                 if dataset is None:
                     return False
                 else:
+                    self.premade_dataset = {"source": dataset(),
+                                            "name": name,
+                                            "module": module}
                     return True
 
             else:
@@ -430,49 +429,6 @@ class Source(object):
         else:
             return False
 
-    def __load_dataset(self, source: str) -> dict:
-
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Load the dataset into a dictionary
-
-        PARAMETERS:
-        -----------
-
-
-        :return:
-        """
-
-        split_name = source.split("::")
-
-        if len(split_name) >= 2:
-            if is_string_an_integer(split_name[2]):
-
-                if len(split_name) == 2:
-                    module = None
-                    name = split_name[0]
-                else:
-                    module = split_name[0]
-                    name = split_name[1]
-
-                dataset, module = get_module(
-                    name=name,
-                    module=module,
-                    browse=DEEP_MODULE_DATASETS
-                )
-
-            dataset = {"dataset": dataset,
-                       "name": name,
-                       "module": module}
-
-            return dataset
 
     """
     "

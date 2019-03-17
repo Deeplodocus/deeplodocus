@@ -338,18 +338,18 @@ class History(object):
                     )
                 )
 
-        if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize) or DEEP_MEMORIZE_EPOCHS.corresponds(self.memorize):
-            data = [
-                datetime.datetime.now().strftime(TIME_FORMAT),
-                self.__time(),
-                epoch_index,
-                total_validation_loss / num_minibatches_validation
-                    ] \
-                    + [value.item() / num_minibatches_validation
-                        for (loss_name, value) in result_validation_losses.items()] \
-                    + [value / num_minibatches_validation
-                        for (metric_name, value) in result_validation_metrics.items()]
-            self.validation_history.put(data)
+            if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize) or DEEP_MEMORIZE_EPOCHS.corresponds(self.memorize):
+                data = [
+                    datetime.datetime.now().strftime(TIME_FORMAT),
+                    self.__time(),
+                    epoch_index,
+                    total_validation_loss / num_minibatches_validation
+                        ] \
+                        + [value.item() / num_minibatches_validation
+                            for (loss_name, value) in result_validation_losses.items()] \
+                        + [value / num_minibatches_validation
+                            for (metric_name, value) in result_validation_metrics.items()]
+                self.validation_history.put(data)
 
         self.__compute_overwatch_metric(
             num_minibatches_training=num_minibatches,
