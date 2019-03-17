@@ -472,6 +472,8 @@ class Trainer(GenericEvaluator):
 
         RETURN:
         -------
+
+        None
         """
         if saving_required is True:
             Thalamus().add_signal(
