@@ -193,48 +193,54 @@ DEEP_CONFIG = {
         "enabled": {
             "train": {
                 DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
+                DEEP_CONFIG_DEFAULT: False
             },
             "validation": {
                 DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
+                DEEP_CONFIG_DEFAULT: False
             },
             "test": {
                 DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
+                DEEP_CONFIG_DEFAULT: False
             },
             "predict": {
                 DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
+                DEEP_CONFIG_DEFAULT: False
             }
         },
         "dataset": {
             "train": {
                 "inputs": {
-                    DEEP_CONFIG_DTYPE: [{
-                        "source": [str],
-                        "join": [str],
-                        "type": str,
-                        "load_method": str
-                    }],
+                    DEEP_CONFIG_DTYPE: [
+                        {
+                            "source": [str],
+                            "join": [str],
+                            "type": str,
+                            "load_method": str
+                        }
+                    ],
                     DEEP_CONFIG_DEFAULT: None
                 },
                 "labels": {
-                    DEEP_CONFIG_DTYPE: [{
-                        "source": [str],
-                        "join": [str],
-                        "type": str,
-                        "load_method": str
-                    }],
+                    DEEP_CONFIG_DTYPE: [
+                        {
+                            "source": [str],
+                            "join": [str],
+                            "type": str,
+                            "load_method": str
+                        }
+                    ],
                     DEEP_CONFIG_DEFAULT: None
                 },
                 "additional_data": {
-                    DEEP_CONFIG_DTYPE: [{
-                        "source": [str],
-                        "join": [str],
-                        "type": str,
-                        "load_method": str
-                    }],
+                        DEEP_CONFIG_DTYPE: [
+                            {
+                                "source": [str],
+                                "join": [str],
+                                "type": str,
+                                "load_method": str
+                            }
+                        ],
                     DEEP_CONFIG_DEFAULT: None
                 },
                 "number": {
