@@ -128,13 +128,7 @@ DEEP_CONFIG = {
         },
         "kwargs": {
             DEEP_CONFIG_DTYPE: dict,
-            DEEP_CONFIG_DEFAULT: {
-                "lr": 0.001,
-                "eps": 0.000000001,
-                "amsgrad": False,
-                "betas": [0.9, 0.999],
-                "weight_decay": 0.0
-            }
+            DEEP_CONFIG_DEFAULT: {}
         }
     },
     DEEP_CONFIG_HISTORY: {
@@ -254,28 +248,34 @@ DEEP_CONFIG = {
             },
             "validation": {
                 "inputs": {
-                    DEEP_CONFIG_DTYPE: [{
+                    DEEP_CONFIG_DTYPE: [
+                        {
+                            "source": [str],
+                            "join": [str],
+                            "type": str,
+                            "load_method": str
+                        }
+                    ],
+                    DEEP_CONFIG_DEFAULT: None
+                },
+                "labels": {DEEP_CONFIG_DTYPE: [
+                    {
                         "source": [str],
                         "join": [str],
                         "type": str,
                         "load_method": str
-                    }],
-                    DEEP_CONFIG_DEFAULT: None
-                },
-                "labels": {DEEP_CONFIG_DTYPE: [{
-                    "source": [str],
-                    "join": [str],
-                    "type": str,
-                    "load_method": str
-                }],
+                    }
+                ],
                     DEEP_CONFIG_DEFAULT: None
                 },
                 "additional_data": {
-                    DEEP_CONFIG_DTYPE: [{
-                        "source": [str],
-                        "join": [str],
-                        "type": str,
-                        "load_method": str}],
+                    DEEP_CONFIG_DTYPE: [
+                        {
+                            "source": [str],
+                            "join": [str],
+                            "type": str,
+                            "load_method": str}
+                    ],
                     DEEP_CONFIG_DEFAULT: None
                 },
                 "number": {
@@ -289,30 +289,36 @@ DEEP_CONFIG = {
             },
             "test": {
                 "inputs": {
-                    DEEP_CONFIG_DTYPE: [{
-                        "source": [str],
-                        "join": [str],
-                        "type": str,
-                        "load_method": str
-                    }],
+                    DEEP_CONFIG_DTYPE: [
+                        {
+                            "source": [str],
+                            "join": [str],
+                            "type": str,
+                            "load_method": str
+                        }
+                    ],
                     DEEP_CONFIG_DEFAULT: None
                 },
                 "labels": {
-                    DEEP_CONFIG_DTYPE: [{
-                        "source": [str],
-                        "join": [str],
-                        "type": str,
-                        "load_method": str
-                    }],
+                    DEEP_CONFIG_DTYPE: [
+                        {
+                            "source": [str],
+                            "join": [str],
+                            "type": str,
+                            "load_method": str
+                        }
+                    ],
                     DEEP_CONFIG_DEFAULT: None
                 },
                 "additional_data": {
-                    DEEP_CONFIG_DTYPE: [{
-                        "source": [str],
-                        "join": [str],
-                        "type": str,
-                        "load_method": str
-                    }],
+                    DEEP_CONFIG_DTYPE: [
+                        {
+                            "source": [str],
+                            "join": [str],
+                            "type": str,
+                            "load_method": str
+                        }
+                    ],
                     DEEP_CONFIG_DEFAULT: None
                 },
                 "number": {
@@ -326,30 +332,36 @@ DEEP_CONFIG = {
             },
             "predict": {
                 "inputs": {
-                    DEEP_CONFIG_DTYPE: [{
-                        "source": [str],
-                        "join": [str],
-                        "type": str,
-                        "load_method": str
-                    }],
+                    DEEP_CONFIG_DTYPE: [
+                        {
+                            "source": [str],
+                            "join": [str],
+                            "type": str,
+                            "load_method": str
+                        }
+                    ],
                     DEEP_CONFIG_DEFAULT: None
                 },
                 "labels": {
-                    DEEP_CONFIG_DTYPE: [{
-                        "source": [str],
-                        "join": [str],
-                        "type": str,
-                        "load_method": str
-                    }],
+                    DEEP_CONFIG_DTYPE: [
+                        {
+                            "source": [str],
+                            "join": [str],
+                            "type": str,
+                            "load_method": str
+                        }
+                    ],
                     DEEP_CONFIG_DEFAULT: None
                 },
                 "additional_data": {
-                    DEEP_CONFIG_DTYPE: [{
-                        "source": [str],
-                        "join": [str],
-                        "type": str,
-                        "load_method": str
-                    }],
+                    DEEP_CONFIG_DTYPE: [
+                        {
+                            "source": [str],
+                            "join": [str],
+                            "type": str,
+                            "load_method": str
+                        }
+                    ],
                     DEEP_CONFIG_DEFAULT: None
                 },
                 "name": {

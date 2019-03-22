@@ -99,7 +99,7 @@ class Namespace(object):
         :param key: str or list of str: key of the sub item to be returned.
         :return: dict: data retrieved from the Namespace.
         """
-        if key is None:
+        if key is None or not key:
             if ignore is None:
                 return self.__dict__
             else:
@@ -252,7 +252,10 @@ class Namespace(object):
         keys = keys if isinstance(keys, list) else [keys]
         new_dict = dict(dictionary)
         for key in keys:
-            del new_dict[key]
+            try:
+                del new_dict[key]
+            except KeyError:
+                pass
         return new_dict
 
 

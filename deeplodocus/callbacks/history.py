@@ -308,9 +308,11 @@ class History(object):
                     }
                 )
             )
-            
+
+        # If recording on batch or epoch
         if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize) or DEEP_MEMORIZE_EPOCHS.corresponds(self.memorize):
-            data = [datetime.datetime.now().strftime(TIME_FORMAT),
+            data = [
+                       datetime.datetime.now().strftime(TIME_FORMAT),
                     self.__time(),
                     epoch_index,
                     self.running_total_loss / num_minibatches] \

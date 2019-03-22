@@ -205,23 +205,22 @@ def area(tensor):
     :param tensor:
     :return:
     """
-    return (tensor[:, 2] - tensor[:, 0]) * (tensor[:, 3] - tensor[:, 1])
+    return (tensor.t()[2, ...] - tensor.t()[0, ...]) * (tensor.t()[3, ...] - tensor.t()[1, ...])
 
 
-def iou(targets, anchors):
+def iou(tensor_1, tensor_2):
     """
-    :param targets:
-    :param anchors:
-    :return:
+    :param tensor_1: 2D torch tensor, shape = (n1, 4), dim 1 = x0, y0, x1, y1
+    :param tensor_2: 2D torch tensor, shape = (n2, 4), dim 1 = x0, y0, x1, y1
+    :return: 2D tensor of intersection over union, shape = (n1, n2)
     """
-    x0 = torch.max(targets[:, 0].view(-1, 1), anchors[:, 0].view(1, -1))
-    y0 = torch.max(targets[:, 1].view(-1, 1), anchors[:, 1].view(1, -1))
-    x1 = torch.min(targets[:, 2].view(-1, 1), anchors[:, 2].view(1, -1))
-    y1 = torch.min(targets[:, 3].view(-1, 1), anchors[:, 3].view(1, -1))
-    flag = ((x0 < x1) * (y0 < y1)).type(torch.float)
-    intersection = ((x1 - x0) * (y1 - y0)) * flag
-    combined_area = area(targets).view(-1, 1) + area(anchors).view(1, -1)
-    return intersection / (combined_area - intersection)
+    x0 = torch.max(tensor_1[:, 0].view(-1, 1), tensor_2[:, 0].view(1, -1))
+    y0 = torch.max(tensor_1[:, 1].view(-1, 1), tensor_2[:, 1].view(1, -1))
+    x1 = torch.min(tensor_1[:, 2].view(-1, 1), tensor_2[:, 2].view(1, -1))
+    y1 = torch.min(tensor_1[:, 3].view(-1, 1), tensor_2[:, 3].view(1, -1))
+    mask = (x0 < x1) * (y0 < y1)
+    intersection = (x1 - x0) * (y1 - y0) * mask.type(torch.float)
+    return intersection / (area(tensor_1).view(-1, 1) + area(tensor_2).view(1, -1) - intersection)
 
 
 def scale(target, shape):
@@ -231,8 +230,8 @@ def scale(target, shape):
     :return:
     """
     h, w = shape
-    target[:, 0] *= w
-    target[:, 1] *= h
-    target[:, 2] *= w
-    target[:, 3] *= h
+    target[..., 0] *= w
+    target[..., 1] *= h
+    target[..., 2] *= w
+    target[..., 3] *= h
     return target
