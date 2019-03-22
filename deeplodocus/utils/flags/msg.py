@@ -41,8 +41,12 @@ DEEP_MSG_SAVER_NOT_IMPROVED = "No improvement in %s : Not saving weights"
 # BRAIN #
 #########
 
-DEEP_MSG_BRAIN_CLEAR = "Clearing files from %s"
-DEEP_MSG_BRAIN_CLEARED = "Files cleared from %s"
+DEEP_MSG_BRAIN_CLEAR_ALL = "Clearing files from %s"
+DEEP_MSG_BRAIN_CLEARED_ALL = "Files cleared from %s"
+DEEP_MSG_BRAIN_CLEAR_HISTORY = "Clearing files from %s/history"
+DEEP_MSG_BRAIN_CLEARED_HISTORY = "Files cleared from %s/history"
+DEEP_MSG_BRAIN_CLEAR_LOGS = "Clearing files from %s/logs"
+DEEP_MSG_BRAIN_CLEARED_LOGS = "Files cleared from %s/logs"
 
 ####################
 # DEEP_MSG_PROJECT #
