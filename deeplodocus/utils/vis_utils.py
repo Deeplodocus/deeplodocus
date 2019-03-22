@@ -3,71 +3,83 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def plot_history(history_dir, line_width=0.5, alpha=1, y_scale="linear"):
+def plot_history(history_dir, line_width=0.5, alpha=1.0, scale="linear", grid=True, batches=True, validation=True):
     history_files = os.listdir(history_dir)
-    batch_data= None
-    epoch_data = None
-    val_data = None
-    for file in history_files:
-        if "train_batches" in file:
-            batch_data = pd.read_csv("/".join((history_dir, file)))
-        elif "train_epochs" in file:
-            epoch_data = pd.read_csv("/".join((history_dir, file)))
-        elif "validation" in file:
-            val_data = pd.read_csv("/".join((history_dir, file)))
-    # Plot training data for every batch
-    if batch_data is not None:
-        col_names = list(batch_data)
-        num_batches = max(batch_data["Batch"])
-        t = batch_data["Epoch"] - 1 + (batch_data["Batch"]) / num_batches
-        # Plot sub losses
-        plt.plot(
-            t,
-            batch_data["Total Loss"],
-            label="Total Loss (training)",
-            linewidth=line_width
-        )
-        # Plot total loss
-        for i in range(5, batch_data.shape[1]):
-            plt.plot(
-                t,
-                batch_data.iloc[:, i],
-                label=col_names[i] + " (training)",
-                linewidth=line_width,
-                alpha=alpha
-            )
-    # Plot training data for each epoch (only if batch data is None)
-    elif epoch_data is not None:
-        print("Plotting for training epoch not implemented yet")
-    # Plot validation data for each epoch
-    if val_data is not None:
-        col_names = list(val_data)
-        # Plot total validation loss
-        plt.plot(
-            val_data["Epoch"],
-            val_data["Total Loss"],
-            label="Total Loss (validation)",
-            linewidth=line_width
-        )
-        # Plot validation sub-losses
-        for i in range(4, val_data.shape[1]):
-            plt.plot(
-                val_data["Epoch"],
-                val_data.iloc[:, i],
-                label=col_names[i] + " (validation)",
-                linewidth=line_width,
-                alpha=alpha
-            )
+    if batches and "history_train_batches.csv" in history_files:
+        plot_training_batches(history_dir, line_width=line_width, alpha=alpha)
+    if (not batches or "history_train_batches.csv" not in history_files) \
+            and "history_train_epochs.csv" in history_files:
+        plot_training_epochs(history_dir, line_width=line_width, alpha=alpha)
+    if validation and "history_validation.csv" in history_files:
+        plot_validation_history(history_dir, line_width=line_width)
+    plt.yscale(scale)
+    if grid:
+        plt.grid()
+    plt.legend()
     plt.xlabel("Epoch")
     plt.ylabel("Value")
-    plt.yscale(y_scale)
-    plt.legend()
-    plt.grid()
     plt.show()
+
+
+def plot_training_epochs(history_dir, line_width=0.5, alpha=1.0):
+    df = pd.read_csv("/".join((history_dir, "history_train_epochs.csv")))
+    col_names = list(df)
+    plt.plot(
+        df["Epoch"], df["Total Loss"],
+        label="Total Loss (training)",
+        linewidth=line_width
+    )
+    # Plot validation sub-losses
+    for i in range(4, df.shape[1]):
+        plt.plot(
+            df["Epoch"], df.iloc[:, i],
+            label=col_names[i] + " (training)",
+            linewidth=line_width,
+            alpha=alpha
+        )
+
+
+def plot_training_batches(history_dir, line_width=0.5, alpha=1.0):
+    df = pd.read_csv("/".join((history_dir, "history_train_batches.csv")))
+    col_names = list(df)
+    num_batches = max(df["Batch"])
+    x = df["Epoch"] - 1 + (df["Batch"]) / num_batches
+    plt.plot(
+        x, df["Total Loss"],
+        label="Total Loss (training)",
+        linewidth=line_width
+    )
+    # Plot total loss
+    for i in range(5, df.shape[1]):
+        plt.plot(
+            x, df.iloc[:, i],
+            label=col_names[i] + " (training)",
+            linewidth=line_width,
+            alpha=alpha
+        )
+
+
+def plot_validation_history(history_dir, line_width=0.5, alpha=1.0):
+    df = pd.read_csv("/".join((history_dir, "history_validation.csv")))
+    col_names = list(df)
+    # Plot total validation loss
+    plt.plot(
+        df["Epoch"], df["Total Loss"],
+        label="Total Loss (validation)",
+        linewidth=line_width
+    )
+    # Plot validation sub-losses
+    for i in range(4, df.shape[1]):
+        plt.plot(
+            df["Epoch"], df.iloc[:, i],
+            label=col_names[i] + " (validation)",
+            linewidth=line_width,
+            alpha=alpha
+        )
 
 
 if __name__ == "__main__":
     plot_history("/home/samuel/Cranfield University/Code/deeplodocus-dev/test/core/YOLOv3/v04/history",
                  line_width=3,
                  alpha=0.5,
-                 y_scale="linear")
+                 scale="linear")

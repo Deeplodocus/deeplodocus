@@ -136,7 +136,6 @@ class YOLOv3(nn.Module):
         else:
             return output_1, output_2, output_3
 
-
     def predict(self, value=True):
         """
         :param value:

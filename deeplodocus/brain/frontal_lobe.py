@@ -464,7 +464,7 @@ class FrontalLobe(object):
                 if metric is None:
                     Notification(DEEP_NOTIF_FATAL, DEEP_MSG_METRIC_NOT_FOUND % config.name)
 
-                # Check fi the metric is a class or a stand-alone function
+                # Check if the metric is a class or a stand-alone function
                 if inspect.isclass(metric):
                     method = metric(**config.kwargs.get())
                 else:

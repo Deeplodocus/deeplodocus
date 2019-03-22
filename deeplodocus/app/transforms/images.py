@@ -556,7 +556,6 @@ def grayscale(image: np.array) -> Tuple[np.array, None]:
         return image, None
 
 
-
 def convert_bgra2rgba(image):
     """
     AUTHORS:

@@ -19,7 +19,7 @@ from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification, DeepError
-from deeplodocus.utils.vis_utils import plot_history
+from deeplodocus.utils.vis_utils import plot_history, plot_training_batches, plot_training_epochs, plot_validation_history
 
 
 class Brain(FrontalLobe):
@@ -402,6 +402,11 @@ class Brain(FrontalLobe):
             Notification(DEEP_NOTIF_ERROR, "The Visual Cortex is already asleep.")
 
     def plot_history(self, *args, **kwargs):
+        """
+        :param args:
+        :param kwargs:
+        :return:
+        """
         plot_history("/".join((self.config.project.sub_project, "history")), *args, **kwargs)
 
     """
@@ -409,6 +414,7 @@ class Brain(FrontalLobe):
     " Private Methods
     "
     """
+
     def __check_config(self, dictionary=DEEP_CONFIG, sub_space=None):
         """
         AUTHORS:
@@ -500,17 +506,24 @@ class Brain(FrontalLobe):
         if value is None and default is not None:
             # Notify user that default is being used
             Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_SET % (sub_space, default))
-            new_value = default
+            if default == {}:
+                new_value = Namespace()
+            else:
+                new_value = default
         elif d_type is dict:
             new_value = Namespace(convert_dict(value.get_all()))
         else:
             new_value = convert(value, d_type)
             if new_value is None:
                 # Notify user that default is being used
-                Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_CONVERTED % (sub_space,
-                                                                                  value,
-                                                                                  self.__get_dtype_name(d_type),
-                                                                                  default))
+                Notification(
+                    DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_CONVERTED % (
+                        sub_space,
+                        value,
+                        self.__get_dtype_name(d_type),
+                        default
+                    )
+                )
         return new_value
 
     def __get_dtype_name(self, d_type):
