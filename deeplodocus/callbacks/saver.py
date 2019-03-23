@@ -1,3 +1,4 @@
+from decimal import Decimal
 import torch
 from torch.nn import Module
 import os
@@ -72,11 +73,6 @@ class Saver(object):
             expected_arguments=[]
         )
         Thalamus().connect(
-            receiver=self.on_epoch_end,
-            event=DEEP_EVENT_ON_EPOCH_END,
-            expected_arguments=[]
-        )
-        Thalamus().connect(
             receiver=self.save_model,
             event=DEEP_EVENT_SAVE_MODEL,
             expected_arguments=[]
@@ -128,32 +124,6 @@ class Saver(object):
         if DEEP_SAVE_SIGNAL_END_TRAINING.corresponds(self.save_signal):
             self.save_model()
 
-    def on_epoch_end(self) -> None:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Called once an epoch is finished
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return: None
-        """
-
-        if DEEP_SAVE_SIGNAL_END_EPOCH.corresponds(self.save_signal):
-            self.save_model()
-
     def on_overwatch_metric_computed(self, current_overwatch_metric: OverWatchMetric):
         """
         AUTHORS:
@@ -191,8 +161,10 @@ class Saver(object):
                         DEEP_NOTIF_SUCCESS,
                         DEEP_MSG_SAVER_IMPROVED % (
                             current_overwatch_metric.name,
-                            self.best_overwatch_metric.get_value()
-                            - current_overwatch_metric.get_value()
+                            "%.4e" % Decimal(
+                                self.best_overwatch_metric.get_value()
+                                - current_overwatch_metric.get_value()
+                            )
                         )
                     )
                     self.best_overwatch_metric = current_overwatch_metric
@@ -213,8 +185,10 @@ class Saver(object):
                         DEEP_NOTIF_SUCCESS,
                         DEEP_MSG_SAVER_IMPROVED % (
                             current_overwatch_metric.name,
-                            current_overwatch_metric.get_value()
-                            - self.best_overwatch_metric.get_value()
+                            "%.4e" % Decimal(
+                                current_overwatch_metric.get_value()
+                                - self.best_overwatch_metric.get_value()
+                            )
                         )
                     )
                     self.best_overwatch_metric = current_overwatch_metric

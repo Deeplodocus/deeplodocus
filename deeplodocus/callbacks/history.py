@@ -348,12 +348,10 @@ class History(object):
                     datetime.datetime.now().strftime(TIME_FORMAT),
                     self.__time(),
                     epoch_index,
-                    total_validation_loss / num_minibatches_validation
-                        ] \
-                        + [value.item() / num_minibatches_validation
-                            for (loss_name, value) in result_validation_losses.items()] \
-                        + [value / num_minibatches_validation
-                            for (metric_name, value) in result_validation_metrics.items()]
+                    total_validation_loss
+                ] \
+                    + [value.item() for (loss_name, value) in result_validation_losses.items()] \
+                    + [value for (metric_name, value) in result_validation_metrics.items()]
                 self.validation_history.put(data)
 
         if DEEP_SAVE_SIGNAL_AUTO.corresponds(self.save_signal):
@@ -365,6 +363,13 @@ class History(object):
                 total_validation_loss=total_validation_loss,
                 result_validation_losses=result_validation_losses,
                 result_validation_metrics=result_validation_metrics
+            )
+        elif DEEP_SAVE_SIGNAL_END_EPOCH.corresponds(self.save_signal):
+            Thalamus().add_signal(
+                Signal(
+                    event=DEEP_EVENT_SAVE_MODEL,
+                    args={}
+                )
             )
 
         Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs))
