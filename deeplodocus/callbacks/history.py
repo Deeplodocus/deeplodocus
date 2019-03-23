@@ -50,7 +50,7 @@ class History(object):
                  validation_filename: str = "history_validation.csv",
                  verbose: Flag = DEEP_VERBOSE_BATCH,
                  memorize: Flag = DEEP_MEMORIZE_BATCHES,
-                 save_condition: Flag = DEEP_SAVE_SIGNAL_END_EPOCH,
+                 save_signal: Flag = DEEP_SAVE_SIGNAL_END_EPOCH,
                  overwatch_metric: OverWatchMetric = OverWatchMetric(
                      name = TOTAL_LOSS,
                      condition = DEEP_SAVE_CONDITION_LESS
@@ -61,7 +61,7 @@ class History(object):
         self.metrics = metrics
         self.losses = losses
         self.memorize = get_corresponding_flag([DEEP_MEMORIZE_BATCHES, DEEP_MEMORIZE_EPOCHS], info=memorize)
-        self.save_condition = save_condition
+        self.save_signal = save_signal
         self.overwatch_metric = overwatch_metric
 
         # Running metrics
@@ -356,17 +356,18 @@ class History(object):
                         for (metric_name, value) in result_validation_metrics.items()]
             self.validation_history.put(data)
 
-        self.__compute_overwatch_metric(
-            num_minibatches_training=num_minibatches,
-            running_total_loss=self.running_total_loss,
-            running_losses=self.running_losses,
-            running_metrics=self.running_metrics,
-            total_validation_loss=total_validation_loss,
-            result_validation_losses=result_validation_losses,
-            result_validation_metrics=result_validation_metrics
-        )
-        Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs))
+        if DEEP_SAVE_SIGNAL_AUTO.corresponds(self.save_signal):
+            self.__compute_overwatch_metric(
+                num_minibatches_training=num_minibatches,
+                running_total_loss=self.running_total_loss,
+                running_losses=self.running_losses,
+                running_metrics=self.running_metrics,
+                total_validation_loss=total_validation_loss,
+                result_validation_losses=result_validation_losses,
+                result_validation_metrics=result_validation_metrics
+            )
 
+        Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs))
         self.save()
 
     def on_train_end(self):

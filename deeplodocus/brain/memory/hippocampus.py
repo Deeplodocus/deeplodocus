@@ -15,6 +15,8 @@ from deeplodocus.utils.flags.event import *
 from deeplodocus.utils.flags.verbose import DEEP_VERBOSE_BATCH
 from deeplodocus.utils.flags import *
 from deeplodocus.utils.flags.memorize import *
+from deeplodocus.utils.flags.flag_lists import DEEP_LIST_SAVE_SIGNAL
+from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 Num = Union[int, float]
 
@@ -56,6 +58,11 @@ class Hippocampus(object):
                  overwrite: bool = False,
                  save_model_directory: str = "weights"):
 
+        save_signal = get_corresponding_flag(
+            DEEP_LIST_SAVE_SIGNAL,
+            info=save_signal,
+            default=DEEP_SAVE_SIGNAL_AUTO
+        )
         #
         # HISTORY
         #
@@ -66,6 +73,7 @@ class Hippocampus(object):
                                   log_dir=history_directory,
                                   verbose=verbose,
                                   memorize=memorize,
+                                  save_signal=save_signal,
                                   overwatch_metric=overwatch_metric)
 
         #
@@ -78,7 +86,7 @@ class Hippocampus(object):
                                 method=method,
                                 overwrite=overwrite)
 
-    def __initialize_history(self, name: str, metrics, losses, log_dir, verbose, memorize: int, overwatch_metric) \
+    def __initialize_history(self, name: str, metrics, losses, log_dir, verbose, memorize: int, save_signal, overwatch_metric) \
             -> None:
         """
         Authors : Samuel Westlake, Alix Leroy
@@ -99,6 +107,7 @@ class Hippocampus(object):
             train_batches_filename=train_batches_filename,
             train_epochs_filename=train_epochs_filename,
             validation_filename=validation_filename,
+            save_signal=save_signal,
             verbose=verbose,
             memorize=memorize,
             overwatch_metric=overwatch_metric

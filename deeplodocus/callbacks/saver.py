@@ -29,12 +29,14 @@ class Saver(object):
     Class to handle the saving of the model
     """
 
-    def __init__(self,
-                 name: str = "no_model_name",
-                 save_directory: str = "weights",
-                 save_signal: Flag = DEEP_EVENT_ON_EPOCH_END,
-                 method: Flag = DEEP_SAVE_FORMAT_PYTORCH,
-                 overwrite: bool = False):
+    def __init__(
+            self,
+            name: str = "no_model_name",
+            save_directory: str = "weights",
+            save_signal: Flag = DEEP_EVENT_ON_EPOCH_END,
+            method: Flag = DEEP_SAVE_FORMAT_PYTORCH,
+            overwrite: bool = False
+    ):
         self.name = name
         self.directory = save_directory
         self.save_signal = get_corresponding_flag(DEEP_LIST_SAVE_SIGNAL, save_signal)
@@ -245,13 +247,16 @@ class Saver(object):
         if DEEP_SAVE_FORMAT_PYTORCH.corresponds(self.method):
             # TODO: Finish try except statements here after testing...
             # try:
-            torch.save({
-                "model_state_dict": self.model.state_dict(),
-                "epoch": self.epoch_index,
-                "training_loss": self.training_loss,
-                "validation_loss": self.validation_loss,
-                "optimizer_state_dict": self.optimizer.state_dict()
-            }, file_path)
+            torch.save(
+                {
+                    "model_state_dict": self.model.state_dict(),
+                    "epoch": self.epoch_index,
+                    "training_loss": self.training_loss,
+                    "validation_loss": self.validation_loss,
+                    "optimizer_state_dict": self.optimizer.state_dict()
+                },
+                file_path
+            )
             # except:
             #     Notification(DEEP_NOTIF_ERROR, "Error while saving the pytorch model and weights" )
             #     self.__handle_error_saving(model)
@@ -295,22 +300,13 @@ class Saver(object):
         self.inp = inp
 
     def __get_file_path(self):
-        # If overwriting weigts files or only saving at the end of training
-        if self.overwrite or self.save_signal.corresponds(DEEP_SAVE_SIGNAL_END_TRAINING):
-            # set the file path as 'directory/name.ext'
-            file_path = "%s/%s%s" % (
-                self.directory,
-                self.name,
-                self.extension
-            )
-        # If saving at the end of each batch
-        elif self.save_signal.corresponds(DEEP_SAVE_SIGNAL_END_BATCH):
+        if self.save_signal.corresponds(DEEP_SAVE_SIGNAL_END_BATCH):
             # Set the file path as 'directory/name_epoch_batch.ext'
             file_path = "%s/%s_%s_%s%s" % (
                 self.directory,
                 self.name,
                 str(self.epoch_index).zfill(3),
-                str(self.batch_index).zfill(3),
+                str(self.batch_index).zfill(8),
                 self.extension
             )
         # If saving at the end of each epoch
