@@ -159,7 +159,6 @@ class Trainer(GenericEvaluator):
             expected_arguments=[]
         )
 
-
     def __evaluate_epoch(self):
         """
         AUTHORS:
@@ -240,12 +239,10 @@ class Trainer(GenericEvaluator):
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
 
-
                 # Set the data to the corresponding device
                 inputs = self.to_device(inputs, self.model.device)
                 labels = self.to_device(labels, self.model.device)
                 additional_data = self.to_device(additional_data, self.model.device)
-
 
                 # Infer the output of the batch
                 try:
@@ -254,7 +251,6 @@ class Trainer(GenericEvaluator):
                     Notification(DEEP_NOTIF_FATAL, "RuntimeError : %s" % str(e))
                 except TypeError as e:
                     Notification(DEEP_NOTIF_FATAL, "TypeError : %s" % str(e))
-
 
                 # Compute losses and metrics
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
@@ -302,8 +298,6 @@ class Trainer(GenericEvaluator):
             # Evaluate the model
             self.validation_loss, result_validation_losses, result_validation_metrics = self.__evaluate_epoch()
 
-
-            #
             if self.tester is not None:
                 num_minibatches_validation = self.tester.get_num_minibatches()
             else:
