@@ -1,8 +1,8 @@
 #Deeplodocus
 
 ##Introduction:
-Initially created by both A. Leroy and S. Westlake, PhD candidates at Cranfield University, Deeplodocus is a high-level framework with the objective to help to create, train, analyze and test deep networks.
-Initially based on Keras, the framework is rewritten from scratch in a modular, flexible and config file based fashion. 
+Initially created by both Alix Leroy and Samuel Westlake, Deeplodocus is a high-level framework with the objective to help to create, train, analyze and test deep networks.
+Initially based on Keras, the framework was rewritten from scratch in a modular, flexible and config file based fashion. 
 The current supported backed is PyTorch but you are more than welcome to contribute to  integrate another library.
 
 Deeplodocus embeds functionalities such as : 
