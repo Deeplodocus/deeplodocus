@@ -7,9 +7,9 @@ repo_url: http://github.com/Deeplodocus/deeplodocus
 edit_uri: http://github.com/Deeplodocus/deeplodocus
 
 theme:
-    name: 'readthedocs'
+    name: 'mkdocs'
 # theme: readthedocs
-docs_dir: 'docs'
+docs_dir: 'templates'
 
 nav:
     - Home: index.md
