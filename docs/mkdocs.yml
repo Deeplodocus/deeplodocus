@@ -7,7 +7,12 @@ repo_url: http://github.com/Deeplodocus/deeplodocus
 edit_uri: http://github.com/Deeplodocus/deeplodocus
 
 theme:
-    name: 'mkdocs'
+    name: readthedocs
+    highlightjs: true
+    hljs_languages:
+        - yaml
+        - python
+
 # theme: readthedocs
 docs_dir: 'templates'
 
