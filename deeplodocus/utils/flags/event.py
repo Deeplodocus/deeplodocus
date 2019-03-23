@@ -156,5 +156,5 @@ DEEP_SAVE_SIGNAL_END_TRAINING = Flag(name="End of training",
 
 DEEP_SAVE_SIGNAL_AUTO = Flag(name="Auto",
                              description="Save the model when the evaluation metric is better than all previous values",
-                             names=["auto", "default"])
+                             names=["auto", "default", "overwatch", "over_watch", "over-watch", "over watch"])
 

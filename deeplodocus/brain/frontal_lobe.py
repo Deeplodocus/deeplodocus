@@ -666,10 +666,10 @@ class FrontalLobe(object):
             # The hippocampus (brain/memory/hippocampus) temporary  handles the saver and the history
 
             history_directory = "/".join(
-                (get_main_path(), self.config.project.sub_project, "history")
+                (get_main_path(), self.config.project.session, "history")
             )
             weights_directory = "/".join(
-                (get_main_path(), self.config.project.sub_project, "weights")
+                (get_main_path(), self.config.project.session, "weights")
             )
 
             self.hippocampus = Hippocampus(

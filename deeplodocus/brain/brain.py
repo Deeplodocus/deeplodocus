@@ -85,10 +85,10 @@ class Brain(FrontalLobe):
 
         :return: None
         """
-        FrontalLobe.__init__(self)          # Model Manager
         self.__close_logs(force=True)
-        self.config_dir = config_dir
         Logo(version=__version__)
+        FrontalLobe.__init__(self)          # Model Manager
+        self.config_dir = config_dir
         self.visual_cortex = None
         time.sleep(0.5)                     # Wait for the UI to respond
         self.config = None
@@ -175,7 +175,7 @@ class Brain(FrontalLobe):
             while True:
                 do_clear = Notification(
                     DEEP_NOTIF_INPUT,
-                    "Are you sure you want to clear this session : %s ? (yes / no)" % self.config.project.sub_project
+                    "Are you sure you want to clear this session : %s ? (yes / no)" % self.config.project.session
                 ).get()
                 if do_clear.lower() in ["yes", "y"]:
                     do_clear = True
@@ -184,15 +184,15 @@ class Brain(FrontalLobe):
                     do_clear = False
                     break
         if do_clear:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_BRAIN_CLEAR_ALL % self.config.project.sub_project)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_BRAIN_CLEAR_ALL % self.config.project.session)
             for directory in DEEP_LOG_RESULT_DIRECTORIES:
-                path = "/".join((self.config.project.sub_project, directory))
+                path = "/".join((self.config.project.session, directory))
                 try:
                     for file in os.listdir(path):
                         os.remove("/".join((path, file)))
                 except FileNotFoundError:
                     pass
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_BRAIN_CLEARED_ALL % self.config.project.sub_project)
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_BRAIN_CLEARED_ALL % self.config.project.session)
 
     def clear_history(self, force=False):
         if force:
@@ -202,7 +202,7 @@ class Brain(FrontalLobe):
             while True:
                 do_clear = Notification(
                     DEEP_NOTIF_INPUT,
-                    "Are you sure you want to clear history from session : %s ? (yes / no)" % self.config.project.sub_project
+                    "Are you sure you want to clear history from session : %s ? (yes / no)" % self.config.project.session
                 ).get()
                 if do_clear.lower() in ["yes", "y"]:
                     do_clear = True
@@ -212,14 +212,15 @@ class Brain(FrontalLobe):
                     break
 
         if do_clear:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_BRAIN_CLEAR_HISTORY % self.config.project.sub_project)
-            path = "/".join((self.config.project.sub_project, "history"))
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_BRAIN_CLEAR_HISTORY % self.config.project.session)
+            path = "/".join((self.config.project.session, "history"))
             try:
                 for file in os.listdir(path):
                     os.remove("/".join((path, file)))
             except FileNotFoundError:
                 pass
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_BRAIN_CLEARED_HISTORY % self.config.project.sub_project)
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_BRAIN_CLEARED_HISTORY % self.config.project.session)
+            self.load_memory()
 
     def clear_logs(self, force=False):
         if force:
@@ -229,7 +230,7 @@ class Brain(FrontalLobe):
             while True:
                 do_clear = Notification(
                     DEEP_NOTIF_INPUT,
-                    "Are you sure you want to clear logs from session : %s ? (yes / no)" % self.config.project.sub_project
+                    "Are you sure you want to clear logs from session : %s ? (yes / no)" % self.config.project.session
                 ).get()
                 if do_clear.lower() in ["yes", "y"]:
                     do_clear = True
@@ -239,14 +240,14 @@ class Brain(FrontalLobe):
                     break
 
         if do_clear:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_BRAIN_CLEAR_LOGS % self.config.project.sub_project)
-            path = "/".join((self.config.project.sub_project, "logs"))
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_BRAIN_CLEAR_LOGS % self.config.project.session)
+            path = "/".join((self.config.project.session, "logs"))
             try:
                 for file in os.listdir(path):
                     os.remove("/".join((path, file)))
             except FileNotFoundError:
                 pass
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_BRAIN_CLEARED_LOGS % self.config.project.sub_project)
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_BRAIN_CLEARED_LOGS % self.config.project.session)
 
     def restore_config(self):
         """
@@ -385,7 +386,7 @@ class Brain(FrontalLobe):
             if log_type == DEEP_LOG_NOTIFICATION:
                 try:
                     new_directory = "/".join(
-                        (get_main_path(), self.config.project.sub_project, "logs")
+                        (get_main_path(), self.config.project.session, "logs")
                     )
                 except AttributeError:
                     new_directory = None
@@ -460,7 +461,7 @@ class Brain(FrontalLobe):
         :param kwargs:
         :return:
         """
-        plot_history("/".join((self.config.project.sub_project, "history")), *args, **kwargs)
+        plot_history("/".join((self.config.project.session, "history")), *args, **kwargs)
 
     """
     "

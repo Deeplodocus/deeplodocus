@@ -20,8 +20,8 @@ class Logs(object):
 
     def __init__(self, log_type: str,
                  directory: str = "%s/logs",
-                 extension: str = DEEP_EXT_CSV,
-                 write_time=True) -> None:
+                 extension: str = DEEP_EXT_CSV
+                 ) -> None:
         """
         AUTHORS:
         --------
@@ -39,7 +39,6 @@ class Logs(object):
         :param log_type: str: The log type (notification, history
         :param directory: str
         :param extension: str:
-        :param write_time: bool: Whether or not to start the line with a time stamp
 
         RETURN:
         -------
@@ -49,7 +48,6 @@ class Logs(object):
         self.log_type = log_type
         self.directory = directory
         self.extension = extension
-        self.write_time = write_time
         self.__check_exists()
 
     def add(self, text: str, write_time=True) -> None:
@@ -78,9 +76,9 @@ class Logs(object):
         """
         self.__check_exists()
         file_path = self.__get_path()
-        time_str = datetime.datetime.now() if write_time else ""
+        time_str = str(datetime.datetime.now()) + " : " if write_time else ""
         with open(file_path, "a") as log:
-            log.write("%s : %s\n" % (time_str, text))
+            log.write("%s%s\n" % (time_str, text))
 
     def delete(self):
         """
