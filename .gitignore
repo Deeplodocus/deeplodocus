@@ -118,3 +118,4 @@ test
 deeplodocus/server/*
 deeplodocus/brain/thalamus/hypothalamus.py
 docs/build
+docs/site
