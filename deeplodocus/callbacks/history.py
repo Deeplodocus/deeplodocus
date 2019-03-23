@@ -84,7 +84,7 @@ class History(object):
                                       + list(vars(losses).keys())
                                       + list(vars(metrics).keys()))
 
-        # Create teh history files
+        # Create the history files
         self.__add_logs("history_train_batches", log_dir, ".csv", train_batches_headers)
         self.__add_logs("history_train_epochs", log_dir, ".csv", train_epochs_headers)
         self.__add_logs("history_validation", log_dir, ".csv", validation_headers)
@@ -105,12 +105,14 @@ class History(object):
         Thalamus().connect(
             receiver=self.on_batch_end,
             event=DEEP_EVENT_ON_BATCH_END,
-            expected_arguments=["minibatch_index",
-                                "num_minibatches",
-                                "epoch_index",
-                                "total_loss",
-                                "result_losses",
-                                "result_metrics"]
+            expected_arguments=[
+                "minibatch_index",
+                "num_minibatches",
+                "epoch_index",
+                "total_loss",
+                "result_losses",
+                "result_metrics"
+            ]
         )
         Thalamus().connect(
             receiver=self.on_epoch_end,
@@ -312,11 +314,12 @@ class History(object):
         # If recording on batch or epoch
         if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize) or DEEP_MEMORIZE_EPOCHS.corresponds(self.memorize):
             data = [
-                       datetime.datetime.now().strftime(TIME_FORMAT),
-                    self.__time(),
-                    epoch_index,
-                    self.running_total_loss / num_minibatches] \
-                   + [value.item() / num_minibatches for (loss_name, value) in self.running_losses.items()] \
+                datetime.datetime.now().strftime(TIME_FORMAT),
+                self.__time(),
+                epoch_index,
+                self.running_total_loss / num_minibatches
+            ]\
+                   + [value.item() / num_minibatches for (loss_name, value) in self.running_losses.items()]\
                    + [value / num_minibatches for (metric_name, value) in self.running_metrics.items()]
             self.train_epochs_history.put(data)
 
@@ -548,7 +551,7 @@ class History(object):
 
         :return: None
         """
-        Logs(log_type, log_folder, log_extension).add(message)
+        Logs(log_type, log_folder, log_extension).add(message, write_time=False)
 
     def __compute_overwatch_metric(
             self,

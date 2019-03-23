@@ -46,8 +46,10 @@ class Hippocampus(object):
                  verbose: Flag = DEEP_VERBOSE_BATCH,
                  memorize: Flag = DEEP_MEMORIZE_BATCHES,
                  history_directory: str = "history",
-                 overwatch_metric: OverWatchMetric = OverWatchMetric(name = TOTAL_LOSS,
-                                                                     condition = DEEP_SAVE_CONDITION_LESS),
+                 overwatch_metric: OverWatchMetric = OverWatchMetric(
+                     name = TOTAL_LOSS,
+                     condition = DEEP_SAVE_CONDITION_LESS
+                 ),
                  # Saver
                  save_signal: Flag = DEEP_SAVE_SIGNAL_AUTO,
                  method: Flag = DEEP_SAVE_FORMAT_PYTORCH,
@@ -90,19 +92,23 @@ class Hippocampus(object):
         validation_filename = name + "_history_validation_" + timestr + ".csv"
 
         # Initialize the history
-        self.history = History(metrics=metrics,
-                               losses=losses,
-                               log_dir=log_dir,
-                               train_batches_filename=train_batches_filename,
-                               train_epochs_filename=train_epochs_filename,
-                               validation_filename=validation_filename,
-                               verbose=verbose,
-                               memorize=memorize,
-                               overwatch_metric=overwatch_metric)
+        self.history = History(
+            metrics=metrics,
+            losses=losses,
+            log_dir=log_dir,
+            train_batches_filename=train_batches_filename,
+            train_epochs_filename=train_epochs_filename,
+            validation_filename=validation_filename,
+            verbose=verbose,
+            memorize=memorize,
+            overwatch_metric=overwatch_metric
+        )
 
     def __initialize_saver(self, name: str, save_directory, save_signal, method, overwrite):
-        self.saver = Saver(name=name,
-                           save_directory=save_directory,
-                           save_signal=save_signal,
-                           method=method,
-                           overwrite=overwrite)
+        self.saver = Saver(
+            name=name,
+            save_directory=save_directory,
+            save_signal=save_signal,
+            method=method,
+            overwrite=overwrite
+        )
