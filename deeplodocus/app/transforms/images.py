@@ -5,6 +5,7 @@ import cv2
 from typing import Union, List
 from typing import Any
 from typing import Tuple
+from collections import OrderedDict
 
 # Deeplodocus imports
 from deeplodocus.utils.flags.lib import *
@@ -652,3 +653,106 @@ def remove_channel(image: np.array, index_channel: int):
     """
     return np.delete(image, index_channel, -1), None
 
+"""
+"
+" SEMANTIC SEGMENTATION
+"
+"""
+
+
+def color2label(image: np.array, dict_labels: OrderedDict) -> np.array:
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Transform an RGB image to a array with the corresponding label indices
+
+    PARAMETERS:
+    -----------
+
+    :param image (np.array): the input image
+    :param indices (OrderedDict): An dictionary containing the relation class name => color (e.g. "cat" : [250, 89, 52]
+
+    RETURN:
+    -------
+
+    :return labels (np.array): An array contianing the corresponding labels
+    """
+    # Convert float to integer
+    image = image.astype(np.uint64)
+
+    # Get image shape
+    h, w, c = image.shape
+
+    labels = np.zeros((h, w, 1), dtype=np.uint64)
+
+    list_dict = list(dict_labels.values())
+
+    # For each column and row
+    for j in range(h):
+        for i in range(w):
+
+            # Get the current value
+            v = image[j][i]
+
+            # Get the corresponding label (need to convert the value to list other it doesn't work with ndarrays
+            label = list_dict.index(list(v))
+
+            # Add the corresponding label
+            labels[j][i] = label
+
+    return labels, None
+
+
+def label2color(labels: np.array, dict_labels: OrderedDict) -> np.array:
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Transform an RGB image to a array with the corresponding label indices
+
+    PARAMETERS:
+    -----------
+
+    :param labels (np.array): the array containing the labels
+    :param indices (OrderedDict): An dictionary containing the relation class name => color (e.g. "cat" : [250, 89, 52]
+
+    RETURN:
+    -------
+
+    :return image (np.array): The image with the colors corresponding to the given labels
+    """
+    # Convert float to integer
+    labels = labels.astype(np.uint64)
+
+    # Get image shape
+    h, w, _ = labels.shape
+
+    image = np.zeros((h, w, 3), dtype=np.uint8)
+
+    list_dict = list(dict_labels.values())
+
+    # For each column and row
+    for j in range(h):
+        for i in range(w):
+
+            # Get the current value
+            v = labels[j][i]
+
+            # Get the corresponding color
+            color = list_dict[int(v)]
+
+            # Add the corresponding label
+            image[j][i] = color
+
+    return image, None
