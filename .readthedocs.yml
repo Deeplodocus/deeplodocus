@@ -20,7 +20,6 @@ python:
    version: 3.7
    install:
       - requirements: docs/requirements.txt
-      - requirements: requirements.txt
       - method: pip
         path: .
         extra_requirements:
@@ -29,5 +28,5 @@ python:
    system_packages: true
 
 mkdocs:
-  configuration: mkdocs.yml
+  configuration: docs/mkdocs.yml
   fail_on_warning: false
