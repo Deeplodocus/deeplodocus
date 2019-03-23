@@ -47,6 +47,7 @@ class Source(object):
         self.data_in_memory = None
         self.length = None
         self.delimiter = ";"
+
     """
     "
     " LOAD ITEM
