@@ -6,6 +6,7 @@ from typing import Union
 from typing import Optional
 from typing import Tuple
 import mimetypes
+import weakref
 
 # Deeplodocus imports
 from deeplodocus.utils.notification import Notification
@@ -46,23 +47,36 @@ class Entry(object):
         - Join a parent directory if a relative path is given in data
         - Store data in memory if requested by the user
 
-    METHODS:
-    --------
+    PUBLIC METHODS:
+    ---------------
 
-    public methods :
-                    - get_source
-                    - get_source_type
-                    - get_join
-                    - get_entry_index
-                    - get_entry_type
-                    - get data_type
-                    - get load_method
-                    - get_data_from_memory
+    :method get_source:
+    :method get_source_type:
+    :method get_join:
+    :method get_data_type:
+    :method get_load_method:
+    :method get_entry_index:
+    method get_entry_type:
 
-    private methods :
-                     -
+    PRIVATE METHODS:
+    ----------------
 
-
+    :method __init__: Initialize an Entry instance
+    :method __len__: Get the length of the Entry
+    :method __getitem__: Get the selected item
+    :method __get_data_from_memory:
+    :method __load_online:
+    :method __compute_source_indices:
+    :method __convert_source_folder_to_file: Convert the folder sources to files for efficiency
+    :method __check_sources:
+    :method __check_join:
+    :method __check_data_type:
+    :method __estimate_data_type:
+    :method __check_load_method:
+    :method __check_entry_type:
+    :method __check_folders:
+    :method __load_content_in_memory:
+    :method __read_folders:
     """
 
     def __init__(self,
@@ -70,6 +84,7 @@ class Entry(object):
                  join: Union[str, List[str], None],
                  entry_index: int,
                  entry_type: Union[str, int, Flag],
+                 dataset: weakref,
                  data_type: Union[str, int, Flag, None] = None,
                  load_method: Union[str, int, Flag, None] = "default"):
 
@@ -101,6 +116,7 @@ class Entry(object):
 
         :return: None
         """
+        self.dataset = dataset
         self.sources = self.__check_sources(sources=sources, join=join)
         self.data_type = self.__check_data_type(data_type)
         self.load_method = self.__check_load_method(load_method)
@@ -122,7 +138,33 @@ class Entry(object):
         # Evaluate the length of the entry
         self.__len__()
 
-    def __getitem__(self, index : int) -> Tuple[Any, bool, bool]:
+    def __len__(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the length of the entry.
+        The length of the entry is computed differently whether the loading method is offline or online.
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return (int): The length of the entry
+        """
+        self.length = sum([s.__len__(load_method=self.load_method) for s in self.sources])
+        return self.length
+
+    def __getitem__(self, index: int) -> Tuple[Any, bool, bool]:
         """
         AUTHORS:
         --------
@@ -149,19 +191,25 @@ class Entry(object):
         is_loaded = False
         is_transformed = False
 
+        # Get the corresponding source
+        source_index, index_in_source = self.__compute_source_indices(index=index)
+
+
         # OFFLINE
         if self.load_method() == DEEP_LOAD_METHOD_OFFLINE():
-            item = self.__get_data_from_memory(index=index)
+            # Get the data
+            item, _, _ = self.sources[source_index].__getitem__(index_in_source)
             is_loaded = True
             is_transformed = True
 
         # SEMI-ONLINE
         #elif self.load_method() == DEEP_LOAD_METHOD_SEMI_ONLINE():
-        #    item, is_loaded, is_transformed = self.__load_semi_online(index=index)
+        #    item, is_loaded, is_transformed = self.__load_semi_online(index=index_in_source)
 
         # ONLINE
         elif self.load_method() == DEEP_LOAD_METHOD_ONLINE():
-            item, is_loaded, is_transformed = self.__load_online(index=index)
+            # Get the data
+            item, is_loaded, is_transformed = self.sources[source_index].__getitem__(index_in_source)
 
         # OTHERS
         else:
@@ -169,66 +217,8 @@ class Entry(object):
 
         return item, is_loaded, is_transformed
 
-    def __get_data_from_memory(self, index: int) -> Any:
-        """
-        AUTHORS:
-        --------
 
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Get a specific data from the memory
-
-        PARAMETERS:
-        -----------
-
-        :param index(int): The index of the data
-
-        RETURN:
-        -------
-
-        :return (Any): The requested data
-        """
-
-        # Get the corresponding source
-        source_index, index_in_source = self.__compute_source_indexes(index=index)
-
-        # Get the data
-        return self.sources[source_index].__getitem__(index_in_source)
-
-    def __load_online(self, index: int) -> Tuple[Any, bool, bool]:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Load the data directly from the hard drive without accessing the memory
-        The method access the source file, folder or database (entry.path) to load the data
-        This might be slower because of the multiple reads in files
-        This function does not write any content in the file and therefore can be called with a Multiprocessing / Multithreading Dataloader
-
-        PARAMETERS:
-        -----------
-
-        :param index (int): The specific index to load
-
-        RETURN:
-        -------
-
-        :return: data(Any): The data returned
-        """
-        # Get the corresponding source
-        source_index, index_in_source = self.__compute_source_indexes(index=index)
-        source = self.sources[source_index]
-        return source.__getitem__(index=index_in_source)
-
-    def __compute_source_indexes(self, index: int) -> Tuple[int, int]:
+    def __compute_source_indices(self, index: int) -> Tuple[int, int]:
         """
         AUTHORS:
         --------
@@ -264,33 +254,9 @@ class Entry(object):
 
         Notification(DEEP_NOTIF_DEBUG, "Error in computing the source index... Please check the algorithm")
 
-    def __len__(self):
-        """
-        AUTHORS:
-        --------
 
-        :author: Alix Leroy
 
-        DESCRIPTION:
-        ------------
-
-        Get the length of the entry.
-        The length of the entry is computed differently whether the loading method is offline or online.
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return (int): The length of the entry
-        """
-        self.length = sum([s.__len__(load_method=self.load_method) for s in self.sources])
-        return self.length
-
-    def __convert_source_folder_to_file(self, source : Source):
+    def __convert_source_folder_to_file(self, source : Source, source_index : int):
         """
         AUTHORS:
         --------
@@ -316,7 +282,7 @@ class Entry(object):
         item_list = self.__read_folders(source.get_source())
 
         # generate the absolute path to the file
-        filepath = DEEP_ENTRY_BASE_FILE_NAME %(self.entry_type.get_name(), self.entry_index)
+        filepath = DEEP_ENTRY_BASE_FILE_NAME %(self.dataset().get_name(), self.entry_type.get_name(), self.entry_index, source_index)
 
         # Create the folders if required
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -441,7 +407,7 @@ class Entry(object):
         """
 
         if data_type is None:
-            instance_example = self.__getitem__(index=0)
+            instance_example, _, _ = self.__getitem__(index=0)
             # Automatically check the data type
             data_type = self.__estimate_data_type(instance_example)
         else:
@@ -449,8 +415,7 @@ class Entry(object):
                                                info=data_type)
         return data_type
 
-    @staticmethod
-    def __estimate_data_type(data) -> int:
+    def __estimate_data_type(self, data: str) -> Flag:
         """
         AUTHORS:
         --------
@@ -472,31 +437,47 @@ class Entry(object):
 
         :return: The integer flag of the corresponding type
         """
-        mime = mimetypes.guess_type(data)
-        if mime[0] is not None:
-            mime = mime[0].split("/")[0]
 
-        # IMAGE
-        if mime == "image":
-            return DEEP_TYPE_IMAGE
-        # VIDEO
-        elif mime == "video":
-            return DEEP_TYPE_VIDEO
-        # FLOAT
-        elif get_int_or_float(data) == DEEP_TYPE_FLOAT():
-            return DEEP_TYPE_FLOAT
-        # INTEGER
-        elif get_int_or_float(data) == DEEP_TYPE_INTEGER():
-            return DEEP_TYPE_INTEGER
-        # SEQUENCE
-        elif type(data) is list:
-            return DEEP_TYPE_SEQUENCE
-        # NUMPY ARRAY
-        if is_np_array(data) is True:
-            return DEEP_TYPE_NP_ARRAY
-        # Type not handled
+        # If we have a list of item, we check that they all contain the same type
+        if isinstance(data, list):
+            dtypes = []
+            # Get all the data type
+            for d in data:
+                dt = self.__estimate_data_type(d)
+                dtypes.append(dt)
+
+            # Check the data types are all the same
+            for dt in dtypes:
+                if dtypes[0].corresponds(dt) is False:
+                    Notification(DEEP_NOTIF_FATAL, "Data type in your sequence of data are not all the same")
+
+            # If all the same then return the data type
+            return dtypes[0]
+
+        # If not a list
         else:
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_NOT_HANDLED % data)
+            mime = mimetypes.guess_type(data)
+            if mime[0] is not None:
+                mime = mime[0].split("/")[0]
+
+            # IMAGE
+            if mime == "image":
+                return DEEP_DTYPE_IMAGE
+            # VIDEO
+            elif mime == "video":
+                return DEEP_DTYPE_VIDEO
+            # FLOAT
+            elif DEEP_DTYPE_FLOAT.corresponds(get_int_or_float(data)):
+                return DEEP_DTYPE_FLOAT
+            # INTEGER
+            elif DEEP_DTYPE_INTEGER.corresponds(get_int_or_float(data)):
+                return DEEP_DTYPE_INTEGER
+            # NUMPY ARRAY
+            if is_np_array(data) is True:
+                return DEEP_DTYPE_NP_ARRAY
+            # Type not handled
+            else:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_NOT_HANDLED % data)
 
     @staticmethod
     def __check_load_method(load_method : Union[str, int, Flag, None]) -> Flag:
@@ -593,9 +574,9 @@ class Entry(object):
         """
 
         for i, source in enumerate(self.sources):
-            if source.get_type()() == DEEP_SOURCE_FOLDER():
+            if DEEP_SOURCE_FOLDER.corresponds(source.get_type()):
                 folder = source.get_source()
-                filepath = self.__convert_source_folder_to_file(source)
+                filepath = self.__convert_source_folder_to_file(source, i)
                 source.set_source(filepath)
                 source.set_type(DEEP_SOURCE_FILE)
 
@@ -768,6 +749,13 @@ class Entry(object):
             return [s.get_join() for s in self.sources]
         else:
             return self.sources[index].get_join()
+
+    """
+    "
+    " GETTERS
+    "
+    """
+
 
     def get_data_type(self) -> Flag:
         return self.data_type

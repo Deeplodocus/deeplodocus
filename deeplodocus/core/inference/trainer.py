@@ -39,7 +39,29 @@ class Trainer(GenericEvaluator):
     ------------
 
     Trainer instance to train a model
+
+    PUBLIC METHOD:
+    --------------
+    :method fit: Start the training
+    :method detach: Detach the output tensors from the model in order to avoid memory leaks
+    :method continue_training: Continue the training of the model
+    :method saving_required: Send a signal to the Saver in order to save the model
+    :method send_save_params: Send the parameters to the Saver
+
+    PRIVATE METHOD:
+    ---------------
+    :method __init__: Initialize the Trainer
+    :method __train: Loop over the dataset to train the network
+    :method  __evaluate_epoch: Evaluate the model using the Validator
+
     """
+
+    """
+    "
+    " PRIVATE METHODS
+    "
+    """
+
     def __init__(
             self,
             model: nn.Module,
@@ -50,10 +72,10 @@ class Trainer(GenericEvaluator):
             num_epochs: int,
             initial_epoch: int = 1,
             batch_size: int = 4,
-            shuffle: Flag = DEEP_SHUFFLE_NONE,
+            shuffle_method: Flag = DEEP_SHUFFLE_NONE,
             num_workers: int = 4,
             verbose: Flag = DEEP_VERBOSE_BATCH,
-            tester: Tester = None):
+            tester: Tester = None) -> None:
         """
         AUTHORS:
         --------
@@ -68,21 +90,21 @@ class Trainer(GenericEvaluator):
         PARAMETERS:
         -----------
 
-        :param model->torch.nn.Module: The model which has to be trained
-        :param dataset->Dataset: The dataset to be trained on
-        :param metrics->dict: The metrics to analyze
-        :param losses->dict: The losses to use for the backpropagation
+        :param model (torch.nn.Module): The model which has to be trained
+        :param dataset (Dataset): The dataset to be trained on
+        :param metrics (dict): The metrics to analyze
+        :param losses (dict): The losses to use for the backpropagation
         :param optimizer: The optimizer to use for the backpropagation
-        :param num_epochs->int: Number of epochs for the training
-        :param initial_epoch->int: The index of the initial epoch
-        :param batch_size->int: Size a minibatch
-        :param shuffle->int: DEEP_SHUFFLE flag, method of shuffling to use
-        :param num_workers->int: Number of processes / threads to use for data loading
-        :param verbose->int: DEEP_VERBOSE flag, How verbose the Trainer is
-        :param memorize->int: DEEP_MEMORIZE flag, what data to save
-        :param save_condition->int: DEEP_SAVE flag, when to save the results
-        :param tester->Tester: The tester to use for validation
-        :param model_name->str: The name of the model
+        :param num_epochs (int): Number of epochs for the training
+        :param initial_epoch (int): The index of the initial epoch
+        :param batch_size (int): Size a minibatch
+        :param shuffle_method (Flag): DEEP_SHUFFLE flag, method of shuffling to use
+        :param num_workers (int): Number of processes / threads to use for data loading
+        :param verbose (int): DEEP_VERBOSE flag, How verbose the Trainer is
+        :param memorize (int): DEEP_MEMORIZE flag, what data to save
+        :param save_condition (int): DEEP_SAVE flag, when to save the results
+        :param tester (Tester): The tester to use for validation
+        :param model_name (str): The name of the model
 
         RETURN:
         -------
@@ -104,9 +126,11 @@ class Trainer(GenericEvaluator):
         self.epoch = None
         self.validation_loss = None
         self.num_epochs = num_epochs
-        self.shuffle = get_corresponding_flag(
+
+        # Load shuffling method
+        self.shuffle_method = get_corresponding_flag(
             DEEP_LIST_SHUFFLE,
-            shuffle,
+            shuffle_method,
             fatal=False,
             default=DEEP_SHUFFLE_NONE
         )
@@ -135,7 +159,8 @@ class Trainer(GenericEvaluator):
             expected_arguments=[]
         )
 
-    def fit(self, first_training: bool = True)->None:
+
+    def __evaluate_epoch(self):
         """
         AUTHORS:
         --------
@@ -145,23 +170,31 @@ class Trainer(GenericEvaluator):
         DESCRIPTION:
         ------------
 
-        Fit the model to the dataset
+        Evaluate the model using the tester
 
         PARAMETERS:
         -----------
 
-        :param first_training: (bool, optional): Whether it is the first training on the model or not
+        None
 
         RETURN:
         -------
 
-        :return: None
+        :return: The total_loss, the individual losses and the individual metrics
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_TRAINING_STARTED)
-        self.__train(first_training=first_training)
-        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_TRAINING_FINISHED)
+        # Initialize the losses and metrics results
+        total_validation_loss = None
+        result_losses = None
+        result_metrics = None
 
-    def __train(self, first_training=True) -> None:
+        # If a tester is available compute the losses and metrics
+        if self.tester is not None:
+            total_validation_loss, result_losses, result_metrics = self.tester.evaluate(model=self.model)
+            return total_validation_loss.item(), result_losses, result_metrics
+        else:
+            return total_validation_loss, result_losses, result_metrics
+
+    def __train(self, first_training: bool = True) -> None:
         """
         AUTHORS:
         --------
@@ -176,7 +209,7 @@ class Trainer(GenericEvaluator):
         PARAMETERS:
         -----------
 
-        :param first_training->bool: Whether more epochs have been required after initial training or not
+        :param first_training (bool): Whether more epochs have been required after initial training or not
 
         RETURN:
         -------
@@ -193,8 +226,8 @@ class Trainer(GenericEvaluator):
                                                       "num_epochs": self.num_epochs}))
 
             # Shuffle the data if required
-            if self.shuffle is not None:
-                self.dataset.shuffle(self.shuffle)
+            if self.shuffle_method is not None:
+                self.dataset.shuffle(self.shuffle_method)
 
             # Put model into train mode for the start of the epoch
             self.model.train()
@@ -207,16 +240,21 @@ class Trainer(GenericEvaluator):
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
 
+
                 # Set the data to the corresponding device
                 inputs = self.to_device(inputs, self.model.device)
                 labels = self.to_device(labels, self.model.device)
                 additional_data = self.to_device(additional_data, self.model.device)
+
 
                 # Infer the output of the batch
                 try:
                     outputs = self.model(*inputs)
                 except RuntimeError as e:
                     Notification(DEEP_NOTIF_FATAL, "RuntimeError : %s" % str(e))
+                except TypeError as e:
+                    Notification(DEEP_NOTIF_FATAL, "TypeError : %s" % str(e))
+
 
                 # Compute losses and metrics
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
@@ -248,7 +286,7 @@ class Trainer(GenericEvaluator):
                     Signal(
                         event=DEEP_EVENT_ON_BATCH_END,
                         args={
-                            "minibatch_index": minibatch_index+1,
+                            "minibatch_index": minibatch_index + 1,
                             "num_minibatches": self.num_minibatches,
                             "epoch_index": self.epoch,
                             "total_loss": total_loss.item(),
@@ -264,6 +302,13 @@ class Trainer(GenericEvaluator):
             # Evaluate the model
             self.validation_loss, result_validation_losses, result_validation_metrics = self.__evaluate_epoch()
 
+
+            #
+            if self.tester is not None:
+                num_minibatches_validation = self.tester.get_num_minibatches()
+            else:
+                num_minibatches_validation = None
+
             # Send signal epoch end
             Thalamus().add_signal(
                 Signal(
@@ -273,10 +318,10 @@ class Trainer(GenericEvaluator):
                         "num_epochs": self.num_epochs,
                         "model": weakref.ref(self.model),
                         "num_minibatches": self.num_minibatches,
-                        "total_validation_loss": self.validation_loss.item(),
+                        "total_validation_loss": self.validation_loss,
                         "result_validation_losses": result_validation_losses,
                         "result_validation_metrics": result_validation_metrics,
-                        "num_minibatches_validation": self.tester.get_num_minibatches(),
+                        "num_minibatches_validation": num_minibatches_validation,
                     }
                 )
             )
@@ -288,6 +333,39 @@ class Trainer(GenericEvaluator):
                 args={"model": self.model}
             )
         )
+
+    """
+    "
+    " PUBLIC METHODS
+    "
+    """
+
+    def fit(self, first_training: bool = True)->None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Fit the model to the dataset
+
+        PARAMETERS:
+        -----------
+
+        :param first_training: (bool, optional): Whether it is the first training on the model or not
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        Notification(DEEP_NOTIF_INFO, DEEP_MSG_TRAINING_STARTED)
+        self.__train(first_training=first_training)
+        Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_TRAINING_FINISHED)
+
 
     def detach(self, outputs, total_loss, result_losses, result_metrics):
         """
@@ -329,6 +407,7 @@ class Trainer(GenericEvaluator):
             result_losses[key] = value.detach()
 
         # Metric tensors already detached in self.compute_metrics for more efficiency
+        # Please keep these commented line in order not to forget
         # for key, value in result_metrics.items():
         #     if isinstance(value, Tensor):
         #         result_metrics[key] = value.detach()
@@ -373,42 +452,8 @@ class Trainer(GenericEvaluator):
             # Resume the training
             self.fit(first_training=False)
 
-    def __evaluate_epoch(self):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Evaluate the model using the tester
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return: The total_loss, the individual losses and the individual metrics
-        """
-        # Initialize the losses and metrics results
-        total_validation_loss = None
-        result_losses = None
-        result_metrics = None
-
-        # If a tester is available compute the losses and metrics
-        if self.tester is not None:
-            total_validation_loss, result_losses, result_metrics = self.tester.evaluate(model=self.model)
-        return total_validation_loss, result_losses, result_metrics
-
     def saving_required(self, saving_required: bool):
         """
-        NB: NOT STATICMETHOD
-
         AUTHORS:
         --------
 
@@ -418,6 +463,7 @@ class Trainer(GenericEvaluator):
         ------------
 
         Signal to send the model to be saved if require
+        NB : Contains a signal, cannot be static
 
         PARAMETERS:
         -----------
@@ -426,6 +472,8 @@ class Trainer(GenericEvaluator):
 
         RETURN:
         -------
+
+        None
         """
         if saving_required is True:
             Thalamus().add_signal(
@@ -435,14 +483,36 @@ class Trainer(GenericEvaluator):
                 )
             )
 
-    def send_save_params(self, inp=None):
+    def send_save_params(self, inp=None) -> None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Samuel Westlake
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Send the saving parameters to the Saver
+
+        PARAMETERS:
+        -----------
+
+        :param inp: The input size of the model (required for ONNX models)
+
+        RETURN:
+        -------
+
+        :return: None
+        """
         Thalamus().add_signal(
             Signal(
                 event=DEEP_EVENT_SEND_SAVE_PARAMS_FROM_TRAINER,
                 args={"model": self.model,
                       "optimizer": self.optimizer,
                       "epoch_index": self.epoch,
-                      "validation_loss": self.validation_loss.item(),
+                      "validation_loss": self.validation_loss,
                       "inp": inp}
             )
         )

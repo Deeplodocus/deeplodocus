@@ -1,0 +1,17 @@
+site_name: Deeplodocus Documentation
+site_description: 'Documentation of Deeplodocus, Flexible and Modular Deep Learning Framework.'
+site_url: http://deeplodocus.org
+# google_analytics: ['UA-36723568-3', 'mkdocs.org']
+
+repo_url: http://github.com/Deeplodocus/deeplodocus
+edit_uri: http://github.com/Deeplodocus/deeplodocus
+
+theme:
+    name: 'material'
+# theme: readthedocs
+docs_dir: 'templates'
+
+nav:
+    - Home: index.md
+    - Data: data.md
+    - About: about.md

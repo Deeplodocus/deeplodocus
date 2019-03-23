@@ -2,6 +2,7 @@
 from multiprocessing import Process
 import sys
 import pathlib
+import time
 
 # Web server Modules
 from aiohttp import web
@@ -13,6 +14,8 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.brain.visual_cortex.routes import Routes
 from deeplodocus.brain.visual_cortex.middlewares import setup_middlewares
 
+# Deeplodocus flags
+from deeplodocus.utils.flags.notif import *
 
 class VisualCortex(object):
     """
@@ -25,6 +28,9 @@ class VisualCortex(object):
     ------------
 
     A User Interface accessible via a Web Browser
+
+    TODO : Include Plotly for better visualization
+
     """
 
     def __init__(self):
@@ -45,6 +51,8 @@ class VisualCortex(object):
         self.process.daemon = True  # Allow to kill the child with the parent
         self.process.start()
         # self.process.join()
+        time.sleep(0.5)
+
 
     def __run(self):
         """

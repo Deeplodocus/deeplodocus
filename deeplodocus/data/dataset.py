@@ -5,6 +5,7 @@ from typing import List
 from typing import Union
 from typing import Any
 import random
+import weakref
 
 # Deeplodocus imports
 from deeplodocus.data.entry import Entry
@@ -325,6 +326,7 @@ class Dataset(object):
 
         # Gather the item of each entry
         for entry in entries:
+
             entry_data, is_loaded, is_transformed = entry.__getitem__(index=index_raw_instance)
 
             # LOAD THE ITEM
@@ -348,8 +350,7 @@ class Dataset(object):
         else:
             return data
 
-    @staticmethod
-    def __format_data(data_entry, entry):
+    def __format_data(self, data_entry, entry):
         """
         AUTHORS:
         --------
@@ -375,16 +376,27 @@ class Dataset(object):
 
         :return: the formatted data entry
         """
-        if DEEP_DTYPE_IMAGE.corresponds(entry.data_type):
-            # Check if no transform return a grayscale image as a 2D image
-            if data_entry.ndim <= 2:
-                data_entry = data_entry[:, :, np.newaxis]
+        # If we have to format a list of items
+        if isinstance(data_entry, list):
+            formated_data = []
 
-            # Make image (ch, h, w)
-            data_entry = np.swapaxes(data_entry, 0, 2)
-            data_entry = np.swapaxes(data_entry, 1, 2)
+            for d in data_entry:
 
-            data_entry = data_entry.astype(np.float32)
+                fd = self.__format_data(d, entry)
+                formated_data.append(fd)
+            data_entry = formated_data
+        # Else it is a unique item
+        else:
+            if DEEP_DTYPE_IMAGE.corresponds(entry.data_type):
+                # Check if no transform return a grayscale image as a 2D image
+                if data_entry.ndim <= 2:
+                    data_entry = data_entry[:, :, np.newaxis]
+
+                # Make image (ch, h, w)
+                data_entry = np.swapaxes(data_entry, 0, 2)
+                data_entry = np.swapaxes(data_entry, 1, 2)
+
+                data_entry = data_entry.astype(np.float32)
         # TODO: Formating for other data types
         return data_entry
 
@@ -411,6 +423,9 @@ class Dataset(object):
 
         :return generated_entries (List(Entry)): The list of Entry instances generated
         """
+        # Create a weakref to the dataset
+        ref = weakref.ref(self)
+
         # List of generated entries to an Entry class format
         generated_entries = []
 
@@ -425,7 +440,8 @@ class Dataset(object):
                               data_type=entry.type,
                               load_method=entry.load_method,
                               entry_index=index,
-                              entry_type=entry_type)
+                              entry_type=entry_type,
+                              dataset=ref)
             generated_entries.append(new_entry)
 
         return generated_entries
@@ -893,7 +909,6 @@ class Dataset(object):
             self.item_order = random.sample(range(0, self.number_raw_instances), self.length)
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_SHUFFLE_COMPLETE % method.name)
 
-
         # WRONG FLAG
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_SHUFFLE_NOT_FOUND % method.name)
@@ -922,3 +937,57 @@ class Dataset(object):
         """
         if self.transform_manager is not None:
             self.transform_manager.reset()
+
+    """
+    "
+    " GETTERS
+    "
+    """
+
+    def get_name(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the name of the dataset
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return (str): The name of the dataset
+        """
+        return self.name
+
+    def get_transform_manager(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the Transform Manager linked to the dataset
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return (TransformManager): The transform manager
+        """
+        return self.transform_manager

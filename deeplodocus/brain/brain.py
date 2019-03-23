@@ -47,7 +47,7 @@ class Brain(FrontalLobe):
     :method check_config: Check self.config for missing parameters and set data types accordingly.
     :method clear_logs: Deletes logs that are not to be kept, as decided in the config settings.
     :method close_logs: Closes logs that are to be kept and deletes logs that are to be deleted, see config settings.
-    :method ui:
+    :method ui: Start the Visual Cortex of Deeplodocus
 
     PRIVATE METHODS:
     ----------------
@@ -107,7 +107,8 @@ class Brain(FrontalLobe):
         """
         AUTHORS:
         --------
-        :author: Samuel Westlake, Alix Leroy
+        :author: Samuel Westlake
+        :author: Alix Leroy
 
         DESCRIPTION:
         ------------
@@ -129,7 +130,8 @@ class Brain(FrontalLobe):
         """
         AUTHORS:
         --------
-        :author: Samuel Westlake, Alix Leroy
+        :author: Samuel Westlake
+        :author: Alix Leroy
 
         DESCRIPTION:
         ------------

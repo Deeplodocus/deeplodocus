@@ -8,14 +8,15 @@ from typing import Union
 # Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.file import get_specific_line
-
+from deeplodocus.utils.generic_utils import is_string_an_integer
+from deeplodocus.utils.generic_utils import get_module
 
 # Deeplodocus flags
 from deeplodocus.utils.flags.source import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.load import *
-
+from deeplodocus.utils.flags.module import DEEP_MODULE_DATASETS
 
 class Source(object):
     """
@@ -38,12 +39,15 @@ class Source(object):
     """
 
     def __init__(self, source: str, join: str):
+        self.premade_dataset = None
         self.source = source
         self.type = self.__check_source_type(source)
+        self.dataset = None
         self.join = join
         self.data_in_memory = None
         self.length = None
         self.delimiter = ";"
+
     """
     "
     " LOAD ITEM
@@ -103,7 +107,7 @@ class Source(object):
 
         # PREMADE DATASET
         elif DEEP_SOURCE_PREMADE_DATASET.corresponds(self.type):
-            Notification(DEEP_NOTIF_FATAL, "Load from Premade dataset not implemented yet")
+            data = self.premade_dataset["dataset"].__getitem__(index)
             is_loaded = True
             is_transformed = False
 
@@ -118,7 +122,6 @@ class Source(object):
             data = self.__format_path(data)
 
         return data, is_loaded, is_transformed
-
 
     def __len__(self, load_method : Flag) -> int:
         """
@@ -188,26 +191,30 @@ class Source(object):
         length = 0
 
         # FILE
-        if self.type() == DEEP_SOURCE_FILE():
+        if DEEP_SOURCE_FILE.corresponds(self.type):
             with open(self.source) as f:
                 for l in f:
                     length += 1
 
         # FOLDER
-        elif self.type() == DEEP_SOURCE_FOLDER():
+        elif DEEP_SOURCE_FOLDER.corresponds(self.type):
             Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for the folder")
 
         # DATABASE
-        elif self.type() == DEEP_SOURCE_DATABASE():
+        elif DEEP_SOURCE_DATABASE.corresponds(self.type):
             Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for the database")
 
         # SERVER
-        elif self.type() == DEEP_SOURCE_SERVER():
+        elif DEEP_SOURCE_SERVER.corresponds(self.type):
             Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for a remote server")
 
         # SPARK
-        elif self.type() == DEEP_SOURCE_SPARK():
+        elif DEEP_SOURCE_SPARK.corresponds(self.type):
             Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for spark")
+
+        # PREMADE DATASET
+        elif DEEP_SOURCE_PREMADE_DATASET.corresponds(self.type):
+            Notification(DEEP_NOTIF_FATAL, "Calculation of the source length not implemented for premade datasets")
 
         # OTHERS
         else:
@@ -433,7 +440,7 @@ class Source(object):
             elif os.path.isdir(self.join):
                 data = "/".join([self.join, data])
             else:
-                Notification(DEEP_NOTIF_FATAL, "The following folder couldn't be joined to the filepath : %s " % str(self.join))
+                Notification(DEEP_NOTIF_FATAL, "The following folder couldn't be joined to the filepath : %s" % str(self.join))
 
         return data
 
@@ -455,6 +462,7 @@ class Source(object):
 
     def get_length(self):
         return self.length
+
 
     """
     "

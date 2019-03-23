@@ -72,6 +72,11 @@ class Saver(object):
             expected_arguments=[]
         )
         Thalamus().connect(
+            receiver=self.on_epoch_end,
+            event=DEEP_EVENT_ON_EPOCH_END,
+            expected_arguments=[]
+        )
+        Thalamus().connect(
             receiver=self.save_model,
             event=DEEP_EVENT_SAVE_MODEL,
             expected_arguments=[]
@@ -121,6 +126,32 @@ class Saver(object):
         :return: None
         """
         if DEEP_SAVE_SIGNAL_END_TRAINING.corresponds(self.save_signal):
+            self.save_model()
+
+    def on_epoch_end(self) -> None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Called once an epoch is finished
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        if DEEP_SAVE_SIGNAL_END_EPOCH.corresponds(self.save_signal):
             self.save_model()
 
     def on_overwatch_metric_computed(self, current_overwatch_metric: OverWatchMetric):

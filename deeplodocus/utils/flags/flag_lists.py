@@ -8,6 +8,7 @@ from deeplodocus.utils.flags.shuffle import *
 from deeplodocus.utils.flags.save import *
 from deeplodocus.utils.flags.verbose import *
 from deeplodocus.utils.flags.event import *
+from deeplodocus.utils.flags.admin import *
 
 # DATA TYPES
 DEEP_LIST_DTYPE = [
@@ -85,16 +86,24 @@ DEEP_LIST_SAVE_CONDITIONS = [
     DEEP_SAVE_CONDITION_GREATER
 ]
 
+# VERBOSE
 DEEP_LIST_VERBOSE = [
     DEEP_VERBOSE_BATCH,
     DEEP_VERBOSE_EPOCH,
     DEEP_VERBOSE_TRAINING
 ]
 
-
+# SAVE SIGNAL
 DEEP_LIST_SAVE_SIGNAL = [
     DEEP_SAVE_SIGNAL_END_BATCH,
     DEEP_SAVE_SIGNAL_END_EPOCH,
     DEEP_SAVE_SIGNAL_END_TRAINING,
     DEEP_SAVE_SIGNAL_AUTO
+]
+
+# ADMIN COMMANDS
+DEEP_LIST_ADMIN = [
+    DEEP_ADMIN_HELP,
+    DEEP_ADMIN_START_PROJECT,
+    DEEP_ADMIN_VERSION
 ]

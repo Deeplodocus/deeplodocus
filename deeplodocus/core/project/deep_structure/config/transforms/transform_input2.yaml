@@ -11,7 +11,7 @@ num_transformations : 3             #If used, comment "num_transformations_min" 
 #num_transformations_max : 5        #If used, comment "num_transformations"
 
 
-mandatory_transforms:
+mandatory_transforms_start:
 #    #  - resize :
 #    #      shape : [512, 512, 3]
 #    #      keep_aspect : True
@@ -35,3 +35,5 @@ transforms:
       name : "example_function"
       kwargs :
         parameters : 1
+
+mandatory_transforms_end: Null

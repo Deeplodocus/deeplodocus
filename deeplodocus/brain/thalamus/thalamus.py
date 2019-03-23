@@ -26,6 +26,9 @@ class Thalamus(metaclass=Singleton):
     Can be called anywhere in Deeplodocus
 
     TODO : Has to be tested when communicating with the visual cortex
+    TODO: Add an async aiohttp client in the Thalamus
+    TODO: Add a sync/async Queue (aiolibs/Janus) to communicate between the current Thalamus and  the asyncio client
+
     """
 
     def __init__(self):

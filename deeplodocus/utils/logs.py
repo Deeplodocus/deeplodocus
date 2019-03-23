@@ -10,7 +10,8 @@ class Logs(object):
     AUTHORS:
     --------
 
-    :author: Alix Leroy and Samuel Westlake
+    :author: Alix Leroy
+    :author: Samuel Westlake
 
     DESCRIPTION:
     ------------
@@ -26,7 +27,8 @@ class Logs(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -55,7 +57,8 @@ class Logs(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and SW
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -85,7 +88,8 @@ class Logs(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -113,7 +117,8 @@ class Logs(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and Samuel Westlake
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -147,7 +152,8 @@ class Logs(object):
         AUTHORS:
         --------
 
-        :author: Alix Leroy and SW
+        :author: Alix Leroy
+        :author: Samuel Westlake
 
         DESCRIPTION:
         ------------
@@ -169,7 +175,24 @@ class Logs(object):
 
     def __get_path(self, time=None):
         """
-        :return:
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the path
+
+        PARAMETERS:
+        -----------
+        None
+
+        RETURN:
+        -------
+
+        :return: None
         """
         if time is None:
             return "%s/%s%s" % (self.directory, self.log_type, self.extension)
