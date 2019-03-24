@@ -627,6 +627,13 @@ def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> 
 The custom transforms can be saved inside the `config/modules/transforms` folder in any python file. This architecture allows your to structure your files as you wish.
 
 
+#### Transforms available:
+
+##### Images
+
+
+
+
 ## Model
 
 ### Pytorch Model
