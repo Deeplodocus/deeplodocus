@@ -14,9 +14,6 @@ from deeplodocus.utils.flags.lib import *
 This file contains all the default transforms for images
 """
 
-def cloudy(images, clouds_dir):
-    clouds = cv2.imread(random.choice(os.listdir(clouds_dir)))
-
 
 def random_crop(image, output_size=None, output_ratio=None, scale=None):
     # Set the cropped image width and height (dx, dy)
@@ -174,7 +171,7 @@ def adjust_gamma(image, gamma):
     return cv2.LUT(image, table), None
 
 
-def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0):
+def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0, method=None):
     """
     AUTHORS:
     --------
@@ -200,23 +197,30 @@ def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0):
 
     :return->np.array: Image of size shape
     """
-    # If we want to reduce the image
-    if image.shape[0] * image.shape[1] > shape[0] * shape[1]:
-        interpolation = cv2.INTER_LINEAR_EXACT  # Use the Bilinear Interpolation
-
-    # If we prefer to increase the size
+    if method is None:
+        # If we want to reduce the image
+        if image.shape[0] * image.shape[1] > shape[0] * shape[1]:
+            method = cv2.INTER_LINEAR_EXACT  # Use the Bilinear Interpolation
+        # If we prefer to increase the size
+        else:
+            method = cv2.INTER_CUBIC  # Use the Bicubic interpolation
     else:
-        interpolation = cv2.INTER_CUBIC  # Use the Bicubic interpolation
+        if method == "nearest":
+            method = cv2.INTER_NEAREST
+        elif method == "linear":
+            method = cv2.INTER_LINEAR
+        else:
+            method = cv2.INTER_CUBIC
 
     # If we want to keep the aspect
     if keep_aspect:
         scale = min(np.asarray(shape[0:2]) / np.asarray(image.shape[0:2]))
         new_size = np.array(image.shape[0:2]) * scale
-        image = cv2.resize(image, (int(new_size[1]), int(new_size[0])), interpolation=interpolation)
+        image = cv2.resize(image, (int(new_size[1]), int(new_size[0])), interpolation=method)
         image, _ = pad(image, shape, padding)
 
     else:
-        image = cv2.resize(image, (shape[0], shape[1]), interpolation=interpolation)
+        image = cv2.resize(image, (shape[0], shape[1]), interpolation=method)
 
     if image.ndim < 3:
         image = image[:, :, np.newaxis]
@@ -689,7 +693,7 @@ def color2label(image: np.array, dict_labels: OrderedDict) -> np.array:
     # Get image shape
     h, w, c = image.shape
 
-    labels = np.zeros((h, w, 1), dtype=np.uint64)
+    labels = np.zeros((h, w, 1), dtype=int)
 
     list_dict = list(dict_labels.values())
 

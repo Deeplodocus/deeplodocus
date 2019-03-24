@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 
 from deeplodocus.utils.generic_utils import get_specific_module
@@ -99,15 +100,15 @@ class VGG(nn.Module):
 
 class VGG11(VGG):
 
-    def __init__(self, num_classes=1000, in_channels=3, batch_norm=True, pretrained=False, include_top=True):
-        if pretrained:
+    def __init__(self, num_classes=1000, num_channels=3, batch_norm=True, pre_trained=False, include_top=True):
+        if pre_trained:
             if batch_norm:
                 model_url = model_urls['vgg11_bn']
             else:
                 model_url = model_urls['vgg11']
         else:
             model_url = None
-        features = make_layers(cfg["A"], batch_norm=batch_norm, in_channels=in_channels)
+        features = make_layers(cfg["A"], batch_norm=batch_norm, in_channels=num_channels)
         super(VGG11, self).__init__(
             features=features,
             model_url=model_url,
@@ -118,15 +119,15 @@ class VGG11(VGG):
 
 class VGG13(VGG):
 
-    def __init__(self, num_classes=1000, batch_norm=True, in_channels=3, pretrained=False, include_top=True):
-        if pretrained:
+    def __init__(self, num_classes=1000, batch_norm=True, num_channels=3, pre_trained=False, include_top=True):
+        if pre_trained:
             if batch_norm:
                 model_url = model_urls['vgg13_bn']
             else:
                 model_url = model_urls['vgg13']
         else:
             model_url = None
-        features = make_layers(cfg["B"], batch_norm=batch_norm, in_channels=in_channels)
+        features = make_layers(cfg["B"], batch_norm=batch_norm, in_channels=num_channels)
         super(VGG13, self).__init__(
             features=features,
             model_url=model_url,
@@ -137,15 +138,15 @@ class VGG13(VGG):
 
 class VGG16(VGG):
 
-    def __init__(self, num_classes=1000, batch_norm=True, in_channels=3, pretrained=False, include_top=True):
-        if pretrained:
+    def __init__(self, num_classes=1000, batch_norm=True, num_channels=3, pre_trained=False, include_top=True):
+        if pre_trained:
             if batch_norm:
                 model_url = model_urls['vgg16_bn']
             else:
                 model_url = model_urls['vgg16']
         else:
             model_url = None
-        features = make_layers(cfg["D"], batch_norm=batch_norm, in_channels=in_channels)
+        features = make_layers(cfg["D"], batch_norm=batch_norm, in_channels=num_channels)
         super(VGG16, self).__init__(
             features=features,
             model_url=model_url,
@@ -156,15 +157,15 @@ class VGG16(VGG):
 
 class VGG19(VGG):
 
-    def __init__(self, num_classes=1000, batch_norm=True, in_channels=3, pretrained=False, include_top=True):
-        if pretrained:
+    def __init__(self, num_classes=1000, batch_norm=True, num_channels=3, pre_trained=False, include_top=True):
+        if pre_trained:
             if batch_norm:
                 model_url = model_urls['vgg19_bn']
             else:
                 model_url = model_urls['vgg19']
         else:
             model_url = None
-        features = make_layers(cfg["E"], batch_norm=batch_norm, in_channels=in_channels)
+        features = make_layers(cfg["E"], batch_norm=batch_norm, in_channels=num_channels)
         super(VGG19, self).__init__(
             features=features,
             model_url=model_url,
@@ -232,10 +233,11 @@ class AutoEncoder(nn.Module):
         if encoder is None:
             encoder = {
                 "name": "VGG16",
+                "module": "deeplodocus.app.models.vgg",
                 "kwargs": {
                     "batch_norm": True,
                     "pretrained": True,
-                    "in_channels": 3,
+                    "num_channels": 3,
                     "include_top": False
                 }
             }
@@ -245,6 +247,7 @@ class AutoEncoder(nn.Module):
         if decoder is None:
             decoder = {
                 "name": "VGG16Decode",
+                "module": "deeplodocus.app.models.vgg",
                 "kwargs": {
                     "batch_norm": True,
                     "num_classes": 10
@@ -253,15 +256,16 @@ class AutoEncoder(nn.Module):
 
         self.encoder = get_specific_module(
             name=encoder["name"],
-            module="deeplodocus.app.models.vgg"
+            module=encoder["module"]
         )(**encoder["kwargs"])
         self.decoder = get_specific_module(
             name=decoder["name"],
-            module="deeplodocus.app.models.vgg",
+            module=decoder["module"],
         )(**decoder["kwargs"])
 
     def forward(self, x):
         x = self.encoder(x)
         x = self.decoder(x)
+        x = nn.Softmax()(x)
         return x
 

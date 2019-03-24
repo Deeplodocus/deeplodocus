@@ -17,3 +17,7 @@ def string2array(item, delimiter=",", cols=4, rows=50):
     output[0:r, :] = item
     return output, None
 
+
+def reshape(item, shape):
+    item = item.reshape(*shape)
+    return item, None

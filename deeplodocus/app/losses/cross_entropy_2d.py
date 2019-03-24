@@ -4,21 +4,19 @@ import torch.nn as nn
 
 class CrossEntropy2d(nn.Module):
 
-
     def __init__(self, weight=None, size_average=True):
-        super(CrossEntropy2d).__init__()
+        super(CrossEntropy2d, self).__init__()
 
         self.weight = weight
         self.size_average = size_average
 
     def forward(self, outputs, targets):
-
         return cross_entropy2d(outputs, targets, self.weight, self.size_average)
 
 
 def cross_entropy2d(outputs, targets, weight=None, size_average=True):
-    n, c, h, w = outputs.size()
-    nt, ht, wt = targets.size()
+    _, c, h, w = outputs.size()
+    _, ht, wt = targets.size()
 
     # Handle inconsistent size between input and target
     if h != ht and w != wt:  # upsample labels
