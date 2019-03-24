@@ -9,21 +9,30 @@ version: 2
 #mkdocs:
 #  configuration: mkdocs.yml
 
-# Optionally build your docs in additional formats such as PDF and ePub
-formats: all
-
-build:
-  image: latest
 
 # Optionally set the version of Python and requirements required to build your docs
-python:
-   version: 3.7
-   install:
-      - requirements: docs/requirements.txt
-      - method: setuptools
-        path: package
-   system_packages: true
+#python:
+#   version: 3.7
+#   install:
+#      - requirements: docs/requirements.txt
+#      - method: setuptools
+#        path: package
+#   system_packages: true
 
 mkdocs:
   configuration: docs/mkdocs.yml
-  fail_on_warning: false
+
+# Build ePub (pdf is currently failing)
+formats:
+  - epub
+
+# pip requirements file for building sphinx docs (e.g. nbsphinx)
+requirements_file: docs/requirements.txt
+
+# can also specify a conda env file if pip isn't enough, for example:
+# conda:
+#   file: environment.yml
+
+# Use python 3 for building
+python:
+  version: 3.5
