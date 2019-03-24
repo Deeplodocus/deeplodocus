@@ -26,8 +26,11 @@ mkdocs:
 formats:
   - epub
 
-# pip requirements file for building sphinx docs (e.g. nbsphinx)
-requirements_file: docs/requirements.txt
+build:
+  image: latest
+
+## pip requirements file for building sphinx docs (e.g. nbsphinx)
+#requirements_file: docs/requirements.txt
 
 # can also specify a conda env file if pip isn't enough, for example:
 # conda:
