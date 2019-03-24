@@ -35,4 +35,6 @@ requirements_file: docs/requirements.txt
 
 # Use python 3 for building
 python:
-  version: 3.5
+  version: 3.7
+  install:
+    - requirements: docs/requirements.txt
