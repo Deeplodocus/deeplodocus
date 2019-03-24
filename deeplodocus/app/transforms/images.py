@@ -628,13 +628,17 @@ def median_blur(image: np.array, kernel_size: int) -> Tuple[np.array, None]:
     PARAMETERS:
     -----------
 
-    :param image:
-    :param kernel_size:
+    :param image (np.array): Input image
+    :param kernel_size (int): Size of the kernel
+
+    For more information, please check [OpenCV documentation on the median filter](    https://docs.opencv.org/4.0.1/d4/d86/group__imgproc__filter.html#ga564869aa33e58769b4469101aac458f9)
+
 
     RETURN:
     -------
 
-    :return:
+    :return (np.array): The blurred image
+    :return: None
     """
     return cv2.medianBlur(image, int(kernel_size)), None
 
@@ -654,10 +658,12 @@ def bilateral_blur(image: np.array, diameter: int, sigma_color: int, sigma_space
     PARAMETERS:
     -----------
 
-    :param image:
-    :param diameter:
-    :param sigma_color:
-    :param sigma_space:
+    :param image (np.array): The input image
+    :param diameter (int): Diameter of the kernel
+    :param sigma_color (int):  Sigma value of the color space
+    :param sigma_space (int):  Sigma value of the coordinate space
+
+    For more information, please check [OpenCV documentation on the bilateral filter](https://docs.opencv.org/4.0.1/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed)
 
     RETURN:
     -------
@@ -869,13 +875,13 @@ def label2color(labels: np.array, dict_labels: OrderedDict) -> Tuple[np.array, N
     DESCRIPTION:
     ------------
 
-    Transform an RGB image to a array with the corresponding label indices
+    Transform an array of labels to the corresponding RGB colors
 
     PARAMETERS:
     -----------
 
     :param labels (np.array): the array containing the labels
-    :param indices (OrderedDict): An dictionary containing the relation class name => color (e.g. "cat" : [250, 89, 52]
+    :param dict_labels (OrderedDict): An dictionary containing the relation class name => color (e.g. "cat" : [250, 89, 52]
 
     RETURN:
     -------
