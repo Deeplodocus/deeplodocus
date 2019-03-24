@@ -662,7 +662,8 @@ def bilateral_blur(image: np.array, diameter: int, sigma_color: int, sigma_space
     RETURN:
     -------
 
-    :return:
+    :return (np.array): The blurred image
+    :return: None
     """
     return cv2.bilateralFilter(image, diameter, sigma_color, sigma_space), None
 
@@ -806,7 +807,7 @@ def remove_channel(image: np.array, index_channel: int)->Tuple[np.array, None]:
 """
 
 
-def color2label(image: np.array, dict_labels: OrderedDict) -> np.array:
+def color2label(image: np.array, dict_labels: OrderedDict) -> Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -836,8 +837,10 @@ def color2label(image: np.array, dict_labels: OrderedDict) -> np.array:
     # Get image shape
     h, w, c = image.shape
 
+    # Initialize a label matrix
     labels = np.zeros((h, w, 1), dtype=int)
 
+    # Get the list of colors
     list_dict = list(dict_labels.values())
 
     # For each column and row
@@ -856,7 +859,7 @@ def color2label(image: np.array, dict_labels: OrderedDict) -> np.array:
     return labels, None
 
 
-def label2color(labels: np.array, dict_labels: OrderedDict) -> np.array:
+def label2color(labels: np.array, dict_labels: OrderedDict) -> Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -886,8 +889,10 @@ def label2color(labels: np.array, dict_labels: OrderedDict) -> np.array:
     # Get image shape
     h, w, _ = labels.shape
 
+    # Initialize an image
     image = np.zeros((h, w, 3), dtype=np.uint8)
 
+    # Get the color values
     list_dict = list(dict_labels.values())
 
     # For each column and row
