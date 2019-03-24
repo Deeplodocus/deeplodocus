@@ -15,7 +15,32 @@ This file contains all the default transforms for images
 """
 
 
-def random_crop(image, output_size=None, output_ratio=None, scale=None):
+def random_crop(image: np.array, output_size=None, output_ratio=None, scale=None):
+    """
+    AUTHORS:
+    --------
+
+    :author: Samuel Westlake
+
+    DESCRIPTION:
+    ------------
+
+    Crop an image with random coordinates
+
+    PARAMETERS:
+    -----------
+
+    :param image (np.array): The input image to crop
+    :param output_size:
+    :param output_ratio:
+    :param scale:
+
+    RETURN:
+    -------
+
+    :return (np.array): The cropped image
+    :return transform(dict): The parameters of the crop
+    """
     # Set the cropped image width and height (dx, dy)
     if output_size is not None:
         # If output_size is a list of lists, i.e. ((lower_bound, upper_bound), (lower_bound, upper_bound))
@@ -68,11 +93,30 @@ def random_crop(image, output_size=None, output_ratio=None, scale=None):
     return crop(image, (x0, y0, x1, y1)), transform
 
 
-def crop(image, coords):
+def crop(image: np.array, coords: Union[List, Tuple]) -> np.array:
     """
-    :param image:
-    :param coords:
-    :return:
+    AUTHORS:
+    --------
+
+    :author: Samuel Westlake
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Crop an image at specific coordinates
+
+    PARAMETERS:
+    -----------
+
+    :param image (np.array): The input image
+    :param coords (list): The coordinates to be cropped
+
+    RETURN:
+    -------
+
+    :return (np.array): The cropped image
+    :return: None
     """
     x0, y0, x1, y1 = coords
     return image[y0: y1, x0: x1, ...], None
@@ -105,12 +149,19 @@ def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> 
     :return: The blurred image
     :return: The last transform data
     """
+    # Compute kernel size
     kernel_size = (random.randint(kernel_size_min // 2, kernel_size_max // 2)) * 2 + 1
+
+    # Blur the image
     image, _ = blur(image, kernel_size)
+
+    # Store the parameters of the random blur
     transform = {"name": "blur",
                  "method": blur,
                  "module_path": __name__,
                  "kwargs": {"kernel_size": kernel_size}}
+
+    # Return the blurred image and the stored parameters
     return image, transform
 
 
@@ -129,8 +180,8 @@ def blur(image: np.array, kernel_size: int) -> Tuple[Any, None]:
     PARAMETERS:
     -----------
 
-    :param image: np.array: The image to transform
-    :param kernel_size: int: Kernel size
+    :param image (np.array): The image to transform
+    :param kernel_size (int): Kernel size
 
     RETURN:
     -------
@@ -171,7 +222,7 @@ def adjust_gamma(image, gamma):
     return cv2.LUT(image, table), None
 
 
-def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0, method=None):
+def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0, method=None)->Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -195,7 +246,8 @@ def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0, 
     RETURN:
     -------
 
-    :return->np.array: Image of size shape
+    :return (np.array): Image of size shape
+    :return: None
     """
     if method is None:
         # If we want to reduce the image
@@ -204,6 +256,8 @@ def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0, 
         # If we prefer to increase the size
         else:
             method = cv2.INTER_CUBIC  # Use the Bicubic interpolation
+
+    # TODO : Get the method in a more pythonic way
     else:
         if method == "nearest":
             method = cv2.INTER_NEAREST
@@ -228,7 +282,7 @@ def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0, 
     return image, None
 
 
-def pad(image, shape, value=0):
+def pad(image, shape, value: int=0)->Tuple[np.array, None] :
     """
     AUTHORS:
     --------
@@ -244,13 +298,13 @@ def pad(image, shape, value=0):
     PARAMETERS;
     -----------
 
-    :param: image: input image
-    :param: value
+    :param image (np.array): input image
+    :param value (int): Padding value
 
     RETURN:
     -------
 
-    :return: Padded image
+    :return padded(np.array): Padded image
     :return: None
     """
     num_channels = 1 if image.ndim == 2 else image.shape[2]
@@ -271,9 +325,36 @@ def pad(image, shape, value=0):
 
 
 def channel_shift(image: np.array, shift: int)-> Tuple[np.array, None]:
+    """
+    AUTHORS:
+    --------
+
+    :author: Samuel Westlake
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Shift channels of a particular intensity value
+
+    PARAMETERS:
+    -----------
+
+    :param image (np.array): The input image
+    :param shift (int): The intensity of the shift
+
+    RETURN:
+    -------
+
+    :return image(np.array): The image with the shifted channels
+    :return: None
+    """
+
+    # Shift the channel of X intensity
     for ch in range(image.shape[2]):
         image[:, :, ch] += shift[ch]
 
+    # Saturate channels too large
     image[image < 0] = 0
     image[image > 255] = 255
     return image, None
@@ -290,24 +371,37 @@ def random_channel_shift(image: np.array, shift: int) ->Tuple[np.array, dict]:
     DESCRIPTION:
     ------------
 
+    Select a random value within a given range and shift all the channel of the image of this intensity value
+
+    PARAMETERS:
+    -----------
+
     :param image:
-    :param shift:
+    :param shift (int): The index
 
     RETURN:
     -------
 
-    :return image(np.array), transform(dict): The image with the channel shifted and the detail of the random transform
+    :return image(np.array): The image with the channel shifted
+    :return transform (dict): The parameters of the random shift
     """
+    # Get the shifting value
     shift = np.random.randint(-shift, shift, image.shape[2])
+
+    # Shift the channel
     image, _ = channel_shift(image, shift)
+
+    # Store the parameters
     transform = {"name": "channel_shit",
                  "method": channel_shift,
                  "module_path": __name__,
                  "kwargs": {"shift": shift}}
+
+    # Return the image with the shift channel and the stored parameters
     return image, transform
 
 
-def random_rotate(image: np.array):
+def random_rotate(image: np.array) ->Tuple[np.array, dict]:
     """
     AUTHORS:
     --------
@@ -328,19 +422,26 @@ def random_rotate(image: np.array):
     RETURN:
     -------
 
-    :return image->np.array: The rotated image
-    :return transform->list: The info of the random transform
+    :return image (np.array): The rotated image
+    :return transform (list): The info of the random transform
     """
+    # Pick a random angle value
     angle = (np.random.uniform(0.0, 360.0))
+
+    # Rotate the image
     image, _ = rotate(image, angle)
+
+    # Store the random transform parameters
     transform = {"name": "rotate",
                  "method": rotate,
                  "module_path": __name__,
                  "kwargs": {"angle": angle}}
+
+    # return the rotated image and the random parameters
     return image, transform
 
 
-def semi_random_rotate(image: np.array, angle: float):
+def semi_random_rotate(image: np.array, angle: float) ->Tuple[np.array, dict]:
     """
     AUTHORS:
     --------
@@ -365,12 +466,20 @@ def semi_random_rotate(image: np.array, angle: float):
     :return image->np.array: The rotated image
     :return transform->list: The info of the random transform
     """
+
+    # Select a random angle within a given range
     angle = (2 * np.random.rand() - 1) * angle
+
+    # Rotate the image
     image, _ = rotate(image, angle)
+
+    # Store the random parameters
     transform = {"name": "rotate",
                  "method": rotate,
                  "module_path": __name__,
                  "kwargs": {"angle": angle}}
+
+    # Return the rotated image and the random parameters
     return image, transform
 
 
@@ -398,9 +507,16 @@ def rotate(image: np.array, angle: float) -> Tuple[np.array, None]:
     :return: The rotated image
     :return: None
     """
+    # Get the image shape
     shape = image.shape
+
+    # Get the number of columns and rows
     rows, cols = shape[0:2]
+
+    # Create an affine transformation
     m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
+
+    # Transform the image and return it
     return cv2.warpAffine(image, m, (cols, rows)), None
 
 
@@ -431,7 +547,8 @@ def normalize_image(
 
     RETURN:
     -------
-    :return: a normalized image
+    :return normalized_image (np.array): a normalized image
+    :return: None
     """
 
 
@@ -511,13 +628,17 @@ def median_blur(image: np.array, kernel_size: int) -> Tuple[np.array, None]:
     PARAMETERS:
     -----------
 
-    :param image:
-    :param kernel_size:
+    :param image (np.array): Input image
+    :param kernel_size (int): Size of the kernel
+
+    For more information, please check [OpenCV documentation on the median filter](    https://docs.opencv.org/4.0.1/d4/d86/group__imgproc__filter.html#ga564869aa33e58769b4469101aac458f9)
+
 
     RETURN:
     -------
 
-    :return:
+    :return (np.array): The blurred image
+    :return: None
     """
     return cv2.medianBlur(image, int(kernel_size)), None
 
@@ -537,20 +658,45 @@ def bilateral_blur(image: np.array, diameter: int, sigma_color: int, sigma_space
     PARAMETERS:
     -----------
 
-    :param image:
-    :param diameter:
-    :param sigma_color:
-    :param sigma_space:
+    :param image (np.array): The input image
+    :param diameter (int): Diameter of the kernel
+    :param sigma_color (int):  Sigma value of the color space
+    :param sigma_space (int):  Sigma value of the coordinate space
+
+    For more information, please check [OpenCV documentation on the bilateral filter](https://docs.opencv.org/4.0.1/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed)
 
     RETURN:
     -------
 
-    :return:
+    :return (np.array): The blurred image
+    :return: None
     """
     return cv2.bilateralFilter(image, diameter, sigma_color, sigma_space), None
 
 
 def grayscale(image: np.array) -> Tuple[np.array, None]:
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Convert an RGB(a) image to grayscale
+
+    PARAMETERS:
+    -----------
+
+    :param image (np.array): The image to transform to grayscale
+
+    RETURN:
+    -------
+
+    :return image(np.array): The grayscale image
+    :return: None
+    """
 
     _, _, channels = image.shape
 
@@ -564,7 +710,7 @@ def grayscale(image: np.array) -> Tuple[np.array, None]:
         return image, None
 
 
-def convert_bgra2rgba(image):
+def convert_bgra2rgba(image: np.array) ->Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -579,12 +725,12 @@ def convert_bgra2rgba(image):
     PARAMETERS:
     -----------
 
-    :param image: image to convert
+    :param image (np.array): image to convert
 
     RETURN:
     -------
 
-    :return: a RGB(alpha) image
+    :return image(np.array): a RGB(alpha) image
     """
 
     # Get the number of channels in the image
@@ -598,7 +744,7 @@ def convert_bgra2rgba(image):
     return image, None
 
 
-def convert_rgba2bgra(image):
+def convert_rgba2bgra(image) ->Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -629,10 +775,12 @@ def convert_rgba2bgra(image):
         image = image[:, :, (2, 1, 0)]
     elif channels == 4:
         image = image[:, :, (2, 1, 0, 3)]
+
+    # Return the transform image and None
     return image, None
 
 
-def remove_channel(image: np.array, index_channel: int):
+def remove_channel(image: np.array, index_channel: int)->Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -653,7 +801,8 @@ def remove_channel(image: np.array, index_channel: int):
     RETURN:
     -------
 
-    :return matrix (np.array): The image without the selected channel
+    :return (np.array): The image without the selected channel
+    :return: None
     """
     return np.delete(image, index_channel, -1), None
 
@@ -664,7 +813,7 @@ def remove_channel(image: np.array, index_channel: int):
 """
 
 
-def color2label(image: np.array, dict_labels: OrderedDict) -> np.array:
+def color2label(image: np.array, dict_labels: OrderedDict) -> Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -686,6 +835,7 @@ def color2label(image: np.array, dict_labels: OrderedDict) -> np.array:
     -------
 
     :return labels (np.array): An array contianing the corresponding labels
+    :return: None
     """
     # Convert float to integer
     image = image.astype(np.uint64)
@@ -693,8 +843,10 @@ def color2label(image: np.array, dict_labels: OrderedDict) -> np.array:
     # Get image shape
     h, w, c = image.shape
 
+    # Initialize a label matrix
     labels = np.zeros((h, w, 1), dtype=int)
 
+    # Get the list of colors
     list_dict = list(dict_labels.values())
 
     # For each column and row
@@ -713,7 +865,7 @@ def color2label(image: np.array, dict_labels: OrderedDict) -> np.array:
     return labels, None
 
 
-def label2color(labels: np.array, dict_labels: OrderedDict) -> np.array:
+def label2color(labels: np.array, dict_labels: OrderedDict) -> Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -723,18 +875,19 @@ def label2color(labels: np.array, dict_labels: OrderedDict) -> np.array:
     DESCRIPTION:
     ------------
 
-    Transform an RGB image to a array with the corresponding label indices
+    Transform an array of labels to the corresponding RGB colors
 
     PARAMETERS:
     -----------
 
     :param labels (np.array): the array containing the labels
-    :param indices (OrderedDict): An dictionary containing the relation class name => color (e.g. "cat" : [250, 89, 52]
+    :param dict_labels (OrderedDict): An dictionary containing the relation class name => color (e.g. "cat" : [250, 89, 52]
 
     RETURN:
     -------
 
     :return image (np.array): The image with the colors corresponding to the given labels
+    :return: None
     """
     # Convert float to integer
     labels = labels.astype(np.uint64)
@@ -742,8 +895,10 @@ def label2color(labels: np.array, dict_labels: OrderedDict) -> np.array:
     # Get image shape
     h, w, _ = labels.shape
 
+    # Initialize an image
     image = np.zeros((h, w, 3), dtype=np.uint8)
 
+    # Get the color values
     list_dict = list(dict_labels.values())
 
     # For each column and row
