@@ -31,42 +31,42 @@ class Convnet8(nn.Module):
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels=num_channels, out_channels=32, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(32),
-            nn.ReLU()
+            nn.ReLU(True)
         )
         self.conv2 = nn.Sequential(
             nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(32),
-            nn.ReLU()
+            nn.ReLU(True)
         )
         self.conv3 = nn.Sequential(
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(64),
-            nn.ReLU()
+            nn.ReLU(True)
         )
         self.conv4 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(64),
-            nn.ReLU()
+            nn.ReLU(True)
         )
         self.conv5 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(128),
-            nn.ReLU()
+            nn.ReLU(True)
         )
         self.conv6 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(128),
-            nn.ReLU()
+            nn.ReLU(True)
         )
         self.conv7 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(256),
-            nn.ReLU()
+            nn.ReLU(True)
         )
         self.conv8 = nn.Sequential(
             nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(256),
-            nn.ReLU()
+            nn.ReLU(True)
         )
         self.fully_connected = nn.Linear(self.input_shape[0] * self.input_shape[1] * 256, num_classes)
 
