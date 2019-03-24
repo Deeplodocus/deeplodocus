@@ -13,6 +13,7 @@ from deeplodocus.utils.flags.admin import *
 # DATA TYPES
 DEEP_LIST_DTYPE = [
     DEEP_DTYPE_IMAGE,
+    DEEP_DTYPE_IMAGE_INT,
     DEEP_DTYPE_VIDEO,
     DEEP_DTYPE_BOOLEAN,
     DEEP_DTYPE_INTEGER,

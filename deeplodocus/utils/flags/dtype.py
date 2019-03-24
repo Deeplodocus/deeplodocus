@@ -14,6 +14,11 @@ DEEP_DTYPE_IMAGE = Flag(
     description="Image type",
     names=["image", "images", "img"]
 )
+DEEP_DTYPE_IMAGE_INT = Flag(
+    name="ImageInt",
+    description="Image type with integers",
+    names=["imageint", "image-int", "img-int", "img_int", "image_int"]
+)
 DEEP_DTYPE_VIDEO = Flag(
     name="Video",
     description="Video type",

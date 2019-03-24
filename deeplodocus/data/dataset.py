@@ -1,4 +1,5 @@
 
+
 # Python import
 import numpy as np
 from typing import List
@@ -538,7 +539,7 @@ class Dataset(object):
                     loaded_data.append(ld)
 
             # IMAGE
-            elif DEEP_DTYPE_IMAGE.corresponds(data_type):
+            elif DEEP_DTYPE_IMAGE.corresponds(data_type) or DEEP_DTYPE_IMAGE_INT.corresponds(data_type):
                 # Load image
                 loaded_data = self.__load_image(data)
 

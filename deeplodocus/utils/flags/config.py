@@ -51,7 +51,7 @@ DEEP_CONFIG = {
         },
         "cv_library": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "pil"
+            DEEP_CONFIG_DEFAULT: "opencv"
         },
         "device": {
             DEEP_CONFIG_DTYPE: str,
@@ -409,11 +409,13 @@ DEEP_CONFIG = {
             },
             "inputs": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: [str]
+                DEEP_CONFIG_DTYPE: [str],
+                DEEP_CONFIG_INIT: "config/transforms/transform_input.yaml"
             },
             "labels": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: [str]
+                DEEP_CONFIG_DTYPE: [str],
+                DEEP_CONFIG_INIT: "config/transforms/transform_label.yaml"
             },
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
@@ -427,11 +429,13 @@ DEEP_CONFIG = {
             },
             "inputs": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: [str]
+                DEEP_CONFIG_DTYPE: [str],
+                DEEP_CONFIG_INIT: "config/transforms/transform_input.yaml"
             },
             "labels": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: [str]
+                DEEP_CONFIG_DTYPE: [str],
+                DEEP_CONFIG_INIT: "config/transforms/transform_input.yaml"
             },
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,

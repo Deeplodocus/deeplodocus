@@ -1,0 +1,32 @@
+# _________________________________
+#
+# ---- TRANSFORM SEQUENTIAL EXAMPLE ----
+# _________________________________
+#
+
+method: "sequential"
+name: "Input Transform"
+
+mandatory_transforms_start:
+
+  #- name: resize
+  #  module: Null
+  #  kwargs:
+  #    shape: [224, 224, 3]
+  #    padding: 0
+  #    keep_aspect: True
+
+  - name: "normalize_image"
+    module: Null
+    kwargs:
+      mean: [128.0, 128.0, 128.0]
+      standard_deviation: 255
+
+transforms:
+
+    - name: "blur"
+      module: Null
+      kwargs:
+        kernel_size : 3
+
+mandatory_transforms_end: Nulls_end: Null

@@ -157,6 +157,8 @@ class Saver(object):
             if DEEP_SAVE_CONDITION_LESS.corresponds(current_overwatch_metric.get_condition()):
                 # If the model improved since last batch => Save
                 if self.best_overwatch_metric.get_value() > current_overwatch_metric.get_value():
+                    print(current_overwatch_metric.get_value())
+                    print(self.best_overwatch_metric.get_value())
                     Notification(
                         DEEP_NOTIF_SUCCESS,
                         DEEP_MSG_SAVER_IMPROVED % (
