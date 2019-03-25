@@ -1,17 +1,13 @@
-# Welcome to MkDocs
+# How to ride a Deeplodocus
 
-For full documentation visit [mkdocs.org](https://mkdocs.org).
 
-## Commands
+## What is Deeplodocus ?
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs help` - Print this help message.
+Deeplodocus is a High Level deep learning framework offering a large flexibility for both research and production projects.
+Deeplodocus is multi-platform, pure Python and relies on the PyTorch backend.
 
-## Project layout
+## Why another Deep framework ?
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+From our experience, the deep learning projects need being more structured in order to be scaled and gain efficiency in the implementation.
+
+Deeplodocus offers a common structure similar to a web framework which allows everyone to create a project with a minimum amount of code while still being able to keep the flexibility of the backend implementation.
