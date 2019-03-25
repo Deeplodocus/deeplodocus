@@ -5,11 +5,6 @@
 # Required
 version: 2
 
-# Build documentation with MkDocs
-#mkdocs:
-#  configuration: mkdocs.yml
-
-
 # Optionally set the version of Python and requirements required to build your docs
 #python:
 #   version: 3.7
@@ -32,9 +27,6 @@ build:
 ## pip requirements file for building sphinx docs (e.g. nbsphinx)
 #requirements_file: docs/requirements.txt
 
-# can also specify a conda env file if pip isn't enough, for example:
-# conda:
-#   file: environment.yml
 
 # Use python 3 for building
 python:
