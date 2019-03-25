@@ -1,5 +1,8 @@
 # Models
 
+Use the name and module entries in the config/model.yaml file to specify the model you wish to load and the python module to load from respectively.
+(See Config.md for more details.)
+
 Deeplodocus comes packaged with some pre-defined neural network architectures:
 - LeNet
 - AlexNet
@@ -7,9 +10,7 @@ Deeplodocus comes packaged with some pre-defined neural network architectures:
 - Darknet-53
 - YOLOv3
 
-Use entries in the config/model.yaml file to specify the model you wish to load (see Config.md for more details).
-
-Deeplodocus in-house models can be found in deeplodocus.app.models 
+Deeplodocus in-house models can be found in deeplodocus.app.models. 
 
 ## LeNet
 
@@ -84,7 +85,7 @@ kwargs:
 
 Keyword Arguments: 
 - **num_channels**: (int) Number of input channels
-- **num_classes**: (int) Number of output channels
+- **num_classes**: (int) [only used of include_top is True] Number of output channels
 - **batch_norm**: (bool) include batch normalization after each convolutional layer
 - **pretraied**: (bool) initialise the network with weights learned from training with ImageNet
 - **include_top**: (bool) include the classifier portion of the network 
@@ -164,9 +165,15 @@ kwargs:
 
 Keyword Arguments: 
 - **encoder:** (dict) specify the encoder module
+    - **name:** (str) name of the pytorch nn.Module to load
+    - **module:** (str) path to the python module to load from
+    - **kwargs:** (dict) this depends on encoder module selected
 - **decoder:** (dict) specify the decoder module
+    - **name:** (str) name of the pytorch nn.Module to load
+    - **module:** (str) path to the python module to load from
+    - **kwargs:** (dict) this depends on the decoder module selected
 
-**NB:** encoder.kwargs.include_top must be set to False. 
+**NB:** if using a VGG encoder, encoder.kwargs.include_top must be set to False. 
 
 ## Darknet-53
 
@@ -188,10 +195,9 @@ kwargs:
   num_classes: 80
 ~~~
 
+Keyword arguments:
 - **num_channels:** (int) specify the number of channels in the input images.
-
 - **include_top:** (bool) specify whether the network should be define with or without its fully-connected classifying layer.
-
 - **num_classes:** (int) [only used of include_top is True] specify the number of output classes at the output of the fully-connected classifier layer.
 
 **NB**: Darknet53 does not require the specification of input height or width, (due to the use of global pooling after convolution).
@@ -209,8 +215,7 @@ Config Example:
 ~~~yaml
 name: Darknet19                             
 module: deeplodocus.app.models.darknet 
-
-# Default kwargs     
+input_shape: [3, 256, 256]   
 kwargs:                                     
   num_channels: 3
   include_top: True
@@ -240,8 +245,8 @@ YOLOv3(
     num_anchors=3, 
     image_shape=(256, 256)
 )
-~~~
 
+~~~
 Config example: 
 ~~~yaml
 name: YOLOv3
@@ -252,18 +257,16 @@ kwargs:
     name: Darknet53
     module: deeplodocus.app.models.darknet 
     kwargs: 
-      num_channels: 1
+      num_channels: 3
       include_top: False
   num_classes: 80
   image_shape: [256, 256]
 ~~~
 
-
+Keyword arguments: 
 - **backbone:** (dict) specify the backbone architecture
-    - name: (str): Name of the PyTorch model (nn.Module)
-    - module: (str): Location of the module
-    - kwargs: (dict):
-        - (These depend on the backbone specified)
-- **include_top:** (bool) specify whether the network should be define with or without its fully-connected classifying layer
-- **num_classes:** (int) specify the number of unique object classes
-- **image_shape:** (list of ints) specify the input shape of the image (width, height).
+    - **name:** (str): name of the pytorch nn.Module to load
+    - **module:** (str): path to the python module to load from
+    - **kwargs:** (dict) this depends on the backbone selected
+- **num_classes:** (int) the number of output classes
+- **image_shape:** (list of ints) shape of the input image (width, height).

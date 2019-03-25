@@ -567,11 +567,11 @@ class Brain(FrontalLobe):
         # If the value is not set
         if value is None and default is not None:
             # Notify user that default is being used
-            Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_SET % (sub_space, default))
             if default == {}:
                 new_value = Namespace()
             else:
                 new_value = default
+                Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_SET % (sub_space, default))
         elif d_type is dict:
             new_value = Namespace(convert_dict(value.get_all()))
         else:
