@@ -1,7 +1,34 @@
 import numpy as np
+from typing import Tuple
+from typing import Any
+from typing import Union
 
 
-def scale(item, multiply=1, divide=1):
+def scale(item: Any, multiply: Union[float, int]=1, divide: Union[float, int]=1) -> Tuple[Any, None]:
+    """
+    AUTHORS:
+    --------
+
+    :author: Samuel Westlake
+
+    DESCRIPTION:
+    ------------
+
+    Scale an item
+
+    PARAMETERS:
+    -----------
+
+    :param item (Any):
+    :param multiply (Union[float, int]):
+    :param divide (Union[float, int]):
+
+    RETURN:
+    -------
+
+    :return (Any): Scaled item
+    :return: None
+    """
     return item * multiply / divide, None
 
 

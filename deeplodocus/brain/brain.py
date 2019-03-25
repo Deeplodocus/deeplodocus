@@ -20,7 +20,7 @@ from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification, DeepError
 from deeplodocus.utils.vis_utils import plot_history, plot_training_batches, plot_training_epochs, plot_validation_history
-
+from deeplodocus.brain.visual_cortex.graph import Graph
 
 class Brain(FrontalLobe):
     """
@@ -464,6 +464,12 @@ class Brain(FrontalLobe):
         :return:
         """
         plot_history("/".join((self.config.project.session, "history")), *args, **kwargs)
+
+
+    def plot_graph(self, format="svg"):
+
+
+        Graph(self.model, self.mode.named_parameters())
 
     """
     "

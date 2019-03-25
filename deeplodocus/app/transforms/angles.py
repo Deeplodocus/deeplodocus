@@ -21,10 +21,11 @@ def dangle_to_cos_and_sin(angle: float):
     RETURN:
     -------
 
-    :return : Cos and sin values
+    :return (Tuple[float, float]): Cos and sin values
+    :return: None
     """
     rad = math.radians(angle)
-    return math.cos(rad), math.sin(rad)
+    return (math.cos(rad), math.sin(rad)), None
 
 
 def rangle_to_cos_and_sin(angle: float):
@@ -47,8 +48,9 @@ def rangle_to_cos_and_sin(angle: float):
     RETURN:
     -------
 
-    :return : Cos and sin values
+    :return (Tuple[float, float]): Cos and sin values
+    :return: None
     """
-    return math.cos(angle), math.sin(angle)
+    return (math.cos(angle), math.sin(angle)), None
 
 
