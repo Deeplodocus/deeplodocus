@@ -18,5 +18,8 @@ docs_dir: 'templates'
 
 nav:
     - Home: index.md
+    - Configuration: config.md
     - Data: data.md
+    - Models: models.md
+    - Transforms : transforms.md
     - About: about.md
