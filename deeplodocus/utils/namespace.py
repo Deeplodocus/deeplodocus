@@ -186,13 +186,13 @@ class Namespace(object):
                             item = item.__get_summary(tabs=tabs + 2, tab_size=tab_size).lstrip()
                             line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
                         else:
-                            if isinstance(item, str):
+                            if isinstance(item, str) and "#" not in item:
                                 item = '"%s"' % item
                             else:
                                 item = "%s" % item
                             line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
                 else:
-                    if isinstance(value, str):
+                    if isinstance(value, str) and "#" not in value:
                         value = '"%s"' % value
                     line += "%s%s: %s\n" % (" " * tab_size * tabs, key, value)
         return line
@@ -220,7 +220,7 @@ class Namespace(object):
         """
         with open(file_name, "r") as file:
             dictionary = yaml.load(file)
-            return self.__dict2namespace(dictionary)
+        return self.__dict2namespace(dictionary)
 
     def __add(self, dictionary, sub_space=None):
         """
