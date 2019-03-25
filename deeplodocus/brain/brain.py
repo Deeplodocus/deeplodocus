@@ -19,8 +19,9 @@ from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification, DeepError
-from deeplodocus.utils.vis_utils import plot_history, plot_training_batches, plot_training_epochs, plot_validation_history
+from deeplodocus.utils.vis_utils import plot_history
 from deeplodocus.brain.visual_cortex.graph import Graph
+
 
 class Brain(FrontalLobe):
     """

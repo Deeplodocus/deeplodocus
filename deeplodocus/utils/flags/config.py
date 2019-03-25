@@ -39,6 +39,14 @@ DEEP_CONFIG_SECTIONS = [
     DEEP_CONFIG_HISTORY
 ]
 
+DEF = {
+    "SOURCE": '"./data/..."    # Path to data file/folder',
+    "JOIN": "Null              # Path to append to the start of each data item",
+    "TYPE": '"image"           # One of: "integer", "image", "string", "float", "np-array", "bool", "video", "audio"',
+    "LOAD_METHOD": '"default"  # One of: "online" / "default" or "offline"',
+    "NUMBER": "Null                # The number of instances from the dataset to use (Null = all instances)"
+}
+
 # A dict of names for each config file
 DEEP_CONFIG_FILES = {item: "%s%s" % (item, DEEP_EXT_YAML) for item in DEEP_CONFIG_SECTIONS}
 
@@ -100,11 +108,11 @@ DEEP_CONFIG = {
         "module": {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: None,
-            DEEP_CONFIG_INIT: "torchvision.models"
+            DEEP_CONFIG_INIT: "deeplodocus.app.models.vgg"
         },
         "name": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "vgg16_bn"
+            DEEP_CONFIG_DEFAULT: "VGG16"
         },
         "input_size": {
             DEEP_CONFIG_DTYPE: [[int]],
@@ -114,10 +122,6 @@ DEEP_CONFIG = {
         "kwargs": {
             DEEP_CONFIG_DTYPE: dict,
             DEEP_CONFIG_DEFAULT: {},
-            DEEP_CONFIG_INIT: {
-                "num_classes": 1000,
-                "pretrained": True
-            }
         }
     },
     DEEP_CONFIG_OPTIMIZER: {
@@ -227,10 +231,10 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_INIT: [
                         Namespace(
                             {
-                                "source": "# Path to data file/folder",
-                                "join": "# Path to append to the start of each data item",
-                                "type": "# One of: 'integer', 'image', 'string', 'float', 'np-array', 'bool', 'video', 'audio'",
-                                "load_method": "# One of: 'online' / 'default' or 'offline'"
+                                "source": DEF["SOURCE"],
+                                "join": DEF["JOIN"],
+                                "type": DEF["TYPE"],
+                                "load_method": DEF["LOAD_METHOD"]
                             }
                         )
                     ]
@@ -248,10 +252,10 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_INIT: [
                         Namespace(
                             {
-                                "source": "# Path to data file/folder",
-                                "join": "# Path to append to the start of each data item",
-                                "type": "# One of: 'integer', 'image', 'string', 'float', 'np-array', 'bool', 'video', 'audio'",
-                                "load_method": "# One of: 'online' / 'default' or 'offline'"
+                                "source": DEF["SOURCE"],
+                                "join": DEF["JOIN"],
+                                "type": DEF["TYPE"],
+                                "load_method": DEF["LOAD_METHOD"]
                             }
                         )
                     ]
@@ -265,21 +269,22 @@ DEEP_CONFIG = {
                                 "load_method": str
                             }
                         ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": "# Path to data file/folder",
-                                "join": "# Path to append to the start of each data item",
-                                "type": "# One of: 'integer', 'image', 'string', 'float', 'np-array', 'bool', 'video', 'audio'",
-                                "load_method": "# One of: 'online' / 'default' or 'offline'"
-                            }
-                        )
-                    ]
+                        DEEP_CONFIG_DEFAULT: None,
+                        DEEP_CONFIG_INIT: [
+                            Namespace(
+                                {
+                                    "source": DEF["SOURCE"],
+                                    "join": DEF["JOIN"],
+                                    "type": DEF["TYPE"],
+                                    "load_method": DEF["LOAD_METHOD"]
+                                }
+                            )
+                        ]
                 },
                 "number": {
                     DEEP_CONFIG_DTYPE: int,
-                    DEEP_CONFIG_DEFAULT: None
+                    DEEP_CONFIG_DEFAULT: None,
+                    DEEP_CONFIG_INIT: DEF["NUMBER"]
                 },
                 "name": {
                     DEEP_CONFIG_DTYPE: str,
@@ -300,10 +305,10 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_INIT: [
                         Namespace(
                             {
-                                "source": "# Path to data file/folder",
-                                "join": "# Path to append to the start of each data item",
-                                "type": "# One of: 'integer', 'image', 'string', 'float', 'np-array', 'bool', 'video', 'audio'",
-                                "load_method": "# One of: 'online' / 'default' or 'offline'"
+                                "source": DEF["SOURCE"],
+                                "join": DEF["JOIN"],
+                                "type": DEF["TYPE"],
+                                "load_method": DEF["LOAD_METHOD"]
                             }
                         )
                     ]
@@ -320,10 +325,10 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_INIT: [
                         Namespace(
                             {
-                                "source": "# Path to data file/folder",
-                                "join": "# Path to append to the start of each data item",
-                                "type": "# One of: 'integer', 'image', 'string', 'float', 'np-array', 'bool', 'video', 'audio'",
-                                "load_method": "# One of: 'online' / 'default' or 'offline'"
+                                "source": DEF["SOURCE"],
+                                "join": DEF["JOIN"],
+                                "type": DEF["TYPE"],
+                                "load_method": DEF["LOAD_METHOD"]
                             }
                         )
                     ]
@@ -340,10 +345,10 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_INIT: [
                         Namespace(
                             {
-                                "source": "# Path to data file/folder",
-                                "join": "# Path to append to the start of each data item",
-                                "type": "# One of: 'integer', 'image', 'string', 'float', 'np-array', 'bool', 'video', 'audio'",
-                                "load_method": "# One of: 'online' / 'default' or 'offline'"
+                                "source": DEF["SOURCE"],
+                                "join": DEF["JOIN"],
+                                "type": DEF["TYPE"],
+                                "load_method": DEF["LOAD_METHOD"]
                             }
                         )
                     ]
@@ -351,7 +356,8 @@ DEEP_CONFIG = {
                 },
                 "number": {
                     DEEP_CONFIG_DTYPE: int,
-                    DEEP_CONFIG_DEFAULT: None
+                    DEEP_CONFIG_DEFAULT: None,
+                    DEEP_CONFIG_INIT: DEF["NUMBER"]
                 },
                 "name": {
                     DEEP_CONFIG_DTYPE: str,
@@ -372,10 +378,10 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_INIT: [
                         Namespace(
                             {
-                                "source": "# Path to data file/folder",
-                                "join": "# Path to append to the start of each data item",
-                                "type": "# One of: 'integer', 'image', 'string', 'float', 'np-array', 'bool', 'video', 'audio'",
-                                "load_method": "# One of: 'online' / 'default' or 'offline'"
+                                "source": DEF["SOURCE"],
+                                "join": DEF["JOIN"],
+                                "type": DEF["TYPE"],
+                                "load_method": DEF["LOAD_METHOD"]
                             }
                         )
                     ]
@@ -393,10 +399,10 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_INIT: [
                         Namespace(
                             {
-                                "source": "# Path to data file/folder",
-                                "join": "# Path to append to the start of each data item",
-                                "type": "# One of: 'integer', 'image', 'string', 'float', 'np-array', 'bool', 'video', 'audio'",
-                                "load_method": "# One of: 'online' / 'default' or 'offline'"
+                                "source": DEF["SOURCE"],
+                                "join": DEF["JOIN"],
+                                "type": DEF["TYPE"],
+                                "load_method": DEF["LOAD_METHOD"]
                             }
                         )
                     ]
@@ -414,17 +420,18 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_INIT: [
                         Namespace(
                             {
-                                "source": "# Path to data file/folder",
-                                "join": "# Path to append to the start of each data item",
-                                "type": "# One of: 'integer', 'image', 'string', 'float', 'np-array', 'bool', 'video', 'audio'",
-                                "load_method": "# One of: 'online' / 'default' or 'offline'"
+                                "source": DEF["SOURCE"],
+                                "join": DEF["JOIN"],
+                                "type": DEF["TYPE"],
+                                "load_method": DEF["LOAD_METHOD"]
                             }
                         )
                     ]
                 },
                 "number": {
                     DEEP_CONFIG_DTYPE: int,
-                    DEEP_CONFIG_DEFAULT: None
+                    DEEP_CONFIG_DEFAULT: None,
+                    DEEP_CONFIG_INIT: DEF["NUMBER"]
                 },
                 "name": {
                     DEEP_CONFIG_DTYPE: str,
@@ -445,10 +452,10 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_INIT: [
                         Namespace(
                             {
-                                "source": "# Path to data file/folder",
-                                "join": "# Path to append to the start of each data item",
-                                "type": "# One of: 'integer', 'image', 'string', 'float', 'np-array', 'bool', 'video', 'audio'",
-                                "load_method": "# One of: 'online' / 'default' or 'offline'"
+                                "source": DEF["SOURCE"],
+                                "join": DEF["JOIN"],
+                                "type": DEF["TYPE"],
+                                "load_method": DEF["LOAD_METHOD"]
                             }
                         )
                     ]
@@ -466,10 +473,10 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_INIT: [
                         Namespace(
                             {
-                                "source": "# Path to data file/folder",
-                                "join": "# Path to append to the start of each data item",
-                                "type": "# One of: 'integer', 'image', 'string', 'float', 'np-array', 'bool', 'video', 'audio'",
-                                "load_method": "# One of: 'online' / 'default' or 'offline'"
+                                "source": DEF["SOURCE"],
+                                "join": DEF["JOIN"],
+                                "type": DEF["TYPE"],
+                                "load_method": DEF["LOAD_METHOD"]
                             }
                         )
                     ]
@@ -487,10 +494,10 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_INIT: [
                         Namespace(
                             {
-                                "source": "# Path to data file/folder",
-                                "join": "# Path to append to the start of each data item",
-                                "type": "# One of: 'integer', 'image', 'string', 'float', 'np-array', 'bool', 'video', 'audio'",
-                                "load_method": "# One of: 'online' / 'default' or 'offline'"
+                                "source": DEF["SOURCE"],
+                                "join": DEF["JOIN"],
+                                "type": DEF["TYPE"],
+                                "load_method": DEF["LOAD_METHOD"]
                             }
                         )
                     ]
@@ -501,7 +508,8 @@ DEEP_CONFIG = {
                 },
                 "number": {
                     DEEP_CONFIG_DTYPE: int,
-                    DEEP_CONFIG_DEFAULT: None
+                    DEEP_CONFIG_DEFAULT: None,
+                    DEEP_CONFIG_INIT: DEF["NUMBER"]
                 }
             }
         }
@@ -510,7 +518,8 @@ DEEP_CONFIG = {
         DEEP_CONFIG_WILDCARD: {
             "module": {
                 DEEP_CONFIG_DTYPE: str,
-                DEEP_CONFIG_DEFAULT: None
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_INIT: "torch.nn.modules.loss"
             },
             "name": {
                 DEEP_CONFIG_DTYPE: str,
