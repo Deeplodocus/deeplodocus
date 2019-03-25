@@ -465,11 +465,8 @@ class Brain(FrontalLobe):
         """
         plot_history("/".join((self.config.project.session, "history")), *args, **kwargs)
 
-
     def plot_graph(self, format="svg"):
-
-
-        Graph(self.model, self.mode.named_parameters())
+        Graph(self.model, self.model.named_parameters())
 
     """
     "
@@ -571,7 +568,8 @@ class Brain(FrontalLobe):
                 new_value = Namespace()
             else:
                 new_value = default
-                Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_SET % (sub_space, default))
+                if not default == []:
+                    Notification(DEEP_NOTIF_WARNING, DEEP_MSG_CONFIG_NOT_SET % (sub_space, default))
         elif d_type is dict:
             new_value = Namespace(convert_dict(value.get_all()))
         else:

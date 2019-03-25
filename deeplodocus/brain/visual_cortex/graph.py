@@ -8,6 +8,7 @@ from torch.autograd import Variable
 
 Node = namedtuple('Node', ('name', 'inputs', 'attr', 'op'))
 
+
 class Graph(object):
 
     def __init__(self, model, parameters: Optional[dict]=None, save_path: str = "./result/graphs", format: str = "svg") -> None:
