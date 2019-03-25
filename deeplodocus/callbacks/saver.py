@@ -305,22 +305,29 @@ class Saver(object):
         self.inp = inp
 
     def __get_file_path(self):
-        if self.save_signal.corresponds(DEEP_SAVE_SIGNAL_END_BATCH):
-            # Set the file path as 'directory/name_epoch_batch.ext'
-            file_path = "%s/%s_%s_%s%s" % (
+        if self.epoch_index is None:
+            file_path = "%s/%s%s" % (
                 self.directory,
                 self.name,
-                str(self.epoch_index).zfill(3),
-                str(self.batch_index).zfill(8),
                 self.extension
             )
-        # If saving at the end of each epoch
         else:
-            # Set the file path as 'directory/name_epoch.ext'
-            file_path = "%s/%s_%s%s" % (
-                self.directory,
-                self.name,
-                str(self.epoch_index).zfill(3),
-                self.extension
-            )
+            if self.save_signal.corresponds(DEEP_SAVE_SIGNAL_END_BATCH):
+                # Set the file path as 'directory/name_epoch_batch.ext'
+                file_path = "%s/%s_%s_%s%s" % (
+                    self.directory,
+                    self.name,
+                    str(self.epoch_index).zfill(3),
+                    str(self.batch_index).zfill(8),
+                    self.extension
+                )
+            # If saving at the end of each epoch
+            else:
+                # Set the file path as 'directory/name_epoch.ext'
+                file_path = "%s/%s_%s%s" % (
+                    self.directory,
+                    self.name,
+                    str(self.epoch_index).zfill(3),
+                    self.extension
+                )
         return file_path

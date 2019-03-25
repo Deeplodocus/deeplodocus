@@ -192,8 +192,11 @@ class Namespace(object):
                                 item = "%s" % item
                             line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
                 else:
-                    if isinstance(value, str) and "#" not in value:
-                        value = '"%s"' % value
+                    if isinstance(value, str):
+                        if "#" in value:
+                            value = '%s#%s' % (value.split("#")[0], value.split("#")[1])
+                        else:
+                            value = '"%s"' % value
                     line += "%s%s: %s\n" % (" " * tab_size * tabs, key, value)
         return line
 

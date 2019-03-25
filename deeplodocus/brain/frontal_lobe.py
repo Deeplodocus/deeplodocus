@@ -9,9 +9,14 @@ import torch.nn as nn
 import torch.nn.functional
 
 # Deeplodocus import
+from deeplodocus.brain.memory.hippocampus import Hippocampus
+from deeplodocus.brain.signal import Signal
+from deeplodocus.brain.thalamus import Thalamus
+from deeplodocus.callbacks.printer import Printer
 from deeplodocus.core.inference.tester import Tester
 from deeplodocus.core.inference.predictor import Predictor
 from deeplodocus.core.inference.trainer import Trainer
+from deeplodocus.core.metrics import Metrics, Losses
 from deeplodocus.core.metrics.loss import Loss
 from deeplodocus.core.metrics.metric import Metric
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
@@ -19,17 +24,15 @@ from deeplodocus.core.model.model import load_model
 from deeplodocus.core.optimizer.optimizer import load_optimizer
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.data.transform_manager import TransformManager
+from deeplodocus.utils.flags.event import DEEP_EVENT_SAVE_MODEL
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.module import *
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
-from deeplodocus.utils.notification import Notification
-from deeplodocus.brain.memory.hippocampus import Hippocampus
-from deeplodocus.core.metrics import Metrics, Losses
-from deeplodocus.callbacks.printer import Printer
 from deeplodocus.utils.generic_utils import get_corresponding_flag
+from deeplodocus.utils.notification import Notification
 
 
 class FrontalLobe(object):
@@ -714,6 +717,14 @@ class FrontalLobe(object):
                 **self.config.training.saver.get(),
                 save_model_directory=weights_directory
             )
+
+    def save_model(self):
+        Thalamus().add_signal(
+            signal=Signal(
+                event=DEEP_EVENT_SAVE_MODEL,
+                args={}
+            )
+        )
 
     def summary(self):
         """
