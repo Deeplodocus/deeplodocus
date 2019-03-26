@@ -7,6 +7,7 @@ from deeplodocus import __version__
 #version = __import__('deeplodocus').get_version()
 version = __version__
 
+
 def read(fname):
     with open(os.path.join(os.path.dirname(__file__), fname)) as f:
         return f.read()
@@ -17,7 +18,7 @@ setup(
     name='Deeplodocus',
     version=version,
     python_requires='>=3.5.3',
-    url='https://www.deeplodocus.github.io/',
+    url='https://www.deeplodocus.org/',
     author='Alix Leroy and Samuel Westlake',
     author_email='deeplodocus@gmail.com',
     description=('The  Deep Learning framework keeping your head above water'),
@@ -38,13 +39,13 @@ setup(
                       'aiohttp_jinja2>=1.1.0',
                       'psutil>=5-4.8',
                       'graphviz',
-                      'pydot'],
+                      'pydot',
+                      "opencv-python >= 3.4.1"],
     extras_require={
-        "cv2": ["opencv-python >= 3.4.1"]
     },
     zip_safe=False,
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
@@ -57,7 +58,7 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     project_urls={
-        'Documentation': 'https://www.deeplodocus.github.io/',
-        'Source': 'https://github.com/Deeplodocus/deeplodocus',
+        'Documentation': 'https://www.deeplodocus.org/',
+        'Source': 'https://github.com/Deeplodocus/deeplodocus/',
     },
 )
