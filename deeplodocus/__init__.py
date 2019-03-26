@@ -6,4 +6,4 @@ name = "deeplodocus"
 VERSION = (0, 1, 0, 'alpha', 1)
 
 #__version__ = get_version(VERSION)
-__version__ ="0.2.1.4"
+__version__ ="0.2.1"
