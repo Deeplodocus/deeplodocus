@@ -18,8 +18,7 @@ mkdocs:
   configuration: docs/mkdocs.yml
 
 # Build ePub (pdf is currently failing)
-formats:
-  - epub
+formats: all
 
 build:
   image: latest
