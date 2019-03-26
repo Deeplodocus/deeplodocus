@@ -42,9 +42,10 @@ DEEP_CONFIG_SECTIONS = [
 DEF = {
     "SOURCE": '"./data/..."    # Path to data file/folder',
     "JOIN": "Null              # Path to append to the start of each data item",
-    "TYPE": '"image"           # One of: "integer", "image", "string", "float", "np-array", "bool", "video", "audio"',
+    "TYPE_IMG": '"image"           # One of: "integer", "image", "string", "float", "np-array", "bool", "video", "audio"',
+    "TYPE_INT": '"int"             # One of: "integer", "image", "string", "float", "np-array", "bool", "video", "audio"',
     "LOAD_METHOD": '"default"  # One of: "online" / "default" or "offline"',
-    "NUMBER": "Null                # The number of instances from the dataset to use (Null = all instances)"
+    "NUMBER": "Null                # The number of instances from the dataset to use (Null = all instances)",
 }
 
 # A dict of names for each config file
@@ -233,7 +234,7 @@ DEEP_CONFIG = {
                             {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
-                                "type": DEF["TYPE"],
+                                "type": DEF["TYPE_IMG"],
                                 "load_method": DEF["LOAD_METHOD"]
                             }
                         )
@@ -254,7 +255,7 @@ DEEP_CONFIG = {
                             {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
-                                "type": DEF["TYPE"],
+                                "type": DEF["TYPE_IMG"],
                                 "load_method": DEF["LOAD_METHOD"]
                             }
                         )
@@ -270,16 +271,7 @@ DEEP_CONFIG = {
                             }
                         ],
                         DEEP_CONFIG_DEFAULT: None,
-                        DEEP_CONFIG_INIT: [
-                            Namespace(
-                                {
-                                    "source": DEF["SOURCE"],
-                                    "join": DEF["JOIN"],
-                                    "type": DEF["TYPE"],
-                                    "load_method": DEF["LOAD_METHOD"]
-                                }
-                            )
-                        ]
+                        DEEP_CONFIG_INIT: None
                 },
                 "number": {
                     DEEP_CONFIG_DTYPE: int,
@@ -307,7 +299,7 @@ DEEP_CONFIG = {
                             {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
-                                "type": DEF["TYPE"],
+                                "type": DEF["TYPE_IMG"],
                                 "load_method": DEF["LOAD_METHOD"]
                             }
                         )
@@ -327,7 +319,7 @@ DEEP_CONFIG = {
                             {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
-                                "type": DEF["TYPE"],
+                                "type": DEF["TYPE_INT"],
                                 "load_method": DEF["LOAD_METHOD"]
                             }
                         )
@@ -342,16 +334,7 @@ DEEP_CONFIG = {
                             "load_method": str}
                     ],
                     DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": DEF["SOURCE"],
-                                "join": DEF["JOIN"],
-                                "type": DEF["TYPE"],
-                                "load_method": DEF["LOAD_METHOD"]
-                            }
-                        )
-                    ]
+                    DEEP_CONFIG_INIT: None
 
                 },
                 "number": {
@@ -380,7 +363,7 @@ DEEP_CONFIG = {
                             {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
-                                "type": DEF["TYPE"],
+                                "type": DEF["TYPE_IMG"],
                                 "load_method": DEF["LOAD_METHOD"]
                             }
                         )
@@ -401,7 +384,7 @@ DEEP_CONFIG = {
                             {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
-                                "type": DEF["TYPE"],
+                                "type": DEF["TYPE_INT"],
                                 "load_method": DEF["LOAD_METHOD"]
                             }
                         )
@@ -417,16 +400,7 @@ DEEP_CONFIG = {
                         }
                     ],
                     DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": DEF["SOURCE"],
-                                "join": DEF["JOIN"],
-                                "type": DEF["TYPE"],
-                                "load_method": DEF["LOAD_METHOD"]
-                            }
-                        )
-                    ]
+                    DEEP_CONFIG_INIT: None
                 },
                 "number": {
                     DEEP_CONFIG_DTYPE: int,
@@ -454,7 +428,7 @@ DEEP_CONFIG = {
                             {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
-                                "type": DEF["TYPE"],
+                                "type": DEF["TYPE_IMG"],
                                 "load_method": DEF["LOAD_METHOD"]
                             }
                         )
@@ -475,7 +449,7 @@ DEEP_CONFIG = {
                             {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
-                                "type": DEF["TYPE"],
+                                "type": DEF["TYPE_INT"],
                                 "load_method": DEF["LOAD_METHOD"]
                             }
                         )
@@ -491,16 +465,7 @@ DEEP_CONFIG = {
                         }
                     ],
                     DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": DEF["SOURCE"],
-                                "join": DEF["JOIN"],
-                                "type": DEF["TYPE"],
-                                "load_method": DEF["LOAD_METHOD"]
-                            }
-                        )
-                    ]
+                    DEEP_CONFIG_INIT: None
                 },
                 "name": {
                     DEEP_CONFIG_DEFAULT: "Prediction",

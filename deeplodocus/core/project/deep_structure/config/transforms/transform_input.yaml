@@ -29,4 +29,4 @@ transforms:
       kwargs:
         kernel_size : 3
 
-mandatory_transforms_end: Nulls_end: Null
+mandatory_transforms_end: Null

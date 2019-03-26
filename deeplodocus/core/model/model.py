@@ -125,6 +125,7 @@ def load_model(
             self.apply(register_hook)
 
             # Make a forward pass
+            self.forward(*x)
             try:
                 self.forward(*x)
             except RuntimeError as e:
@@ -137,7 +138,7 @@ def load_model(
                         ]
                     )
                 else:
-                    Notification(DeprecationWarning, str(e))
+                    Notification(DEEP_NOTIF_FATAL, str(e))
 
             # Remove these hooks
             for h in hooks:
