@@ -255,7 +255,7 @@ DEEP_CONFIG = {
                             {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
-                                "type": DEF["TYPE_IMG"],
+                                "type": DEF["TYPE_INT"],
                                 "load_method": DEF["LOAD_METHOD"]
                             }
                         )
@@ -534,7 +534,7 @@ DEEP_CONFIG = {
             "labels": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str],
-                DEEP_CONFIG_INIT: "config/transforms/transform_input.yaml"
+                DEEP_CONFIG_INIT: "config/transforms/transform_label.yaml"
             },
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
