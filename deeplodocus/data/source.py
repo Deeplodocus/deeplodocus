@@ -401,7 +401,7 @@ class Source(object):
         :return (bool): Whether the source is a database or not
         """
 
-        NotImplemented("Loading from premade dataset not implemented yet.")
+        Notification(DEEP_NOTIF_FATAL, "Loading from premade dataset not implemented yet.")
 
 
     """
