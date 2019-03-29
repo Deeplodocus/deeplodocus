@@ -1,7 +1,31 @@
 # Models
 
-Use the name and module entries in the config/model.yaml file to specify the model you wish to load and the python module to load from respectively.
-(See Config.md for more details.)
+Deeplodocus enables to flexibly load and train your own Pytorch neural networks, or one of the pre-defined models that comes packaged with Deeplodocus. 
+
+Specify the neural network that you wish to use via the `name` and `module` entries in the `model.yaml` configuration file.  
+
+- Use `name` to specify the Pytorch nn.Module you would like to initialise.
+- Use `module` to specify the Python module to load from. 
+
+More importantly, any custom network architectures defined in the `modules.models` directory of your project can also be easily.
+
+For example:
+
+If you include a python module `skynet.py` in your Deeplodocus project `modules.model` directory, which defines your own artificial neural network, `SkyNet`, you can access your file via the following `model.yaml` configurations: 
+
+defined your own network architecture, SkyNet, inside a python file named skynet.py.
+You would write your model configuration file like so: 
+
+```yaml
+name: "SkyNet"
+module: "modules.models.skynet"
+```
+
+NB: If `module` is left empty (Null), Deeplodocus will search through both `deeplodocsus.app.models` and `modules.models` from your project.
+The user will be notified if multiple models with the same name are found, and asked to decide which should be used. 
+
+
+## Pre-defined Models
 
 Deeplodocus comes packaged with some pre-defined neural network architectures:
 - LeNet
@@ -12,7 +36,7 @@ Deeplodocus comes packaged with some pre-defined neural network architectures:
 
 Deeplodocus in-house models can be found in deeplodocus.app.models. 
 
-## LeNet
+### LeNet
 
 Source: http://yann.lecun.com/exdb/publis/pdf/lecun-01a.pdf
 
@@ -34,7 +58,7 @@ kwargs:
 - **num_channels**: (int) Number of input channels
 - **num_classes**: (int) Number of output channels
 
-## AlexNet
+### AlexNet
 
 Source: https://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf
 
@@ -57,9 +81,9 @@ Keyword arguments:
 - **num_channels**: (int) Number of input channels
 - **num_classes**: (int) Number of output channels
 
-## VGG
+### VGG
 
-### Classifiers
+#### Classifiers
 
 Source: https://arxiv.org/pdf/1409.1556.pdf
 
@@ -90,7 +114,7 @@ Keyword Arguments:
 - **pretraied**: (bool) initialise the network with weights learned from training with ImageNet
 - **include_top**: (bool) include the classifier portion of the network 
 
-### Decoders
+#### Decoders
 
 VGG convolutional layers in reverse order, with torch.nn.Upsample instead of torch.nn.MaxPool2d.
 
@@ -117,7 +141,7 @@ Keyword Arguments:
 - **batch_norm**: (bool) include batch normalization after each convolutional layer
 
 
-### AutoEncoder
+#### AutoEncoder
 
 Auto-encoder using VGG feature detectors. 
 
@@ -175,7 +199,7 @@ Keyword Arguments:
 
 **NB:** if using a VGG encoder, encoder.kwargs.include_top must be set to False. 
 
-## Darknet-53
+### Darknet-53
 
 Source: https://pjreddie.com/media/files/papers/YOLOv3.pdf
 
@@ -203,7 +227,7 @@ Keyword arguments:
 **NB**: Darknet53 does not require the specification of input height or width, (due to the use of global pooling after convolution).
 Inputs are downsampled by a factor of 32, therefore input height and width must each be a multiple of 32. 
 
-## Darknet-19 (COMING SOON)
+### Darknet-19 (COMING SOON)
 
 Original paper: https://pjreddie.com/media/files/papers/YOLOv3.pdf
 
@@ -226,7 +250,7 @@ kwargs:
 - **include_top:** (bool) specify whether the network should be define with or without its fully-connected classifying layer.
 - **num_classes:** (int) [only used of include_top is True] specify the number of output classes at the output of the fully-connected classifier layer.
 
-## YOLO v3
+### YOLO v3
 
 Original Paper: https://pjreddie.com/media/files/papers/YOLOv3.pdf
 
