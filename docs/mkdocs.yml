@@ -14,7 +14,7 @@ theme:
         - python
 
 # theme: readthedocs
-docs_dir: 'docs'
+docs_dir: 'docs/templates'
 
 nav:
     - Home: index.md
