@@ -15,7 +15,7 @@ version: 2
 #   system_packages: true
 
 mkdocs:
-  configuration: docs/mkdocs.yml
+  configuration: mkdocs.yml
 
 # Build ePub (pdf is currently failing)
 formats: all
@@ -31,4 +31,4 @@ build:
 python:
   version: 3.7
   install:
-    - requirements: docs/requirements.txt
+    - requirements: requirements.txt
