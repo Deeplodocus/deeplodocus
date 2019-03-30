@@ -11,3 +11,9 @@ Deeplodocus is multi-platform, pure Python and relies on the PyTorch backend.
 From our experience, the deep learning projects need being more structured in order to be scaled and gain efficiency in the implementation.
 
 Deeplodocus offers a common structure similar to a web framework which allows everyone to create a project with a minimum amount of code while still being able to keep the flexibility of the backend implementation.
+
+
+## Getting Started
+
+If you want to start using Deeplodocus, we recommend you having a look at our [Getting Started page](deeplodocus.org/master/en/getting_started).
+
