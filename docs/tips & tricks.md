@@ -18,6 +18,7 @@ config.save(file_path="my_path.yaml")
 ```
 
 ## Adjusting Hyper Parameters
+
 Project configurations can be accessed and changed directly from the Deeplodocus terminal.
 When combine with the `on_wake` feature, this enables training parameters to be changed during easily and automatically during the training procedure.  
 
