@@ -15,6 +15,7 @@ In this example, we focus on training the [LeNet](http://yann.lecun.com/exdb/pub
     Place the MNIST dataset into `MNIST/data`.
     
     Your data directory should look like this:
+    
     ```text
     data
        ⊦ train
@@ -29,7 +30,7 @@ In this example, we focus on training the [LeNet](http://yann.lecun.com/exdb/pub
 
     Now that we have everything that we need, we can set our project configurations, starting with `config/data.yaml`:
  
-    1. Select a batch of 32 images
+    1. Select a batch of 32 images by setting
     2. Select 4 workers (processes) to load the images (hardware dependant)
     3. Enable training by setting `enabled/train: True`
     4. Enable validation by setting `enabled/validation: True`
@@ -125,7 +126,8 @@ In this example, we focus on training the [LeNet](http://yann.lecun.com/exdb/pub
     mandatory_transforms_end: Null        # List all the transforms to operate at the end
     ```
 
-    **NB:** This transformer is a [Sequential Transformer](deeplodocus.org/en/master/transformer#sequential), The future version of deeplodocus will remove the mandatory transforms which are not necessary for this particular type of transformer.
+    **NB:** This transformer is a [Sequential Transformer](deeplodocus.org/en/master/transformer#sequential). 
+    Future versions of deeplodocus will remove the mandatory transforms which are not necessary for this particular type of transformer.
 
 5. **The Neural Network**
 
@@ -141,6 +143,7 @@ In this example, we focus on training the [LeNet](http://yann.lecun.com/exdb/pub
     kwargs: 
       num_classes: 10 
     ```
+    
     **NB:** test and predict settings are unused and not displayed here.
 
 6. **Optimizer**
@@ -161,14 +164,14 @@ In this example, we focus on training the [LeNet](http://yann.lecun.com/exdb/pub
     
     Finally, the stage is set to train our network. 
     
-    Simply run `main.py` in the project directory to start Deeplodocus, and use the following commands to begin training.
+    Simply run `main.py` in the project directory to start Deeplodocus, and use the following commands to begin training:
     
-    - load()
-    - train()
+    - `load()`
+    - `train()`
     
     Once training has finished, you can plot the training history with:
     
-    - plot_history(one_loss=True)
+    - `plot_history(one_loss=True)`
 
 ## Example # 2: CityScapes
 
