@@ -6,7 +6,7 @@ In this example, we focus on training the [LeNet](http://yann.lecun.com/exdb/pub
 
     Firstly, we need to create a Deeplodocus project for MNIST with:
 
-    ```text
+    ```yaml
     deeplodocus startproject MNIST
     ```
     
@@ -16,7 +16,7 @@ In this example, we focus on training the [LeNet](http://yann.lecun.com/exdb/pub
     
     Your data directory should look like this:
     
-    ```text
+    ```yaml
     data
        ⊦ train
        |   ⊦ images        # Directory of all training images
