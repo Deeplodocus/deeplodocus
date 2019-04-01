@@ -179,6 +179,8 @@ In this example, we focus on training a VGG auto-encoder with the [CityScapes](h
 
 The CityScapes dataset was designed for developing semantic understanding of urban street scenes, and is often associated with autonomous driving applications. 
 
+![figure](https://github.com/Deeplodocus/deeplodocus/blob/master/docs/figures/cityscapes.png)
+
 1. **Initialising the project**
 
     Firstly, we need to create a Deeplodocus project for MNIST with:
