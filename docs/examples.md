@@ -6,7 +6,7 @@ In this example, we focus on training the [LeNet](http://yann.lecun.com/exdb/pub
 
     Firstly, we need to create a Deeplodocus project for MNIST with:
 
-    ```yaml
+    ```
     deeplodocus startproject MNIST
     ```
     
@@ -16,14 +16,14 @@ In this example, we focus on training the [LeNet](http://yann.lecun.com/exdb/pub
     
     Your data directory should look like this:
     
-    ```yaml
+    ```
     data
-       ⊦ train
-       |   ⊦ images        # Directory of all training images
-       |   ∟ labels.dat    # File of all training labels
-       ∟ test
-           ⊦ images        # Directory of all test images
-           ∟ labels.dat    # File of all test labels
+        ⊦ train
+        |   ⊦ images        # Directory of all training images
+        |   ∟ labels.dat    # File of all training labels
+        ∟ test
+            ⊦ images        # Directory of all test images
+            ∟ labels.dat    # File of all test labels
     ```
 
 3. **Data configurations**
@@ -175,4 +175,31 @@ In this example, we focus on training the [LeNet](http://yann.lecun.com/exdb/pub
 
 ## Example # 2: CityScapes
 
-TODO
+In this example, we focus on training a VGG auto-encoder with the [CityScapes](https://www.cityscapes-dataset.com/) dataset. 
+
+The CityScapes dataset was designed for developing semantic understanding of urban street scenes, and is often associated with autonomous driving applications. 
+
+1. **Initialising the project**
+
+    Firstly, we need to create a Deeplodocus project for MNIST with:
+
+    ```
+    deeplodocus startproject CityScapes
+    ```
+    
+2. **Preparing the dataset**
+
+    Place the CityScapes dataset into `CityScapes/data`.
+    
+    Your data directory should look like this:
+    
+    ```
+    data
+        ⊦ train
+        |    ⊦ images        # Directory of all training images
+        |    ∟ labels        # Directory of all label images
+        ⊦ val
+        |    ⊦ images        # Directory of all test images
+        |    ∟ labels        # Directory of all label images
+        ∟ ...
+    ```
