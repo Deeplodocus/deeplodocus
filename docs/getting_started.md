@@ -86,7 +86,7 @@ If you don't have admin right, so cannot install Deeplodocus on your machine, yo
     python3 deeplodocus/core/project/project_utility.py
     ```
     
-    which will create a blank Deeplodocus project in the top-leve `test` directory. 
+    which will create a blank Deeplodocus project in the `test/core` directory. 
 
 ### On wake
 When using Deeplodocus on a HPC, you will likely not have access to the Deeplodocus terminal while your job is running.
