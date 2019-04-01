@@ -20,10 +20,12 @@ nav:
     - Home: index.md
     - Installation : installation.md
     - Getting Started: getting_started.md
+    - Examples: examples.md
     - Admin Commands : admin_commands.md
     - Brain : brain.md
     - Configuration: config.md
     - Data: data.md
     - Models: models.md
     - Transforms : transforms.md
+    - Tips and Tricks: tips&tricks.md
     - About: about.md
