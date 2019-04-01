@@ -3,6 +3,7 @@ Namespace object for storing multi-level data.
 Data can added on initialisation as a dictionary, a path to a directory and/or a path to a yaml_file
 """
 
+import datetime
 import yaml
 import copy
 import re
@@ -143,6 +144,15 @@ class Namespace(object):
         summary = [line for line in summary if line]
         for line in summary:
             Notification(DEEP_NOTIF_INFO, line)
+
+    def snapshot(self):
+        """
+        :return:
+        """
+        time_stamp = str(datetime.datetime.now()).split(".")[0].replace(":", "-").replace(" ", "_")
+        file_path = "%s/config_%s.yaml" % (self.project.session, time_stamp)
+        self.save(file_path)
+        Notification(DEEP_NOTIF_SUCCESS, "Snapshot of project configurations written to %s" % file_path)
 
     def check(self, key, sub_space=None):
         """
