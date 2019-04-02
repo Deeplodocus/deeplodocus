@@ -1,4 +1,6 @@
 import os
+import re
+import yaml
 import time
 
 from deeplodocus import __version__
@@ -300,24 +302,36 @@ class Brain(FrontalLobe):
         -------
         :return: None
         """
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_CONFIG_LOADING_DIR % self.config_dir)
-        # If the config directory exists
-        if os.path.isdir(self.config_dir):
-            self.config = Namespace()
-            # For each expected configuration file
-            for key, file_name in DEEP_CONFIG_FILES.items():
-                config_path = "%s/%s" % (self.config_dir, file_name)
-                if os.path.isfile(config_path):
-                    # Notification(DEEP_NOTIF_INFO, DEEP_MSG_CONFIG_LOADING_FILE % config_path)
-                    self.config.add({key: Namespace(config_path)})
-                    self.check_config(key=key)
-                else:
-                    self.config = Namespace()
-                    Notification(DEEP_NOTIF_FATAL, DEEP_MSG_FILE_NOT_FOUND % config_path)
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_CONFIG_COMPLETE)
-        else:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
-        self.store_config()
+        try:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_CONFIG_LOADING_DIR % self.config_dir)
+            # If the config directory exists
+            if os.path.isdir(self.config_dir):
+                self.config = Namespace()
+                # For each expected configuration file
+                for key, file_name in DEEP_CONFIG_FILES.items():
+                    config_path = "%s/%s" % (self.config_dir, file_name)
+                    if os.path.isfile(config_path):
+                        # Notification(DEEP_NOTIF_INFO, DEEP_MSG_CONFIG_LOADING_FILE % config_path)
+                        try:
+                            self.config.add({key: Namespace(config_path)})
+                        except yaml.scanner.ScannerError as e:
+                            file, line, column = str(e).split(", ")
+                            error, file = file.split("\n")
+                            file = file[5:].replace('"', "")
+                            Notification(
+                                DEEP_NOTIF_FATAL, "Unable to load config file : %s" % error,
+                                solutions="See %s : %s : %s" % (file, line, column)
+                            )
+                        self.check_config(key=key)
+                    else:
+                        self.config = Namespace()
+                        Notification(DEEP_NOTIF_FATAL, DEEP_MSG_FILE_NOT_FOUND % config_path)
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_CONFIG_COMPLETE)
+            else:
+                Notification(DEEP_NOTIF_ERROR, DEEP_MSG_DIR_NOT_FOUND % self.config_dir)
+            self.store_config()
+        except DeepError:
+            self.sleep()
 
     def check_config(self, key=None):
         """

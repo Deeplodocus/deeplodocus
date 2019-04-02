@@ -23,6 +23,7 @@ class YOLOv3(nn.Module):
                 ((10, 13), (16, 30), (22, 23))
             ),
             normalized_anchors=False,
+            predict=False
     ):
         super(YOLOv3, self).__init__()
         # Default backbone arguments
@@ -39,6 +40,8 @@ class YOLOv3(nn.Module):
         # Scale anchors by image dimensions if the anchors are normalized
         if normalized_anchors:
             anchors = [[(a[0] * input_shape[1], a[1] * input_shape[0]) for a in anchor] for anchor in anchors]
+
+        self.predicting = predict
 
         # Get the number of anchor boxes
         num_anchors = len(anchors)
@@ -87,6 +90,7 @@ class YOLOv3(nn.Module):
             image_shape=input_shape,
             anchors=anchors[2]
         )
+        self.predict(predict)
 
     def forward(self, x):
         # BACKBONE
@@ -119,7 +123,37 @@ class YOLOv3(nn.Module):
         output_3 = self.conv_3_5(output_3)
         output_3 = self.yolo_layer_3(output_3)
 
-        return output_1, output_2, output_3
+        # Return the concatenation of all three yolo layers
+        if self.predicting:
+            return torch.cat((output_1, output_2, output_3), 1)
+        else:
+            return output_1, output_2, output_3
+
+    def predict(self, mode=True):
+        """
+        :param mode:
+        :return:
+        """
+        if mode:
+            # Put model into evaluation mode
+            self.eval()
+        # Set predicting here and for all yolo layers
+        self.predicting = mode
+        self.yolo_layer_1.predicting = mode
+        self.yolo_layer_2.predicting = mode
+        self.yolo_layer_3.predicting = mode
+
+    def train(self, mode=True):
+        """
+        Same as for a typical nn.Module, but also sets predict to False
+        :param mode:
+        :return:
+        """
+        self.training = mode
+        for module in self.children():
+            module.train(mode)
+        self.predict(False)
+        return self
 
 
 class ConvBlock(nn.Module):
@@ -199,7 +233,7 @@ class ConvLayer(nn.Module):
 
 class YoloLayer(nn.Module):
 
-    def __init__(self, anchors, num_classes, image_shape, num_anchors=3):
+    def __init__(self, anchors, num_classes, image_shape, num_anchors=3, predict=False):
         super(YoloLayer, self).__init__()
         self.num_classes = num_classes
         self.num_anchors = len(anchors)
@@ -210,6 +244,7 @@ class YoloLayer(nn.Module):
         self.mse_loss = nn.MSELoss(size_average=True)   # Coordinate loss
         self.bce_loss = nn.BCELoss(size_average=True)   # Objectiveness loss
         self.ce_loss = nn.CrossEntropyLoss()            # Class loss
+        self.predicting = predict
 
     def forward(self, x):
         FloatTensor = torch.cuda.FloatTensor if x.is_cuda else torch.FloatTensor
@@ -232,7 +267,7 @@ class YoloLayer(nn.Module):
         cx = torch.arange(w).repeat(h, 1).view([1, 1, h, w]).type(FloatTensor)
         cy = torch.arange(h).repeat(w, 1).t().view([1, 1, h, w]).type(FloatTensor)
 
-        # Get all outputs (apply sigmoud to x, y, obj and class)
+        # Get all outputs
         bx = torch.sigmoid(prediction[..., 0]) + cx
         by = torch.sigmoid(prediction[..., 1]) + cy
         bw = scaled_anchors[:, 0].view(1, self.num_anchors, 1, 1) * torch.exp(prediction[..., 2])
@@ -250,4 +285,11 @@ class YoloLayer(nn.Module):
             cls
         ), 4)
 
-        return prediction, scaled_anchors
+        if self.predicting:
+            # Scale up by stride
+            prediction[..., 0:4] *= stride
+            # Return flattened predictions
+            return prediction.view(batch_size, -1, self.num_classes + 5)
+        else:
+            # If not in prediction mode, return predictions without offsets and with anchors
+            return prediction, scaled_anchors

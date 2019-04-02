@@ -1,7 +1,6 @@
 # Before starting
 
-Before starting, we recommend you to install both PyTorch and Deeplodocus. FOr more information please refer to the [installation page](nstallation)
-
+Before starting, we recommend you to install both PyTorch and Deeplodocus. FOr more information please refer to the [installation page](installation)
 
 # Deeplodocus Admin
 
@@ -62,130 +61,41 @@ One particularity of Deeplodocus is the possibility to create and use your own c
 
 For more information on the existing sub-folder of `modules`, please check our [Modules page](modules)
 
-
-# Example # 1: MNIST
-
-In this example, we focus on training a deep network to classify handwritten digits from the [MNIST dataset](http://yann.lecun.com/exdb/mnist/).
-
-To do so, we need to create a Deeplodocus project :
-
-`deeplodocus startproject MNIST`
-
-In the `config/data.yaml` file, we can:
- 
- - Select a batch of 32 images
- - Select 4 workers (processes) to load the images
- - Enable the training step
- - Enable the validation step 
- - Define 1 input located into the folder (the handwritten digit images)
- - Define 1 label (the label corresponding to the image)
+## Using Deeplodocus on a HPC
 
 
-The `config/data.yaml` looks as below :
+### Using without installing
 
-```yaml
-# config/data.yaml
 
-dataloader:
-  batch_size: 32              # 32 images per batch
-  num_workers: 4              # 4 Processes
-  
-enabled:
-  train: True                 # Enable The training step
-  validation: True            # Enable the validation step
-  
-dataset:
-  train:
-    inputs:
-      - source: "./data/..."    # Path to data file/folder
-        join: Null              # Path to append to the start of each data item
-        type: "image"           # One of: "integer", "image", "string", "float", "np-array", "bool", "video", "audio"
-        load_method: "default"  # One of: "online" / "default" or "offline"
+If you don't have admin right, so cannot install Deeplodocus on your machine, you can still use deeplodocus by downloading and running the source code. 
 
-    labels:
-      - source: "./data/..."    # Path to data file/folder
-        join: Null              # Path to append to the start of each data item
-        type: "int"             # One of: "integer", "image", "string", "float", "np-array", "bool", "video", "audio"
-        load_method: "default"  # One of: "online" / "default" or "offline"
-    name: "Training"
+1. If you have git installed, simply run: 
+
+    ```text
+    git clone https://github.com/Deeplodocus/deeplodocus.git
+    ```
+
+    Otherwise, head over to the [Deeplodocus repository](https://github.com/Deeplodocus/deeplodocus) and click on `Clone or download`, `Download ZIP` and extract the contents to your prefered location. 
+
+2. Next, set the path to deeplodocus (Explanation to come!)
+
+3. Finally, run:
+
+    ```text
+    python3 deeplodocus/core/project/project_utility.py
+    ```
     
-  validation:
-    inputs:
-      - source: "./data/test/images"    # Path to data file/folder
-        join: Null                      # Path to append to the start of each data item
-        type: "image"                   # One of: "integer", "image", "string", "float", "np-array", "bool", "video", "audio"
-        load_method: "default"          # One of: "online" / "default" or "offline"
+    which will create a blank Deeplodocus project in the `test/core` directory. 
 
-    labels:
-      - source: "./data/test/labels.dat"    # Path to data file/folder
-        join: Null                          # Path to append to the start of each data item
-        type: "int"                         # One of: "integer", "image", "string", "float", "np-array", "bool", "video", "audio"
-        load_method: "default"              # One of: "online" / "default" or "offline"
-    name: "Validation"
-```
+### On wake
+When using Deeplodocus on a HPC, you will likely not have access to the Deeplodocus terminal while your job is running.
+Therefore, you will have to use `on_wake` commands, what can be specified in `config/project.yaml`
 
-Note: The unused key arguments are not displayed here
-
-In the `config/transform.yaml` we can define :
-
-- A transformer attached to the input image
-- No transformer attached to the label
+As the name suggests, on wake commands are run when Deeplodocus starts up thus, your on wake configurations for a simple training job may look like this:
 
 ```yaml
-train:
-  name: "Train Transform Manager"
-  inputs: "config/transforms/transform_input.yaml"
-  labels: Null
-validation:
-  name: "Validation Transform Manager"
-  inputs: "config/transforms/transform_input.yaml"
-  labels: Null
-```
+on_wake:
+  - load()
+  - train()
+  - sleep()
 
-The `tranform_input.yaml` file is defined as follow :
-
-```yaml
-# config/transforms/transform_input.yaml
-
-method: "sequential"            # Type of transformer
-name: "INput Image transformer" # Name of the transformer
-
-mandatory_transforms_start: Null # List all the transforms to operate at start
-
-
-transforms:                     # List all the transforms to operate
-  - name: "normalize_image"     # Normalize the image
-    module: Null                # The normalize_image module will be searched automatically by Deeplodocus
-    kwargs:
-      mean: 127.5
-      standard_deviation: 255
-
-mandatory_transforms_end: Null        # List all the transforms to operate at the end
-```
-
-Note : This transformer is a [Sequential Transformer](transformer#sequential), The future version of deeplodocus will remove the mandatory transforms which are not necessary for this particular type of transformer.
-
-We can then define the optimizer in `config/optimizer.yaml`:
-
-```yaml
-# config/optimizer.yaml
-
-module: "torch.optim"   # Load a predefined optimizer from PyTorch
-name: "Adam"            # Load Adam
-kwargs: {}              # No arguments => Use the default parameters
-```
-
-```yaml
-
-from_file: False
-file: Null
-module: "deeplodocus.app.models.lenet"
-name: "LeNet"
-input_size:
-  - [1, 28, 28]
-kwargs: {}
-```
-
-
-
-# Example # 2: CityScapes
