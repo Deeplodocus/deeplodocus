@@ -1,6 +1,4 @@
-# About
-
-## Cite us
+# Cite us
 
 We are currently working on the Deeplodocus paper. However, if you use Deeplodocus for your projects, feel free to cite us by using the following bibtex.
 
@@ -12,6 +10,6 @@ howpublished={\url{https://deeplodocus.org}}
 }
 ```
 
-## Github repository
+# Github repository
 
-We use Github to maintain and contribute Deeplodocus. If you like the project join us on [GITHUB](https://github.com/Deeplodocus/deeplodocus :)
+We use Github to maintain and contribute Deeplodocus. If you like the project join us on [GITHUB](https://github.com/Deeplodocus/deeplodocus) :)

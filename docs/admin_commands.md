@@ -1,6 +1,4 @@
-# Admin Commands
-
-## Start Project
+# Start Project
 
 You can build a Deeplodocus project using :
 
@@ -13,13 +11,13 @@ The structure generated will be the one described in the [Structure page](deeplo
 
 Note : `start-project` and `start_project` work as well
 
-## Version
+# Version
 
 You can print the version of the installed Deeplodocus package:
 
 `deeplodocus version`
 
-## Help
+# Help
 
 You can list the different Admin commands using :
 
