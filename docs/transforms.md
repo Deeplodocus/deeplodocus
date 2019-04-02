@@ -1,10 +1,8 @@
-# Transforms available:
+# Images
 
-## Images
+## Label and colors
 
-### Label and colors
-
-#### color2label
+### color2label
 Transform an RGB image to a array with the corresponding label indices
 
 kwargs : 
@@ -22,7 +20,7 @@ transform:
           sidewalk: [87, 63, 22] 
 ```
 
-#### lable2color
+### lable2color
 Transform an array of labels to the corresponding RGB colors
 
 kwargs : 
@@ -40,9 +38,9 @@ transform:
           sidewalk: [87, 63, 22] 
 ```
 
-### Channels transformation
+## Channels transformation
 
-#### remove_channel
+### remove_channel
 Remove a channel from the given array
 
 kwargs:
@@ -56,7 +54,7 @@ transform:
         index_channel: 1  # Remove the second channel
 ```
 
-#### convert_rgba2bgra
+### convert_rgba2bgra
 Convert a RGB(a) image to BGR(a)
 
 kwargs: None
@@ -69,7 +67,7 @@ transform:
       kwargs: Null
 ```
 
-#### convert_bgra2rgba
+### convert_bgra2rgba
 Convert a BGR(a) image to RGB(a)
 
 kwargs: None
@@ -82,7 +80,7 @@ transform:
       kwargs: Null
 ```
 
-###### grayscale
+### grayscale
 Convert a RGB(a) image to grayscale
 
 kwargs: None
@@ -94,9 +92,9 @@ transform:
       kwargs: Null
 ```
 
-### Blurs
+## Blurs
 
-#### bilateral_blur
+### bilateral_blur
 Apply a bilateral blur to the image
 
 <span style="color:orange">/!\ Require OPENCV to be installed</span>
@@ -120,7 +118,7 @@ transform:
         sigma_space: 2
 ```
 
-#### median_blur
+### median_blur
 Apply a bilateral blur to the image
 
 <span style="color:orange">/!\ Require OPENCV to be installed</span>
@@ -139,3 +137,4 @@ transform:
       kwargs:
         kernel_size: 5
 ```
+

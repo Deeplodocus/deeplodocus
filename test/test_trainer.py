@@ -1,5 +1,6 @@
 import torch.nn as nn
 import __main__
+from caffe2.python import numa_benchmark
 
 from deeplodocus.utils.flags import *
 from deeplodocus.data.dataset import Dataset
@@ -26,6 +27,7 @@ logs = [["notification", DEEP_PATH_NOTIFICATION, ".logs"],
 for log_name, log_folder, log_extension in logs:
     Logs(log_name, log_folder, log_extension).check_init()
 Notification(DEEP_NOTIF_SUCCESS, "Log and History files initialized ! ", log=False)
+
 
 # Model
 model = Net()
