@@ -37,7 +37,7 @@ class Transformer(object):
     The transformer loads the transforms in memory and allows the data to be transformed
     """
 
-    def __init__(self, name, mandatory_transforms_start : Union[Namespace, List[dict]], transforms: Union[Namespace, List[dict]], mandatory_transforms_end : Union[Namespace, List[dict]]):
+    def __init__(self, name: str, transforms: Union[Namespace, List[dict]]):
         """
         AUTHORS:
         --------
@@ -67,8 +67,7 @@ class Transformer(object):
 
         # List of transforms
         self.list_transforms = self.__fill_transform_list(transforms)
-        self.list_mandatory_transforms_start = self.__fill_transform_list(mandatory_transforms_start)
-        self.list_mandatory_transforms_end = self.__fill_transform_list(mandatory_transforms_end)
+
 
 
     def summary(self):
@@ -96,23 +95,10 @@ class Transformer(object):
 
         Notification(DEEP_NOTIF_INFO, "Transformer '" + str(self.__name) + "' summary :")
 
-        # MANDATORY TRANSFORMS START
-        if len(self.list_mandatory_transforms_start) > 0:
-            Notification(DEEP_NOTIF_INFO, " Mandatory transforms at start:")
-            for t in self.list_mandatory_transforms_start:
-                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Module path: " + str(t["module_path"]))
-
         # TRANSFORMS
         if len(self.list_transforms) > 0:
             Notification(DEEP_NOTIF_INFO, " Transforms :")
             for t in self.list_transforms:
-                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Module path: " + str(t["module_path"]))
-
-
-        # MANDATORY TRANSFORMS END
-        if len(self.list_mandatory_transforms_end) > 0:
-            Notification(DEEP_NOTIF_INFO, " Mandatory transforms at end:")
-            for t in self.list_mandatory_transforms_end:
                 Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Module path: " + str(t["module_path"]))
 
     def get_pointer(self) -> Tuple[Optional[Flag], Optional[int]]:
@@ -269,84 +255,6 @@ class Transformer(object):
             else:
                 self.last_transforms.append(last_method_used)
         return transformed_data
-
-    def __transform_image(self, image, key):
-
-        """
-        Author : Alix Leroy
-        :param image: input image to augment
-        :param key: the parameters of the augmentation in a dictionnary
-        :return: augmented image
-        """
-
-        ################
-        # ILLUMINATION #
-        ################
-        if key == "adjust_gamma":
-            gamma = np.random.random(key["gamma"][0], key["gamma"][1])
-            image = self.adjust_gamma(image, gamma)
-
-
-        #########
-        # BLURS #
-        #########
-        elif key == "average":
-            kernel = tuple(int(key["kernel_size"]), int(key["kernel_size"]))
-            image = cv2.blur(image, kernel)
-
-        elif key == "gaussian_blur":
-            kernel = tuple(int(key["kernel_size"]), int(key["kernel_size"]))
-            image = cv2.GaussianBlur(image, kernel, 0)
-
-        elif key == "median_blur":
-
-            image = cv2.medianBlur(image, int(key["kernel_size"]))
-
-        elif key == "bilateral_blur":
-            diameter = int(key["diameter"])
-            sigma_color = int(key["sigma_color"])
-            sigma_space = int(key["sigma_space"])
-            image = cv2.bilateralFilter(image, diameter, sigma_color, sigma_space)
-
-
-        #########
-        # FLIPS #
-        #########
-        elif key == "horizontal_flip":
-            image = cv2.flip(image, 0)
-
-        elif key == "vertical_flip":
-            image = cv2.flip(image, 1)
-
-
-        #############
-        # ROTATIONS #
-        #############
-
-        elif key == "random_rotation":
-            angle = np.random.random(00, 359.9)
-            shape = image.shape
-            rows, cols = shape[0:2]
-            m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
-            image = cv2.warpAffine(image, m, (cols, rows)).astype(np.float32)
-
-        elif key == "boundary_rotation":
-            angle = float(key["angle"])
-            angle = (2 * np.random.rand() - 1) * angle
-            shape = image.shape
-            rows, cols = shape[0:2]
-            m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
-            image = cv2.warpAffine(image, m, (cols, rows)).astype(np.float32)
-
-        elif key == "rotation":
-            angle = float(key["angle"])
-            shape = image.shape
-            rows, cols = shape[0:2]
-            m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
-            image = cv2.warpAffine(image, m, (cols, rows)).astype(np.float32)
-        else:
-            Notification(DEEP_NOTIF_FATAL, "This transformation function does not exist : " + str(transformation))
-        return image
 
     @staticmethod
     def has_transforms():
