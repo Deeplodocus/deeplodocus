@@ -70,10 +70,10 @@ class ManagementUtility(object):
             if DEEP_ADMIN_START_PROJECT.corresponds(str(self.argv[1])) :
                 self.__startproject(main_path=os.getcwd())
 
-            elif DEEP_ADMIN_VERSION(str(self.argv[1])):
+            elif DEEP_ADMIN_VERSION.corresponds(str(self.argv[1])):
                 self.__version()
 
-            elif DEEP_ADMIN_HELP(str(self.argv[1])):
+            elif DEEP_ADMIN_HELP.corresponds(str(self.argv[1])):
 
                 self.__help()
 
