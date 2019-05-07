@@ -1,0 +1,20 @@
+module: deeplodocus.app.models.vgg
+name: AutoEncoder
+file: Null
+from_file: False
+input_size:
+  - [3, 128, 256]
+kwargs:
+  encoder:
+    name: VGG19
+    module: deeplodocus.app.models.vgg
+    kwargs:
+      batch_norm: True
+      num_channels: 3
+      include_top: False
+  decoder:
+    name: VGG19Decode
+    module: deeplodocus.app.models.vgg
+    kwargs:
+      batch_norm: True
+      num_classes: 31

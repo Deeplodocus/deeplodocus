@@ -1,0 +1,36 @@
+# _________________________________
+#
+# ---- TRANSFORM SEQUENTIAL EXAMPLE ----
+# _________________________________
+#
+
+method: "sequential"
+name: "Input sequential"
+
+mandatory_transforms_start:
+  - name: resize
+    module: 
+    kwargs:
+      shape: [256, 128, 3]
+      padding: 0
+      keep_aspect: True
+
+  - name: "normalize_image"
+    module:
+    kwargs:
+      mean: [128.0, 128.0, 128.0]
+      standard_deviation: 255
+
+transforms:
+    - name: "blur"
+      module:
+      kwargs:
+        kernel_size : 3
+    
+    - name : "random_blur"
+      module:
+      kwargs:
+        kernel_size_min: 5
+        kernel_size_max : 7
+
+mandatory_transforms_end: Null
