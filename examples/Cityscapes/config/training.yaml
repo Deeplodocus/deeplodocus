@@ -1,0 +1,10 @@
+num_epochs: 5
+initial_epoch: 0
+shuffle: "pick"
+saver:
+  method: "pytorch"
+  save_signal: "auto"
+  overwrite: False
+overwatch:
+  name: "Total Loss"
+  condition: "less"

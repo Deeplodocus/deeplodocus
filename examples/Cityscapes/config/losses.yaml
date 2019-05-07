@@ -1,0 +1,5 @@
+CrossEntropy:
+  module: Null
+  name: "CrossEntropy2d"
+  weight: 1
+  kwargs:
