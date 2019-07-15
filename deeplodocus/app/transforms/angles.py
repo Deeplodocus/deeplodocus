@@ -43,7 +43,7 @@ def rangle_to_cos_and_sin(angle: float):
     PARAMETERS:
     -----------
 
-    :param angle(float): The angle in radians to convert
+    :param angle (float): The angle in radians to convert
 
     RETURN:
     -------

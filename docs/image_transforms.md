@@ -1,5 +1,71 @@
 # Images
 
+## Generic
+
+### resize
+
+Resize an image to the define dimension.
+
+"nearest" or "linear" can be used as method. If not defined Deeplodocus uses "linear" by default for upsampling and "cubic" for downsampling.
+
+kwargs:
+
+- shape (Tuple, List): The output shape requested
+- keep_aspect (bool): (default, False) Whether or not to keep the aspect ratio of the image
+- padding (int) (default, 0): The padding to apply
+- method: (default, None): The specfic resizing method to use
+
+ ```yaml
+# Example of usage of resize
+transform:
+    - name: "resize"
+      module : "deeplodocus.app.transforms.images"
+      kwargs:
+        shape: [256, 128, 3]
+        method: "nearest"
+```
+
+### normalize_image
+
+Normalize an image. Works with grayscale and RGB(a) images
+
+kwargs:
+
+- mean (int, float): The mean value (if not given, automatically computed ofr the image)
+- standard_deviation (int, float) : The standard deviation (if not given, automatically computed ofr the image)
+
+ ```yaml
+# Example of usage of normalize_image on a RGB image
+transform:
+    - name: "normalize_image"
+      module : "deeplodocus.app.transforms.images"
+      kwargs:
+        mean: [127.5, 127.5, 127.5]
+        standard_deviation: 255
+```
+
+### rotate
+
+Rotate an image
+
+kwargs:
+
+- angle (float): angle of rotation (anti clock wise)
+
+ ```yaml
+# Example of usage of rotate
+transform:
+    - name: "rotate"
+      module : "deeplodocus.app.transforms.images"
+      kwargs:
+        angle: 53
+```
+
+### semi_random_rotate
+
+
+### random_rotate
+
 ## Label and colors
 
 ### color2label
@@ -90,6 +156,8 @@ transform:
     - name: "grayscale"
       module : "deeplodocus.app.transforms.images"
       kwargs: Null
+      
+      
 ```
 
 ## Blurs
@@ -127,12 +195,32 @@ kwargs:
 
 - kernel_size (int): Size of the kernel
 
-For more information, please check [OpenCV documentation on the median filter](    https://docs.opencv.org/4.0.1/d4/d86/group__imgproc__filter.html#ga564869aa33e58769b4469101aac458f9)
+For more information, please check [OpenCV documentation on the median filter](https://docs.opencv.org/4.0.1/d4/d86/group__imgproc__filter.html#ga564869aa33e58769b4469101aac458f9)
 
 ```yaml
 # Example of usage of median_blur
 transform:
     - name: "median_blur"
+      module : "deeplodocus.app.transforms.images"
+      kwargs:
+        kernel_size: 5
+```
+
+### gaussian_blur
+Apply a gaussian blur to the image
+
+<span style="color:orange">/!\ Require OPENCV to be installed</span>
+
+kwargs:
+
+- kernel_size (int): Size of the gaussian kernel
+
+For more information, please check [OpenCV documentation on the median filter](https://docs.opencv.org/4.0.1/d4/d86/group__imgproc__filter.html#gaabe8c836e97159a9193fb0b11ac52cf1)
+
+```yaml
+# Example of usage of median_blur
+transform:
+    - name: "gaussian_blur"
       module : "deeplodocus.app.transforms.images"
       kwargs:
         kernel_size: 5

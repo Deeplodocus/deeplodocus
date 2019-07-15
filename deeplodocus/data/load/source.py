@@ -118,6 +118,7 @@ class Source(object):
 
         # Format the data if it is a path to a specific file
         # Formatting will automatically join the adequate parent directory to a relative path
+
         if self.join is not None:
             data = self.__format_path(data)
 

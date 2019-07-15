@@ -46,6 +46,8 @@ DEF = {
     "TYPE_INT": '"int"             # One of: "integer", "image", "string", "float", "np-array", "bool", "video", "audio"',
     "LOAD_METHOD": '"default"  # One of: "online" / "default" or "offline"',
     "NUMBER": "Null                # The number of instances from the dataset to use (Null = all instances)",
+    "LOAD_AS": '"float32"            # The Data type at the input of the network (int, float32, float64, etc...)',
+    "MOVE_AXES": '"[0, 1, 2]"      # Move axes if necessary'
 }
 
 # A dict of names for each config file
@@ -225,7 +227,9 @@ DEEP_CONFIG = {
                             "source": [str],
                             "join": [str],
                             "type": str,
-                            "load_method": str
+                            "load_method": str,
+                            "load_as" : str,
+                            "move_axes": [int]
                         }
                     ],
                     DEEP_CONFIG_DEFAULT: None,
@@ -235,7 +239,9 @@ DEEP_CONFIG = {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
                                 "type": DEF["TYPE_IMG"],
-                                "load_method": DEF["LOAD_METHOD"]
+                                "load_method": DEF["LOAD_METHOD"],
+                                "load_as": DEF["LOAD_AS"],
+                                "move_axes": DEF["MOVE_AXES"]
                             }
                         )
                     ]
@@ -246,7 +252,9 @@ DEEP_CONFIG = {
                             "source": [str],
                             "join": [str],
                             "type": str,
-                            "load_method": str
+                            "load_method": str,
+                            "load_as" : str,
+                            "move_axes": [int]
                         }
                     ],
                     DEEP_CONFIG_DEFAULT: None,
@@ -256,7 +264,9 @@ DEEP_CONFIG = {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
                                 "type": DEF["TYPE_INT"],
-                                "load_method": DEF["LOAD_METHOD"]
+                                "load_method": DEF["LOAD_METHOD"],
+                                "load_as": DEF["LOAD_AS"],
+                                "move_axes": DEF["MOVE_AXES"]
                             }
                         )
                     ]
@@ -267,7 +277,9 @@ DEEP_CONFIG = {
                                 "source": [str],
                                 "join": [str],
                                 "type": str,
-                                "load_method": str
+                                "load_method": str,
+                                "load_as" : str,
+                                "move_axes": [int]
                             }
                         ],
                         DEEP_CONFIG_DEFAULT: None,
@@ -290,7 +302,9 @@ DEEP_CONFIG = {
                             "source": [str],
                             "join": [str],
                             "type": str,
-                            "load_method": str
+                            "load_method": str,
+                            "load_as" : str,
+                            "move_axes": [int]
                         }
                     ],
                     DEEP_CONFIG_DEFAULT: None,
@@ -300,7 +314,9 @@ DEEP_CONFIG = {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
                                 "type": DEF["TYPE_IMG"],
-                                "load_method": DEF["LOAD_METHOD"]
+                                "load_method": DEF["LOAD_METHOD"],
+                                "load_as": DEF["LOAD_AS"],
+                                "move_axes": DEF["MOVE_AXES"]
                             }
                         )
                     ]
@@ -310,7 +326,9 @@ DEEP_CONFIG = {
                         "source": [str],
                         "join": [str],
                         "type": str,
-                        "load_method": str
+                        "load_method": str,
+                        "load_as" : str,
+                        "move_axes": [int]
                     }
                 ],
                     DEEP_CONFIG_DEFAULT: None,
@@ -320,7 +338,9 @@ DEEP_CONFIG = {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
                                 "type": DEF["TYPE_INT"],
-                                "load_method": DEF["LOAD_METHOD"]
+                                "load_method": DEF["LOAD_METHOD"],
+                                "load_as": DEF["LOAD_AS"],
+                                "move_axes": DEF["MOVE_AXES"]
                             }
                         )
                     ]
@@ -331,7 +351,10 @@ DEEP_CONFIG = {
                             "source": [str],
                             "join": [str],
                             "type": str,
-                            "load_method": str}
+                            "load_method": str,
+                            "load_as" : str,
+                            "move_axes": [int]
+                        }
                     ],
                     DEEP_CONFIG_DEFAULT: None,
                     DEEP_CONFIG_INIT: None
@@ -354,7 +377,9 @@ DEEP_CONFIG = {
                             "source": [str],
                             "join": [str],
                             "type": str,
-                            "load_method": str
+                            "load_method": str,
+                            "load_as" : str,
+                            "move_axes": [int]
                         }
                     ],
                     DEEP_CONFIG_DEFAULT: None,
@@ -364,7 +389,9 @@ DEEP_CONFIG = {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
                                 "type": DEF["TYPE_IMG"],
-                                "load_method": DEF["LOAD_METHOD"]
+                                "load_method": DEF["LOAD_METHOD"],
+                                "load_as": DEF["LOAD_AS"],
+                                "move_axes": DEF["MOVE_AXES"]
                             }
                         )
                     ]
@@ -375,7 +402,9 @@ DEEP_CONFIG = {
                             "source": [str],
                             "join": [str],
                             "type": str,
-                            "load_method": str
+                            "load_method": str,
+                            "load_as" : str,
+                            "move_axes": [int]
                         }
                     ],
                     DEEP_CONFIG_DEFAULT: None,
@@ -385,7 +414,9 @@ DEEP_CONFIG = {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
                                 "type": DEF["TYPE_INT"],
-                                "load_method": DEF["LOAD_METHOD"]
+                                "load_method": DEF["LOAD_METHOD"],
+                                "load_as": DEF["LOAD_AS"],
+                                "move_axes": DEF["MOVE_AXES"]
                             }
                         )
                     ]
@@ -396,7 +427,9 @@ DEEP_CONFIG = {
                             "source": [str],
                             "join": [str],
                             "type": str,
-                            "load_method": str
+                            "load_method": str,
+                            "load_as" : str,
+                            "move_axes": [int]
                         }
                     ],
                     DEEP_CONFIG_DEFAULT: None,
@@ -419,7 +452,9 @@ DEEP_CONFIG = {
                             "source": [str],
                             "join": [str],
                             "type": str,
-                            "load_method": str
+                            "load_method": str,
+                            "load_as" : str,
+                            "move_axes": [int]
                         }
                     ],
                     DEEP_CONFIG_DEFAULT: None,
@@ -429,7 +464,9 @@ DEEP_CONFIG = {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
                                 "type": DEF["TYPE_IMG"],
-                                "load_method": DEF["LOAD_METHOD"]
+                                "load_method": DEF["LOAD_METHOD"],
+                                "load_as": DEF["LOAD_AS"],
+                                "move_axes": DEF["MOVE_AXES"]
                             }
                         )
                     ]
@@ -440,7 +477,9 @@ DEEP_CONFIG = {
                             "source": [str],
                             "join": [str],
                             "type": str,
-                            "load_method": str
+                            "load_method": str,
+                            "load_as" : str,
+                            "move_axes": [int]
                         }
                     ],
                     DEEP_CONFIG_DEFAULT: None,
@@ -450,7 +489,9 @@ DEEP_CONFIG = {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
                                 "type": DEF["TYPE_INT"],
-                                "load_method": DEF["LOAD_METHOD"]
+                                "load_method": DEF["LOAD_METHOD"],
+                                "load_as": DEF["LOAD_AS"],
+                                "move_axes": DEF["MOVE_AXES"]
                             }
                         )
                     ]
@@ -461,7 +502,9 @@ DEEP_CONFIG = {
                             "source": [str],
                             "join": [str],
                             "type": str,
-                            "load_method": str
+                            "load_method": str,
+                            "load_as" : str,
+                            "move_axes": [int]
                         }
                     ],
                     DEEP_CONFIG_DEFAULT: None,

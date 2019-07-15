@@ -1,15 +1,11 @@
 # Python imports
 import weakref
-import time
-import numpy as np
-import cv2
 
 # Backend imports
-import torch
 import torch.nn as nn
 
 # Deeplodocus imports
-from deeplodocus.data.dataset import Dataset
+from deeplodocus.data.load.dataset import Dataset
 from deeplodocus.core.inference.tester import Tester
 from deeplodocus.utils.notification import Notification
 import deeplodocus.utils.dict_utils as dict_utils

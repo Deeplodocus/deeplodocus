@@ -15,7 +15,7 @@ import torch
 # Deeplodocus imports
 #
 from deeplodocus.utils.flags.entry import *
-from deeplodocus.data.dataset import Dataset
+from deeplodocus.data.load.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
 from deeplodocus.utils.flags.verbose import *
 from deeplodocus.utils.generic_utils import get_corresponding_flag

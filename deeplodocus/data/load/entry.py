@@ -14,7 +14,7 @@ from deeplodocus.utils.generic_utils import sorted_nicely
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.generic_utils import is_np_array
 from deeplodocus.utils.generic_utils import get_corresponding_flag
-from deeplodocus.data.source import Source
+from deeplodocus.data.load.source import Source
 
 # Import flags
 from deeplodocus.utils.flags.source import *
@@ -25,6 +25,7 @@ from deeplodocus.utils.flags.entry import *
 from deeplodocus.utils.flags.dtype import *
 from deeplodocus.utils.flags.flag_lists import DEEP_LIST_DTYPE
 from deeplodocus.utils.flags.flag_lists import DEEP_LIST_ENTRY
+from deeplodocus.utils.flags.flag_lists import DEEP_LIST_LOAD_AS
 
 
 class Entry(object):
@@ -85,8 +86,10 @@ class Entry(object):
                  entry_index: int,
                  entry_type: Union[str, int, Flag],
                  dataset: weakref,
+                 load_as: Union[str, None, Flag],
                  data_type: Union[str, int, Flag, None] = None,
-                 load_method: Union[str, int, Flag, None] = "default"):
+                 load_method: Union[str, int, Flag, None] = "default",
+                 move_axes: Optional[List[int]] = None):
 
         """
         AUTHORS:
@@ -122,6 +125,8 @@ class Entry(object):
         self.load_method = self.__check_load_method(load_method)
         self.entry_index = entry_index
         self.entry_type = self.__check_entry_type(entry_type)
+        self.load_as = self.__check_load_as(load_as)
+        self.move_axes = self.__check_move_axes(move_axes)
 
         # Check folders (convert folders to files)
         self.__check_folders()
@@ -192,13 +197,13 @@ class Entry(object):
         is_transformed = False
 
         # Get the corresponding source
-        source_index, index_in_source = self.__compute_source_indices(index=index)
+        source_index, index_instance_in_source = self.__compute_source_indices(index=index)
 
 
         # OFFLINE
         if self.load_method() == DEEP_LOAD_METHOD_OFFLINE():
             # Get the data
-            item, _, _ = self.sources[source_index].__getitem__(index_in_source)
+            item, _, _ = self.sources[source_index].__getitem__(index_instance_in_source)
             is_loaded = True
             is_transformed = True
 
@@ -209,14 +214,13 @@ class Entry(object):
         # ONLINE
         elif self.load_method() == DEEP_LOAD_METHOD_ONLINE():
             # Get the data
-            item, is_loaded, is_transformed = self.sources[source_index].__getitem__(index_in_source)
+            item, is_loaded, is_transformed = self.sources[source_index].__getitem__(index_instance_in_source)
 
         # OTHERS
         else:
             Notification(DEEP_NOTIF_FATAL, "Loading method not implemented : %s" % str(self.load_method.get_description()))
 
         return item, is_loaded, is_transformed
-
 
     def __compute_source_indices(self, index: int) -> Tuple[int, int]:
         """
@@ -248,13 +252,12 @@ class Entry(object):
         for i, source in enumerate(self.sources):
             temp_index += source.get_length()
 
-            if index <= temp_index:
+            if index < temp_index:
                 return i, index - prev_temp_index
+
             prev_temp_index = temp_index
 
         Notification(DEEP_NOTIF_DEBUG, "Error in computing the source index... Please check the algorithm")
-
-
 
     def __convert_source_folder_to_file(self, source : Source, source_index : int):
         """
@@ -337,12 +340,12 @@ class Entry(object):
             Notification(DEEP_NOTIF_FATAL, "The entry %s (index %i) does not have the same amount of sources and jointures" % (self.entry_type.get_description(), self.entry_index))
 
         # Check all the elements in the list to make sure they are strings
-        for i, item in enumerate(sources):
-            if isinstance(item, str) is True:
-                source = Source(source=item, join =join[i])
+        for i, s in enumerate(sources):
+            if isinstance(s, str) is True:
+                source = Source(source=s, join=join[i])
                 formatted_sources.append(source)
             else:
-                Notification(DEEP_NOTIF_FATAL, "The source parameter '%s' in the %i th %s entry is not valid" %(str(item), self.entry_type.get_description(), self.entry_index))
+                Notification(DEEP_NOTIF_FATAL, "The source parameter '%s' in the %i th %s entry is not valid" %(str(s), self.entry_type.get_description(), self.entry_index))
 
         return formatted_sources
 
@@ -415,69 +418,7 @@ class Entry(object):
                                                info=data_type)
         return data_type
 
-    def __estimate_data_type(self, data: str) -> Flag:
-        """
-        AUTHORS:
-        --------
 
-        author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Find the type of the given data
-
-        PARAMETERS:
-        -----------
-
-        :param data: The data to analyze
-
-        RETURN:
-        -------
-
-        :return: The integer flag of the corresponding type
-        """
-
-        # If we have a list of item, we check that they all contain the same type
-        if isinstance(data, list):
-            dtypes = []
-            # Get all the data type
-            for d in data:
-                dt = self.__estimate_data_type(d)
-                dtypes.append(dt)
-
-            # Check the data types are all the same
-            for dt in dtypes:
-                if dtypes[0].corresponds(dt) is False:
-                    Notification(DEEP_NOTIF_FATAL, "Data type in your sequence of data are not all the same")
-
-            # If all the same then return the data type
-            return dtypes[0]
-
-        # If not a list
-        else:
-            mime = mimetypes.guess_type(data)
-            if mime[0] is not None:
-                mime = mime[0].split("/")[0]
-
-            # IMAGE
-            if mime == "image":
-                return DEEP_DTYPE_IMAGE
-            # VIDEO
-            elif mime == "video":
-                return DEEP_DTYPE_VIDEO
-            # FLOAT
-            elif DEEP_DTYPE_FLOAT.corresponds(get_int_or_float(data)):
-                return DEEP_DTYPE_FLOAT
-            # INTEGER
-            elif DEEP_DTYPE_INTEGER.corresponds(get_int_or_float(data)):
-                return DEEP_DTYPE_INTEGER
-            # NUMPY ARRAY
-            if is_np_array(data) is True:
-                return DEEP_DTYPE_NP_ARRAY
-            # Type not handled
-            else:
-                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_NOT_HANDLED % data)
 
     @staticmethod
     def __check_load_method(load_method : Union[str, int, Flag, None]) -> Flag:
@@ -526,7 +467,7 @@ class Entry(object):
             return DEEP_LOAD_METHOD_ONLINE
 
     @staticmethod
-    def __check_entry_type(entry_type: Union[str, int, Flag]):
+    def __check_entry_type(entry_type: Union[str, int, Flag]) -> Flag:
         """
         AUTHORS:
         --------
@@ -581,6 +522,65 @@ class Entry(object):
                 source.set_type(DEEP_SOURCE_FILE)
 
                 Notification(DEEP_NOTIF_WARNING, "The folder '%s' has been converted to a file for efficiency at '%s'" %(folder, filepath))
+
+    def __check_load_as(self, load_as: Union[str, None, Flag]) -> Flag:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check if the load_as argument is correct and return the corresponding Flag
+
+        PARAMETERS:
+        -----------
+
+        :param load_as(Union[str, None, Flag]): The load_as argument given in the config file
+
+        RETURN:
+        -------
+
+        :return (Flag): The corresponding DEEP_LOAD_AS flag.
+        """
+
+        return get_corresponding_flag(flag_list=DEEP_LIST_LOAD_AS,
+                                      info=load_as,
+                                      )
+
+    def __check_move_axes(self, move_axes: Union[List[int], None]) -> Optional[List[int]]:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check if the move_axis argument is correct and return the corresponding Flag
+
+        PARAMETERS:
+        -----------
+
+        :param move_axes(Optional[List[int]]): THe new axes order
+
+        RETURN:
+        -------
+
+        :return (Optional[List[int]]: The list to move axis
+        """
+
+        if move_axes is None:
+            return None
+
+        elif isinstance(move_axes, list):
+            return move_axes
+
+        else:
+            Notification(DEEP_NOTIF_FATAL, "The switch axis %s parameter in the entry # %i in the dataset %s is not a list" %(str(move_axes), self.entry_index, self.dataset().name))
 
 
     """
@@ -661,7 +661,69 @@ class Entry(object):
                 paths.extend([sub_path])
         return sorted_nicely(paths)
 
+    def __estimate_data_type(self, data: str) -> Flag:
+        """
+        AUTHORS:
+        --------
 
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Find the type of the given data
+
+        PARAMETERS:
+        -----------
+
+        :param data: The data to analyze
+
+        RETURN:
+        -------
+
+        :return: The integer flag of the corresponding type
+        """
+
+        # If we have a list of item, we check that they all contain the same type
+        if isinstance(data, list):
+            dtypes = []
+            # Get all the data type
+            for d in data:
+                dt = self.__estimate_data_type(d)
+                dtypes.append(dt)
+
+            # Check the data types are all the same
+            for dt in dtypes:
+                if dtypes[0].corresponds(dt) is False:
+                    Notification(DEEP_NOTIF_FATAL, "Data type in your sequence of data are not all the same")
+
+            # If all the same then return the data type
+            return dtypes[0]
+
+        # If not a list
+        else:
+            mime = mimetypes.guess_type(data)
+            if mime[0] is not None:
+                mime = mime[0].split("/")[0]
+
+            # IMAGE
+            if mime == "image":
+                return DEEP_DTYPE_IMAGE
+            # VIDEO
+            elif mime == "video":
+                return DEEP_DTYPE_VIDEO
+            # FLOAT
+            elif DEEP_DTYPE_FLOAT.corresponds(get_int_or_float(data)):
+                return DEEP_DTYPE_FLOAT
+            # INTEGER
+            elif DEEP_DTYPE_INTEGER.corresponds(get_int_or_float(data)):
+                return DEEP_DTYPE_INTEGER
+            # NUMPY ARRAY
+            if is_np_array(data) is True:
+                return DEEP_DTYPE_NP_ARRAY
+            # Type not handled
+            else:
+                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_NOT_HANDLED % data)
 
     """
     "

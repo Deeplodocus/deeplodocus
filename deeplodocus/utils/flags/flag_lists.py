@@ -9,11 +9,11 @@ from deeplodocus.utils.flags.save import *
 from deeplodocus.utils.flags.verbose import *
 from deeplodocus.utils.flags.event import *
 from deeplodocus.utils.flags.admin import *
+from deeplodocus.utils.flags.load_as import *
 
 # DATA TYPES
 DEEP_LIST_DTYPE = [
     DEEP_DTYPE_IMAGE,
-    DEEP_DTYPE_IMAGE_INT,
     DEEP_DTYPE_VIDEO,
     DEEP_DTYPE_BOOLEAN,
     DEEP_DTYPE_INTEGER,
@@ -107,4 +107,22 @@ DEEP_LIST_ADMIN = [
     DEEP_ADMIN_HELP,
     DEEP_ADMIN_START_PROJECT,
     DEEP_ADMIN_VERSION
+]
+
+
+# LOAD_AS
+DEEP_LIST_LOAD_AS = [
+    DEEP_LOAD_AS_FLOAT8,
+    DEEP_LOAD_AS_FLOAT16,
+    DEEP_LOAD_AS_FLOAT32,
+    DEEP_LOAD_AS_FLOAT64,
+    DEEP_LOAD_AS_UINT8,
+    DEEP_LOAD_AS_UINT16,
+    DEEP_LOAD_AS_UINT32,
+    DEEP_LOAD_AS_UINT64,
+    DEEP_LOAD_AS_INT8,
+    DEEP_LOAD_AS_INT16,
+    DEEP_LOAD_AS_INT32,
+    DEEP_LOAD_AS_INT64,
+    DEEP_LOAD_AS_STR
 ]

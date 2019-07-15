@@ -9,7 +9,7 @@ import random
 import weakref
 
 # Deeplodocus imports
-from deeplodocus.data.entry import Entry
+from deeplodocus.data.load.entry import Entry
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 # Deeplodocus flags
@@ -377,6 +377,7 @@ class Dataset(object):
 
         :return: the formatted data entry
         """
+
         # If we have to format a list of items
         if isinstance(data_entry, list):
             formated_data = []
@@ -386,20 +387,60 @@ class Dataset(object):
                 fd = self.__format_data(d, entry)
                 formated_data.append(fd)
             data_entry = formated_data
+
+
         # Else it is a unique item
         else:
-            if DEEP_DTYPE_IMAGE.corresponds(entry.data_type):
-                # Check if no transform return a grayscale image as a 2D image
-                if data_entry.ndim <= 2:
-                    data_entry = data_entry[:, :, np.newaxis]
 
-                # Make image (ch, h, w)
-                data_entry = np.swapaxes(data_entry, 0, 2)
-                data_entry = np.swapaxes(data_entry, 1, 2)
+            # Change the format
+            data_entry = data_entry.astype(entry.load_as.names[0])
 
-                data_entry = data_entry.astype(np.float32)
-        # TODO: Formating for other data types
+            # Move the axes
+            if entry.move_axes is not None:
+                data_entry = self.__move_axes(data_entry, entry.move_axes)
+
+            #
+            # KEEP THE FOLLOWING LINES WHILE THE DATA FORMATTING IS BEING ON TEST
+            #
+
+            # if DEEP_DTYPE_IMAGE.corresponds(entry.data_type):
+            #     # Check if no transform return a grayscale image as a 2D image
+            #     if data_entry.ndim <= 2:
+            #         data_entry = data_entry[:, :, np.newaxis]
+            #
+            #     # Make image (ch, h, w)
+            #     data_entry = np.swapaxes(data_entry, 0, 2)
+            #     data_entry = np.swapaxes(data_entry, 1, 2)
+            #
+            #     data_entry = data_entry.astype(np.float32)
+
         return data_entry
+
+    def __move_axes(self, data, move_axes) -> np.array:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Move axes of the data
+
+        PARAMETERS:
+        -----------
+
+        :param data (np.array): The data needing a axis swap
+        :param move_axes(List[int]): The new axes order
+
+        RETURN:
+        -------
+
+        :return data (np.array): The data with teh axes swapped
+        """
+
+        return np.transpose(data, move_axes)
 
     def __generate_entries(self, entries: List[Namespace], entry_type: Flag) -> List[Entry]:
         """
@@ -442,7 +483,9 @@ class Dataset(object):
                               load_method=entry.load_method,
                               entry_index=index,
                               entry_type=entry_type,
-                              dataset=ref)
+                              dataset=ref,
+                              load_as=entry.load_as,
+                              move_axes = entry.move_axes)
             generated_entries.append(new_entry)
 
         return generated_entries
@@ -539,7 +582,7 @@ class Dataset(object):
                     loaded_data.append(ld)
 
             # IMAGE
-            elif DEEP_DTYPE_IMAGE.corresponds(data_type) or DEEP_DTYPE_IMAGE_INT.corresponds(data_type):
+            elif DEEP_DTYPE_IMAGE.corresponds(data_type):
                 # Load image
                 loaded_data = self.__load_image(data)
 

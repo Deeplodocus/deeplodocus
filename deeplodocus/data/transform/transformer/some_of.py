@@ -1,9 +1,13 @@
 # Python imports
 import random
 from typing import Any
+from typing import Optional
+from typing import Union
+from typing import List
 
 # Deeplodocus imports
-from deeplodocus.data.transformer.transformer import Transformer
+from deeplodocus.data.transform.transformer.transformer import Transformer
+from deeplodocus.utils.namespace import Namespace
 
 
 class SomeOf(Transformer):
@@ -16,11 +20,17 @@ class SomeOf(Transformer):
     DESCRIPTION:
     ------------
 
-    Sequential class inheriting from Transformer which compute a random number of transforms in the tranforms list.
+    SomeOf class inheriting from Transformer which compute a random number of transforms in the tranforms list.
     The random number is bounded by a min and max
     """
 
-    def __init__(self, name, mandatory_transforms, transforms, number_transformations=None, number_transformations_min=None, num_transformations_max=None) -> None:
+    def __init__(self, name: str,
+                 mandatory_transforms_start:  Union[Namespace, List[dict]],
+                 transforms:  Union[Namespace, List[dict]],
+                 mandatory_transforms_end:  Union[Namespace, List[dict]],
+                 number_transformations: Optional[int] = None,
+                 number_transformations_min: Optional[int] = None,
+                 num_transformations_max: Optional[int] = None) -> None:
         """
         AUTHORS:
         --------
@@ -42,10 +52,14 @@ class SomeOf(Transformer):
 
         :return: None
         """
-        Transformer.__init__(self, name, mandatory_transforms, transforms)
+        super().__init__(self,
+                         name=name,
+                         mandatory_transforms_start=mandatory_transforms_start,
+                         transforms=transforms,
+                         mandatory_transforms_end=mandatory_transforms_end)
 
         # Compute the number of transformation required
-        if number_transformations is None :
+        if number_transformations is None:
             self.num_transformations = None
 
             if number_transformations_min is None:
@@ -78,8 +92,8 @@ class SomeOf(Transformer):
         -----------
 
         :param transformed_data: The data to transform
-        :param index: The index of the data
-        :param augment(bool): Whether to apply non mondatory transforms to the instance
+        :param index(int): The index of the data
+        :param augment(bool): Whether to apply non mandatory transforms to the instance
 
         RETURN:
         -------

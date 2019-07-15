@@ -1,7 +1,10 @@
 import random
+from typing import Union
+from typing import List
 from typing import Any
 
-from deeplodocus.data.transformer.transformer import Transformer
+from deeplodocus.data.transform.transformer.transformer import Transformer
+from deeplodocus.utils.namespace import Namespace
 
 
 class OneOf(Transformer):
@@ -16,7 +19,7 @@ class OneOf(Transformer):
 
     OneOf class inheriting from Transformer which compute one random transform from the list
     """
-    def __init__(self, name, mandatory_transforms, transforms):
+    def __init__(self, name: str, mandatory_transforms_start: Union[Namespace, List[dict]], transforms: Union[Namespace, List[dict]], mandatory_transforms_end: Union[Namespace, List[dict]]):
         """
         AUTHORS:
         --------
@@ -38,7 +41,11 @@ class OneOf(Transformer):
 
         :return: None
         """
-        Transformer.__init__(self, name, mandatory_transforms, transforms)
+        super().__init__(self,
+                         name=name,
+                         mandatory_transforms_start=mandatory_transforms_start,
+                         transforms=transforms,
+                         mandatory_transforms_end=mandatory_transforms_end)
 
     def transform(self, transformed_data: Any, index: int, augment: bool):
         """

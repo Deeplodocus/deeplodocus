@@ -16,6 +16,7 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flag import Flag
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.flags.msg import DEEP_MSG_TRANSFORM_VALUE_ERROR
+from deeplodocus.data.transform.transform_data import TransformData
 
 # Deeplodocus flags
 from deeplodocus.utils.flags.module import DEEP_MODULE_TRANSFORMS
@@ -37,7 +38,11 @@ class Transformer(object):
     The transformer loads the transforms in memory and allows the data to be transformed
     """
 
-    def __init__(self, name, mandatory_transforms_start : Union[Namespace, List[dict]], transforms: Union[Namespace, List[dict]], mandatory_transforms_end : Union[Namespace, List[dict]]):
+    def __init__(self,
+                 name: str,
+                 mandatory_transforms_start: Union[Namespace, List[dict]],
+                 transforms: Union[Namespace, List[dict]],
+                 mandatory_transforms_end: Union[Namespace, List[dict]]):
         """
         AUTHORS:
         --------
@@ -71,6 +76,7 @@ class Transformer(object):
         self.list_mandatory_transforms_end = self.__fill_transform_list(mandatory_transforms_end)
 
 
+
     def summary(self):
         """
         AUTHORS:
@@ -100,20 +106,20 @@ class Transformer(object):
         if len(self.list_mandatory_transforms_start) > 0:
             Notification(DEEP_NOTIF_INFO, " Mandatory transforms at start:")
             for t in self.list_mandatory_transforms_start:
-                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Module path: " + str(t["module_path"]))
+                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t.name) + " , Args : " + str(t.kwargs) + ", Module path: " + str(t.module_path))
 
         # TRANSFORMS
         if len(self.list_transforms) > 0:
             Notification(DEEP_NOTIF_INFO, " Transforms :")
             for t in self.list_transforms:
-                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Module path: " + str(t["module_path"]))
+                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t.name) + " , Args : " + str(t.kwargs) + ", Module path: " + str(t.module_path))
 
 
         # MANDATORY TRANSFORMS END
         if len(self.list_mandatory_transforms_end) > 0:
             Notification(DEEP_NOTIF_INFO, " Mandatory transforms at end:")
             for t in self.list_mandatory_transforms_end:
-                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t["name"]) + " , Args : " + str(t["kwargs"]) + ", Module path: " + str(t["module_path"]))
+                Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t.name) + " , Args : " + str(t.kwargs) + ", Module path: " + str(t.module_path))
 
     def get_pointer(self) -> Tuple[Optional[Flag], Optional[int]]:
         """
@@ -201,10 +207,13 @@ class Transformer(object):
                     browse=DEEP_MODULE_TRANSFORMS
                 )
 
-                loaded_transforms.append({"name": transform["name"],
-                                          "method": module,
-                                          "module_path": module_path,
-                                          "kwargs": transform["kwargs"]})
+                t = TransformData(name=transform["name"],
+                                  method=module,
+                                  module_path=module_path,
+                                  kwargs=transform["kwargs"]
+                                  )
+                loaded_transforms.append(t)
+
         return loaded_transforms
 
     def transform(self, data: Any, index: int, augment: bool)-> Any:
@@ -217,7 +226,7 @@ class Transformer(object):
         """
         pass # Will be overridden
 
-    def apply_transforms(self, transformed_data, transforms):
+    def apply_transforms(self, transformed_data, transforms: List[TransformData]) -> Any:
         """
         AUTHORS:
         --------
@@ -242,13 +251,10 @@ class Transformer(object):
         """
         # Apply the transforms
         for transform in transforms:
-            transform_name = transform["name"]
-            transform_method = transform["method"]  # Create a generic alias for the transform method
-            transform_module_path = transform["module_path"]
-            transform_args = transform["kwargs"]  # Dictionary of arguments
 
             try:
-                transformed_data, last_method_used = transform_method(transformed_data, **transform_args)
+                # Transform the data and get the transformation settings if a random transform is applied (None else)
+                transformed_data, last_method_used = transform.method(transformed_data, **transform.kwargs)
             except ValueError as e:
                 Notification(
                     DEEP_NOTIF_FATAL,
@@ -259,94 +265,14 @@ class Transformer(object):
                     DEEP_NOTIF_FATAL,
                     "TypeError : %s" % (str(e))
                 )
+
             # Update the last transforms used and the last index
             if last_method_used is None:
-                self.last_transforms.append({"name": transform_name,
-                                             "method": transform_method,
-                                             "module_path": transform_module_path,
-                                             "kwargs": transform_args})
+                self.last_transforms.append(transform)
 
             else:
                 self.last_transforms.append(last_method_used)
         return transformed_data
-
-    def __transform_image(self, image, key):
-
-        """
-        Author : Alix Leroy
-        :param image: input image to augment
-        :param key: the parameters of the augmentation in a dictionnary
-        :return: augmented image
-        """
-
-        ################
-        # ILLUMINATION #
-        ################
-        if key == "adjust_gamma":
-            gamma = np.random.random(key["gamma"][0], key["gamma"][1])
-            image = self.adjust_gamma(image, gamma)
-
-
-        #########
-        # BLURS #
-        #########
-        elif key == "average":
-            kernel = tuple(int(key["kernel_size"]), int(key["kernel_size"]))
-            image = cv2.blur(image, kernel)
-
-        elif key == "gaussian_blur":
-            kernel = tuple(int(key["kernel_size"]), int(key["kernel_size"]))
-            image = cv2.GaussianBlur(image, kernel, 0)
-
-        elif key == "median_blur":
-
-            image = cv2.medianBlur(image, int(key["kernel_size"]))
-
-        elif key == "bilateral_blur":
-            diameter = int(key["diameter"])
-            sigma_color = int(key["sigma_color"])
-            sigma_space = int(key["sigma_space"])
-            image = cv2.bilateralFilter(image, diameter, sigma_color, sigma_space)
-
-
-        #########
-        # FLIPS #
-        #########
-        elif key == "horizontal_flip":
-            image = cv2.flip(image, 0)
-
-        elif key == "vertical_flip":
-            image = cv2.flip(image, 1)
-
-
-        #############
-        # ROTATIONS #
-        #############
-
-        elif key == "random_rotation":
-            angle = np.random.random(00, 359.9)
-            shape = image.shape
-            rows, cols = shape[0:2]
-            m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
-            image = cv2.warpAffine(image, m, (cols, rows)).astype(np.float32)
-
-        elif key == "boundary_rotation":
-            angle = float(key["angle"])
-            angle = (2 * np.random.rand() - 1) * angle
-            shape = image.shape
-            rows, cols = shape[0:2]
-            m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
-            image = cv2.warpAffine(image, m, (cols, rows)).astype(np.float32)
-
-        elif key == "rotation":
-            angle = float(key["angle"])
-            shape = image.shape
-            rows, cols = shape[0:2]
-            m = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
-            image = cv2.warpAffine(image, m, (cols, rows)).astype(np.float32)
-        else:
-            Notification(DEEP_NOTIF_FATAL, "This transformation function does not exist : " + str(transformation))
-        return image
 
     @staticmethod
     def has_transforms():
