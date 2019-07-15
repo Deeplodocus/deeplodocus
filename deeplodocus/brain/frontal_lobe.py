@@ -4,7 +4,6 @@
 import inspect
 
 # Back-end imports
-import torch
 import torch.nn as nn
 import torch.nn.functional
 
@@ -22,8 +21,8 @@ from deeplodocus.core.metrics.metric import Metric
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.core.model.model import load_model
 from deeplodocus.core.optimizer.optimizer import load_optimizer
-from deeplodocus.data.dataset import Dataset
-from deeplodocus.data.transform_manager import TransformManager
+from deeplodocus.data.load.dataset import Dataset
+from deeplodocus.data.transform.transform_manager import TransformManager
 from deeplodocus.utils.flags.event import DEEP_EVENT_SAVE_MODEL
 from deeplodocus.utils.flags.msg import *
 from deeplodocus.utils.flags.notif import *

@@ -1,7 +1,6 @@
 from torch.nn import Module
-from torch import Tensor
 
-from deeplodocus.data.dataset import Dataset
+from deeplodocus.data.load.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
 
 

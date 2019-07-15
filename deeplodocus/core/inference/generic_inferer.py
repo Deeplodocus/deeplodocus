@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torch.nn import Module
 from torch import Tensor
 
-from deeplodocus.data.dataset import Dataset
+from deeplodocus.data.load.dataset import Dataset
 
 
 class GenericInferer(object):
