@@ -3,18 +3,18 @@ from typing import List
 from typing import Optional
 
 # Import transformers
-from deeplodocus.data.transformer.one_of import OneOf
-from deeplodocus.data.transformer.sequential import Sequential
-from deeplodocus.data.transformer.some_of import SomeOf
-from deeplodocus.data.transformer.pointer import Pointer
-from deeplodocus.data.transformer.no_transformer import NoTransformer
+from deeplodocus.data.transform.transformer.one_of import OneOf
+from deeplodocus.data.transform.transformer.sequential import Sequential
+from deeplodocus.data.transform.transformer.some_of import SomeOf
+from deeplodocus.data.transform.transformer.pointer import Pointer
+from deeplodocus.data.transform.transformer.no_transformer import NoTransformer
 
 # Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.flags.notif import DEEP_NOTIF_FATAL
 from deeplodocus.utils.flags.entry import *
-from deeplodocus.data.entry import Entry
+from deeplodocus.data.load.entry import Entry
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 #Deeplodocus flags

@@ -1,12 +1,9 @@
-from typing import Optional
-from typing import Tuple
 from typing import Union
 from typing import List
-from typing import Any
 
 # Deeplodocus imports
 from deeplodocus.utils.notification import Notification
-from deeplodocus.data.transformer.transformer import Transformer
+from deeplodocus.data.transform.transformer.transformer import Transformer
 from deeplodocus.utils.namespace import Namespace
 
 # Deeplodocus flags

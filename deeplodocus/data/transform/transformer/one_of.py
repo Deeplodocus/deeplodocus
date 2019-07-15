@@ -3,11 +3,11 @@ from typing import Union
 from typing import List
 from typing import Any
 
-from deeplodocus.data.transformer.flexible_transformer import FlexibleTransformer
+from deeplodocus.data.transform.transformer.transformer import Transformer
 from deeplodocus.utils.namespace import Namespace
 
 
-class OneOf(FlexibleTransformer):
+class OneOf(Transformer):
     """
     AUTHORS:
     --------
@@ -41,7 +41,11 @@ class OneOf(FlexibleTransformer):
 
         :return: None
         """
-        super().__init__(self, name, mandatory_transforms, transforms)
+        super().__init__(self,
+                         name=name,
+                         mandatory_transforms_start=mandatory_transforms_start,
+                         transforms=transforms,
+                         mandatory_transforms_end=mandatory_transforms_end)
 
     def transform(self, transformed_data: Any, index: int, augment: bool):
         """

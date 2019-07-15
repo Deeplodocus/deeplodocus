@@ -2,16 +2,15 @@
 import random
 from typing import Any
 from typing import Optional
-from typing import Tuple
 from typing import Union
 from typing import List
 
 # Deeplodocus imports
-from deeplodocus.data.transformer.flexible_transformer import FlexibleTransformer
+from deeplodocus.data.transform.transformer.transformer import Transformer
 from deeplodocus.utils.namespace import Namespace
 
 
-class SomeOf(FlexibleTransformer):
+class SomeOf(Transformer):
     """
     AUTHORS:
     --------

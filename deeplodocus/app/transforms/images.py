@@ -9,13 +9,14 @@ from collections import OrderedDict
 
 # Deeplodocus imports
 from deeplodocus.utils.flags.lib import *
+from deeplodocus.data.transform.transform_data import TransformData
 
 """
 This file contains all the default transforms for images
 """
 
 
-def random_crop(image: np.array, output_size=None, output_ratio=None, scale=None):
+def random_crop(image: np.array, output_size=None, output_ratio=None, scale=None) -> Tuple[np.array, TransformData]:
     """
     AUTHORS:
     --------
@@ -82,18 +83,21 @@ def random_crop(image: np.array, output_size=None, output_ratio=None, scale=None
     y1 = y0 + dy
 
     # Store the parameters that were selected
-    transform = {
-        "name": "crop",
-        "method": crop,
-        "module_path": __name__,
-        "coords": (x0, y0, x1, y1)
-        }
+    transform = TransformData(name="crop",
+                              method=crop,
+                              module_path=__name__,
+                              kwargs={
+                                  "coords": (x0, y0, x1, y1)
+                                  }
+                              )
+
+    cropped_image, _ = crop(image, (x0, y0, x1, y1))
 
     # Return the cropped image and transform kwargs
-    return crop(image, (x0, y0, x1, y1)), transform
+    return cropped_image, transform
 
 
-def crop(image: np.array, coords: Union[List, Tuple]) -> np.array:
+def crop(image: np.array, coords: Union[List, Tuple]) -> Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -122,7 +126,7 @@ def crop(image: np.array, coords: Union[List, Tuple]) -> np.array:
     return image[y0: y1, x0: x1, ...], None
 
 
-def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> Tuple[Any, dict]:
+def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> Tuple[Any, TransformData]:
     """
     AUTHORS:
     --------
@@ -156,10 +160,13 @@ def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> 
     image, _ = blur(image, kernel_size)
 
     # Store the parameters of the random blur
-    transform = {"name": "blur",
-                 "method": blur,
-                 "module_path": __name__,
-                 "kwargs": {"kernel_size": kernel_size}}
+    transform = TransformData(name="blur",
+                              method=blur,
+                              module_path=__name__,
+                              kwargs={
+                                  "kernel_size": kernel_size
+                                  }
+                              )
 
     # Return the blurred image and the stored parameters
     return image, transform
@@ -192,7 +199,7 @@ def blur(image: np.array, kernel_size: int) -> Tuple[Any, None]:
     return cv2.blur(image, (int(kernel_size), int(kernel_size))), None
 
 
-def adjust_gamma(image, gamma):
+def adjust_gamma(image, gamma) -> Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -222,7 +229,7 @@ def adjust_gamma(image, gamma):
     return cv2.LUT(image, table), None
 
 
-def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0, method=None)->Tuple[np.array, None]:
+def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0, method=None) -> Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -282,7 +289,7 @@ def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0, 
     return image, None
 
 
-def pad(image, shape, value: int=0)->Tuple[np.array, None] :
+def pad(image, shape, value: int = 0) -> Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -360,7 +367,7 @@ def channel_shift(image: np.array, shift: int)-> Tuple[np.array, None]:
     return image, None
 
 
-def random_channel_shift(image: np.array, shift: int) ->Tuple[np.array, dict]:
+def random_channel_shift(image: np.array, shift: int) ->Tuple[np.array, TransformData]:
     """
     AUTHORS:
     --------
@@ -383,7 +390,7 @@ def random_channel_shift(image: np.array, shift: int) ->Tuple[np.array, dict]:
     -------
 
     :return image(np.array): The image with the channel shifted
-    :return transform (dict): The parameters of the random shift
+    :return transform (TransformData): The parameters of the random shift
     """
     # Get the shifting value
     shift = np.random.randint(-shift, shift, image.shape[2])
@@ -392,16 +399,19 @@ def random_channel_shift(image: np.array, shift: int) ->Tuple[np.array, dict]:
     image, _ = channel_shift(image, shift)
 
     # Store the parameters
-    transform = {"name": "channel_shit",
-                 "method": channel_shift,
-                 "module_path": __name__,
-                 "kwargs": {"shift": shift}}
+    transform = TransformData(name="channel_shift",
+                              method=channel_shift,
+                              module_path=__name__,
+                              kwargs={
+                                  "shift": shift
+                                  }
+                              )
 
     # Return the image with the shift channel and the stored parameters
     return image, transform
 
 
-def random_rotate(image: np.array) ->Tuple[np.array, dict]:
+def random_rotate(image: np.array) ->Tuple[np.array, TransformData]:
     """
     AUTHORS:
     --------
@@ -423,7 +433,7 @@ def random_rotate(image: np.array) ->Tuple[np.array, dict]:
     -------
 
     :return image (np.array): The rotated image
-    :return transform (list): The info of the random transform
+    :return transform (TransformData): The info of the random transform
     """
     # Pick a random angle value
     angle = (np.random.uniform(0.0, 360.0))
@@ -432,16 +442,19 @@ def random_rotate(image: np.array) ->Tuple[np.array, dict]:
     image, _ = rotate(image, angle)
 
     # Store the random transform parameters
-    transform = {"name": "rotate",
-                 "method": rotate,
-                 "module_path": __name__,
-                 "kwargs": {"angle": angle}}
+    transform = TransformData(name="rotate",
+                              method=rotate,
+                              module_path=__name__,
+                              kwargs={
+                                  "angle": angle
+                                  }
+                              )
 
     # return the rotated image and the random parameters
     return image, transform
 
 
-def semi_random_rotate(image: np.array, angle: float) ->Tuple[np.array, dict]:
+def semi_random_rotate(image: np.array, angle: float) -> Tuple[np.array, TransformData]:
     """
     AUTHORS:
     --------
@@ -463,8 +476,8 @@ def semi_random_rotate(image: np.array, angle: float) ->Tuple[np.array, dict]:
     RETURN:
     -------
 
-    :return image->np.array: The rotated image
-    :return transform->list: The info of the random transform
+    :return image(np.array): The rotated image
+    :return transform(TransformData): The info of the random transform
     """
 
     # Select a random angle within a given range
@@ -474,10 +487,13 @@ def semi_random_rotate(image: np.array, angle: float) ->Tuple[np.array, dict]:
     image, _ = rotate(image, angle)
 
     # Store the random parameters
-    transform = {"name": "rotate",
-                 "method": rotate,
-                 "module_path": __name__,
-                 "kwargs": {"angle": angle}}
+    transform = TransformData(name="rotate",
+                              method=rotate,
+                              module_path=__name__,
+                              kwargs={
+                                  "angle": angle
+                                  }
+                              )
 
     # Return the rotated image and the random parameters
     return image, transform
@@ -581,7 +597,6 @@ def normalize_image(
 
 
     normalized_image = (image - mean) / standard_deviation  # Norm = (data - mean) / standard deviation
-
 
     return normalized_image.astype(np.float32), None
 
