@@ -12,13 +12,6 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.errors import error_entry_array_size
 
 # Deeplodocus flags imports
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.msg import *
-from deeplodocus.utils.flags.lib import *
-from deeplodocus.utils.flags.shuffle import *
-from deeplodocus.utils.flags.load import *
-from deeplodocus.utils.flags.entry import *
-from deeplodocus.utils.flags.dtype import *
 
 
 # Temporary until Namespace fix

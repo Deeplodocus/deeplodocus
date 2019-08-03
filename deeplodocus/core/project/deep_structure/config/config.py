@@ -1,5 +1,6 @@
-from deeplodocus.utils.flags.ext import DEEP_EXT_YAML
+from deeplodocus.flags.ext import DEEP_EXT_YAML
 from deeplodocus.utils.namespace import Namespace
+
 # The divider to use when expressing paths to configs
 DEEP_CONFIG_DIVIDER = "/"
 

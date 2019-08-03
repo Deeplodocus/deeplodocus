@@ -1,8 +1,8 @@
 # Deeplodocus imports
 from deeplodocus.utils.notification import Notification
+from deeplodocus.flags.notif import *
 
 # Flags imports
-from deeplodocus.utils.flags.notif import *
 
 
 class NoTransformer(object):

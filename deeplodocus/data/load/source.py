@@ -8,15 +8,10 @@ from typing import Union
 # Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.file import get_specific_line
-from deeplodocus.utils.generic_utils import is_string_an_integer
-from deeplodocus.utils.generic_utils import get_module
+from deeplodocus.flags import *
+
 
 # Deeplodocus flags
-from deeplodocus.utils.flags.source import *
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.msg import *
-from deeplodocus.utils.flags.load import *
-from deeplodocus.utils.flags.module import DEEP_MODULE_DATASETS
 
 class Source(object):
     """

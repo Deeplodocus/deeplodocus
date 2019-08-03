@@ -7,9 +7,7 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 # Deeplodocus flags
-from deeplodocus.utils.flags.entry import *
-from deeplodocus.utils.flags.notif import DEEP_NOTIF_INFO, DEEP_NOTIF_FATAL
-from deeplodocus.utils.flags.flag_lists import DEEP_LIST_POINTER_ENTRY
+from deeplodocus.flags import *
 
 
 class Pointer(object):

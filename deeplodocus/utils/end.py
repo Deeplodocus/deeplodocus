@@ -1,5 +1,4 @@
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags.notif import *
 
 
 class End(object):

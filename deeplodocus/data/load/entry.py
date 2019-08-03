@@ -17,15 +17,7 @@ from deeplodocus.utils.generic_utils import get_corresponding_flag
 from deeplodocus.data.load.source import Source
 
 # Import flags
-from deeplodocus.utils.flags.source import *
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.msg import *
-from deeplodocus.utils.flags.load import *
-from deeplodocus.utils.flags.entry import *
-from deeplodocus.utils.flags.dtype import *
-from deeplodocus.utils.flags.flag_lists import DEEP_LIST_DTYPE
-from deeplodocus.utils.flags.flag_lists import DEEP_LIST_ENTRY
-from deeplodocus.utils.flags.flag_lists import DEEP_LIST_LOAD_AS
+from deeplodocus.flags import *
 
 
 class Entry(object):
@@ -545,10 +537,13 @@ class Entry(object):
 
         :return (Flag): The corresponding DEEP_LOAD_AS flag.
         """
-
-        return get_corresponding_flag(flag_list=DEEP_LIST_LOAD_AS,
-                                      info=load_as,
-                                      )
+        if load_as is None:
+            return None
+        else:
+            return get_corresponding_flag(
+                flag_list=DEEP_LIST_LOAD_AS,
+                info=load_as
+            )
 
     def __check_move_axes(self, move_axes: Union[List[int], None]) -> Optional[List[int]]:
         """

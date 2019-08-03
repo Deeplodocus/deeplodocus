@@ -3,7 +3,6 @@ Authors : Alix Leroy
 Test the different notification available
 """
 
-from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.notification import Notification
 
 Notification(DEEP_NOTIF_WARNING, "Warning notification", log=False)

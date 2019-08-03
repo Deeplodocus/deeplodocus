@@ -6,9 +6,9 @@ from deeplodocus.utils.flag import Flag
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 # Deeplodocus flags
-from deeplodocus.utils.flags.save import *
-from deeplodocus.utils.flags.flag_lists import DEEP_LIST_SAVE_CONDITIONS
-from deeplodocus.utils.flags import TOTAL_LOSS
+from deeplodocus.flags.flag_lists import DEEP_LIST_SAVE_CONDITIONS
+from deeplodocus.flags import TOTAL_LOSS
+from deeplodocus.flags.save import DEEP_SAVE_CONDITION_LESS
 
 
 class OverWatchMetric(object):

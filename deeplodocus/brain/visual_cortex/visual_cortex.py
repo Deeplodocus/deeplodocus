@@ -15,7 +15,6 @@ from deeplodocus.brain.visual_cortex.routes import Routes
 from deeplodocus.brain.visual_cortex.middlewares import setup_middlewares
 
 # Deeplodocus flags
-from deeplodocus.utils.flags.notif import *
 
 class VisualCortex(object):
     """
