@@ -2,6 +2,13 @@ import os
 import yaml
 import time
 
+# Try and import readline
+# readline makes input() behave like an interactive terminal
+try:
+    import readline
+except ImportError:
+    pass
+
 from deeplodocus import __version__
 from deeplodocus.brain.frontal_lobe import FrontalLobe
 from deeplodocus.brain.thalamus import Thalamus
@@ -11,7 +18,6 @@ from deeplodocus.flags import *
 from deeplodocus.utils.generic_utils import convert
 from deeplodocus.utils.logo import Logo
 from deeplodocus.utils.logs import Logs
-from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification, DeepError
 from deeplodocus.utils.vis_utils import plot_history
 from deeplodocus.brain.visual_cortex.graph import Graph
