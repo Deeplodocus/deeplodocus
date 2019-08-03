@@ -3,11 +3,11 @@ import multiprocessing.managers
 import weakref
 
 # Deeplodocus modules
-from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.notification import Notification
 from deeplodocus.brain.signal import Signal
 from deeplodocus.utils.singleton import Singleton
 from deeplodocus.brain.connection import Connection
+from deeplodocus.flags.notif import *
 
 
 class Thalamus(metaclass=Singleton):

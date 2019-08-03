@@ -1,8 +1,7 @@
-from deeplodocus.utils.flags.filter import DEEP_FILTER_OPTIMIZERS
+from deeplodocus.flags import DEEP_FILTER_OPTIMIZERS
 from deeplodocus.utils.generic_utils import get_module
-from deeplodocus.utils.flags.module import DEEP_MODULE_OPTIMIZERS
+from deeplodocus.flags import DEEP_MODULE_OPTIMIZERS
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags.notif import *
 
 
 def load_optimizer(name, module, model_parameters, kwargs):

@@ -4,7 +4,6 @@
 import inspect
 
 # Back-end imports
-import torch.nn as nn
 import torch.nn.functional
 
 # Deeplodocus import
@@ -23,15 +22,11 @@ from deeplodocus.core.model.model import load_model
 from deeplodocus.core.optimizer.optimizer import load_optimizer
 from deeplodocus.data.load.dataset import Dataset
 from deeplodocus.data.transform.transform_manager import TransformManager
-from deeplodocus.utils.flags.event import DEEP_EVENT_SAVE_MODEL
-from deeplodocus.utils.flags.msg import *
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.dtype import *
-from deeplodocus.utils.flags.module import *
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 from deeplodocus.utils.notification import Notification
+from deeplodocus.flags import *
 
 
 class FrontalLobe(object):

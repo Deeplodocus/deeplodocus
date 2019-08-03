@@ -1,12 +1,12 @@
 from decimal import Decimal
 
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags import TOTAL_LOSS, TRAINING, VALIDATION         # NEEDS TO BE RELOCATED
+from deeplodocus.flags import TOTAL_LOSS, TRAINING, VALIDATION         # NEEDS TO BE RELOCATED
 from deeplodocus.brain.thalamus import Thalamus
-from deeplodocus.utils.flags.event import DEEP_EVENT_PRINT_TRAINING_EPOCH_END
-from deeplodocus.utils.flags.event import DEEP_EVENT_PRINT_VALIDATION_EPOCH_END
-from deeplodocus.utils.flags.event import DEEP_EVENT_PRINT_TRAINING_BATCH_END
+from deeplodocus.flags.event import DEEP_EVENT_PRINT_TRAINING_EPOCH_END
+from deeplodocus.flags.event import DEEP_EVENT_PRINT_VALIDATION_EPOCH_END
+from deeplodocus.flags.event import DEEP_EVENT_PRINT_TRAINING_BATCH_END
+from deeplodocus.flags.notif import *
 
 
 class Printer(object):

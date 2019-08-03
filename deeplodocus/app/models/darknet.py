@@ -3,13 +3,133 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+class Darknet19(nn.Module):
+
+    """
+    Original article: https://pjreddie.com/media/files/papers/YOLOv3.pdf
+    """
+
+    def __init__(self, num_channels=3, include_top=True, num_classes=1000):
+        super(Darknet19, self).__init__()
+
+        # Set the number of input channels
+        self.num_channels = int(num_channels)
+
+        # For storing layer outputs (for skip connections in detection)
+        self.skip = {}
+
+        # Whether or not to include classifying layers
+        self.include_top = include_top
+        if include_top:
+            self.num_classes = int(num_classes)
+            # CLASSIFYING LAYER
+            self.classifier = nn.Sequential(
+                nn.Linear(in_features=1024, out_features=1000),
+                nn.ReLU(),
+                nn.Linear(in_features=1000, out_features=self.num_classes),
+                nn.Softmax(dim=1)
+            )
+
+        # DOWNSAMPLE LAYER
+        self.downsample = nn.MaxPool2d(kernel_size=2, stride=2)
+
+        # CONVBLOCKS
+        self.conv32 = nn.Sequential(
+            nn.Conv2d(in_channels=self.num_channels, out_channels=32, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(negative_slope=0.1)
+        )
+        self.conv64 = nn.Sequential(
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(negative_slope=0.1),
+        )
+        self.conv128 = nn.Sequential(
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, bias=False, padding=1),
+            nn.BatchNorm2d(128),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.Conv2d(in_channels=128, out_channels=64, kernel_size=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, bias=False, padding=1),
+            nn.BatchNorm2d(128),
+            nn.LeakyReLU(negative_slope=0.1)
+        )
+        self.conv256 = nn.Sequential(
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, bias=False, padding=1),
+            nn.BatchNorm2d(256),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.Conv2d(in_channels=256, out_channels=128, kernel_size=1, bias=False),
+            nn.BatchNorm2d(128),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, bias=False, padding=1),
+            nn.BatchNorm2d(256),
+            nn.LeakyReLU(negative_slope=0.1)
+        )
+        self.conv512 = nn.Sequential(
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, bias=False, padding=1),
+            nn.BatchNorm2d(512),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.Conv2d(in_channels=512, out_channels=256, kernel_size=1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, bias=False, padding=1),
+            nn.BatchNorm2d(512),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.Conv2d(in_channels=512, out_channels=256, kernel_size=1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, bias=False, padding=1),
+            nn.BatchNorm2d(512),
+            nn.LeakyReLU(negative_slope=0.1),
+        )
+
+        self.conv1024 = nn.Sequential(
+            nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=3, bias=False, padding=1),
+            nn.BatchNorm2d(1024),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.Conv2d(in_channels=1024, out_channels=512, kernel_size=1, bias=False),
+            nn.BatchNorm2d(512),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=3, bias=False, padding=1),
+            nn.BatchNorm2d(1024),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.Conv2d(in_channels=1024, out_channels=512, kernel_size=1, bias=False),
+            nn.BatchNorm2d(512),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=3, bias=False, padding=1),
+            nn.BatchNorm2d(1024),
+            nn.LeakyReLU(negative_slope=0.1),
+        )
+
+    def forward(self, x):
+        x = self.conv32(x)
+        x = self.downsample(x)
+        x = self.conv64(x)
+        x = self.downsample(x)
+        x = self.conv128(x)
+        x = self.downsample(x)
+        x = self.conv256(x)
+        self.skip[8] = x
+        x = self.downsample(x)
+        x = self.conv512(x)
+        self.skip[13] = x
+        x = self.downsample(x)
+        x = self.conv1024(x)
+        if self.include_top:
+            x = F.adaptive_avg_pool2d(x, (1, 1))    # Global Average Pooling
+            x = x.view(x.size(0), -1)               # Flatten
+            x = self.classifier(x)                  # Classify
+        return x
+
+
 class Darknet53(nn.Module):
 
     """
     Original article: https://pjreddie.com/media/files/papers/YOLOv3.pdf
     """
 
-    def __init__(self, num_channels=3, include_top=True, num_classes=80):
+    def __init__(self, num_channels=3, include_top=True, num_classes=1000):
         super(Darknet53, self).__init__()
 
         # Set the number of input channels

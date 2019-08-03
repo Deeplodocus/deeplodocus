@@ -1,8 +1,7 @@
 import torch.nn as nn
 import __main__
-from caffe2.python import numa_benchmark
 
-from deeplodocus.utils.flags import *
+from deeplodocus.flags import *
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.core.inference.trainer import Trainer
 from deeplodocus.core.project.deep_structure.modules.models.classification import Net
