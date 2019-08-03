@@ -194,8 +194,7 @@ class Thalamus(metaclass=Singleton):
         else:
             Notification(DEEP_NOTIF_ERROR, "The following event '%s' is not connected to any receiver." % str(event.get_description()))
 
-
-    def send_to_pipe(self, signal : Signal, receiver : callable) -> Signal:
+    def send_to_pipe(self, signal: Signal, receiver: callable) -> Signal:
         """
         AUTHORS:
         --------
