@@ -17,12 +17,7 @@ from deeplodocus.brain.signal import Signal
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 # Deeplodocus flags
-from deeplodocus.flags.event import *
-from deeplodocus.flags.verbose import *
-from deeplodocus.flags.save import *
-from deeplodocus.flags.ext import DEEP_EXT_CSV
 from deeplodocus.flags import *
-from deeplodocus.flags.memorize import *
 
 Num = Union[int, float]
 
@@ -112,7 +107,8 @@ class History(object):
                 "epoch_index",
                 "total_loss",
                 "result_losses",
-                "result_metrics"
+                "result_metrics",
+                "epoch_index"
             ]
         )
         Thalamus().connect(
@@ -240,7 +236,8 @@ class History(object):
                         "total_loss": total_loss,
                         "metrics": result_metrics,
                         "num_minibatches": num_minibatches,
-                        "minibatch_index": minibatch_index
+                        "minibatch_index": minibatch_index,
+                        "epoch_index": epoch_index
                     }
                 )
             )
