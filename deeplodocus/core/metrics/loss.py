@@ -6,9 +6,9 @@ from typing import Union
 import torch
 
 # Import Deeplodocus modules
-from deeplodocus.utils.flags.backend import DEEP_BACKEND_ALL
-from deeplodocus.utils.flags.entry import *
-from deeplodocus.utils.flags.notif import DEEP_NOTIF_FATAL
+from deeplodocus.flags import DEEP_BACKEND_ALL
+from deeplodocus.flags import DEEP_NOTIF_FATAL
+from deeplodocus.flags.entry import *
 from deeplodocus.utils.notification import Notification
 from deeplodocus.core.metrics.generic_metric import GenericMetric
 

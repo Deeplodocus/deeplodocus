@@ -1,4 +1,3 @@
-import os
 import random
 import numpy as np
 import cv2
@@ -8,9 +7,8 @@ from typing import Tuple
 from collections import OrderedDict
 
 # Deeplodocus imports
-from deeplodocus.utils.flags.lib import *
 from deeplodocus.data.transform.transform_data import TransformData
-
+from deeplodocus.flags.lib import *
 """
 This file contains all the default transforms for images
 """

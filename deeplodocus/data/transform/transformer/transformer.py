@@ -1,6 +1,4 @@
 # Python imports
-import numpy as np
-import random
 from typing import Optional
 from typing import Tuple
 from typing import Union
@@ -8,19 +6,18 @@ from typing import List
 from typing import Any
 
 # Third party libs
-import cv2
 
 # Deeplodocus imports
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flag import Flag
 from deeplodocus.utils.namespace import Namespace
-from deeplodocus.utils.flags.msg import DEEP_MSG_TRANSFORM_VALUE_ERROR
+from deeplodocus.flags import DEEP_MSG_TRANSFORM_VALUE_ERROR
 from deeplodocus.data.transform.transform_data import TransformData
 
 # Deeplodocus flags
-from deeplodocus.utils.flags.module import DEEP_MODULE_TRANSFORMS
-from deeplodocus.utils.flags.notif import DEEP_NOTIF_INFO, DEEP_NOTIF_FATAL
+from deeplodocus.flags import DEEP_MODULE_TRANSFORMS
+from deeplodocus.flags import DEEP_NOTIF_INFO, DEEP_NOTIF_FATAL
 
 
 class Transformer(object):

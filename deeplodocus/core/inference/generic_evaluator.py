@@ -14,12 +14,12 @@ import torch
 #
 # Deeplodocus imports
 #
-from deeplodocus.utils.flags.entry import *
 from deeplodocus.data.load.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
-from deeplodocus.utils.flags.verbose import *
 from deeplodocus.utils.generic_utils import get_corresponding_flag
-from deeplodocus.utils.flags.flag_lists import DEEP_LIST_VERBOSE
+from deeplodocus.flags.verbose import *
+from deeplodocus.flags.flag_lists import *
+from deeplodocus.flags.entry import *
 
 
 class GenericEvaluator(GenericInferer):

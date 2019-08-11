@@ -11,14 +11,10 @@ import weakref
 # Deeplodocus imports
 from deeplodocus.data.load.entry import Entry
 from deeplodocus.utils.generic_utils import get_corresponding_flag
-
-# Deeplodocus flags
-from deeplodocus.utils.flags.flag_lists import *
-from deeplodocus.utils.flags.msg import *
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.shuffle import *
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
+
+from deeplodocus.flags import *
 
 
 class Dataset(object):
@@ -392,8 +388,8 @@ class Dataset(object):
         # Else it is a unique item
         else:
 
-            # Change the format
-            data_entry = data_entry.astype(entry.load_as.names[0])
+            if entry.load_as is not None:
+                data_entry = data_entry.astype(entry.load_as.names[0])
 
             # Move the axes
             if entry.move_axes is not None:
@@ -485,9 +481,8 @@ class Dataset(object):
                               entry_type=entry_type,
                               dataset=ref,
                               load_as=entry.load_as,
-                              move_axes = entry.move_axes)
+                              move_axes=entry.move_axes)
             generated_entries.append(new_entry)
-
         return generated_entries
 
     @staticmethod

@@ -1,6 +1,6 @@
 # Import modules from Python library
-from typing import Union
 import datetime
+from typing import Union
 
 # Import modules from deeplodocus
 from deeplodocus.callbacks.saver import Saver
@@ -10,12 +10,7 @@ from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.utils.generic_utils import generate_random_alphanumeric
 
 # Deeplodocus flags
-from deeplodocus.utils.flags.save import *
-from deeplodocus.utils.flags.event import *
-from deeplodocus.utils.flags.verbose import DEEP_VERBOSE_BATCH
-from deeplodocus.utils.flags import *
-from deeplodocus.utils.flags.memorize import *
-from deeplodocus.utils.flags.flag_lists import DEEP_LIST_SAVE_SIGNAL
+from deeplodocus.flags import *
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 Num = Union[int, float]

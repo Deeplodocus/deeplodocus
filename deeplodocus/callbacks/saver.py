@@ -1,19 +1,18 @@
 from decimal import Decimal
 import torch
-from torch.nn import Module
 import os
 
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags.save import *
-from deeplodocus.utils.flags.event import *
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.ext import DEEP_EXT_PYTORCH, DEEP_EXT_ONNX
-from deeplodocus.utils.flags.msg import DEEP_MSG_MODEL_SAVED, DEEP_MSG_SAVER_IMPROVED, DEEP_MSG_SAVER_NOT_IMPROVED
+from deeplodocus.flags.event import *
+from deeplodocus.flags.save import *
+from deeplodocus.flags.notif import *
+from deeplodocus.flags.ext import DEEP_EXT_PYTORCH, DEEP_EXT_ONNX
+from deeplodocus.flags.msg import DEEP_MSG_MODEL_SAVED, DEEP_MSG_SAVER_IMPROVED, DEEP_MSG_SAVER_NOT_IMPROVED
 from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.brain.signal import Signal
 from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.utils.generic_utils import get_corresponding_flag
-from deeplodocus.utils.flags.flag_lists import DEEP_LIST_SAVE_SIGNAL, DEEP_LIST_SAVE_FORMATS
+from deeplodocus.flags.flag_lists import DEEP_LIST_SAVE_SIGNAL, DEEP_LIST_SAVE_FORMATS
 
 
 class Saver(object):

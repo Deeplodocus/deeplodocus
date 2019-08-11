@@ -3,11 +3,11 @@ import multiprocessing.managers
 import weakref
 
 # Deeplodocus modules
-from deeplodocus.utils.flags.notif import *
 from deeplodocus.utils.notification import Notification
 from deeplodocus.brain.signal import Signal
 from deeplodocus.utils.singleton import Singleton
 from deeplodocus.brain.connection import Connection
+from deeplodocus.flags.notif import *
 
 
 class Thalamus(metaclass=Singleton):
@@ -194,8 +194,7 @@ class Thalamus(metaclass=Singleton):
         else:
             Notification(DEEP_NOTIF_ERROR, "The following event '%s' is not connected to any receiver." % str(event.get_description()))
 
-
-    def send_to_pipe(self, signal : Signal, receiver : callable) -> Signal:
+    def send_to_pipe(self, signal: Signal, receiver: callable) -> Signal:
         """
         AUTHORS:
         --------

@@ -10,7 +10,7 @@ import re
 import os
 
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags.notif import *
+from deeplodocus.flags.notif import *
 
 DEEP_CONFIG_DIVIDER = "/"
 

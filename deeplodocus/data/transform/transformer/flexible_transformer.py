@@ -7,7 +7,7 @@ from deeplodocus.data.transform.transformer.transformer import Transformer
 from deeplodocus.utils.namespace import Namespace
 
 # Deeplodocus flags
-from deeplodocus.utils.flags.notif import DEEP_NOTIF_INFO
+from deeplodocus.flags import DEEP_NOTIF_INFO
 
 
 class FlexibleTransformer(Transformer):

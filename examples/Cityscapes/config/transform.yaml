@@ -1,0 +1,21 @@
+train:
+  name: "Train Transform Manager"
+  inputs: config/transforms/transform_input1.yaml
+  labels: config/transforms/transform_labels.yaml
+  additional_data: Null
+validation:
+  name: "Validation Transform Manager"
+  inputs: config/transforms/transform_input1.yaml
+  labels: config/transforms/transform_labels.yaml
+  additional_data: Null
+test:
+  name: "Test Transform Manager"
+  inputs: Null
+  labels: Null
+  additional_data: Null
+predict:
+  name: "Predict Transform Manager"
+  inputs: Null
+  labels: Null
+  additional_data: Null
+  outputs: Null

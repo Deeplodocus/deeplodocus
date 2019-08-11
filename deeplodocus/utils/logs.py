@@ -2,7 +2,7 @@ import os
 import shutil
 import datetime
 
-from deeplodocus.utils.flags.ext import DEEP_EXT_CSV
+from deeplodocus.flags.ext import DEEP_EXT_CSV
 
 
 class Logs(object):

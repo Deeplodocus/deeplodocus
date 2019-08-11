@@ -1,5 +1,6 @@
-from deeplodocus.utils.flags.ext import DEEP_EXT_YAML
+from deeplodocus.flags.ext import DEEP_EXT_YAML
 from deeplodocus.utils.namespace import Namespace
+
 # The divider to use when expressing paths to configs
 DEEP_CONFIG_DIVIDER = "/"
 
@@ -464,31 +465,6 @@ DEEP_CONFIG = {
                                 "source": DEF["SOURCE"],
                                 "join": DEF["JOIN"],
                                 "type": DEF["TYPE_IMG"],
-                                "load_method": DEF["LOAD_METHOD"],
-                                "load_as": DEF["LOAD_AS"],
-                                "move_axes": DEF["MOVE_AXES"]
-                            }
-                        )
-                    ]
-                },
-                "labels": {
-                    DEEP_CONFIG_DTYPE: [
-                        {
-                            "source": [str],
-                            "join": [str],
-                            "type": str,
-                            "load_method": str,
-                            "load_as" : str,
-                            "move_axes": [int]
-                        }
-                    ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": DEF["SOURCE"],
-                                "join": DEF["JOIN"],
-                                "type": DEF["TYPE_INT"],
                                 "load_method": DEF["LOAD_METHOD"],
                                 "load_as": DEF["LOAD_AS"],
                                 "move_axes": DEF["MOVE_AXES"]

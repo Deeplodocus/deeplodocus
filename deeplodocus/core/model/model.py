@@ -3,11 +3,10 @@ import torch.nn as nn
 import numpy as np
 from collections import OrderedDict
 
-from deeplodocus.utils.flags.module import DEEP_MODULE_MODELS
+from deeplodocus.flags import DEEP_MODULE_MODELS
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.msg import DEEP_MSG_MODEL_CHECK_CHANNELS
+from deeplodocus.flags import DEEP_MSG_MODEL_CHECK_CHANNELS
 
 
 def load_model(

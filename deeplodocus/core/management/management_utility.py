@@ -10,9 +10,7 @@ from deeplodocus.core.project.project_utility import ProjectUtility
 from deeplodocus import __version__
 
 # Deeplodocus flags
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.admin import *
-from deeplodocus.utils.flags.flag_lists import DEEP_LIST_ADMIN
+from deeplodocus.flags import DEEP_LIST_ADMIN
 
 
 class ManagementUtility(object):

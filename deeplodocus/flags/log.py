@@ -1,4 +1,4 @@
-from deeplodocus.utils.flags.ext import DEEP_EXT_CSV, DEEP_EXT_LOGS
+from deeplodocus.flags.ext import DEEP_EXT_CSV, DEEP_EXT_LOGS
 from deeplodocus.utils import get_main_path
 
 DEEP_LOG_NOTIFICATION = "notification"
