@@ -1,0 +1,49 @@
+dataloader:
+  batch_size: 8
+  num_workers: 11
+enabled:
+  train: True
+  validation: True
+  test: False
+  predict: False
+dataset:
+  train:
+    inputs: 
+      - source: /home/samuel/Cranfield University/Code/deeplodocus-dev/test/core/Cityscapes/data/Link to Cityscapes/train/images
+        join:
+        type: image
+        load_method: default
+    labels: 
+      - source: /home/samuel/Cranfield University/Code/deeplodocus-dev/test/core/Cityscapes/data/Link to Cityscapes/train/labelled
+        join:
+        type: image_int
+        load_method: default
+    additional_data: Null
+    number: Null
+    name: "Training"
+  validation:
+    inputs: 
+      - source: /home/samuel/Cranfield University/Code/deeplodocus-dev/test/core/Cityscapes/data/Link to Cityscapes/val/images
+        join: 
+        type: image
+        load_method: default
+    labels: 
+      - source: /home/samuel/Cranfield University/Code/deeplodocus-dev/test/core/Cityscapes/data/Link to Cityscapes/val/labelled
+        join: 
+        type: image_int
+        load_method: default
+    additional_data: Null
+    number: Null
+    name: "Validation"
+  test:
+    inputs: Null
+    labels: Null
+    additional_data: Null
+    number: Null
+    name: "Test"
+  predict:
+    inputs: Null
+    labels: Null
+    additional_data: Null
+    name: "Prediction"
+    number: Null

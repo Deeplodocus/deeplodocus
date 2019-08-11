@@ -1,6 +1,5 @@
 from deeplodocus.data.transform_manager import TransformManager
 from deeplodocus.utils.namespace import Namespace
-from deeplodocus.utils.flags import *
 
 # Get the config for the transform managers
 config_transforms = Namespace("./transforms")
@@ -14,8 +13,6 @@ transform_manager_train = TransformManager(config_transforms.train)
 import time
 from deeplodocus.data.dataset import Dataset
 from deeplodocus.utils.types import *
-from PIL import Image
-import numpy as np
 import cv2
 
 

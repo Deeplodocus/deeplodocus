@@ -1,15 +1,16 @@
-from deeplodocus.utils.flags.dtype import *
-from deeplodocus.utils.flags.source import *
-from deeplodocus.utils.flags.load import *
-from deeplodocus.utils.flags.entry import *
-from deeplodocus.utils.flags.lib import *
-from deeplodocus.utils.flags.transformer import *
-from deeplodocus.utils.flags.shuffle import *
-from deeplodocus.utils.flags.save import *
-from deeplodocus.utils.flags.verbose import *
-from deeplodocus.utils.flags.event import *
-from deeplodocus.utils.flags.admin import *
-from deeplodocus.utils.flags.load_as import *
+
+from deeplodocus.flags.dtype import *
+from deeplodocus.flags.source import *
+from deeplodocus.flags.load import *
+from deeplodocus.flags.entry import *
+from deeplodocus.flags.lib import *
+from deeplodocus.flags.transformer import *
+from deeplodocus.flags.shuffle import *
+from deeplodocus.flags.save import *
+from deeplodocus.flags.verbose import *
+from deeplodocus.flags.event import *
+from deeplodocus.flags.admin import *
+from deeplodocus.flags.load_as import *
 
 # DATA TYPES
 DEEP_LIST_DTYPE = [

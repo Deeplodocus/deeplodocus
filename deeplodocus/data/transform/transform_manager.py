@@ -12,14 +12,12 @@ from deeplodocus.data.transform.transformer.no_transformer import NoTransformer
 # Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
-from deeplodocus.utils.flags.notif import DEEP_NOTIF_FATAL
-from deeplodocus.utils.flags.entry import *
+from deeplodocus.flags import *
 from deeplodocus.data.load.entry import Entry
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 #Deeplodocus flags
-from deeplodocus.utils.flags.flag_lists import DEEP_LIST_TRANSFORMERS
-from deeplodocus.utils.flags.transformer import *
+from deeplodocus.flags import DEEP_LIST_TRANSFORMERS
 
 
 class TransformManager(object):

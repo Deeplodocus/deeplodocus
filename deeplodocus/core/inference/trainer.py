@@ -15,13 +15,8 @@ from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.brain.signal import Signal
 
 # Deeplodocus flags
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.event import *
-from deeplodocus.utils.flags.shuffle import *
+from deeplodocus.flags import *
 from deeplodocus.utils.generic_utils import get_corresponding_flag
-from deeplodocus.utils.flags.flag_lists import DEEP_LIST_SHUFFLE
-from deeplodocus.utils.flags.verbose import *
-from deeplodocus.utils.flags.msg import DEEP_MSG_TRAINING_STARTED, DEEP_MSG_TRAINING_FINISHED
 
 
 class Trainer(GenericEvaluator):

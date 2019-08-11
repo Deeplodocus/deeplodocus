@@ -1,10 +1,8 @@
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 
 from deeplodocus.utils.generic_utils import get_specific_module
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flags.notif import *
 
 model_urls = {
     'vgg11': 'https://download.pytorch.org/models/vgg11-bbd30ac9.pth',

@@ -9,12 +9,14 @@ from typing import List
 from typing import Union
 from typing import Optional
 
-from deeplodocus.utils.flags.ext import *
-from deeplodocus.utils.flags.notif import *
-from deeplodocus.utils.flags.dtype import *
-from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flag import Flag
+# Import deeplodocus flags
+from deeplodocus.flags.dtype import *
+from deeplodocus.flags.ext import *
+from deeplodocus.flags.notif import *
+
+# Import deeplodocus utils
 from deeplodocus.utils.namespace import Namespace
+from deeplodocus.utils.notification import Notification
 
 
 def convert(value, d_type=None):
@@ -431,10 +433,11 @@ def generate_random_alphanumeric(size: int = 16) -> str:
 
 
 def get_corresponding_flag(
-        flag_list: List[Flag],
-        info: Union[str, int, Flag],
-        fatal: bool =True,
-        default: Optional[Flag]=None) -> Union[Flag, None]:
+    flag_list: List[Flag],
+    info: Union[str, int, Flag],
+    fatal: bool = True,
+    default: Optional[Flag] = None
+) -> Union[Flag, None]:
     """
     AUTHORS:
     --------
@@ -453,7 +456,7 @@ def get_corresponding_flag(
     :param flag_list: (List[Flag]): The list of flag to browse in
     :param info: (Union[str, int, Flag]): Info (name, index or full Flag) of the flag to search
     :param fatal: (bool, Optional): Whether to raise a DeepError if no flag is found or not
-    :param default (Flag, Optional) : The default flag to use if no flag is found
+    :param default: (Flag, Optional) : The default flag to use if no flag is found
 
     RETURN:
     -------
