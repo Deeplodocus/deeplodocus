@@ -609,9 +609,6 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DTYPE: str,
                 DEEP_CONFIG_DEFAULT: "accuracy"
             },
-            "weight": {DEEP_CONFIG_DTYPE: float,
-                       DEEP_CONFIG_DEFAULT: 1
-                       },
             "kwargs": {
                 DEEP_CONFIG_DTYPE: dict,
                 DEEP_CONFIG_DEFAULT: {}
