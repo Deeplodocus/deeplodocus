@@ -72,8 +72,6 @@ class Transformer(object):
         self.list_mandatory_transforms_start = self.__fill_transform_list(mandatory_transforms_start)
         self.list_mandatory_transforms_end = self.__fill_transform_list(mandatory_transforms_end)
 
-
-
     def summary(self):
         """
         AUTHORS:
@@ -248,7 +246,6 @@ class Transformer(object):
         """
         # Apply the transforms
         for transform in transforms:
-
             try:
                 # Transform the data and get the transformation settings if a random transform is applied (None else)
                 transformed_data, last_method_used = transform.method(transformed_data, **transform.kwargs)
