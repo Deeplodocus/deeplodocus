@@ -20,14 +20,17 @@ class Tester(GenericEvaluator):
     Class for evaluating the results of the model
     """
 
-    def __init__(self,
-                 model: nn.Module,
-                 dataset: Dataset,
-                 metrics: dict,
-                 losses: dict,
-                 batch_size: int = 4,
-                 num_workers: int = 4,
-                 verbose: int = DEEP_VERBOSE_BATCH):
+    def __init__(
+            self,
+            model: nn.Module,
+            dataset: Dataset,
+            metrics: dict,
+            losses: dict,
+            batch_size: int = 4,
+            num_workers: int = 4,
+            verbose: int = DEEP_VERBOSE_BATCH,
+            output_transformer=None
+    ):
 
         """
         AUTHORS:
@@ -58,13 +61,16 @@ class Tester(GenericEvaluator):
         :return: None
         """
 
-        super().__init__(model=model,
-                         dataset=dataset,
-                         metrics=metrics,
-                         losses=losses,
-                         batch_size=batch_size,
-                         num_workers=num_workers,
-                         verbose=verbose)
+        super().__init__(
+            model=model,
+            dataset=dataset,
+            metrics=metrics,
+            losses=losses,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            verbose=verbose,
+        )
+        self.output_transformer = output_transformer
 
     def evaluate(self, model: nn.Module):
         """
@@ -114,9 +120,17 @@ class Tester(GenericEvaluator):
             # Detach the tensor from the graph (avoids leaking memory)
             outputs = self.recursive_detach(outputs)
 
-            # Compute the losses and metrics
+            # Compute the losses
             batch_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
-            batch_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
+
+            # Compute the metrics
+            batch_metrics = self.compute_metrics(
+                self.metrics,
+                inputs,
+                self.output_transformer.transform(outputs),
+                labels,
+                additional_data
+            )
 
             # Apply weights to the losses
             batch_losses = dict_utils.apply_weight(batch_losses, vars(self.losses))

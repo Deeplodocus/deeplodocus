@@ -538,6 +538,10 @@ DEEP_CONFIG = {
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str]
+            },
+            "outputs": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: str
             }
         },
         "validation": {
@@ -558,6 +562,10 @@ DEEP_CONFIG = {
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str]
+            },
+            "outputs": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: str
             }
         },
         "test": {
@@ -578,6 +586,10 @@ DEEP_CONFIG = {
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str]
+            },
+            "outputs": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: str
             }
         },
         "predict": {
@@ -595,7 +607,7 @@ DEEP_CONFIG = {
             },
             "outputs": {
                 DEEP_CONFIG_DEFAULT: None,
-                DEEP_CONFIG_DTYPE: [str]
+                DEEP_CONFIG_DTYPE: str
                 }
             }
         },
