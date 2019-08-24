@@ -541,7 +541,7 @@ class FrontalLobe(object):
 
             # Output Transformer
             output_transformer = OutputTransformer(
-                transform_file=self.config.transform.train.get("outputs")
+                transform_files=self.config.transform.train.get("outputs")
             )
             output_transformer.summary()
 
@@ -604,7 +604,7 @@ class FrontalLobe(object):
 
             # Output Transformer
             output_transformer = OutputTransformer(
-                transform_file=self.config.transform.validation.get("outputs")
+                transform_files=self.config.transform.validation.get("outputs")
             )
             output_transformer.summary()
 
@@ -661,7 +661,7 @@ class FrontalLobe(object):
 
             # Output Transformer
             output_transformer = OutputTransformer(
-                transform_file=self.config.transform.test.get("outputs")
+                transform_files=self.config.transform.test.get("outputs")
             )
             output_transformer.summary()
 
