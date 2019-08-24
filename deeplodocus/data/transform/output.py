@@ -2,7 +2,7 @@ from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.flags import DEEP_MODULE_TRANSFORMS
 from deeplodocus.utils.notification import Notification
-from deeplodocus.flags.notif import DEEP_NOTIF_FATAL
+from deeplodocus.flags.notif import *
 
 
 class OutputTransformer(Namespace):
@@ -25,12 +25,21 @@ class OutputTransformer(Namespace):
             # Check that the transforms entry exists
             self.__check_transforms_exists(sequence, i)
             for transform_name, transform_info in sequence.transforms.get().items():
+                self.__transform_loading(transform_name, transform_info)
                 method, module = get_module(
                     **transform_info.get(ignore="kwargs"),
                     browse=DEEP_MODULE_TRANSFORMS
                 )
-                transform_info.add({"method": method})
+                if method is None:
+                    self.__method_not_found(transform_info)
+                try:
+                    transform_info.add(
+                        {"method": method(**transform_info.kwargs.get())}
+                    )
+                except TypeError:
+                    transform_info.add({"method": method})
                 transform_info.module = module
+                self.__transform_loaded(transform_name, transform_info)
 
     def transform(self, outputs):
         """
@@ -72,7 +81,7 @@ class OutputTransformer(Namespace):
             # Apply each output transform from each transformer sequence to the output
             for sequence in self.output_transformer:
                 for _, transform in sequence.transforms.get().items():
-                    output = transform.method(output, **transform.kwargs.get())
+                    output = self.__apply(transform, output)
             # Update the output
             outputs[i] = output
         return outputs
@@ -87,7 +96,7 @@ class OutputTransformer(Namespace):
         for i, (output, transformer) in enumerate(zip(outputs, self.transformer)):
             # Apply each transform to the output
             for _, transform in transformer.transforms.get().items():
-                output = transform.method(output, **transform.kwargs.get())
+                output = self.__apply(transform, output)
             # Update the output
             outputs[i] = output
         return outputs
@@ -100,7 +109,25 @@ class OutputTransformer(Namespace):
         """
         for sequence in self.output_transformer:
             for _, transform in sequence.transforms.get().items():
-                output = transform.method(output, **transform.kwargs.get())
+                output = self.__apply(transform, output)
+        return output
+
+    @staticmethod
+    def __apply(transform, output):
+        """
+        Applies transform method to output and returns the transformed output
+        If method is a class
+            Ues method.forward(output)
+        Else
+            Uese method(output, kwargs)
+        :param transform: Namespace: transform to be applied
+        :param output: output to be transformed
+        :return: transformed output
+        """
+        try:
+            output = transform.method.forward(output)
+        except AttributeError:
+            output = transform.method(output, **transform.kwargs.get())
         return output
 
     @staticmethod
@@ -116,3 +143,33 @@ class OutputTransformer(Namespace):
             if i is not None:
                 msg += ", (output_transformer[%i])" % i
             Notification(DEEP_NOTIF_FATAL, msg)
+
+    @staticmethod
+    def __method_not_found(info):
+        msg = "Transform method not found : %s" % info.name
+        if info.module is not None:
+            msg += " from %s" % info.module
+        Notification(DEEP_NOTIF_FATAL, msg)
+
+    @staticmethod
+    def __transform_loading(name, info):
+        """
+        Notify user about the transform about to be loaded
+        :param name: str: Name given to the transform by the user
+        :param info: Namespace: information about the transform
+        :return: None
+        """
+        msg = "Loading transform : %s : %s" % (name, info.name) if info.module is None \
+            else "Loading transform : %s : %s from %s" % (name, info.name, info.module)
+        Notification(DEEP_NOTIF_INFO, msg)
+
+    @staticmethod
+    def __transform_loaded(name, info):
+        """
+        Notify the user that a transform has been loaded successfully
+        :param name: str: Name given to the transform by the user
+        :param info: Namespace: information about the transform
+        :return: None
+        """
+        msg = "Loaded transform : %s : %s from %s" % (name, info.name, info.module)
+        Notification(DEEP_NOTIF_SUCCESS, msg)
