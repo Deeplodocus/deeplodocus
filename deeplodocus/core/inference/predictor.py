@@ -66,7 +66,4 @@ class Predictor(GenericInferer):
             # Infer the outputs from the model over the given mini batch
             with torch.no_grad():
                 outputs = self.model(*inputs)
-            # Append mini_batch output to the output tensor
-            #outputs.append(self.recursive_detach(minibatch_output))
-            #inputs.append(inp)
             self.transform_manager.transform(outputs, inputs, labels, additional_data)
