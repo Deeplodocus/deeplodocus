@@ -29,7 +29,7 @@ class Tester(GenericEvaluator):
             batch_size: int = 4,
             num_workers: int = 4,
             verbose: int = DEEP_VERBOSE_BATCH,
-            output_transformer=None
+            transform_manager=None
     ):
 
         """
@@ -70,7 +70,7 @@ class Tester(GenericEvaluator):
             num_workers=num_workers,
             verbose=verbose,
         )
-        self.output_transformer = output_transformer
+        self.transform_manager = transform_manager
 
     def evaluate(self, model: nn.Module):
         """
@@ -124,13 +124,9 @@ class Tester(GenericEvaluator):
             batch_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
 
             # Compute the metrics
-            batch_metrics = self.compute_metrics(
-                self.metrics,
-                inputs,
-                self.output_transformer.transform(outputs),
-                labels,
-                additional_data
-            )
+            if self.transform_manager is not None:
+                outputs = self.transform_manager.transform(outputs)
+            batch_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
             # Apply weights to the losses
             batch_losses = dict_utils.apply_weight(batch_losses, vars(self.losses))

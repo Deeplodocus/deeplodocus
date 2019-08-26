@@ -41,24 +41,37 @@ class OutputTransformer(Namespace):
                 transform_info.module = module
                 self.__transform_loaded(transform_name, transform_info)
 
-    def transform(self, outputs):
+    def transform(self, outputs, inputs=None, labels=None, additional_data=None):
         """
-        Calls the appropriate transform method dependant on the number of transformers and outouts
+        Calls the appropriate transform method dependant on the number of transformers and outputs
         1 output -> __transform_single_output
         2+ outputs and 1 transformer -> __transform_multi_output_series
         2+ outputs and 2+ transformers -> __transform_multi_output_mapped
         :param outputs: torch.tensor or [torch.tensor]: outputs from the model
+        :param inputs:
+        :param labels:
+        :param additional_data:
         :return: torch.tensor or [torch.tensor]: transformed outputs
         """
         # Multiple model outputs
         if isinstance(outputs, list) and len(outputs) > 1:
             # 0 or 1 transformers - apply transformer to each output
             if len(self.output_transformer) < 2:
-                return self.__transform_multi_output_series(outputs)
+                return self.__transform_multi_output_series(
+                    outputs,
+                    inputs=inputs,
+                    labels=labels,
+                    additional_data=additional_data
+                )
             # If more than 1 output transformer, there must be numbers of transformers and outputs
             # Map by order
             elif len(self.out_transformer) == len(outputs):
-                return self.__transform_multi_output_mapped(outputs)
+                return self.__transform_multi_output_mapped(
+                    outputs,
+                    inputs=inputs,
+                    labels=labels,
+                    additional_data=additional_data
+                )
             # Else, cannot map outputs to transformers
             else:
                 Notification(
@@ -69,9 +82,19 @@ class OutputTransformer(Namespace):
                 )
         # Single model output
         else:
-            return self.__transform_single_output(outputs)
+            return self.__transform_single_output(
+                outputs,
+                inputs=inputs,
+                labels=labels,
+                additional_data=additional_data
+            )
 
-    def __transform_multi_output_series(self, outputs: list) -> list:
+    def __transform_multi_output_series(self,
+                                        outputs: list,
+                                        inputs=None,
+                                        labels=None,
+                                        additional_data=None
+                                        ) -> list:
         """
         Apply each transform in each transformer to each output
         :param outputs: [torch.tensor]: output from the model
@@ -81,12 +104,23 @@ class OutputTransformer(Namespace):
             # Apply each output transform from each transformer sequence to the output
             for sequence in self.output_transformer:
                 for _, transform in sequence.transforms.get().items():
-                    output = self.__apply(transform, output)
+                    output = self.__apply(
+                        transform,
+                        output,
+                        inputs=inputs,
+                        labels=labels,
+                        additional_data=additional_data
+                    )
             # Update the output
             outputs[i] = output
         return outputs
 
-    def __transform_multi_output_mapped(self, outputs: list) -> list:
+    def __transform_multi_output_mapped(self,
+                                        outputs: list,
+                                        inputs=None,
+                                        labels=None,
+                                        additional_data=None,
+                                        ) -> list:
         """
         Apply each transformer to the corresponding output tensor
         :param outputs: [torch.tensor]: outputs from the model
@@ -96,12 +130,23 @@ class OutputTransformer(Namespace):
         for i, (output, transformer) in enumerate(zip(outputs, self.transformer)):
             # Apply each transform to the output
             for _, transform in transformer.transforms.get().items():
-                output = self.__apply(transform, output)
+                output = self.__apply(
+                    transform,
+                    output,
+                    inputs=inputs,
+                    labels=labels,
+                    additional_data=additional_data
+                )
             # Update the output
             outputs[i] = output
         return outputs
 
-    def __transform_single_output(self, output):
+    def __transform_single_output(self,
+                                  output,
+                                  inputs=None,
+                                  labels=None,
+                                  additional_data=None
+                                  ):
         """
         Apply the transformer or series of transformers to the output tensor
         :param output: (torch.tensor) or ([torch.tensor] with len == 1): outputs from the model
@@ -109,11 +154,17 @@ class OutputTransformer(Namespace):
         """
         for sequence in self.output_transformer:
             for _, transform in sequence.transforms.get().items():
-                output = self.__apply(transform, output)
+                output = self.__apply(
+                    transform,
+                    output,
+                    inputs=inputs,
+                    labels=labels,
+                    additional_data=additional_data
+                )
         return output
 
     @staticmethod
-    def __apply(transform, output):
+    def __apply(transform, output, **kwargs):
         """
         Applies transform method to output and returns the transformed output
         If method is a class
@@ -124,10 +175,14 @@ class OutputTransformer(Namespace):
         :param output: output to be transformed
         :return: transformed output
         """
-        try:
-            output = transform.method.forward(output)
-        except AttributeError:
-            output = transform.method(output, **transform.kwargs.get())
+        other_data = {key: item for key, item in kwargs.items() if item is not None}
+        if hasattr(transform.method, "forward"):
+            output = transform.method.forward(outputs=output, **other_data)
+        else:
+            output = transform.method(
+                outputs=output,
+                **{**transform.kwargs.get(), **other_data}
+            )
         return output
 
     @staticmethod

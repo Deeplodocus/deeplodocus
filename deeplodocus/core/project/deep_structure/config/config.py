@@ -429,7 +429,7 @@ DEEP_CONFIG = {
                             "join": [str],
                             "type": str,
                             "load_method": str,
-                            "load_as" : str,
+                            "load_as": str,
                             "move_axes": [int]
                         }
                     ],
@@ -454,7 +454,32 @@ DEEP_CONFIG = {
                             "join": [str],
                             "type": str,
                             "load_method": str,
-                            "load_as" : str,
+                            "load_as": str,
+                            "move_axes": [int]
+                        }
+                    ],
+                    DEEP_CONFIG_DEFAULT: None,
+                    DEEP_CONFIG_INIT: [
+                        Namespace(
+                            {
+                                "source": DEF["SOURCE"],
+                                "join": DEF["JOIN"],
+                                "type": DEF["TYPE_IMG"],
+                                "load_method": DEF["LOAD_METHOD"],
+                                "load_as": DEF["LOAD_AS"],
+                                "move_axes": DEF["MOVE_AXES"]
+                            }
+                        )
+                    ]
+                },
+                "labels": {
+                    DEEP_CONFIG_DTYPE: [
+                        {
+                            "source": [str],
+                            "join": [str],
+                            "type": str,
+                            "load_method": str,
+                            "load_as": str,
                             "move_axes": [int]
                         }
                     ],

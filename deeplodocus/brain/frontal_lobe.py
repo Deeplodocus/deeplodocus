@@ -229,8 +229,7 @@ class FrontalLobe(object):
         if self.predictor is None:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NO_PREDICTOR)
         else:
-            inputs, outputs = self.predictor.predict(self.model)
-        self.visualise(inputs, outputs)
+            self.predictor.predict(self.model)
 
     def load(self):
         """
@@ -540,10 +539,10 @@ class FrontalLobe(object):
             )
 
             # Output Transformer
-            output_transformer = OutputTransformer(
+            output_transform_manager = OutputTransformer(
                 transform_files=self.config.transform.train.get("outputs")
             )
-            output_transformer.summary()
+            # output_transformer.summary()
 
             # Dataset
             dataset = Dataset(
@@ -565,7 +564,7 @@ class FrontalLobe(object):
                 shuffle_method=self.config.training.shuffle,
                 verbose=self.config.history.verbose,
                 tester=self.validator,
-                output_transformer=output_transformer
+                transform_manager=output_transform_manager
             )
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.train.name)
@@ -603,10 +602,10 @@ class FrontalLobe(object):
             )
 
             # Output Transformer
-            output_transformer = OutputTransformer(
+            output_transform_manager = OutputTransformer(
                 transform_files=self.config.transform.validation.get("outputs")
             )
-            output_transformer.summary()
+            # output_transformer.summary()
 
             # Dataset
             dataset = Dataset(
@@ -622,7 +621,7 @@ class FrontalLobe(object):
                 dataset=dataset,
                 metrics=self.metrics,
                 losses=self.losses,
-                output_transformer=output_transformer
+                transform_manager=output_transform_manager
             )
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.validation.name)
@@ -660,10 +659,10 @@ class FrontalLobe(object):
             )
 
             # Output Transformer
-            output_transformer = OutputTransformer(
+            output_transform_manager = OutputTransformer(
                 transform_files=self.config.transform.test.get("outputs")
             )
-            output_transformer.summary()
+            # output_transformer.summary()
 
             # Dataset
             dataset = Dataset(
@@ -678,7 +677,7 @@ class FrontalLobe(object):
                 dataset=dataset,
                 metrics=self.metrics,
                 losses=self.losses,
-                output_transformer=output_transformer
+                transform_manager=output_transform_manager
             )
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.test.name)
@@ -688,8 +687,15 @@ class FrontalLobe(object):
         if self.config.data.enabled.predict:
             Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.predict.name)
 
-            # Transform Manager
-            transform_manager = TransformManager(**self.config.transform.predict.get(ignore="outputs"))
+            # Input Transform Manager
+            transform_manager = TransformManager(
+                **self.config.transform.predict.get(ignore="outputs")
+            )
+
+            # Output Transform Manager
+            output_transform_manager = OutputTransformer(
+                transform_files=self.config.transform.predict.get("outputs")
+            )
 
             # Dataset
             dataset = Dataset(
@@ -697,11 +703,13 @@ class FrontalLobe(object):
                 transform_manager=transform_manager,
                 cv_library=self.config.project.cv_library
             )
+
             # Predictor
             self.predictor = Predictor(
                 **self.config.data.dataloader.get(),
                 model=self.model,
-                dataset=dataset
+                dataset=dataset,
+                transform_manager=output_transform_manager
             )
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.predict.name)

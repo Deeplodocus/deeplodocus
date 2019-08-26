@@ -67,7 +67,7 @@ class Trainer(GenericEvaluator):
             num_workers: int = 4,
             verbose: Flag = DEEP_VERBOSE_BATCH,
             tester: Tester = None,
-            output_transformer=None
+            transform_manager=None
     ) -> None:
         """
         AUTHORS:
@@ -119,7 +119,7 @@ class Trainer(GenericEvaluator):
         self.epoch = None
         self.validation_loss = None
         self.num_epochs = num_epochs
-        self.output_transformer = output_transformer
+        self.transform_manager = transform_manager
 
         # Load shuffling method
         self.shuffle_method = get_corresponding_flag(
@@ -255,14 +255,12 @@ class Trainer(GenericEvaluator):
                 # Compute losses
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
 
+                # Transform outputs
+                if self.transform_manager is not None:
+                    outputs = self.transform_manager.transform(outputs)
+
                 # Compute metrics
-                result_metrics = self.compute_metrics(
-                    self.metrics,
-                    inputs,
-                    self.output_transformer.transform(outputs),
-                    labels,
-                    additional_data
-                )
+                result_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
                 # Add weights to losses
                 result_losses = dict_utils.apply_weight(result_losses, vars(self.losses))
