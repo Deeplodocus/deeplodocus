@@ -66,7 +66,9 @@ class Trainer(GenericEvaluator):
             shuffle_method: Flag = DEEP_SHUFFLE_NONE,
             num_workers: int = 4,
             verbose: Flag = DEEP_VERBOSE_BATCH,
-            tester: Tester = None) -> None:
+            tester: Tester = None,
+            transform_manager=None
+    ) -> None:
         """
         AUTHORS:
         --------
@@ -117,6 +119,7 @@ class Trainer(GenericEvaluator):
         self.epoch = None
         self.validation_loss = None
         self.num_epochs = num_epochs
+        self.transform_manager = transform_manager
 
         # Load shuffling method
         self.shuffle_method = get_corresponding_flag(
@@ -211,9 +214,15 @@ class Trainer(GenericEvaluator):
 
         for self.epoch in range(self.initial_epoch + 1, self.num_epochs + 1):
 
-            Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_EPOCH_START,
-                                                args={"epoch_index": self.epoch,
-                                                      "num_epochs": self.num_epochs}))
+            Thalamus().add_signal(
+                signal=Signal(
+                    event=DEEP_EVENT_ON_EPOCH_START,
+                    args={
+                        "epoch_index": self.epoch,
+                        "num_epochs": self.num_epochs
+                    }
+                )
+            )
 
             # Shuffle the data if required
             if self.shuffle_method is not None:
@@ -243,8 +252,14 @@ class Trainer(GenericEvaluator):
                 except TypeError as e:
                     Notification(DEEP_NOTIF_FATAL, "TypeError : %s" % str(e))
 
-                # Compute losses and metrics
+                # Compute losses
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
+
+                # Transform outputs
+                if self.transform_manager is not None:
+                    outputs = self.transform_manager.transform(outputs)
+
+                # Compute metrics
                 result_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
                 # Add weights to losses
@@ -350,7 +365,6 @@ class Trainer(GenericEvaluator):
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_TRAINING_STARTED)
         self.__train(first_training=first_training)
         Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_TRAINING_FINISHED)
-
 
     def detach(self, outputs, total_loss, result_losses, result_metrics):
         """

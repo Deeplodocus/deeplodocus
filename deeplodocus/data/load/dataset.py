@@ -517,8 +517,10 @@ class Dataset(object):
 
         # SOURCE
         if entry.check("source", None) is False:
-            Notification(DEEP_NOTIF_FATAL,
-                         "The source was not specified to the following entry : %s" % str(entry.get()))
+            Notification(
+                DEEP_NOTIF_FATAL,
+                "The source was not specified to the following entry : %s" % str(entry.get())
+            )
 
         # JOIN PATH
         if entry.check("join", None) is False:
