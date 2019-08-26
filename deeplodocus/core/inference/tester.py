@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 from deeplodocus.data.load.dataset import Dataset
@@ -20,14 +21,17 @@ class Tester(GenericEvaluator):
     Class for evaluating the results of the model
     """
 
-    def __init__(self,
-                 model: nn.Module,
-                 dataset: Dataset,
-                 metrics: dict,
-                 losses: dict,
-                 batch_size: int = 4,
-                 num_workers: int = 4,
-                 verbose: int = DEEP_VERBOSE_BATCH):
+    def __init__(
+            self,
+            model: nn.Module,
+            dataset: Dataset,
+            metrics: dict,
+            losses: dict,
+            batch_size: int = 4,
+            num_workers: int = 4,
+            verbose: int = DEEP_VERBOSE_BATCH,
+            transform_manager=None
+    ):
 
         """
         AUTHORS:
@@ -58,13 +62,16 @@ class Tester(GenericEvaluator):
         :return: None
         """
 
-        super().__init__(model=model,
-                         dataset=dataset,
-                         metrics=metrics,
-                         losses=losses,
-                         batch_size=batch_size,
-                         num_workers=num_workers,
-                         verbose=verbose)
+        super().__init__(
+            model=model,
+            dataset=dataset,
+            metrics=metrics,
+            losses=losses,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            verbose=verbose,
+        )
+        self.transform_manager = transform_manager
 
     def evaluate(self, model: nn.Module):
         """
@@ -109,13 +116,18 @@ class Tester(GenericEvaluator):
             additional_data = self.to_device(labels, self.model.device)
 
             # Infer the outputs from the model over the given mini batch
-            outputs = model(*inputs)
+            with torch.no_grad():
+                outputs = model(*inputs)
 
             # Detach the tensor from the graph (avoids leaking memory)
             outputs = self.recursive_detach(outputs)
 
-            # Compute the losses and metrics
+            # Compute the losses
             batch_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
+
+            # Compute the metrics
+            if self.transform_manager is not None:
+                outputs = self.transform_manager.transform(outputs)
             batch_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
             # Apply weights to the losses
