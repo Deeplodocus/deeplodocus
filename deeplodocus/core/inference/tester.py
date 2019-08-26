@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 from deeplodocus.data.load.dataset import Dataset
@@ -115,7 +116,8 @@ class Tester(GenericEvaluator):
             additional_data = self.to_device(labels, self.model.device)
 
             # Infer the outputs from the model over the given mini batch
-            outputs = model(*inputs)
+            with torch.no_grad():
+                outputs = model(*inputs)
 
             # Detach the tensor from the graph (avoids leaking memory)
             outputs = self.recursive_detach(outputs)
