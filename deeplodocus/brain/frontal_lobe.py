@@ -21,6 +21,7 @@ from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.core.model.model import load_model
 from deeplodocus.core.optimizer.optimizer import load_optimizer
 from deeplodocus.data.load.dataset import Dataset
+from deeplodocus.data.transform.output import OutputTransformer
 from deeplodocus.data.transform.transform_manager import TransformManager
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
@@ -228,8 +229,7 @@ class FrontalLobe(object):
         if self.predictor is None:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NO_PREDICTOR)
         else:
-            inputs, outputs = self.predictor.predict(self.model)
-        self.visualise(inputs, outputs)
+            self.predictor.predict(self.model)
 
     def load(self):
         """
@@ -533,25 +533,39 @@ class FrontalLobe(object):
         if self.config.data.enabled.train:
             Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.train.name)
 
-            # Transform Manager
-            transform_manager = TransformManager(**self.config.transform.train.get())
+            # Input Transform Manager
+            transform_manager = TransformManager(
+                **self.config.transform.train.get(ignore="outputs")
+            )
+
+            # Output Transformer
+            output_transform_manager = OutputTransformer(
+                transform_files=self.config.transform.train.get("outputs")
+            )
+            # output_transformer.summary()
 
             # Dataset
-            dataset = Dataset(**self.config.data.dataset.train.get(),
-                              transform_manager=transform_manager,
-                              cv_library=self.config.project.cv_library)
+            dataset = Dataset(
+                **self.config.data.dataset.train.get(),
+                transform_manager=transform_manager,
+                cv_library=self.config.project.cv_library
+            )
+
             # Trainer
-            self.trainer = Trainer(**self.config.data.dataloader.get(),
-                                   model=self.model,
-                                   dataset=dataset,
-                                   metrics=self.metrics,
-                                   losses=self.losses,
-                                   optimizer=self.optimizer,
-                                   num_epochs=self.config.training.num_epochs,
-                                   initial_epoch=self.config.training.initial_epoch,
-                                   shuffle_method=self.config.training.shuffle,
-                                   verbose=self.config.history.verbose,
-                                   tester=self.validator)
+            self.trainer = Trainer(
+                **self.config.data.dataloader.get(),
+                model=self.model,
+                dataset=dataset,
+                metrics=self.metrics,
+                losses=self.losses,
+                optimizer=self.optimizer,
+                num_epochs=self.config.training.num_epochs,
+                initial_epoch=self.config.training.initial_epoch,
+                shuffle_method=self.config.training.shuffle,
+                verbose=self.config.history.verbose,
+                tester=self.validator,
+                transform_manager=output_transform_manager
+            )
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.train.name)
 
@@ -583,19 +597,32 @@ class FrontalLobe(object):
             Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.validation.name)
 
             # Transform Manager
-            transform_manager = TransformManager(**self.config.transform.validation.get())
+            transform_manager = TransformManager(
+                **self.config.transform.validation.get(ignore="outputs")
+            )
+
+            # Output Transformer
+            output_transform_manager = OutputTransformer(
+                transform_files=self.config.transform.validation.get("outputs")
+            )
+            # output_transformer.summary()
 
             # Dataset
-            dataset = Dataset(**self.config.data.dataset.validation.get(),
-                              transform_manager=transform_manager,
-                              cv_library=self.config.project.cv_library)
+            dataset = Dataset(
+                **self.config.data.dataset.validation.get(),
+                transform_manager=transform_manager,
+                cv_library=self.config.project.cv_library
+            )
 
             # Validator
-            self.validator = Tester(**self.config.data.dataloader.get(),
-                                    model=self.model,
-                                    dataset=dataset,
-                                    metrics=self.metrics,
-                                    losses=self.losses)
+            self.validator = Tester(
+                **self.config.data.dataloader.get(),
+                model=self.model,
+                dataset=dataset,
+                metrics=self.metrics,
+                losses=self.losses,
+                transform_manager=output_transform_manager
+            )
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.validation.name)
 
@@ -626,19 +653,32 @@ class FrontalLobe(object):
         if self.config.data.enabled.test:
             Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.test.name)
 
-            # Transform Manager
-            transform_manager = TransformManager(**self.config.transform.test.get())
+            # Input Transform Manager
+            transform_manager = TransformManager(
+                **self.config.transform.test.get(ignore="outputs")
+            )
+
+            # Output Transformer
+            output_transform_manager = OutputTransformer(
+                transform_files=self.config.transform.test.get("outputs")
+            )
+            # output_transformer.summary()
 
             # Dataset
-            dataset = Dataset(**self.config.data.dataset.test.get(),
-                              transform_manager=transform_manager,
-                              cv_library=self.config.project.cv_library)
+            dataset = Dataset(
+                **self.config.data.dataset.test.get(),
+                transform_manager=transform_manager,
+                cv_library=self.config.project.cv_library
+            )
             # Tester
-            self.tester = Tester(**self.config.data.dataloader.get(),
-                                 model=self.model,
-                                 dataset=dataset,
-                                 metrics=self.metrics,
-                                 losses=self.losses)
+            self.tester = Tester(
+                **self.config.data.dataloader.get(),
+                model=self.model,
+                dataset=dataset,
+                metrics=self.metrics,
+                losses=self.losses,
+                transform_manager=output_transform_manager
+            )
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.test.name)
 
@@ -647,8 +687,15 @@ class FrontalLobe(object):
         if self.config.data.enabled.predict:
             Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.predict.name)
 
-            # Transform Manager
-            transform_manager = TransformManager(**self.config.transform.predict.get(ignore="outputs"))
+            # Input Transform Manager
+            transform_manager = TransformManager(
+                **self.config.transform.predict.get(ignore="outputs")
+            )
+
+            # Output Transform Manager
+            output_transform_manager = OutputTransformer(
+                transform_files=self.config.transform.predict.get("outputs")
+            )
 
             # Dataset
             dataset = Dataset(
@@ -656,11 +703,13 @@ class FrontalLobe(object):
                 transform_manager=transform_manager,
                 cv_library=self.config.project.cv_library
             )
+
             # Predictor
             self.predictor = Predictor(
                 **self.config.data.dataloader.get(),
                 model=self.model,
-                dataset=dataset
+                dataset=dataset,
+                transform_manager=output_transform_manager
             )
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.predict.name)

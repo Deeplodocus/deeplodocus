@@ -70,7 +70,6 @@ class TransformManager(object):
         self.list_input_transformers = self.__load_transformers(inputs)
         self.list_label_transformers = self.__load_transformers(labels)
         self.list_additional_data_transformers = self.__load_transformers(additional_data)
-        self.list_output_transformers = self.__load_transformers(outputs)
         self.summary()
 
     def transform(self, data: Any, index: int, entry: Entry, augment: bool) -> Any:
@@ -208,11 +207,6 @@ class TransformManager(object):
             if transformer is not None and isinstance(transformer, Pointer) is False:
                 transformer.reset()
 
-        # Outputs
-        for transformer in self.list_output_transformers:
-            if transformer is not None and isinstance(transformer, Pointer) is False:
-                transformer.reset()
-
     def summary(self):
         """
         AUTHORS:
@@ -248,11 +242,6 @@ class TransformManager(object):
 
         # Additional data
         for transformer in self.list_additional_data_transformers:
-            if transformer is not None:
-                transformer.summary()
-
-        # Output
-        for transformer in self.list_output_transformers:
             if transformer is not None:
                 transformer.summary()
 
