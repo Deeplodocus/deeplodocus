@@ -67,3 +67,4 @@ class Predictor(GenericInferer):
             with torch.no_grad():
                 outputs = self.model(*inputs)
             self.transform_manager.transform(outputs, inputs, labels, additional_data)
+        self.transform_manager.finish()
