@@ -1,3 +1,5 @@
+import inspect
+
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.flags import DEEP_MODULE_TRANSFORMS
@@ -24,22 +26,23 @@ class OutputTransformer(Namespace):
         for i, sequence in enumerate(self.output_transformer):
             # Check that the transforms entry exists
             self.__check_transforms_exists(sequence, i)
-            for transform_name, transform_info in sequence.transforms.get().items():
-                self.__transform_loading(transform_name, transform_info)
-                method, module = get_module(
-                    **transform_info.get(ignore="kwargs"),
-                    browse=DEEP_MODULE_TRANSFORMS
-                )
-                if method is None:
-                    self.__method_not_found(transform_info)
-                try:
-                    transform_info.add(
-                        {"method": method(**transform_info.kwargs.get())}
+            if sequence.transforms is not None:
+                for transform_name, transform_info in sequence.transforms.get().items():
+                    self.__transform_loading(transform_name, transform_info)
+                    method, module = get_module(
+                        **transform_info.get(ignore="kwargs"),
+                        browse=DEEP_MODULE_TRANSFORMS
                     )
-                except TypeError:
-                    transform_info.add({"method": method})
-                transform_info.module = module
-                self.__transform_loaded(transform_name, transform_info)
+                    if method is None:
+                        self.__method_not_found(transform_info)
+                    try:
+                        transform_info.add(
+                            {"method": method(**transform_info.kwargs.get())}
+                        )
+                    except TypeError:
+                        transform_info.add({"method": method})
+                    transform_info.module = module
+                    self.__transform_loaded(transform_name, transform_info)
 
     def transform(self, outputs, inputs=None, labels=None, additional_data=None):
         """
@@ -88,6 +91,12 @@ class OutputTransformer(Namespace):
                 labels=labels,
                 additional_data=additional_data
             )
+
+    def finish(self):
+        for sequence in self.output_transformer:
+            for _, transform in sequence.transforms.get().items():
+                if hasattr(transform.method, "finish"):
+                    transform.method.finish()
 
     def __transform_multi_output_series(self,
                                         outputs: list,
@@ -175,13 +184,23 @@ class OutputTransformer(Namespace):
         :param output: output to be transformed
         :return: transformed output
         """
-        other_data = {key: item for key, item in kwargs.items() if item is not None}
+        # If transform is a class (has a forward attribute)
         if hasattr(transform.method, "forward"):
-            output = transform.method.forward(outputs=output, **other_data)
+            # Remove non-required and None entries from kwargs
+            kwargs = {
+                key: item for key, item in kwargs.items()
+                if item is not None and key in inspect.getargspec(transform.method.forward)[0]
+            }
+            output = transform.method.forward(outputs=output, **kwargs)
+        # If transform is a function
         else:
+            kwargs = {
+                key: item for key, item in kwargs.items()
+                if item is not None and key in inspect.getargspec(transform.method)[0]
+            }
             output = transform.method(
                 outputs=output,
-                **{**transform.kwargs.get(), **other_data}
+                **{**kwargs, **transform.kwargs.get()}
             )
         return output
 
