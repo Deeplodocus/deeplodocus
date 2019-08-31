@@ -155,6 +155,6 @@ Given a multiple transformers and multiple model outputs, each transformer is ma
 >
 > If the number of transformers and number of model outputs are greater than one, then the number of transformers must match the number of outputs.
 
-## Worked Example
+### Worked Example
 
 TODO
