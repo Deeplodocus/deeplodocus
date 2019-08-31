@@ -10,7 +10,7 @@ from deeplodocus.core.project.project_utility import ProjectUtility
 from deeplodocus import __version__
 
 # Deeplodocus flags
-from deeplodocus.flags import DEEP_LIST_ADMIN
+from deeplodocus.flags import *
 
 
 class ManagementUtility(object):
@@ -158,7 +158,7 @@ class ManagementUtility(object):
         """
 
         main_path = main_path
-        name = "deeplodocus_project_" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d-%H:%M:%S')
+        name = "deeplodocus_project"
 
         if len(self.argv) > 2:
             name = self.argv[2]
