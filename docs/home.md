@@ -1,4 +1,6 @@
-# About Deeplodocus
+# Home
+
+## About Deeplodocus
 
 Deeplodocus is a modular, flexible and accessible environment for accelerating the start-up and development of deep learning projects. 
 
@@ -6,17 +8,17 @@ Many challenges must be overcome along the course of training, testing and deplo
 
 Deeplodocus represents a new approach to prototyping and structuring deep learning projects. Built on PyTorch, Deeplodocus offers comprehensive control of high-level configurations and parameters, whilst maintaining maximum flexibility through modularity.
 
-# Installation
+## Installation
 
 Deeplodocus is compatible with versions of Python 3.6 and onward, and can be installed with PIP. However, before installing Deeplodocus, we recommend that you install PyTorch. 
 
-## Install PyTorch
+### Install PyTorch
 
 Deeplodocus is built around PyTorch, however Pytorch does not come packaged with Deeplodocus as its installation depends on your version of [CUDA](https://developer.nvidia.com/cuda-downloads). 
 
 To install PyTorch, we recommend that you follow instructions from the official [PyTorch website](https://pytorch.org/). 
 
-## Install from PyPI
+### Install Deeplodocus from PyPI
 
 For the latest stable release of Deeplodocus, we recommend installing from PyPI.
 
@@ -26,7 +28,7 @@ Simply enter the command below into your terminal:
 $ pip3 install deeplodocus
 ```
 
-## Install from GitHub
+### Install Deeplodocus from GitHub
 
 To install the most recent version of Deeplodocus, download the Deeplodocus repository and install from this local source. Note, this version may be less stable than the current PyPI release. 
 
