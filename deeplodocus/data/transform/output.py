@@ -167,14 +167,14 @@ class OutputTransformer(Namespace):
         """
         for sequence in self.output_transformer:
             for _, transform in sequence.transforms.get().items():
-                output = self.__apply(
+                outputs = self.__apply(
                     transform,
                     outputs,
                     inputs=inputs,
                     labels=labels,
                     additional_data=additional_data
                 )
-        return output
+        return outputs
 
     @staticmethod
     def __apply(transform, outputs, **kwargs):
