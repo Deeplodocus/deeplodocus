@@ -20,7 +20,7 @@ The CityScapes dataset was designed for developing semantic understanding of urb
     
     Your data directory should look like this:
     
-    ```txt
+    ```
     data
         ⊦ train
         |    ⊦ images        # Directory of all training images
