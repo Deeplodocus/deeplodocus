@@ -1,23 +1,16 @@
-#
 # Common imports
-#
 from typing import Union
 from typing import List
 
-#
 # Backend imports
-#
 from torch.nn import Module
 from torch import tensor
 import torch
 
-#
 # Deeplodocus imports
-#
 from deeplodocus.data.load.dataset import Dataset
 from deeplodocus.core.inference.generic_inferer import GenericInferer
 from deeplodocus.utils.generic_utils import get_corresponding_flag
-from deeplodocus.flags.verbose import *
 from deeplodocus.flags.flag_lists import *
 from deeplodocus.flags.entry import *
 
