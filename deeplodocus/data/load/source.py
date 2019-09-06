@@ -52,8 +52,6 @@ class Source(object):
         # Whether the source has been checked correctly
         self.checked = False
 
-
-
     def __getitem__(self, index: int) -> Tuple[Any, bool, bool]:
         pass
 
