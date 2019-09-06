@@ -13,7 +13,7 @@ from deeplodocus.data.transform.transformer.no_transformer import NoTransformer
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.flags import *
-from deeplodocus.data.load.entry import Entry
+from deeplodocus.data.load.pipeline_entry import PipelineEntry
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 #Deeplodocus flags
@@ -73,7 +73,7 @@ class TransformManager(object):
         self.list_output_transformers = self.__load_transformers(outputs)
         self.summary()
 
-    def transform(self, data: Any, index: int, entry: Entry, augment: bool) -> Any:
+    def transform(self, data: Any, index: int, entry: PipelineEntry, augment: bool) -> Any:
         """
         AUTHORS:
         --------
@@ -93,7 +93,7 @@ class TransformManager(object):
 
         :param data: (Any): The data to transform
         :param index: (int): The index of the data to transform
-        :param entry: (Entry): The entry of the data
+        :param entry: (PipelineEntry): The entry of the data
 
 
         RETURN:
@@ -130,15 +130,15 @@ class TransformManager(object):
                          + str(entry.get_entry_type().get_description()))
 
         # If it is a NoTransformer instance
-        if list_transformers[entry.get_entry_index()].has_transforms() is False:
+        if list_transformers[entry.get_entry_type_index()].has_transforms() is False:
             return data
 
         # Check if the transformer points to another transformer
-        pointer, pointer_entry_index = list_transformers[entry.get_entry_index()].get_pointer()
+        pointer, pointer_entry_index = list_transformers[entry.get_entry_type_index()].get_pointer()
 
         # If we do not point to another transformer, transform directly the data
         if pointer is None:
-            transformed_data = list_transformers[entry.get_entry_index()].transform(data, index, augment)
+            transformed_data = list_transformers[entry.get_entry_type_index()].transform(data, index, augment)
 
         #
         # If we point to another transformer, load the transformer then transform the data
