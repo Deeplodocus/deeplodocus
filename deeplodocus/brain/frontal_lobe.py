@@ -27,6 +27,8 @@ from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 from deeplodocus.utils.notification import Notification
+
+# Deeplodocus flags
 from deeplodocus.flags import *
 
 
