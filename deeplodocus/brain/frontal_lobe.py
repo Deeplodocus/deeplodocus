@@ -545,12 +545,8 @@ class FrontalLobe(object):
             # output_transformer.summary()
 
             # Dataset
-            dataset = Dataset(
-                **self.config.data.dataset.train.get(),
-                transform_manager=transform_manager,
-                cv_library=self.config.project.cv_library
-            )
-
+            dataset = Dataset(**self.config.data.dataset.train.get(),
+                              transform_manager=transform_manager)
             # Trainer
             self.trainer = Trainer(
                 **self.config.data.dataloader.get(),
@@ -608,11 +604,8 @@ class FrontalLobe(object):
             # output_transformer.summary()
 
             # Dataset
-            dataset = Dataset(
-                **self.config.data.dataset.validation.get(),
-                transform_manager=transform_manager,
-                cv_library=self.config.project.cv_library
-            )
+            dataset = Dataset(**self.config.data.dataset.validation.get(),
+                              transform_manager=transform_manager)
 
             # Validator
             self.validator = Tester(
@@ -665,11 +658,8 @@ class FrontalLobe(object):
             # output_transformer.summary()
 
             # Dataset
-            dataset = Dataset(
-                **self.config.data.dataset.test.get(),
-                transform_manager=transform_manager,
-                cv_library=self.config.project.cv_library
-            )
+            dataset = Dataset(**self.config.data.dataset.test.get(),
+                              transform_manager=transform_manager)
             # Tester
             self.tester = Tester(
                 **self.config.data.dataloader.get(),
@@ -700,10 +690,7 @@ class FrontalLobe(object):
             # Dataset
             dataset = Dataset(
                 **self.config.data.dataset.predict.get(),
-                transform_manager=transform_manager,
-                cv_library=self.config.project.cv_library
-            )
-
+                transform_manager=transform_manager)
             # Predictor
             self.predictor = Predictor(
                 **self.config.data.dataloader.get(),
