@@ -93,9 +93,6 @@ class Folder(Source):
         data = get_specific_line(filename=self.filepath,
                                  index=index)
 
-        # Join the folder path to the item path
-        data = "/".join([self.path, data])
-
         return data, is_loaded, is_transformed
 
     def compute_length(self) -> int:
@@ -147,7 +144,7 @@ class Folder(Source):
         if not os.path.isdir(self.path):
             Notification(DEEP_NOTIF_FATAL, "The following path is not a Source folder : %s " % self.path)
         else:
-            Notification(DEEP_NOTIF_SUCCESS, "Source folder %s successfully found" % self.path)
+            Notification(DEEP_NOTIF_SUCCESS, "Source folder \"%s\" successfully found" % self.path)
 
     def __convert_source_folder_to_file(self):
         """
