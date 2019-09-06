@@ -35,13 +35,15 @@ class File(Source):
                  path: str = "",
                  join: Optional[str] = None,
                  delimiter: str = ",",
-                 num_instances=None
+                 num_instances=None,
+                 instance_id: int = 0
                  ):
 
         super().__init__(index=index,
                          num_instances=num_instances,
                          is_loaded=is_loaded,
-                         is_transformed=is_transformed)
+                         is_transformed=is_transformed,
+                         instance_id=instance_id)
 
         self.path = path
         self.join = join
