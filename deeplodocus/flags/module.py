@@ -18,6 +18,12 @@ DEEP_MODULE_OPTIMIZERS = {"pytorch": {"path": torch.optim.__path__,
                                      "prefix": "modules.optimizers"}
                           }
 
+DEEP_MODULE_SOURCES = {"deeplodocus": {"path": deep_models.__path__,
+                                      "prefix":deep_models.__name__},
+                      "custom": {"path": ["%s/modules/sources" % get_main_path()],
+                                 "prefix": "modules.sources"}
+                      }
+
 DEEP_MODULE_MODELS = {"deeplodocus": {"path": deep_models.__path__,
                                       "prefix":deep_models.__name__},
                       "custom": {"path": ["%s/modules/models" % get_main_path()],
