@@ -2,12 +2,17 @@
 import os
 from typing import Any
 from typing import Tuple
+from typing import Union
+from typing import List
 
 # Deeplodocus imports
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.file import get_specific_line
+from deeplodocus.utils.generic_utils import sorted_nicely
+from deeplodocus.utils.file import compute_num_lines
 
 # Deeplodocus flags
+from deeplodocus.flags import *
 from deeplodocus.flags.notif import *
 from deeplodocus.data.load.source import Source
 
@@ -27,31 +32,29 @@ class Folder(Source):
     """
 
     def __init__(self,
-                 id=-1,
+                 index=-1,
                  is_loaded=False,
                  is_transformed=False,
                  path="",
-                 join=None,
-                 delimiter=",",
-                 end_line="\n",
-                 num_instances=None
+                 num_instances=None,
+                 instance_id: int = 0
                  ):
 
-        super().__init__(id, is_loaded, is_transformed)
+        super().__init__(index=index,
+                         is_loaded=is_loaded,
+                         is_transformed=is_transformed,
+                         num_instances=num_instances,
+                         instance_id=instance_id,
+                         )
 
+        # Save the directory
         self.path = path
-        self.join = join
-        self.delimiter = delimiter
-        self.end_line = end_line
 
+        # Check the given path
+        self.__check_directory()
 
-        if num_instances is None:
-            self.num_instances = self.__compute_length_()
-        else:
-            self.num_instances = num_instances
-
-        # check if the source is a real file
-        self.__check_source()
+        # Save filepath
+        self.filepath = self.__convert_source_folder_to_file()
 
     """
     "
@@ -87,47 +90,13 @@ class Folder(Source):
         is_transformed = self.is_transformed
 
         # Get the data
-        data = get_specific_line(filename=self.source,
+        data = get_specific_line(filename=self.filepath,
                                  index=index)
 
-        # create a sequence if necessary
-        if isinstance(data, str):
-            data = data.split(self.delimiter)  # Generate a list from the sequence
-            if len(data) == 1:
-                data = data[0]
-
-        # Format the data if it is a path to a specific file
-        # Formatting will automatically join the adequate parent directory to a relative path
-        if self.join is not None:
-            data = self.__format_path(data)
+        # Join the folder path to the item path
+        data = "/".join([self.path, data])
 
         return data, is_loaded, is_transformed
-
-    def __len__(self) -> int:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Calculate the length of the source
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return length(int): The length of the source
-        """
-
-        return self.num_instances
-
 
     def compute_length(self) -> int:
         """
@@ -151,16 +120,9 @@ class Folder(Source):
 
         :return length(int): The length of the source
         """
-        length = 0
+        return compute_num_lines(self.filepath)
 
-        with open(self.source) as f:
-            for l in f:
-                length += 1
-
-        return length
-
-
-    def __check_source(self):
+    def __check_directory(self) -> None:
         """
         AUTHORS:
         --------
@@ -170,28 +132,92 @@ class Folder(Source):
         DESCRIPTION:
         ------------
 
+        Check the given directory exists
 
-        :return:
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        if not os.path.isdir(self.path):
+            Notification(DEEP_NOTIF_FATAL, "The following path is not a Source folder : %s " % self.path)
+        else:
+            Notification(DEEP_NOTIF_SUCCESS, "Source folder %s successfully found" % self.path)
+
+    def __convert_source_folder_to_file(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        List the content of a folder into a file
+
+        PARAMETERS:
+        -----------
+
+        :param source (Source): A Source instance
+
+        RETURN:
+        -------
+
+        :return : None
         """
 
-        if not os.path.isfile(self.path):
-            Notification(DEEP_NOTIF_FATAL, "The following path is not a source file : " + str(self.path))
-        else:
-            Notification(DEEP_NOTIF_SUCCESS, "Source file %i successfully loaded".format(self.id))
+        item_list = self.__read_folders(self.path)
 
-    def __generate_file_equivalent(self):
+        # generate the absolute path to the file
+        filepath = DEEP_ENTRY_BASE_FILE_NAME % self.index
 
-        filepath = ""
-        num_instances =
+        # Create the folders if required
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
-        file = File(id=self.id,
-                    is_loaded=self.is_loaded,
-                    is_transformed=self.is_transformed,
-                    path=filepath,
-                    join=self.join,
-                    delimiter=",",
-                    end_line="\n",
-                    num_instances=num_instances
-                    )
+        with open(filepath, 'w') as f:
+            for item in item_list:
+                f.write("%s\n" % item)
 
-        return file
+        return filepath
+
+    def __read_folders(self, directory: Union[str, List[str]]) -> List[str]:
+        """
+        AUTHORS:
+        --------
+
+        author: Samuel Westlake
+        author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the list of paths to every file within the given directories
+
+        PARAMETERS:
+        -----------
+
+        :param directory (Union[str, List[str]): path to directories to get paths from
+
+        RETURN:
+        -------
+
+        :return (List[str]): list of paths to every file within the given directories
+
+        """
+        paths = []
+        # For each item in the directory
+        for item in os.listdir(directory):
+            sub_path = "%s/%s" % (directory, item)
+            # If the subpath of the item is a directory we apply the self function recursively
+            if os.path.isdir(sub_path):
+                paths.extend(self.__read_folders(sub_path))
+            # Else we add the path of the file to the list of files
+            else:
+                paths.extend([sub_path])
+        return sorted_nicely(paths)
