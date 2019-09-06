@@ -201,4 +201,4 @@ class File(Source):
         if not os.path.isfile(self.path):
             Notification(DEEP_NOTIF_FATAL, "The following path is not a source file : " + str(self.path))
         else:
-            Notification(DEEP_NOTIF_SUCCESS, "Source file %i successfully loaded".format(self.index))
+            Notification(DEEP_NOTIF_SUCCESS, "Source file \"%s\" successfully loaded" % self.path)
