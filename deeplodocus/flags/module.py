@@ -7,6 +7,7 @@ import deeplodocus.app.optimizers as deep_optim
 import deeplodocus.app.models as deep_models
 import deeplodocus.app.losses as deep_losses
 import deeplodocus.app.metrics as deep_metrics
+import deeplodocus.data.load as deep_sources
 
 import torchvision.datasets as tv_data
 
@@ -17,6 +18,12 @@ DEEP_MODULE_OPTIMIZERS = {"pytorch": {"path": torch.optim.__path__,
                           "custom": {"path": [get_main_path() + "/modules/optimizers"],
                                      "prefix": "modules.optimizers"}
                           }
+
+DEEP_MODULE_SOURCES = {"deeplodocus": {"path": deep_sources.__path__,
+                                      "prefix":deep_sources.__name__},
+                      "custom": {"path": ["%s/modules/sources" % get_main_path()],
+                                 "prefix": "modules.sources"}
+                      }
 
 DEEP_MODULE_MODELS = {"deeplodocus": {"path": deep_models.__path__,
                                       "prefix":deep_models.__name__},

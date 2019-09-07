@@ -195,7 +195,7 @@ DEEP_CONFIG = {
         "dataloader": {
             "batch_size": {
                 DEEP_CONFIG_DTYPE: int,
-                DEEP_CONFIG_DEFAULT: 32
+                DEEP_CONFIG_DEFAULT: 1
             },
             "num_workers": {
                 DEEP_CONFIG_DTYPE: int,
@@ -220,308 +220,69 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DEFAULT: False
             }
         },
-        "dataset": {
-            "train": {
-                "inputs": {
+        "datasets": {
                     DEEP_CONFIG_DTYPE: [
                         {
-                            "source": [str],
-                            "join": [str],
-                            "type": str,
-                            "load_method": str,
-                            "load_as" : str,
-                            "move_axes": [int]
+                            "name": {
+                                DEEP_CONFIG_DTYPE: str,
+                                DEEP_CONFIG_DEFAULT: "training dataset"
+                            },
+                            "type": {
+                                DEEP_CONFIG_DTYPE: str,
+                                DEEP_CONFIG_DEFAULT: "train"
+                            },
+                            "num_instances": {
+                                DEEP_CONFIG_DTYPE: int,
+                                DEEP_CONFIG_DEFAULT: None
+                            },
+                            "entries": [
+                                {
+                                    "name": {
+                                        DEEP_CONFIG_DTYPE: str,
+                                        DEEP_CONFIG_DEFAULT: "entry"
+                                    },
+                                    "type": {
+                                        DEEP_CONFIG_DTYPE: str,
+                                        DEEP_CONFIG_DEFAULT: "input"
+                                    },
+                                    "data_type": {
+                                        DEEP_CONFIG_DTYPE: str,
+                                        DEEP_CONFIG_DEFAULT: "image"
+                                    },
+                                    "load_as": {
+                                        DEEP_CONFIG_DTYPE: str,
+                                        DEEP_CONFIG_DEFAULT: "float16"
+                                    },
+                                    "move_axis": {
+                                        DEEP_CONFIG_DTYPE: [int],
+                                        DEEP_CONFIG_DEFAULT: None
+                                    },
+                                    "enable_cache": {
+                                        DEEP_CONFIG_DTYPE: bool,
+                                        DEEP_CONFIG_DEFAULT: False
+                                    },
+                                    "sources": [
+                                            {
+                                                "module": {
+                                                    DEEP_CONFIG_DTYPE: str,
+                                                    DEEP_CONFIG_DEFAULT: "module_name"
+                                                },
+                                                "origin": {
+                                                    DEEP_CONFIG_DTYPE: str,
+                                                    DEEP_CONFIG_DEFAULT: None
+                                                },
+                                                "kwargs": {
+                                                    DEEP_CONFIG_DTYPE: dict,
+                                                    DEEP_CONFIG_DEFAULT: {}
+                                                }
+                                            }
+                                    ]
+                                }
+                            ]
                         }
-                    ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": DEF["SOURCE"],
-                                "join": DEF["JOIN"],
-                                "type": DEF["TYPE_IMG"],
-                                "load_method": DEF["LOAD_METHOD"],
-                                "load_as": DEF["LOAD_AS"],
-                                "move_axes": DEF["MOVE_AXES"]
-                            }
-                        )
                     ]
-                },
-                "labels": {
-                    DEEP_CONFIG_DTYPE: [
-                        {
-                            "source": [str],
-                            "join": [str],
-                            "type": str,
-                            "load_method": str,
-                            "load_as" : str,
-                            "move_axes": [int]
-                        }
-                    ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": DEF["SOURCE"],
-                                "join": DEF["JOIN"],
-                                "type": DEF["TYPE_INT"],
-                                "load_method": DEF["LOAD_METHOD"],
-                                "load_as": DEF["LOAD_AS"],
-                                "move_axes": DEF["MOVE_AXES"]
-                            }
-                        )
-                    ]
-                },
-                "additional_data": {
-                        DEEP_CONFIG_DTYPE: [
-                            {
-                                "source": [str],
-                                "join": [str],
-                                "type": str,
-                                "load_method": str,
-                                "load_as" : str,
-                                "move_axes": [int]
-                            }
-                        ],
-                        DEEP_CONFIG_DEFAULT: None,
-                        DEEP_CONFIG_INIT: None
-                },
-                "number": {
-                    DEEP_CONFIG_DTYPE: int,
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: DEF["NUMBER"]
-                },
-                "name": {
-                    DEEP_CONFIG_DTYPE: str,
-                    DEEP_CONFIG_DEFAULT: "Training"
-                }
-            },
-            "validation": {
-                "inputs": {
-                    DEEP_CONFIG_DTYPE: [
-                        {
-                            "source": [str],
-                            "join": [str],
-                            "type": str,
-                            "load_method": str,
-                            "load_as" : str,
-                            "move_axes": [int]
-                        }
-                    ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": DEF["SOURCE"],
-                                "join": DEF["JOIN"],
-                                "type": DEF["TYPE_IMG"],
-                                "load_method": DEF["LOAD_METHOD"],
-                                "load_as": DEF["LOAD_AS"],
-                                "move_axes": DEF["MOVE_AXES"]
-                            }
-                        )
-                    ]
-                },
-                "labels": {DEEP_CONFIG_DTYPE: [
-                    {
-                        "source": [str],
-                        "join": [str],
-                        "type": str,
-                        "load_method": str,
-                        "load_as" : str,
-                        "move_axes": [int]
-                    }
-                ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": DEF["SOURCE"],
-                                "join": DEF["JOIN"],
-                                "type": DEF["TYPE_INT"],
-                                "load_method": DEF["LOAD_METHOD"],
-                                "load_as": DEF["LOAD_AS"],
-                                "move_axes": DEF["MOVE_AXES"]
-                            }
-                        )
-                    ]
-                },
-                "additional_data": {
-                    DEEP_CONFIG_DTYPE: [
-                        {
-                            "source": [str],
-                            "join": [str],
-                            "type": str,
-                            "load_method": str,
-                            "load_as" : str,
-                            "move_axes": [int]
-                        }
-                    ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: None
 
-                },
-                "number": {
-                    DEEP_CONFIG_DTYPE: int,
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: DEF["NUMBER"]
-                },
-                "name": {
-                    DEEP_CONFIG_DTYPE: str,
-                    DEEP_CONFIG_DEFAULT: "Validation"
                 }
-            },
-            "test": {
-                "inputs": {
-                    DEEP_CONFIG_DTYPE: [
-                        {
-                            "source": [str],
-                            "join": [str],
-                            "type": str,
-                            "load_method": str,
-                            "load_as" : str,
-                            "move_axes": [int]
-                        }
-                    ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": DEF["SOURCE"],
-                                "join": DEF["JOIN"],
-                                "type": DEF["TYPE_IMG"],
-                                "load_method": DEF["LOAD_METHOD"],
-                                "load_as": DEF["LOAD_AS"],
-                                "move_axes": DEF["MOVE_AXES"]
-                            }
-                        )
-                    ]
-                },
-                "labels": {
-                    DEEP_CONFIG_DTYPE: [
-                        {
-                            "source": [str],
-                            "join": [str],
-                            "type": str,
-                            "load_method": str,
-                            "load_as" : str,
-                            "move_axes": [int]
-                        }
-                    ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": DEF["SOURCE"],
-                                "join": DEF["JOIN"],
-                                "type": DEF["TYPE_INT"],
-                                "load_method": DEF["LOAD_METHOD"],
-                                "load_as": DEF["LOAD_AS"],
-                                "move_axes": DEF["MOVE_AXES"]
-                            }
-                        )
-                    ]
-                },
-                "additional_data": {
-                    DEEP_CONFIG_DTYPE: [
-                        {
-                            "source": [str],
-                            "join": [str],
-                            "type": str,
-                            "load_method": str,
-                            "load_as": str,
-                            "move_axes": [int]
-                        }
-                    ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: None
-                },
-                "number": {
-                    DEEP_CONFIG_DTYPE: int,
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: DEF["NUMBER"]
-                },
-                "name": {
-                    DEEP_CONFIG_DTYPE: str,
-                    DEEP_CONFIG_DEFAULT: "Test"
-                }
-            },
-            "predict": {
-                "inputs": {
-                    DEEP_CONFIG_DTYPE: [
-                        {
-                            "source": [str],
-                            "join": [str],
-                            "type": str,
-                            "load_method": str,
-                            "load_as": str,
-                            "move_axes": [int]
-                        }
-                    ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": DEF["SOURCE"],
-                                "join": DEF["JOIN"],
-                                "type": DEF["TYPE_IMG"],
-                                "load_method": DEF["LOAD_METHOD"],
-                                "load_as": DEF["LOAD_AS"],
-                                "move_axes": DEF["MOVE_AXES"]
-                            }
-                        )
-                    ]
-                },
-                "labels": {
-                    DEEP_CONFIG_DTYPE: [
-                        {
-                            "source": [str],
-                            "join": [str],
-                            "type": str,
-                            "load_method": str,
-                            "load_as": str,
-                            "move_axes": [int]
-                        }
-                    ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: [
-                        Namespace(
-                            {
-                                "source": DEF["SOURCE"],
-                                "join": DEF["JOIN"],
-                                "type": DEF["TYPE_IMG"],
-                                "load_method": DEF["LOAD_METHOD"],
-                                "load_as": DEF["LOAD_AS"],
-                                "move_axes": DEF["MOVE_AXES"]
-                            }
-                        )
-                    ]
-                },
-                "additional_data": {
-                    DEEP_CONFIG_DTYPE: [
-                        {
-                            "source": [str],
-                            "join": [str],
-                            "type": str,
-                            "load_method": str,
-                            "load_as" : str,
-                            "move_axes": [int]
-                        }
-                    ],
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: None
-                },
-                "name": {
-                    DEEP_CONFIG_DEFAULT: "Prediction",
-                    DEEP_CONFIG_DTYPE: str
-                },
-                "number": {
-                    DEEP_CONFIG_DTYPE: int,
-                    DEEP_CONFIG_DEFAULT: None,
-                    DEEP_CONFIG_INIT: DEF["NUMBER"]
-                }
-            }
-        }
     },
     DEEP_CONFIG_LOSSES: {
         DEEP_CONFIG_WILDCARD: {

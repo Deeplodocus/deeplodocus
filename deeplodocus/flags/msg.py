@@ -19,7 +19,7 @@ DEEP_MSG_MODULE_LOADED = "Module loaded : %s from %s"
 # Deep Warning
 DEEP_MSG_ALREADY_AWAKE = ": I am already awake !"
 DEEP_MSG_USE_CONFIG_SAVE = ": Please use 'save_config()' instead"
-DEEP_MSG_PRIVATE = ": Please don't interfere with my private parts"
+DEEP_MSG_PRIVATE = ": Please don't interfere with my private parts :)"
 DEEP_MSG_PROJECT_ALREADY_EXISTS = ": Project %s already exists !"
 
 # Deep Input
