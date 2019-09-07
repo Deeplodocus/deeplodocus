@@ -324,6 +324,10 @@ DEEP_CONFIG = {
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str]
+            },
+            "outputs": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str]
             }
         },
         "validation": {
@@ -344,6 +348,10 @@ DEEP_CONFIG = {
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str]
+            },
+            "outputs": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str]
             }
         },
         "test": {
@@ -362,6 +370,10 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_INIT: "config/transforms/transform_label.yaml"
             },
             "additional_data": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str]
+            },
+            "outputs": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str]
             }
@@ -395,9 +407,6 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DTYPE: str,
                 DEEP_CONFIG_DEFAULT: "accuracy"
             },
-            "weight": {DEEP_CONFIG_DTYPE: float,
-                       DEEP_CONFIG_DEFAULT: 1
-                       },
             "kwargs": {
                 DEEP_CONFIG_DTYPE: dict,
                 DEEP_CONFIG_DEFAULT: {}

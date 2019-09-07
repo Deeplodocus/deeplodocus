@@ -1,3 +1,4 @@
+import torch
 from torch.nn import Module
 
 from deeplodocus.data.load.dataset import Dataset
@@ -24,13 +25,14 @@ class Predictor(GenericInferer):
                  dataset: Dataset,
                  batch_size: int = 4,
                  num_workers: int = 4,
-                 verbose: int = 2):
+                 verbose: int = 2,
+                 transform_manager=None):
 
         super().__init__(model=model,
                          dataset=dataset,
                          batch_size=batch_size,
                          num_workers=num_workers)
-
+        self.transform_manager = transform_manager
         self.verbose = verbose
 
     def predict(self, model=None):
@@ -58,16 +60,11 @@ class Predictor(GenericInferer):
         """
         self.model = self.model if model is None else model
 
-        # Initialise an empty list to store outputs
-        inputs = []
-        outputs = []
         for minibatch_index, minibatch in enumerate(self.dataloader, 0):
-            inp, labels, additional_data = self.clean_single_element_list(minibatch)
-            inp, labels = self.to_device(inp, model.device), self.to_device(labels, model.device)
+            inputs, labels, additional_data = self.clean_single_element_list(minibatch)
+            inputs, labels = self.to_device(inputs, model.device), self.to_device(labels, model.device)
             # Infer the outputs from the model over the given mini batch
-            minibatch_output = self.model(*inp)
-            # Append mini_batch output to the output tensor
-            outputs.append(self.recursive_detach(minibatch_output))
-            inputs.append(inp)
-        return inputs, outputs
-
+            with torch.no_grad():
+                outputs = self.model(*inputs)
+            self.transform_manager.transform(outputs, inputs, labels, additional_data)
+        self.transform_manager.finish()
