@@ -97,7 +97,7 @@ DEEP_CONFIG = {
         },
         "on_wake": {
             DEEP_CONFIG_DTYPE: [str],
-            DEEP_CONFIG_DEFAULT: []
+            DEEP_CONFIG_DEFAULT: None
         }
     },
     DEEP_CONFIG_MODEL: {
@@ -229,7 +229,7 @@ DEEP_CONFIG = {
                             "join": [str],
                             "type": str,
                             "load_method": str,
-                            "load_as" : str,
+                            "load_as": str,
                             "move_axes": [int]
                         }
                     ],
@@ -279,7 +279,7 @@ DEEP_CONFIG = {
                                 "join": [str],
                                 "type": str,
                                 "load_method": str,
-                                "load_as" : str,
+                                "load_as": str,
                                 "move_axes": [int]
                             }
                         ],
