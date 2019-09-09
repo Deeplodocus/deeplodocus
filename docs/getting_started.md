@@ -1,101 +1,138 @@
-# Before starting
+# Starting a Project
 
-Before starting, we recommend you to install both PyTorch and Deeplodocus. FOr more information please refer to the [installation page](installation)
+Use Deeplodocus's `startproject` command, followed by a name for your new project, to generate a new Deeplodocus directory. This will contain all the files necessary to begin your next deep learning project. Note that `start-project` and `start_project` will also be accepted.
 
-# Deeplodocus Admin
-
-The first Deeplodocus tool to present is the Admin system. Once Deeplodocus is correctly installed, you will be able to use Deeplodocus directly from your terminal.
-
-For example, if you want to start a new Deeplodocus project, you can do it by entering :
-
-`deeplodocus startproject <my_project_name>`
-
-In the above command `<my_project_name>` must be replaced by the name of your project.This command generates a full Deeplodocus project within the folder you are located.
-
-For more information about the Admin commands, please refer to the [Admin Commands page](admin_commands)
-
-# Deeplodocus Structure
-
-When using the command `deeplodocus startproject SkyNet` Deeplodocus will generate a project with a defined structure. In this section we will give you a quick overview of the generated project structure.
-
-A "virgin" project comes with the following files and folders :
-
-- `main.py`
-- `config`
-- `data`
-- `modules`
-
-## `main.py`
-
-`main.py` is the main file to start your project. This file contains the following lines :
-
-```python
-#!/usr/bin/env python3
-
-from deeplodocus.brain import Brain
-
-brain = Brain(config_dir="./config")
-brain.wake()
+```bash
+$ deeplodocus startproject <project-name>
 ```
 
-The goal of this file is to feed the Deeplodocus' Brain, which is the core of any Deeplodocus project, with a config folder. The brain is then awaken allowing you to start.
-<span style="color:red"> ** /!\ We strongly recommend not to change anything in this file**</sapn>
+Other entry commands include:
+
+- `deeplodocus version` to display the version number of the current Deeplodocus installation.
+- `deeplodocus help` to display a list of avalaible entry commands.
+
+## Project Structure
+
+A complete Deeplodocus project directory will contain a main Python script and two sub-directories. 
+
+The first of these is the config directory, which controls different groups of high-level project variables through 9 YAML files. Also within config is a transforms directory, that can be used to house additional YAML files which perscribe routines for transforming input and output data. More detailed information about project configurations can be found on the [Configuration](config.md) page.
+
+The second is a modules directory, which is a place to house any modules that are custom-built for the project. Initially this will be empty, but users can optionally add their own models, data sources and transforms, losses, metrics and optimizers. More detailed information about impleementing and including custom modules can be found on the [Create Modules](create_modules.md) page.
+
+Once Deeplodocus is executed, another directory will be generated to store any resultant model weight files, logs and training history from the current session. The name of this directory is controlled by the user through the [config/project.yaml](config.md#project) file. 
+
+```python
+deeplodocus_project
+    ├ config                  # Directory for config files
+    │    ├ transforms         # Directory for transformer files
+    │    ├ data.yaml
+    │    ├ history.yaml
+    │    ├ losses.yaml
+    │    ├ metrics.yaml
+    │    ├ optimzer.yaml
+    │    ├ project.yaml
+    │    ├ training.yaml
+    │    └ transform.yaml
+    ├ modules                 # Directory for custom-build modules
+    └ main.py                 # Python script for running Deeplodocus
+```
+
+# Running a Project
+
+Once the parameters in each of the configuration files have been set, the project is ready to be executed - simply run the main.py scripy with Python in the project directory. Upon running, Deeplodocus will load the project configurations and raise warnings if any settings are missing or invalid - these will be replaced by default values. You will then have access to the Deeplodocus terminal and, if you are satisfied that your project settings have been loaded sucessfully, you can begin to execute commands to activate your deep learning pipeline. A collection of the core Deeplodocus commands are detailed in the [Core Commands](getting_started.md#core-commands) section of this page.
+
+```bash
+$ python3 main.py
+```
+
+## Core Commands
+
+### Load
+
+```
+> load()
+```
+
+Upon running a Deeplodocus project the load command will typically be the first to be called, as it loads a series of key Deeplodocus modules. More information about the load command can be found on the [FrontalLobe section of the API](api.md#FrontalLobe) page.
 
 
-## `config`
+Modules that are initialized by the load command are:
 
-This folder contain all the configuration for your Deeplodocus project. It is this folder whose the relative path is given to the `main.py` as seen previously.
+- the model
+- the optimizer
+- the loss(es)
+- any metrics
+- the validator (if enabled)
+- the tester (if enabled)
+- the trainer (if enabled)
+- the predictor (if enabled)
+- memory (for handling history)
 
-We will describe the content of this folder later. However, if you want to have a detailed description of the configuration files withing the `config` folder, please check our [Config page](deeplodocus.org/master/en/config)
+### Train
 
-## `data`
+```
+> train()
+```
 
-The data folder is an empty folder.
-If dealing with small datasets, we recommend you to copy them into this folder.
+Once all the modules necessary for optimizing the model have been loaded, model training can initiated with the train command. More information about the training process can be found on the [Trainer section of the API page](api.md#trainer).
 
-## `modules`
+Note: 
 
-In Deeplodocus a module can be a transformation operation, a deep network, a loss function, a metric, etc.
-One particularity of Deeplodocus is the possibility to create and use your own custom modules. Once created, we recommend you to copy your module within the corresponding sub-folder into `modules`.
+- If a validator has been loaded, at the end of each training epoch the model will be evaluated over the validation dataset.
+- If memory has been loaded, training (and validation) history will be saved to the histroy folder within the session directory.
+- If any metrics have been loaded, they will be reported alongside loss values. 
 
+Modules that should be loaded before training are:
 
-For more information on the existing sub-folder of `modules`, please check our [Modules page](modules)
+- the model
+- the optimizer
+- the loss(es)
+- metric(s) (optional)
+- the validator (optional)
+- the trainer
+- memory
 
-## Using Deeplodocus on a HPC
+### Test
 
+```
+> test()
+```
 
-### Using without installing
+Once a model has been trained, the test command can be used to evaluate your model over any test datasets. More information about the test process can be found on the [Tester section of the API page](api.md#tester).
 
+Modules that should be loaded before testing are: 
 
-If you don't have admin right, so cannot install Deeplodocus on your machine, you can still use deeplodocus by downloading and running the source code. 
+- the model
+- the loss(es)
+- metric(s) (optional)
+- the tester (optional)
+- memory
 
-1. If you have git installed, simply run: 
+### Validate
 
-    ```text
-    git clone https://github.com/Deeplodocus/deeplodocus.git
-    ```
+```
+> validate()
+```
 
-    Otherwise, head over to the [Deeplodocus repository](https://github.com/Deeplodocus/deeplodocus) and click on `Clone or download`, `Download ZIP` and extract the contents to your prefered location. 
+Validation can be done whilst training, however to evaluate your model over the validation dataset seperately, use the validate command. The validator is identical to a tester module, so more information about the validation process can be found on the [Tester section of the API page](api.md#tester).
 
-2. Next, set the path to deeplodocus (Explanation to come!)
+Modules that should be loaded before validating include: 
 
-3. Finally, run:
+- the model
+- the loss(es)
+- metric(s) (optional)
+- the validator (optional)
+- memory
 
-    ```text
-    python3 deeplodocus/core/project/project_utility.py
-    ```
-    
-    which will create a blank Deeplodocus project in the `test/core` directory. 
+### Predict
 
-### On wake
-When using Deeplodocus on a HPC, you will likely not have access to the Deeplodocus terminal while your job is running.
-Therefore, you will have to use `on_wake` commands, what can be specified in `config/project.yaml`
+```
+> predict()
+```
 
-As the name suggests, on wake commands are run when Deeplodocus starts up thus, your on wake configurations for a simple training job may look like this:
+Prediction is a flexible pipeline for conducting experiments and simulating the deployment of a model. During the prediction, losses and metrics are ignored, and the pipeline terminates with output transforms. More information about the prediction process can be found on the [Predictor section of the API page](api.md#predictor).
 
-```yaml
-on_wake:
-  - load()
-  - train()
-  - sleep()
+Modules that should be loaded before predicting include: 
 
+- the model
+- the predictor

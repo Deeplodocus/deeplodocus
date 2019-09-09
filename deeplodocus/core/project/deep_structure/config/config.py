@@ -97,7 +97,7 @@ DEEP_CONFIG = {
         },
         "on_wake": {
             DEEP_CONFIG_DTYPE: [str],
-            DEEP_CONFIG_DEFAULT: []
+            DEEP_CONFIG_DEFAULT: None
         }
     },
     DEEP_CONFIG_MODEL: {

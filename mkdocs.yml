@@ -1,10 +1,12 @@
 site_name: Deeplodocus Documentation
-site_description: 'Documentation of Deeplodocus, Flexible and Modular Deep Learning Framework.'
+site_description: 'Documentation of Deeplodocus, Flexible and Modular Deep Learning Environment.'
 site_url: http://deeplodocus.org
 # google_analytics: ['UA-36723568-3', 'mkdocs.org']
 
 repo_url: http://github.com/Deeplodocus/deeplodocus
 edit_uri: http://github.com/Deeplodocus/deeplodocus
+
+
 
 theme:
     name: readthedocs
@@ -17,23 +19,17 @@ theme:
 docs_dir: 'docs'
 
 nav:
-    - Home: index.md
-    - GETTING STARTED:
-        - Installation: installation.md
-        - Getting Started: getting_started.md
-    - EXAMPLES:
-        - MNIST : examples/mnist.md
-        - CityScape : examples/cityscapes.md
-    - Admin Commands : admin_commands.md
-    - Brain : brain.md
-    - Configuration: config.md
-    - DATA:
-        - Datastore: datastore.md
-        - Entry : entry.md
-        - Source : source.md
-    - Models: models.md
-    - TRANSFORMS:
-        - Image : image_transforms.md
-        - Integer : int_transforms.md
-    - Tips and Tricks: tips&tricks.md
-    - About: about.md
+  - HOME: home.md
+  - GETTING STARTED: getting_started.md
+  - CONFIGURATION: config.md
+  - CREATING MODULES: create_modules.md
+  - EXISTING MODULES:
+    - Data Sources: existing_modules/data_sources.md
+    - Models: existing_modules/models.md
+    - Losses: existing_modules/losses.md
+    - Metrics: existing_modules/metrics.md
+    - Transforms: existing_modules/transforms.md
+    - Optimizers: existing_modules/optimizers.md
+  - API: api.md
+  - TUTORIALS: tutorials.md
+  - ABOUT: about.md

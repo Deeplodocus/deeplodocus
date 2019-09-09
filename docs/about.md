@@ -1,15 +1,23 @@
-# Cite us
+# Citing Deeplodocus
 
-We are currently working on the Deeplodocus paper. However, if you use Deeplodocus for your projects, feel free to cite us by using the following bibtex.
+If you use Deeplodocus for your projects, please feel free to cite us by using the following bibtex reference:
 
 ```text
-@article{leroywestlake2019deeplodocus, 
-title={Deeplodocus : The Framework keeping your head above water}, author={A. Leroy, S. Westlake and al.}, 
+@article{leroywestlake2019, 
+title={Deeplodocus: The Framework keeping your head above water}, author={A. Leroy, S. Westlake}, 
 year={2019}, 
 howpublished={\url{https://deeplodocus.org}} 
 }
 ```
 
-# Github repository
+# Deeplodocus Source code
 
-We use Github to maintain and contribute Deeplodocus. If you like the project join us on [GITHUB](https://github.com/Deeplodocus/deeplodocus) :)
+All of the Deeplodocus souce code can be found on our [GitHub Repository](https://github.com/Deeplodocus/deeplodocus).
+
+# Licence
+
+Deeplodocus is currently released under the [MIT licence](https://github.com/Deeplodocus/deeplodocus/blob/master/LICENSE).
+
+
+# FAQ
+
