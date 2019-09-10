@@ -1,122 +1,502 @@
-# Models
+# About Deeplodocus Configurations
 
-Deeplodocus comes packaged with some pre-defined neural network architectures:
-- LeNet
-- Darknet-53
-- Lenet
-- YOLOv3 
+The configurations detailed by files in the config directory are the core of any Deeplodocus project - these manage each of the different modules and how they interact. They are split into nine different files, each responsible for a different domain of the project, as follows:
 
-Use entries in the config/model.yaml file to specify the model you wish to load (see Config.md for more details).
+- [Project](config.md#project) - configure overarching project variables
+- [Data](config.md#data) - configure your datasets
+- [Model](config.md#model) - set up your model
+- [Losses](config.md#losses) -configure your loss functions.
+- [Metrics](config.md#metrics) - pconfigure any metric functions
+- [Transform](config.md#transform) - configure your transformation routines
+- [Optimizer](config.md#optimizer) - configure your optimizer
+- [Training](config.md#training) - set your training conditions
+- [History](config.md#history) - configurations for storing training and validation history
 
-Deeplodocus in-house models can be found in deeplodocus.app.models 
+On startup, each of the configuration files are loaded into a single variable named config and the datatype of each entry is checked. If any entries are missing or cannot be converted to the expected data type, they will be added/corrected with a default value and a warning will be issued to explain the change made.
 
+Config is a Namespace object, more details of which can be found in the [Namespace section of the API page](config.md#namespace). Users have direct acces to the config variable via Deeplodocus terminal, for example:
 
-## Darknet-53
+- The [summary](api.md#summary) method can be used to view config - `config.summary()`
+- A [snapshot](api.md#snapshot) of the config file can be taken - `config.snapshot()`
+- Sub-domains can be viewed individually - `config.project.summary()`
+- Variables can be edited - `config.training.num_epochs = 10`
 
-Original paper: https://pjreddie.com/media/files/papers/YOLOv3.pdf
+The following sections detail all of the expected entries for each configuration YAML file. 
 
-Python example: 
-~~~python
-Darknet53(num_channels=3, include_top=True, num_classes=80)
-~~~
+## Project
 
-Config example:
-~~~yaml
-name: Darknet53
-module: deeplodocus.app.models.darknet
+Overarching project variables are specified in the project.yaml file.
 
-# Default kwargs     
-kwargs:                                     
-  num_channels: 3
-  include_top: True
-  num_classes: 80
+```yaml
+# Example project.yaml file
+session: "version01"
+cv_library: "opencv"
+device: "auto"
+device_ids: "auto"
+logs:
+  history_train_batches: True
+  history_train_epochs: True
+  history_validation: True
+  notification: True
+on_wake: Null
+```
 
-~~~
+#### session
 
-- **num_channels:** (int) specify the number of channels in the input images.
+The name of the current Deeplodocus session. History, log and weight files will be saved to a directory named with the session variable. 
 
-- **include_top:** (bool) specify whether the network should be define with or without its fully-connected classifying layer.
+- **Data type:** str
+- **Default value:** "version01" 
 
-- **num_classes:** (int) [only used of include_top is True] specify the number of output classes at the output of the fully-connected classifier layer.
+#### cv_library
+	
+The computer vision library to use. 
 
-**NB**: Darknet53 does not require the specification of input height or width, (due to the use of global pooling after convolution).
-Inputs are downsampled by a factor of 32, therefore input height and width must each be a multiple of 32. 
+- **Data type:** str
+- **Default value:** "opencv" 
+- **Supported options:**
+	- For OpenCV use: "opencv"
+	- For PILLOW use: "pil" 
+	
+#### device
 
-## Darknet-19 (COMING SOON)
+The hardware device to use for executing forward and backward passes of the model.
 
-Original paper: https://pjreddie.com/media/files/papers/YOLOv3.pdf
+- **Data type:** str
+- **Default value:** "auto" 
+- **Supported options:**
+	- For CPU use: "cpu"
+	- For CUDA devices use: "cuda"
+	- "auto" will use CUDA devices if any are available, otherwise CPUs
 
-~~~python
-Darknet19(num_channels=3, include_top=True, num_classes=80)
-~~~
+#### device_ids
 
-Config Example: 
-~~~yaml
-name: Darknet19                             
-module: deeplodocus.app.models.darknet 
+ The index values of CUDA devices to use.
 
-# Default kwargs     
-kwargs:                                     
-  num_channels: 3
-  include_top: True
-  num_classes: 80
-~~~
+- **Data type:** [int]
+- **Default value:** "auto"
+- **Supported options:**
+	-  "auto" will use all avaialble CUDA devices
+	- [0, 1, ... n] will use CUDA devices which have index values in the given list
+	
+#### logs: history_train_batches
 
-- **num_channels:** (int) specify the number of channels in the input images.
+Whether or not training loss and metric values for each batch should be written to a history CSV file.
 
-- **include_top:** (bool) specify whether the network should be define with or without its fully-connected classifying layer.
+- **Data type:** bool
+- **Default value:** True
 
-- **num_classes:** (int) [only used of include_top is True] specify the number of output classes at the output of the fully-connected classifier layer.
+#### logs: history_train_epochs
 
-## YOLO v3 (COMING SOON)
+Whether or not training loss and metric values for each epoch should be written to a history CSV file.
 
-Original Paper: https://pjreddie.com/media/files/papers/YOLOv3.pdf
+- **Data type:** bool
+- **Default value:** True
 
-Python example:
-~~~python
-YOLOv3(
-    backbone={
-        name: "Darknet53",
-        module: "deeplodocus.app.models.darknet",
-        kwargs: {
-            num_channels: 3,
-            include_top: False}}, 
-    num_classes=80, 
-    skip_layers=(36, 61), 
-    num_anchors=3, 
-    image_shape=(256, 256))
-~~~
+#### logs: history_validation
 
-Config example: 
-~~~yaml
-name: YOLOv3
-module: deeplodocus.app.models.yolokwargs:
+Whether or not validation loss and metric values for each epoch should be written to a history CSV file.
 
-# Default kwargs:
-kwargs:
-  backbone:
-    name: Darknet53
-    module: deeplodocus.app.models.darknet 
-    kwargs: 
-      num_channels: 1
-      include_top: False
-  num_classes: 80
-  image_shape: [256, 256]
-~~~
+- **Data type:** bool
+- **Default value:** True
 
+#### logs: notification
 
-- **backbone:** (dict) specify the backbone architecture.
-    
-    - name: (str): Name of the PyTorch model (nn.Module)
-    
-    - module: (str): Location of the module
-    
-    - kwargs: (dict):
-    
-        - (These depend on which backbone you have specified)
+Whether or not all Deeplodocus notifications.
 
-- **include_top:** (bool) specify whether the network should be define with or without its fully-connected classifying layer.
+- **Data type:** bool
+- **Default value:** True
 
-- **num_classes:** (int) specify the number of unique object classes.
+#### on_wake
 
-- **image_shape:** (list of ints) specify the input shape of the image (width, height). 
+A list of commands to run on startup.
+
+- **Data type:** [str]
+- **Default value:** None
+
+## Data
+
+```yaml
+# Example data.yaml file
+TODO
+```
+
+## Model
+
+A single model can be specified in the model.yaml file.
+
+```yaml
+# Example model.yaml file
+name: "VGG16"
+module: "deeplodocus.app.models.vgg"
+from_file: False
+file: Null
+input_size: 
+  - [3, 244, 244]
+kwargs: Null
+```
+
+#### name
+
+The name of the model to use. 
+
+- **Data type:** str
+- **Default value:** VGG16
+
+#### module
+
+Path to the module that contains the chosen model. If no module is given, Deeplodocs will search through deeplodocus.app and existing PyTorch modules for classes and functions with names that match the one given. The first object found with the requested name will be loaded and the user will be informed of its origin through a notification.
+
+- **Data type:** str
+- **Default value:** None
+
+Note: More informaton about pre-built deeplodocus models can be found [here](existing_modules/models.md).
+
+#### from_file
+
+If 'from_file' is true the model will be loaded from existing a pre-trained model/weight file specified by 'file'. Otherwise, the model will be loaded from the given 'name' and 'module' only.
+
+- **Data type:** bool
+- **Default value:** False
+
+#### file
+
+If 'from_file' is True, the model will be loaded according to the path to a model/weights file specified by 'file'. If a weights file contains the module path and name of its model, Deeplodocus will automatically attempt to use that model, otherwise the name and module specified in model.yaml will be used as the model.
+
+- **Data type:** str
+- **Default value:** None
+
+#### input_size
+
+The shape of each input to the model. Models may have multiple inputs, thus this entry is list of lists. 'input_size' is not a obligatory entry, but is required to print summaries of the model.
+
+- **Data type:** [[int]]
+- **Default value:** None
+
+#### kwargs
+
+Any keyword arguments to be parsed to the model.
+
+- **Data type:** dict
+- **Default value:** None
+
+## Losses
+
+Any number of losses can be specified in losses.yaml. Give each loss a unique name, followed by a series of defining entries, as seen below. The unique name given will be used when displaying loss values and saving to training and validation history.
+
+```yaml
+# Example loss.yaml file
+LossName:
+  name: "CrossEntropyLoss"
+  module: Null
+  weight: 1
+  kwargs: Null
+  
+AnotherLossName:
+  name: "CrossEntropyLoss"
+  module: Null
+  weight: 1
+  kwargs: Null
+```
+
+#### name
+
+The name of the loss object to use. 
+
+- **Data type:** str
+- **Default value:** "CrossEntropyLoss"
+
+#### module
+
+Path to the module that contains the chosen loss. If no module is given, Deeplodocs will search through deeplodocus.app and existing PyTorch modules for loss functions with names that match the one given. The first object found with the requested name will be loaded and the user will be informed of its origin through a notification.
+
+- **Data type:** str
+- **Default value:** None
+
+Note: More informaton about existing PyTorch loss functions can be found [here](https://pytorch.org/docs/stable/nn.html#loss-functions), and some additional deeplodocus losses can be found [here](existing_modules/losses.md).
+
+#### weight
+
+The loss weight.
+
+- **Data type:** float
+- **Default value:** 1
+
+#### kwargs
+
+Any keyword arguments to be parsed to the loss.
+
+- **Data type:** dict
+- **Default value:** None
+
+## Metrics
+
+Any number of metrics can be specified in metrics.yaml. Give each metric a unique name, followed by a series of defining entries, as seen below. The unique name given will be used when displaying metric values and saving to training and validation history.
+
+```yaml
+# Example metrics.yaml file
+MetricName:
+  name: "accuracy"
+  module: Null
+  kwargs: Null
+  
+AnotherMetricName:
+  name: "accuracy"
+  module: Null
+  kwargs: Null
+```
+
+#### name
+
+The name of the metric object to use. 
+
+- **Data type:** str
+- **Default value:** "accuracy"
+
+#### module
+
+Path to the module that contains the chosen loss. If no module is given, Deeplodocs will search through deeplodocus.app and existing PyTorch modules for loss functions with names that match the one given. The first object found with the requested name will be loaded and the user will be informed of its origin through a notification.
+
+- **Data type:** str
+- **Default value:** None
+
+Note: More informaton about existing metrics that come with Deeplodocus can be found [here](existing_modules/metrics.md).
+
+#### kwargs
+
+Any keyword arguments to be parsed to the metric.
+
+- **Data type:** dict
+- **Default value:** None
+
+## Transform
+
+A series of input, label, additional data and output transformers can be specified in the transform.yaml file. More informaton about existing transforms can be found [here](existing_modules/transforms.md).
+
+```yaml
+# Example transform.yaml file
+train:
+  name: Train Transform Manager
+  inputs: Null
+  labels: Null
+  additional_data: Null
+  outputs: Null
+validation:
+  name: Validation Transform Manager
+  inputs: Null
+  labels: Null
+  additional_data: Null
+  outputs: Null
+test:
+  name: Test Transform Manager
+  inputs: Null
+  labels: Null
+  additional_data: Null
+  outputs: Null
+predict:
+  name: Prediction Transform Manager
+  inputs: Null
+  labels: Null
+  additional_data: Null
+  outputs: Null
+```
+
+#### train: name
+
+A name transform manager dedicated to the training pipeline.
+
+- **Data type:** str
+- **Default value:** Train Transform Manager
+
+#### validation: name
+
+A name transform manager dedicated to the validation pipeline.
+
+- **Data type:** str
+- **Default value:** Validation Transform Manager
+
+#### test: name
+
+A name transform manager dedicated to the testing pipeline.
+
+- **Data type:** str
+- **Default value:** Test Transform Manager
+
+#### predict: name
+
+A name transform manager dedicated to the prediction pipeline.
+
+- **Data type:** str
+- **Default value:** Prediction Transform Manager
+
+#### inputs
+
+For each of the train, test, validation and predict pipelines, you can specify a path to a transformer YAML file for each of the model inputs. 
+
+- **Data type:** [str]
+- **Default value:** Null
+
+#### labels
+
+- **Data type:** [str]
+- **Default value:** Null
+
+For each of the train, test, validation and predict pipelines, you can specify a path to a transformer YAML file for each of the model labels. 
+
+#### additional_data
+
+- **Data type:** [str]
+- **Default value:** Null
+
+For each of the train, test, validation and predict pipelines, you can specify a path to a transformer YAML file for each of the model additional.
+
+#### outputs
+
+For each of the train, test, validation and predict pipelines, you can specify a path to a transformer YAML file for each of the model output. 
+
+- **Data type:** [str]
+- **Default value:** Null
+
+## Optimizer
+
+A single optimizer for the model should be specified in optimizer.yaml.
+
+```yaml
+# Example optimizer.yaml file
+name: Adam
+module: Null
+kwargs: Null
+```
+
+#### name
+
+The name of the optimizer to use. 
+
+- **Data type:** str
+- **Default value:** "Adam"
+
+#### module
+
+Path to the module that contains the chosen loss. If no module is given, Deeplodocs will search through deeplodocus.app and existing PyTorch modules for loss functions with names that match the one given. The first object found with the requested name will be loaded and the user will be informed of its origin through a notification.
+
+- **Data type:** str
+- **Default value:** None
+
+Note: More informaton about existing PyTorch optimizers can be found [here](https://pytorch.org/docs/stable/optim.html#algorithms).
+
+#### kwargs
+
+Any keyword arguments to be parsed to the optimizer.
+
+- **Data type:** dict
+- **Default value:** None
+
+## Training
+
+```yaml
+# Example training.yaml file
+num_epochs: 10
+initial_epoch: 0
+shuffle: "default"
+saver:
+  method: "pytorch"
+  save_signal: "auto"
+  overwrite: False
+overwatch:
+  name: "Total Loss"
+  condition: "less"
+```
+#### num_epochs
+
+The epoch number to train to.
+
+- **Data type:** int
+- **Default value:** 10
+
+#### initial_epoch
+
+The number of the initial epoch.
+
+- **Data type:** int
+- **Default value:** 0
+
+#### shuffle
+
+How the training dataset should be shuffled.
+
+- **Data type:** str
+- **Default value:** "default"
+- **Supported options:** 
+	- "none" - no shuffling
+	- "all" / "default" - all instances are shuffled at the start of each epoch.
+	- "batches" - instances remain in the same batch, and the order of the batches is shuffled.
+	- "pick" - instances are randomly selected from the dataset.
+	
+Note: Use "pick" when wanting to shuffle a dataset whilst simultaneously restricting the size of the dataset through the number entry in the data.yaml file.
+
+#### saver: method
+
+The format to save the the model as.
+
+- **Data type:** str
+- **Default value:** "pytorch"
+- **Supported options:** 
+	- "pytorch" - currenty the only supported option is saving as a pytorch weights file.
+
+#### saver: save_signal
+
+How regularly a signal to save the model weights should be dispatched. 
+
+- **Data type:** str
+- **Default value:** "auto"
+- **Supported options:** 
+	- "auto" - the model will be saved at the end of each epoch if the overwatch condition is met.
+	- "batch" - the model will be saved at the end of each batch.
+	- "epoch" - the model will be saved at the end of each epoch.
+
+#### saver: overwrite
+
+Whether or not the model weights should be overwritten on each save signal.
+
+- **Data type:** bool
+- **Default value:** False
+
+#### overwatch: name
+
+The name of the overwatch metric to watch. This can be the name of any loss or metric in use, or set to "Total Loss" to watch the weighted sum of all losses.
+
+- **Data type:** str
+- **Default value:** "Total Loss"
+
+#### overwatch: condition
+
+The condition for comparing previous overwatch metric values with the current value.
+
+- **Data type:** str
+- **Default value:** "less"
+- **Supported options:** 
+	- "<", "smaller", "less" - The current overwatch metric must be lower than the previous lowest.
+	- ">", "bigger", "greater", "more" - The current overwatch metric must be greater than the previous greatest.
+
+## History
+
+```yaml
+# Example history.yaml file
+verbose: "default"
+memorize: "batch"
+```
+
+#### verbose
+
+TODO: description
+
+- **Data type:** str
+- **Default value:** "default"
+
+#### memorize
+
+TODO: description
+
+- **Data type:** str
+- **Default value:** "batch"
+
