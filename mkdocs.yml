@@ -6,6 +6,8 @@ site_url: http://deeplodocus.org
 repo_url: http://github.com/Deeplodocus/deeplodocus
 edit_uri: http://github.com/Deeplodocus/deeplodocus
 
+
+
 theme:
     name: readthedocs
     highlightjs: true
@@ -17,30 +19,17 @@ theme:
 docs_dir: 'docs'
 
 nav:
-    - Home: home.md
-    - Getting Started: getting_started.md
-    #- Tutorials:
-    #- API:
-    #- Examples:
-
-
-    #- Home: index.md
-    #- Getting Started:
-    #    - Installation: installation.md
-    #    - Getting Started: getting_started.md
-    #- Examples:
-    #    - MNIST : examples/mnist.md
-    #    - CityScape : examples/cityscapes.md
-    #- Admin Commands : admin_commands.md
-    #- Brain : brain.md
-    #- Configuration: config.md
-    #- Data:
-    #    - Datastore: datastore.md
-    #    - Entry : entry.md
-    #    - Source : source.md
-    #- Models: models.md
-    #- Transforms:
-    #    - Image : image_transforms.md
-    #    - Integer : int_transforms.md
-    #- Tips and Tricks: tips&tricks.md
-    #- About: about.md
+  - HOME: home.md
+  - GETTING STARTED: getting_started.md
+  - CONFIGURATION: config.md
+  - CREATING MODULES: create_modules.md
+  - EXISTING MODULES:
+    - Data Sources: existing_modules/data_sources.md
+    - Models: existing_modules/models.md
+    - Losses: existing_modules/losses.md
+    - Metrics: existing_modules/metrics.md
+    - Transforms: existing_modules/transforms.md
+    - Optimizers: existing_modules/optimizers.md
+  - API: api.md
+  - TUTORIALS: tutorials.md
+  - ABOUT: about.md
