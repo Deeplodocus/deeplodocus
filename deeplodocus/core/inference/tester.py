@@ -178,7 +178,7 @@ class Tester(GenericEvaluator):
         """
         self.metrics = metrics
 
-    def set_losses(self, losses:dict):
+    def set_losses(self, losses: dict):
         """
         AUTHORS:
         --------

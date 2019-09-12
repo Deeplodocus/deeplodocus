@@ -1,20 +1,24 @@
-
-
 # Python import
-import numpy as np
 from typing import List
-from typing import Union
+from typing import Optional
 from typing import Any
-import random
+from typing import Tuple
+from typing import Union
 import weakref
+import numpy as np
+import random
 
 # Deeplodocus imports
-from deeplodocus.data.load.entry import Entry
-from deeplodocus.utils.generic_utils import get_corresponding_flag
+from deeplodocus.data.load.data_entry import Entry
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.namespace import Namespace
+from deeplodocus.data.load.source_pointer import SourcePointer
+from deeplodocus.data.load.pipeline_entry import PipelineEntry
+from deeplodocus.data.transform.transform_manager import TransformManager
+from deeplodocus.utils.generic_utils import get_corresponding_flag
 
+# Deeplodocus flags
 from deeplodocus.flags import *
+from deeplodocus.flags.flag_lists import DEEP_LIST_ENTRY
 
 
 class Dataset(object):
@@ -23,82 +27,47 @@ class Dataset(object):
     --------
 
     :author : Alix Leroy
-    :author: Samuel Westlake
-
 
     DESCRIPTION:
     ------------
 
-    A Dataset class to manage the data given by the config files.
-    The following class permits :
-        - Data checking
-        - Smart data loading
-        - Data formatting
-        - Data transform (through the TransformManager class)
 
-
-    The dataset is split into 3 subsets :
-        - Inputs : Data given as input to the network
-        - Labels : Data given as output (ground truth) to the network (optional)
-        - Additional data : Data given to the loss function (optional)
-
-    The dataset class supports 2 different image processing libraries :
-        - PILLOW (fork of PIL) as default
-        - OpenCV (usage recommended for efficiency)
     """
 
     def __init__(self,
-                 inputs=None,
-                 labels=None,
-                 additional_data=None,
-                 number=None,
-                 name="Default",
-                 use_raw_data=True,
-                 cv_library: Flag = DEEP_LIB_PIL,
-                 transform_manager=None):
-        """
-        AUTHORS:
-        --------
+                 name: str,
+                 entries: List[dict],
+                 num_instances: int,
+                 transform_manager: Optional[TransformManager],
+                 use_raw_data: bool = True,
+                 ):
 
-        author: Alix Leroy
-        author:
-
-        DESCRIPTION:
-        ---------
-
-        Initialize the dataset
-
-        PARAMETERS:
-        -----------
-
-        :param inputs: A list of input files/folders/list of files/folders
-        :param labels: A list of label files/folders/list of files/folders
-        :param additional_data: A list of additional data files/folders/list of files/folders
-        :param use_raw_data: Boolean : Whether to feed the network with raw data or always apply transforms on it
-        :param transform_manager: A TransformManager instance
-        :param name: Name of the dataset
-
-        RETURN:
-        -------
-
-        :return: None
-        """
+        # Name of the Dataset
         self.name = name
-        self.list_inputs = self.__generate_entries(entries=self.__check_null_entry(inputs),
-                                                   entry_type=DEEP_ENTRY_INPUT)
-        self.list_labels = self.__generate_entries(entries=self.__check_null_entry(labels),
-                                                   entry_type=DEEP_ENTRY_LABEL)
-        self.list_additional_data = self.__generate_entries(entries=self.__check_null_entry(additional_data),
-                                                            entry_type=DEEP_ENTRY_ADDITIONAL_DATA)
+
+        # List containing the Entry instances
+        self.entries = list()
+        self.__generate_entries(entries=entries)
+
+        # List containing the PipelineEntry instances
+        self.pipeline_entries = list()
+        self.__generate_pipeline_entries(entries=entries)
+
+        # Number of raw instances
         self.number_raw_instances = self.__calculate_number_raw_instances()
-        self.length = self.__compute_length(desired_length=number,
+
+        # Length of the Dataset
+        self.length = self.__compute_length(desired_length=num_instances,
                                             num_raw_instances=self.number_raw_instances)
-        self.transform_manager = transform_manager
-        self.use_raw_data = use_raw_data
-        self.warning_video = None
-        self.cv_library = None
-        self.set_cv_library(cv_library)
+
+        # List of items indices
         self.item_order = np.arange(self.length)
+
+        # Whether we want to use raw data or only transformed data
+        self.use_raw_data = use_raw_data
+
+        # TransformManager
+        self.transform_manager = transform_manager
 
     def __getitem__(self, index: int):
         """
@@ -110,75 +79,61 @@ class Dataset(object):
         DESCRIPTION:
         ------------
 
-        Get the selected item
-        The item is selected accordingly to the required function
+        Get the item with the corresponding index
+        Make sure to load data from Entry instances which do not call SourcePointer instances:
+        1) Get a temporary list of Entry instances
+            - Reordered list of Entry instances, the Entry instances calling SourcePointer instances are at the end of the list
+        2) Get the data from the reordered Entry instances and set them to the right location into the returning list
 
         PARAMETERS:
         -----------
 
-        :param index:
+        :param index (int): Index of the desired instance
 
         RETURN:
         -------
 
-        :return instance: Loaded and possibly transformed instance to be given to the training
+        :return item(List[Any]): The list of items at the desired index in each Entry instance
         """
 
-        # If the index given is too big => Error
-        if index >= self.length:
-            Notification(DEEP_NOTIF_FATAL, "The given instance index is too high : " + str(index))
-        # Else we get the random generated index
-        else:
-            index = self.item_order[index]
+        # If the dataset is not unlimited
+        if self.length is not None:
+            # If the index given is too big => Error
+            if index >= self.length:
+                Notification(DEEP_NOTIF_FATAL, "The requested instance is too big compared to the size of the Dataset : " + str(index))
+            # Else we get the random generated index
+            else:
+                index = self.item_order[index]
 
-        # If we ask for a not existing index we use the modulo and consider the data to have to be augmented
-        if index >= self.number_raw_instances:
+            # If we ask for a not existing index we use the modulo and consider the data to have to be augmented
+            if index >= self.number_raw_instances:
+                augment = True
+            # If we ask for a raw data, augment it only if required by the user
+            else:
+                augment = not self.use_raw_data
+        else:
+            index = 0
             augment = True
-        # If we ask for a raw data, augment it only if required by the user
-        else:
-            augment = not self.use_raw_data
 
-        # Extract lists of raw data for the selected index
-        labels = []
-        additional_data = []
-        if not self.list_labels:
-            if not self.list_additional_data:
-                inputs = self.__load(entries=self.list_inputs,
-                                     index=index,
+        # Load items
+        items, are_transformed = self.__load_from_entries(index)
+
+        # Transform items
+        if self.transform_manager is not None:
+            items = self.__transform(index=index,
+                                     items=items,
+                                     are_transformed=are_transformed,
                                      augment=augment)
-            else:
-                inputs = self.__load(entries=self.list_inputs,
-                                     index=index,
-                                     augment=augment)
-                additional_data = self.__load(entries=self.list_additional_data,
-                                              index=index,
-                                              augment=augment)
-        else:
-            if not self.list_additional_data:
-                inputs = self.__load(entries=self.list_inputs,
-                                     index=index,
-                                     augment=augment)
-                labels = self.__load(entries=self.list_labels,
-                                     index=index,
-                                     augment=augment)
-            else:
-                inputs = self.__load(entries=self.list_inputs,
-                                     index=index,
-                                     augment=augment)
-                labels = self.__load(entries=self.list_labels,
-                                     index=index,
-                                     augment=augment)
-                additional_data = self.__load(entries=self.list_additional_data,
-                                              index=index,
-                                              augment=augment)
+
+        # Format
+        items = self.__format(items)
+
+        # Get Inputs, Labels, Additional Data
+        inputs, labels, additional_data = self.__split_data_by_entry_type(items)
+
         return inputs, labels, additional_data
 
-    """
-    "
-    " LENGTH
-    "
-    """
-    def __len__(self) -> int:
+    def __len__(self):
         """
         AUTHORS:
         --------
@@ -188,7 +143,7 @@ class Dataset(object):
         DESCRIPTION:
         ------------
 
-        Get the length of the data set
+        Get the number of instances in the Dataset
 
         PARAMETERS:
         -----------
@@ -198,717 +153,9 @@ class Dataset(object):
         RETURN:
         -------
 
-        :return (int): The length of the data set
+        :return self.num_instances (Union[int, None]): The number of instances within the Dataset (None is unlimited Entry)
         """
-
         return self.length
-
-    @staticmethod
-    def __compute_length(desired_length: int, num_raw_instances: int) -> int:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-
-        Calculate the length of the dataset
-
-        PARAMETERS:
-        -----------
-
-        :param desired_length(int): The desired number of instances
-        :param num_raw_instances(int): The actual number of instance in the sources
-
-        RETURN:
-        -------
-
-        :return (int): The length of the dataset
-        """
-
-        if desired_length is None:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_NO_LENGTH % num_raw_instances)
-            return num_raw_instances
-        else:
-            if desired_length > num_raw_instances:
-                Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_GREATER % (desired_length, num_raw_instances))
-                return desired_length
-            elif desired_length < num_raw_instances:
-                Notification(DEEP_NOTIF_WARNING, DEEP_MSG_DATA_SHORTER % (num_raw_instances, desired_length))
-                return desired_length
-            else:
-                Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_LENGTH % num_raw_instances)
-                return desired_length
-
-    def __calculate_number_raw_instances(self) -> int:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Calculate the theoretical number of instances in each epoch
-        The first given file/folder stands as the frame to count
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return num_raw_instances (int): theoretical number of instances in each epoch
-        """
-        # Calculate for the first entry
-        try:
-            num_raw_instances = self.list_inputs[0].__len__()
-        except IndexError as e:
-            Notification(
-                DEEP_NOTIF_FATAL,
-                "IndexError : %s : %s" % (str(e), DEEP_MSG_DATA_INDEX_ERROR % self.name),
-                solutions=[
-                    DEEP_MSG_DATA_INDEX_ERROR_SOLUTION_1 % self.name,
-                    DEEP_MSG_DATA_INDEX_ERROR_SOLUTION_2 % self.name
-                ]
-            )
-
-        # Gather all the entries in one list
-        entries = self.list_inputs + self.list_labels + self.list_additional_data
-
-        # For each entry check if the number of raw instances is the same as the first input
-        for index, entry in enumerate(entries):
-            n = entry.__len__()
-
-            if n != num_raw_instances:
-                Notification(DEEP_NOTIF_FATAL, "Number of instances in " + str(self.list_inputs[0].get_entry_type()) +
-                             "-" + str(self.list_inputs[0].get_entry_index()) + " and " + str(entry.get_entry_type()) +
-                             "-" + str(entry.get_entry_index()) + " do not match.")
-        return num_raw_instances
-
-    def __load(self, entries: List[Entry], index: int, augment: bool) -> List[Any]:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Load one instance of the dataset into memory
-
-        PARAMETERS:
-        -----------
-
-        :param entries(List[Entry]): The list of entries to load the instance from
-        :param index(int): The index of the instance
-        :param augment(bool): Whether to augment the data or not
-
-        RETURN:
-        -------
-
-        :return data(List[Any]): The loaded and transformed data
-        """
-        data = []
-
-        # Get the index of the original instance (before transformation)
-        index_raw_instance = index % self.number_raw_instances
-
-        # Gather the item of each entry
-        for entry in entries:
-
-            entry_data, is_loaded, is_transformed = entry.__getitem__(index=index_raw_instance)
-
-            # LOAD THE ITEM
-            if is_loaded is False:
-                entry_data = self.__load_data_from_str(data=entry_data,
-                                                       entry=entry)
-
-            # TRANSFORM THE ITEM
-            if is_transformed is False:
-                entry_data = self.__transform_data(data=entry_data,
-                                                   entry=entry,
-                                                   index=index,
-                                                   augment=augment)
-
-            entry_data = self.__format_data(entry_data, entry)
-            data.append(entry_data)
-
-        # If the entry is an input and is single element list we return it as a list so it can be correctly unpacked in the trainer
-        if DEEP_ENTRY_INPUT.corresponds(info=entries[0].get_entry_type()) and len(data) == 1:
-            return [data]
-        else:
-            return data
-
-    def __format_data(self, data_entry, entry):
-        """
-        AUTHORS:
-        --------
-
-        :author: Samuel Westlake
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Method to format data to pytorch conventions.
-        Images are converted from (w, h, ch) to (ch, h, w)
-        Videos are ...
-
-        PARAMETERS:
-        -----------
-
-        :param data_entry: the data instance
-        :param entry: the data entry flag
-
-        RETURN:
-        -------
-
-        :return: the formatted data entry
-        """
-
-        # If we have to format a list of items
-        if isinstance(data_entry, list):
-            formated_data = []
-
-            for d in data_entry:
-
-                fd = self.__format_data(d, entry)
-                formated_data.append(fd)
-            data_entry = formated_data
-
-
-        # Else it is a unique item
-        else:
-
-            if entry.load_as is not None:
-                data_entry = data_entry.astype(entry.load_as.names[0])
-
-            # Move the axes
-            if entry.move_axes is not None:
-                data_entry = self.__move_axes(data_entry, entry.move_axes)
-
-            #
-            # KEEP THE FOLLOWING LINES WHILE THE DATA FORMATTING IS BEING ON TEST
-            #
-
-            # if DEEP_DTYPE_IMAGE.corresponds(entry.data_type):
-            #     # Check if no transform return a grayscale image as a 2D image
-            #     if data_entry.ndim <= 2:
-            #         data_entry = data_entry[:, :, np.newaxis]
-            #
-            #     # Make image (ch, h, w)
-            #     data_entry = np.swapaxes(data_entry, 0, 2)
-            #     data_entry = np.swapaxes(data_entry, 1, 2)
-            #
-            #     data_entry = data_entry.astype(np.float32)
-
-        return data_entry
-
-    def __move_axes(self, data, move_axes) -> np.array:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Move axes of the data
-
-        PARAMETERS:
-        -----------
-
-        :param data (np.array): The data needing a axis swap
-        :param move_axes(List[int]): The new axes order
-
-        RETURN:
-        -------
-
-        :return data (np.array): The data with teh axes swapped
-        """
-
-        return np.transpose(data, move_axes)
-
-    def __generate_entries(self, entries: List[Namespace], entry_type: Flag) -> List[Entry]:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Generate a list of Entry instances
-
-        PARAMETERS:
-        -----------
-
-        :param entries (List[Namespace]): The list of raw entries in a Namespace format
-        :param entry_type (Flag): The flag of the entry type
-
-        RETURN:
-        -------
-
-        :return generated_entries (List(Entry)): The list of Entry instances generated
-        """
-        # Create a weakref to the dataset
-        ref = weakref.ref(self)
-
-        # List of generated entries to an Entry class format
-        generated_entries = []
-
-        # For each entry in a Namespace format
-        for index, entry in enumerate(entries):
-
-            # Check the completeness of the entry
-            entry = self.__check_entry_completeness(entry)
-            # Create the Entry instance
-            new_entry = Entry(sources=entry.source,
-                              join=entry.join,
-                              data_type=entry.type,
-                              load_method=entry.load_method,
-                              entry_index=index,
-                              entry_type=entry_type,
-                              dataset=ref,
-                              load_as=entry.load_as,
-                              move_axes=entry.move_axes)
-            generated_entries.append(new_entry)
-        return generated_entries
-
-    @staticmethod
-    def __check_entry_completeness(entry: Namespace) -> Namespace:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Check if the dictionary formatted entry is complete.
-        If not complete, fill the dictionary with default value
-
-        PARAMETERS:
-        -----------
-
-        :param entry (Namespace): The entry to check the completeness
-
-        RETURN:
-        -------
-
-        :return entry (Namespace): The completed entry
-
-        RAISE:
-        ------
-
-        :raise DeepError: Raised if the path is not given
-        """
-
-        # SOURCE
-        if entry.check("source", None) is False:
-            Notification(
-                DEEP_NOTIF_FATAL,
-                "The source was not specified to the following entry : %s" % str(entry.get())
-            )
-
-        # JOIN PATH
-        if entry.check("join", None) is False:
-            entry.add({"join": None}, None)
-
-        # LOADING METHOD
-        if entry.check("load_method", None) is False:
-            entry.add({"load_method": "online"})
-
-        # DATA TYPE
-        if entry.check("type", None) is False:
-            entry.add({"type": None})
-
-        return entry
-
-    def __load_data_from_str(self, data: Union[str, List[str], Any], entry: Entry) -> Union[Any, List[Any]]:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Load a data from a string format to the actual content
-        Loads either one item or a list of items
-
-        PARAMETERS:
-        -----------
-
-        :param data(Union[str, List[str]]): The data to transform
-        :param entry (Entry): The entry to which the item is attached
-
-        RETURN:
-        -------
-
-        :return loaded_data(Union[Any, List[Any]]): The loaded data
-        """
-
-        loaded_data = None
-
-        # Get data type index (only use the index for efficiency in the loop)
-        data_type = entry.get_data_type()
-
-        # Make sure the data contains something
-        if data is not None:
-
-            # SEQUENCE
-            if isinstance(data, list):
-                # If data is a sequence we use the function in a recursive fashion
-                loaded_data = []
-                for d in data:
-                    ld = self.__load_data_from_str(data=d,
-                                                   entry=entry)
-                    loaded_data.append(ld)
-
-            # IMAGE
-            elif DEEP_DTYPE_IMAGE.corresponds(data_type):
-                # Load image
-                loaded_data = self.__load_image(data)
-
-            # VIDEO
-            elif DEEP_DTYPE_VIDEO.corresponds(data_type):
-                loaded_data = self.__load_video(data)
-
-            # INTEGER
-            elif DEEP_DTYPE_INTEGER.corresponds(data_type):
-                loaded_data = int(data)
-
-            # FLOAT NUMBER
-            elif DEEP_DTYPE_FLOAT.corresponds(data_type):
-                loaded_data = float(data)
-
-            elif DEEP_DTYPE_STRING.corresponds(data_type):
-                loaded_data = str(data)
-
-            # NUMPY ARRAY
-            elif DEEP_DTYPE_NP_ARRAY.corresponds(data_type):
-                loaded_data = np.load(data)
-
-            # Data type not recognized
-            else:
-
-                Notification(DEEP_NOTIF_FATAL,
-                             "The following data could not be loaded because its type is not recognized : %s.\n"
-                             "Please check the documentation online to see the supported types" % data)
-        # If the data is None
-        else:
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_IS_NONE % data)
-
-        return loaded_data
-
-    def __transform_data(self, data: Union[Any, List[Any]], index: int, entry: Entry, augment: bool) \
-            -> Union[Any, List[Any]]:
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Transform the data
-        Transform either one item or a list of item
-
-        PARAMETERS:
-        -----------
-
-        :param data(Union[Any, List[Any]]): The data to transform
-        :param index (int): The index of the instance
-        :param entry (Entry): The entry to which the item is attached
-
-        RETURN:
-        -------
-
-        :return transformed_data(Union[Any, List[Any]]): The transformed data
-        """
-
-        # If we want to transform a sequence we use the function recursively
-        if isinstance(data, list):
-            transformed_data = []
-
-            for d in data:
-                td = self.__transform_data(data=d,
-                                           index=index,
-                                           entry=entry,
-                                           augment=augment)
-                transformed_data.append(td)
-
-        # If it is only one item to transform
-        else:
-            transformed_data = self.transform_manager.transform(data=data,
-                                                                index=index,
-                                                                entry=entry,
-                                                                augment=augment)
-
-        return transformed_data
-
-    """
-    "
-    " DATA LOADERS
-    "
-    """
-
-    def __load_image(self, image_path: str):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Load the image in the image_path
-
-        PARAMETERS:
-        -----------
-
-        :param image_path(str): The path of the image to load
-
-        RETURN:
-        -------
-
-        :return: The loaded image
-        """
-        if self.cv_library() == DEEP_LIB_OPENCV():
-            image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
-        elif self.cv_library() == DEEP_LIB_PIL():
-            image = np.array(Image.open(image_path))
-        else:
-            # Notify the user of invalid cv library
-            image = None
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_CV_LIBRARY_NOT_IMPLEMENTED % self.cv_library.name)
-
-        # Notify the user that the image failed to load
-        if image is None:
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_CANNOT_LOAD_IMAGE % (self.cv_library.name, image_path))
-
-        # If image is not gray-scale, convert to rgba, else add extra channel
-        if image.ndim > 2:
-            image = self.__convert_bgra2rgba(image)
-        else:
-            image = image[:, :, np.newaxis]
-
-        return image
-
-    @staticmethod
-    def __convert_bgra2rgba(image):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Convert BGR(alpha) image to RGB(alpha) image
-
-        PARAMETERS:
-        -----------
-
-        :param image: image to convert
-
-        RETURN:
-        -------
-
-        :return: a RGB(alpha) image
-        """
-
-        # Get the number of channels in the image
-        _, _, channels = image.shape
-
-        # Handle BGR and BGR(A) images
-        if channels == 3:
-            image = image[:, :, (2, 1, 0)]
-        elif channels == 4:
-            image = image[:, :, (2, 1, 0, 3)]
-        return image
-
-    def __load_video(self, video_path: str):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-        Load a video
-
-        PARAMETERS:
-        -----------
-
-        :param video_path->str: absolute path to a video
-
-        RETURN:
-        -------
-
-        :return: a list of frame from the video
-        """
-        self.__throw_warning_video()
-        video = []
-        # If the computer vision library selected is OpenCV
-        if self.cv_library() == DEEP_LIB_OPENCV():
-            # try to load the file
-            cap = cv2.VideoCapture(video_path)
-            while True:
-                _, frame = cap.read()
-                if frame is None:
-                    break
-                video.append(self.__convert_bgra2rgba(frame))
-            cap.release()
-        else:
-            Notification(DEEP_NOTIF_FATAL,
-                         "The video could not be loaded because OpenCV is not selected as the Computer Vision library")
-        return video
-
-    def __throw_warning_video(self):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Warn the user of the unstable video mode.
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return: None
-        """
-        if self.warning_video is None:
-            Notification(DEEP_NOTIF_WARNING, "The video mode is not fully supported. "
-                                             "We deeply suggest you to use sequences of images.")
-            self.warning_video = 1
-
-    def set_cv_library(self, cv_library: Flag) -> None:
-        """
-         AUTHORS:
-         --------
-
-         :author: Samuel Westlake
-         :author: Alix Leroy
-
-         DESCRIPTION:
-         ------------
-
-         Set self.cv_library to the given value and import the corresponding cv library
-
-         PARAMETERS:
-         -----------
-
-         :param cv_library: (Flag): The flag of the computer vision library selected
-
-         RETURN:
-         -------
-
-         None
-         """
-        self.cv_library = get_corresponding_flag(flag_list=DEEP_LIST_CV_LIB, info=cv_library)
-        self.__import_cv_library(cv_library=cv_library)
-
-    @staticmethod
-    def __import_cv_library(cv_library : Flag) -> None:
-        """
-        AUTHORS:
-        --------
-
-        :author: Samuel Westlake
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Imports either cv2 or PIL.Image dependant on the value of cv_library
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        None
-        """
-        if DEEP_LIB_OPENCV.corresponds(info=cv_library):
-            try:
-                # Notification(DEEP_NOTIF_INFO, DEEP_MSG_CV_LIBRARY_SET % "OPENCV")
-                global cv2
-                import cv2
-            except ImportError as e:
-                Notification(DEEP_NOTIF_ERROR, str(e))
-        elif DEEP_LIB_PIL.corresponds(info=cv_library):
-            try:
-                # Notification(DEEP_NOTIF_INFO, DEEP_MSG_CV_LIBRARY_SET % "PILLOW")
-                global Image
-                from PIL import Image
-            except ImportError as e:
-                Notification(DEEP_NOTIF_ERROR, str(e))
-        else:
-            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_CV_LIBRARY_NOT_IMPLEMENTED % cv_library)
-
-    @staticmethod
-    def __check_null_entry(entry):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Check if an entry is Null
-
-        PARAMETERS:
-        -----------
-
-        :param entry: The entry to check
-
-        RETURN:
-        -------
-
-        :return ->list: The formatted entry
-        """
-
-        try:
-            if entry is None:
-                return []
-            elif entry[0] is None:
-                return []
-            else:
-                return entry
-        except IndexError:
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_ENTRY % entry)
 
     def shuffle(self, method: Flag) -> None:
         """
@@ -979,13 +226,36 @@ class Dataset(object):
         if self.transform_manager is not None:
             self.transform_manager.reset()
 
-    """
-    "
-    " GETTERS
-    "
-    """
+    def __load_from_entries(self, index):
 
-    def get_name(self):
+        # Initialize an empty list of N items (N = number of entries) for storing the items
+        items = [None for _ in range(len(self.entries))]
+
+        # Initialize an empty list of N items (N = number of entries) for storing if items are transformed
+        are_transformed = [False for _ in range(len(self.entries))]
+
+        # Get a temporary order of Entry instances in order to get the item from SourcePointer after normal Source instances
+        temp_order = self.__generate_temporary_entries_order(index=index)
+
+        # For each entry, get the data
+        for i in range(len(self.entries)):
+
+            # Get the temporary index
+            temp_index = temp_order[i]
+
+            # Get entry of the temporary index
+            entry = self.entries[temp_index]
+
+            # Get instance
+            instance, is_transformed = entry.__getitem__(index)
+
+            # Add instance to the list at the right location
+            items[temp_index] = instance
+            are_transformed[temp_index] = is_transformed
+
+        return items, are_transformed
+
+    def __transform(self, index: int, items: List[Any], are_transformed: List[bool], augment: bool):
         """
         AUTHORS:
         --------
@@ -995,7 +265,349 @@ class Dataset(object):
         DESCRIPTION:
         ------------
 
-        Get the name of the dataset
+        Format the data
+
+        PARAMETERS:
+        -----------
+
+        :param index (int): The index of the instance
+        :param items (List[Any]): The data to transform
+        :param are_transformed (List[bool]): Whether the instances were transformed (1 item per Entry)
+        :param augment (bool): Whether we should perform a transformation to the item
+
+        RETURN:
+        -------
+
+        :return items (Any): The transformed data
+        """
+        # For each item check if they have to be transformed
+        for i, item in enumerate(items):
+
+            # If not transformed => Call the TransformManager
+            if are_transformed[i] is False:
+                items[i] = self.transform_manager.transform(data=item,
+                                                            entry=self.pipeline_entries[i],
+                                                            index=index,
+                                                            augment=augment)
+        return items
+
+    def __format(self, items: List[Any]) -> List[Any]:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Format the data
+
+        PARAMETERS:
+        -----------
+
+        :param items (Any): The data to format
+
+        RETURN:
+        -------
+
+        :return items (Any): The formatted data
+        """
+        for i, pipeline_entry in enumerate(self.pipeline_entries):
+            items[i] = pipeline_entry.format(items[i])
+
+        return items
+
+    def __split_data_by_entry_type(self, items: List[Any]) -> Tuple[List[Any], List[Any], List[Any]]:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Format the data
+
+        PARAMETERS:
+        -----------
+
+        :param items (Any): The data to format
+
+        RETURN:
+        -------
+
+        :return inputs (List[Any]): The list of inputs
+        :return labels (List[Any]): The list of labels
+        :return additional_data (List[Any]): The list of additional data
+        """
+        # Initialize lists which will store the input, label and additional_data items
+        inputs = list()
+        labels = list()
+        additional_data = list()
+
+        # We redirect the item to its corresponding PipelineEntry
+        for i, pipeline_entry in enumerate(self.pipeline_entries):
+
+            # INPUTS
+            if DEEP_ENTRY_INPUT.corresponds(pipeline_entry.get_entry_type()):
+                inputs.append(items[i])
+
+            # LABELS
+            elif DEEP_ENTRY_LABEL.corresponds(pipeline_entry.get_entry_type()):
+                labels.append(items[i])
+
+            # ADDITIONAL DATA
+            elif DEEP_ENTRY_ADDITIONAL_DATA.corresponds(pipeline_entry.get_entry_type()):
+                additional_data.append(items[i])
+
+        return inputs, labels, additional_data
+
+    def __generate_entries(self, entries: List[dict]) -> None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Generate entries for the dataset
+
+        PARAMETERS:
+        -----------
+
+        :param entries(dict): The entries configuration
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        # Add indices for Entry instances and Source instances
+        entries = self.__generate_entry_and_source_indices(entries)
+
+        # Generate the entries
+        self.__generate_entries_instances(entries)
+
+        # Does generate the normal Source instances
+        # Does NOT generate the SourcePointer instances
+        self.__generate_sources(entries)
+
+        # Generate the SourcePointer instances
+        self.__generate_source_pointers()
+
+        # Reorder Source instances (because SourcePointer may no be the last Source of the Entry instances)
+        # Not needed for now
+        # self.reorder_sources()
+
+        # Check entries
+        self.__check_entries()
+
+    def __generate_pipeline_entries(self, entries: List[dict]) -> None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Generate the PipelineEntry instances
+
+        PARAMETERS:
+        -----------
+
+        :param entries:
+
+        RETURN:
+        -------
+
+        :return:
+        """
+        # Initialize counter to know how many entry of a specific type were created
+        inputs = 0
+        labels = 0
+        additional_data = 0
+
+        # List to store PipelineEntry instances
+        generated_pipeline_entries = list()
+
+        # Weak reference to this current Dataset
+        weakref_dataset = weakref.ref(self)
+
+
+        # Generate every single PipelineEntry
+        for i, entry in enumerate(entries):
+
+            entry_type = self.__check_entry_type(entries[i]["type"])
+
+            if DEEP_ENTRY_INPUT.corresponds(entry_type):
+                entry_type_index = inputs
+            elif DEEP_ENTRY_LABEL.corresponds(entry_type):
+                entry_type_index = labels
+            elif DEEP_ENTRY_ADDITIONAL_DATA.corresponds(entry_type):
+                entry_type_index = additional_data
+            else:
+                Notification(DEEP_NOTIF_FATAL, "The following entry type does not exist")
+
+            # Create new PipelineEntry
+            pe = PipelineEntry(index=entries[i]["index"],
+                               load_as=entries[i]["load_as"],
+                               move_axis=entries[i]["move_axis"],
+                               entry_type=entry_type,
+                               dataset=weakref_dataset,
+                               entry_type_index=entry_type_index)
+
+            if DEEP_ENTRY_INPUT.corresponds(entry_type):
+                inputs += 1
+            elif DEEP_ENTRY_LABEL.corresponds(entry_type):
+                labels += 1
+            elif DEEP_ENTRY_ADDITIONAL_DATA.corresponds(entry_type):
+                additional_data += 1
+            else:
+                Notification(DEEP_NOTIF_FATAL, "The following entry type does not exist")
+
+            # Add the entry to the list
+            generated_pipeline_entries.append(pe)
+
+        # Change attribute value
+        self.pipeline_entries = generated_pipeline_entries
+
+    def __generate_entries_instances(self, entries: List[dict]) -> None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Generate empty Entry instances
+
+        PARAMETERS:
+        -----------
+
+        :param entries (List[dict]): The entries configuration in the Dataset
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+
+        # List to store Entry instances
+        generated_entries = list()
+
+        # Weak reference to this current Dataset
+        weakref_dataset = weakref.ref(self)
+
+        # Generate every single Entry (empty)
+        for i, entry in enumerate(entries):
+
+            # Create new Entry
+            e = Entry(index=entries[i]["index"],
+                      name=entries[i]["name"],
+                      data_type=entries[i]["data_type"],
+                      dataset=weakref_dataset,
+                      enable_cache=entries[i]["enable_cache"])
+
+            # Add the entry to the list
+            generated_entries.append(e)
+
+        # Change attribute value
+        self.entries = generated_entries
+
+    def __generate_sources(self, entries: List[dict]) -> None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Generate the Source instances for each Entry of the Dataset
+
+        PARAMETERS:
+        -----------
+
+        :param entries (List[dict]): Configuration of the Entry instances in the Dataset
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        # For each Entry, generate all the Source instances
+        # SourcePointer instance are generated but not filled.
+        # Weakref for SourcePointer instances are captured later in the generation process
+        for i, _ in enumerate(self.entries):
+            self.entries[i].generate_sources(entries[i]["sources"])
+
+    def __generate_source_pointers(self) -> None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Generate the SourcePointer instances in the current DataSet
+        This has to be done after generating all the other Source instances
+
+        PARAMETERS:
+        -----------
+
+        :param entries (List[Entry]):
+
+        RETURN:
+        -------
+        
+        :return: None
+        """
+        # For each Entry
+        for i, entry in enumerate(self.entries):
+
+            # Check each source in the entry
+            for j, source in enumerate(entry.get_sources()):
+
+                # If the source is a SourcePointer instance
+                if isinstance(source, SourcePointer):
+
+                    # Get the entry index it points to and check the Entry exists
+                    entry_index = self.get_entry_index_from_source_pointer(source, entry)
+
+                    # Check the instance ID desired is outputted
+                    # TODO: Find a way to extract the number of output arguments from a module
+                    # TODO: Maybe we could just check the first instance ?
+
+                    # Get the weakref of the entry it points to
+                    entry_weakref = self.entries[entry_index].get_ref()
+
+                    # Send the Entry weakref to the SourcePointer
+                    self.entries[i].set_source_pointer_weakref(source_id=j, entry_weakref=entry_weakref)
+                    #source.set_entry_weakref(entry_weakref)
+
+    @staticmethod
+    def __generate_entry_and_source_indices(entries: List[dict]) -> List[dict]:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Generate an index for every single Entry and Source of the Dataset
 
         PARAMETERS:
         -----------
@@ -1005,11 +617,325 @@ class Dataset(object):
         RETURN:
         -------
 
-        :return (str): The name of the dataset
+        :return entries (dict): The updated dataset config with new indices
         """
+        # Initialize entry indices
+        entry_index = 0
+
+        # Initialize the source indices
+        source_index = 0
+
+        # For each Entry we create a new index
+        for i, entry in enumerate(entries):
+            entries[i]["index"] = entry_index
+            entry_index += 1
+
+            # For each Source of each Entry we create a new index
+            for j, source in enumerate(entry["sources"]):
+                entries[i]["sources"][j]["kwargs"]["index"] = source_index
+                source_index += 1
+
+        return entries
+
+    def __generate_temporary_entries_order(self, index: int) -> List[int]:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Generate a list of Entry indices where all the Entry requiring to call a SourcePointer are at the end
+
+        PARAMETERS:
+        -----------
+
+        :param index (int): Index of the instances we want to load
+
+        RETURN:
+        -------
+
+        :return temp_order (List[int]): The temporary order of Entry indices
+        """
+
+        # Initialize list for normal and pointer Source instances
+        is_normal = []
+        is_pointer = []
+
+        # For each Entry instance
+        for entry in self.entries:
+            if entry.is_next_source_pointer(index=index) is True:
+                is_pointer.append(entry.get_index())
+            else:
+                is_normal.append(entry.get_index())
+
+        # Concatenate the two lists
+        # Normal Source instances first
+        # Then all the SourcePointer instances
+        temp_order = is_normal + is_pointer
+
+        return temp_order
+
+    def __reorder_sources(self) -> None:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Reorder the list of Source instances inside every single Entry
+        SourcePointer instances are generated after the normal Source instances and therefore are appended at the end of the list
+        However, a SourcePointer position might be before a normal Source
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        # For each Entry instance we reorder the sources
+        for entry in self.entries:
+            entry.reorder_sources()
+
+    def __calculate_number_raw_instances(self) -> int:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Calculate the theoretical number of instances in each epoch
+        The first given file/folder stands as the frame to count
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return num_raw_instances (int): theoretical number of instances in each epoch
+        """
+        # Calculate for the first entry
+        try:
+            num_raw_instances = self.entries[0].__len__()
+        except IndexError as e:
+            Notification(
+                DEEP_NOTIF_FATAL,
+                "IndexError : %s : %s" % (str(e), DEEP_MSG_DATA_INDEX_ERROR % self.name),
+                solutions=[
+                    DEEP_MSG_DATA_INDEX_ERROR_SOLUTION_1 % self.name,
+                    DEEP_MSG_DATA_INDEX_ERROR_SOLUTION_2 % self.name
+                ]
+            )
+
+        # For each entry check if the number of raw instances is the same as the first input
+        for index, entry in enumerate(self.entries):
+            n = entry.__len__()
+
+            if n != num_raw_instances:
+                Notification(DEEP_NOTIF_FATAL, "Number of instances in " + str(self.pipeline_entries[0].get_entry_type()) +
+                             "-" + str(self.pipeline_entries[0].get_entry_index()) + " and " + str(self.pipeline_entries[index].get_entry_type()) +
+                             "-" + str(self.pipeline_entries[index].get_entry_index()) + " do not match.")
+        return num_raw_instances
+
+    @staticmethod
+    def __compute_length(desired_length: int, num_raw_instances: int) -> int:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Calculate the length of the dataset
+
+        PARAMETERS:
+        -----------
+
+        :param desired_length(int): The desired number of instances
+        :param num_raw_instances(int): The actual number of instance in the sources
+
+        RETURN:
+        -------
+
+        :return (int): The length of the dataset
+        """
+
+        if desired_length is None:
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_NO_LENGTH % num_raw_instances)
+            return num_raw_instances
+        else:
+            if desired_length > num_raw_instances:
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_GREATER % (desired_length, num_raw_instances))
+                return desired_length
+            elif desired_length < num_raw_instances:
+                Notification(DEEP_NOTIF_WARNING, DEEP_MSG_DATA_SHORTER % (num_raw_instances, desired_length))
+                return desired_length
+            else:
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_LENGTH % num_raw_instances)
+                return desired_length
+
+    ############
+    # CHECKERS #
+    ############
+
+    @staticmethod
+    def __check_entry_type(entry_type: Union[str, int, Flag]) -> Flag:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Check the entry type
+
+        PARAMETERS:
+        -----------
+
+        :param entry_type (Union[str, int, Flag]): The raw entry type
+
+        RETURN:
+        -------
+
+        :return entry_type(Flag): The entry type
+        """
+        return get_corresponding_flag(flag_list=DEEP_LIST_ENTRY, info=entry_type)
+
+    def __check_entries(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        1) Check Entry instances.
+            1.1) Check Source instance
+            1.2) Very custom source instances
+            1.3) Check the Loader.
+
+        2) Clear the cache of all Entry instances (required after checking the Loader)
+        3) Compute number of raw instances in each Entry
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        # Check each Entry
+        for i in range(len(self.entries)):
+            # Check the loader
+            self.entries[i].check()
+        """
+        Check  every Entry instance
+        Every entry will then check every instance and the Loader instance
+        Require to get a temporary order with Entry calling SourcePointer as last
+        The Loader might need to check the data type and loads the first item to check it if required
+        NOTE: Entry instance have to be check before checking the Loader
+        """
+
+        # Get a temporary order in order to check loaders on the first item
+        temp_order = self.__generate_temporary_entries_order(0)
+
+        # Check each Loader in Entry instance
+        for i in range(len(self.entries)):
+            # Get the temporary index
+            temp_index = temp_order[i]
+            # Check the loader
+            self.entries[temp_index].check_loader()
+
+        for i in range(len(self.entries)):
+            # Clear Cache memory in each Entry
+            self.entries[i].clear_cache_memory()
+
+            # Compute number of raw instances
+            self.entries[i].compute_num_raw_instances()
+
+
+
+
+
+    ###########
+    # GETTERS #
+    ###########
+
+    def get_ref(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get the weak reference to the dataset
+
+        PARAMETER:
+        ----------
+
+        :param: None
+
+        RETURN:
+        -------
+
+        :return self (weakref): The weak reference to the dataset
+        """
+        return weakref.ref(self)
+
+    def get_info(self):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Get information on the Dataset
+
+        PARAMETERS:
+        -----------
+
+        None
+
+        RETURN:
+        -------
+
+        :return info(str): Information on the Dataset
+        """
+
         return self.name
 
-    def get_transform_manager(self):
+    def get_entry_index_from_source_pointer(self, source_pointer: SourcePointer, entry: Entry) -> int:
         """
         AUTHORS:
         --------
@@ -1019,16 +945,28 @@ class Dataset(object):
         DESCRIPTION:
         ------------
 
-        Get the Transform Manager linked to the dataset
+        Check the entry a source points to does exist
 
         PARAMETERS:
         -----------
 
-        None
+        :param source_pointer(SourcePointer): The SourcePointer to check and extract information from
+        :param entry(Entry): Entry instance the SourcePointer belongs to
 
         RETURN:
         -------
 
-        :return (TransformManager): The transform manager
+        :return entry_index(int): The index of the Entry instance the SourcePointer points to
         """
-        return self.transform_manager
+
+        # Get the Entry index
+        entry_index = source_pointer.get_entry_index()
+
+        # Check the Entry index
+        if entry_index > len(self.entries):
+            Notification(DEEP_NOTIF_FATAL,
+                         "The SourcePointer %s in the Entry %s of the Dataset %s points to a non existing Entry ID %i" % (source_pointer.get_index(), entry.get_info(), self.get_info(), entry_index),
+                         solutions="Make sure the SourcePointer points to an existing Entry.")
+
+        return entry_index
+
