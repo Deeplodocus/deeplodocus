@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 
-from deeplodocus.core.project.deep_structure.modules.models.flatten import Flatten
+from deeplodocus.core.project.structure.modules.models.flatten import Flatten
 
 
 class Net(nn.Module):
