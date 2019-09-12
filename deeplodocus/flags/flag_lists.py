@@ -1,4 +1,5 @@
 
+
 from deeplodocus.flags.dtype import *
 from deeplodocus.flags.source import *
 from deeplodocus.flags.load import *
@@ -107,7 +108,12 @@ DEEP_LIST_SAVE_SIGNAL = [
 DEEP_LIST_ADMIN = [
     DEEP_ADMIN_HELP,
     DEEP_ADMIN_START_PROJECT,
-    DEEP_ADMIN_VERSION
+    DEEP_ADMIN_VERSION,
+    DEEP_ADMIN_TRANSFORMER,
+    DEEP_ADMIN_OUTPUT_TRANSFORMER,
+    DEEP_ADMIN_ONEOF_TRANSFORMER,
+    DEEP_ADMIN_SEQUENTIAL_TRANSFORMER,
+    DEEP_ADMIN_SOMEOF_TRANSFORMER
 ]
 
 
