@@ -6,6 +6,12 @@ DEEP_ADMIN_START_PROJECT = Flag(
     names=["start_project", "startproject", "start-project"]
 )
 
+DEEP_ADMIN_RUN_PROJECT = Flag(
+    name="Run Project",
+    description="runproject : Run a deeplodocus project",
+    names=["runproject", "run-project", "run_project"]
+)
+
 DEEP_ADMIN_VERSION = Flag(
     name="Version",
     description="version : Display Deeplodocus Version",

@@ -21,8 +21,7 @@ from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.notification import Notification, DeepError
 from deeplodocus.utils.vis_utils import plot_history
 from deeplodocus.brain.visual_cortex.graph import Graph
-from deeplodocus.core.project.structure.config.config import *
-from deeplodocus.utils.namespace import Namespace
+from deeplodocus.core.project.structure.config import *
 
 
 class Brain(FrontalLobe):
