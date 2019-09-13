@@ -10,7 +10,7 @@ from typing import Union
 from typing import Optional
 
 # Import deeplodocus flags
-from deeplodocus.flags.dtype import *
+from deeplodocus.flags.load_as import *
 from deeplodocus.flags.ext import *
 from deeplodocus.flags.notif import *
 

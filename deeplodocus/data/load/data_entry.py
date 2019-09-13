@@ -44,7 +44,7 @@ class Entry(object):
                  index: int,
                  name: str,
                  dataset: weakref,
-                 data_type: str,
+                 load_as: str,
                  enable_cache: bool = False,
                  cv_library: Union[str, None, Flag] = DEEP_LIB_OPENCV):
 
@@ -78,14 +78,14 @@ class Entry(object):
         self.name = name
 
         # Data type
-        self.data_type = data_type
+        self.load_as = load_as
 
         # Weak reference to the dataset
         self.dataset = dataset
 
         # Loader
         self.loader = Loader(data_entry=weakref.ref(self),
-                             data_type=data_type,
+                             load_as=load_as,
                              cv_library=cv_library)
 
         # List of sources into the entry
