@@ -1,12 +1,13 @@
 import os
-from distutils.dir_util import copy_tree
+import shutil
 from typing import Optional
 
 from deeplodocus.utils.notification import Notification
-from deeplodocus.flags import DEEP_EXT_YAML
 from deeplodocus.utils import get_main_path
 from deeplodocus.flags.msg import *
 from deeplodocus.flags.notif import *
+from deeplodocus.core.project.structure.config import *
+from deeplodocus.core.project.structure import DEEP_DIRECTORY_TREE
 
 
 class ProjectUtility(object):
@@ -82,19 +83,23 @@ class ProjectUtility(object):
         project_path = "%s/%s" % (self.main_path, self.project_name)
 
         # Get the path to the original files
-        source_project_structure = "%s/deep_structure" % os.path.abspath(os.path.dirname(__file__))
+        #source_project_structure = "%s/structure" % os.path.abspath(os.path.dirname(__file__))
 
         # Check if the project already exists
         if self.__check_exists(project_path):
 
             # If we can continue copy the deep structure from original folder to the deep project folder
-            copy_tree(source_project_structure, project_path, update=1)
+            # copy_tree(source_project_structure, project_path, update=1)
 
             # Copy the required config files
             self.__init_config()
+            self.__init_directory_tree(
+                DEEP_DIRECTORY_TREE,
+                file_source="%s/structure" % os.path.abspath(os.path.dirname(__file__))
+            )
 
             # Clean the structure (remove __pycache__ folder and __ini__.py files)
-            self.__clean_structure(project_path)
+            # self.__clean_structure(project_path)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_PROJECT_GENERATED, log=False)
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_PROJECT_NOT_GENERATED, log=False)
@@ -134,6 +139,31 @@ class ProjectUtility(object):
         for key, namespace in config.get().items():
             if isinstance(namespace, Namespace):
                 namespace.save("%s/%s%s" % (config_dir, key, DEEP_EXT_YAML))
+
+    def __init_directory_tree(self, dictionary, file_source=".", parent=None):
+        if parent is None:
+            parent = ["."]
+        for key, item in dictionary.items():
+            if key == "FILES":
+                for file_path in item:
+                    shutil.copy(
+                        src="/".join((file_source, file_path)),
+                        dst="/".join([self.main_path, self.project_name] + parent)
+                    )
+            else:
+                os.mkdir(
+                    "/".join(
+                        [self.main_path, self.project_name]
+                        + parent
+                        + [key]
+                    )
+                )
+            if isinstance(item, dict):
+                self.__init_directory_tree(
+                    item,
+                    file_source=file_source,
+                    parent=parent+[key]
+                )
 
     def __rename_wildcards(self, namespace):
         """
