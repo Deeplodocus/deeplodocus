@@ -1,6 +1,6 @@
 # Starting a Project
 
-Use Deeplodocus's `startproject` command, followed by a name for your new project, to generate a new Deeplodocus directory. This will contain all the files necessary to begin your next deep learning project. Note that `start-project` and `start_project` will also be accepted.
+Use Deeplodocus's `start-project` command, followed by a name for your new project, to generate a new Deeplodocus directory. This will contain all the files necessary to begin your next deep learning project. Note that `startproject` and `start_project` will also be accepted.
 
 ```bash
 $ deeplodocus startproject <project-name>
@@ -8,6 +8,7 @@ $ deeplodocus startproject <project-name>
 
 Other entry commands include:
 
+- `deeplodocus run-project` to run your current project.
 - `deeplodocus version` to display the version number of the current Deeplodocus installation.
 - `deeplodocus help` to display a list of avalaible entry commands.
 
@@ -39,11 +40,23 @@ deeplodocus_project
 
 # Running a Project
 
-Once the parameters in each of the configuration files have been set, the project is ready to be executed - simply run the main.py scripy with Python in the project directory. Upon running, Deeplodocus will load the project configurations and raise warnings if any settings are missing or invalid - these will be replaced by default values. You will then have access to the Deeplodocus terminal and, if you are satisfied that your project settings have been loaded sucessfully, you can begin to execute commands to activate your deep learning pipeline. A collection of the core Deeplodocus commands are detailed in the [Core Commands](getting_started.md#core-commands) section of this page.
+Once the parameters in each of the configuration files have been set, the project is ready to be executed in one of two ways:
+
+1. Either, with the native deeplodocus commad:
+
+```bash
+$ deeplodocus run-project
+```
+
+1. Or, with by running the main.p` file:
 
 ```bash
 $ python3 main.py
 ```
+
+The 'run-project' command serves as easy way to run your project that will always exist. The latter option exists for flexibility and offers a starting point for users wishing to add complexity by extending the core startup sequence. 
+
+Upon running, Deeplodocus will load the project configurations and raise warnings if any settings are missing or invalid - these will be replaced by default values. You will then have access to the Deeplodocus terminal and, if you are satisfied that your project settings have been loaded sucessfully, you can begin to execute commands to activate your deep learning pipeline. A collection of the core Deeplodocus commands are detailed in the [Core Commands](getting_started.md#core-commands) section of this page.
 
 ## Core Commands
 
