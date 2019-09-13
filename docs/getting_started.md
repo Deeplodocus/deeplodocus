@@ -15,11 +15,11 @@ Other entry commands include:
 
 A complete Deeplodocus project directory will contain a main Python script and two sub-directories. 
 
-The first of these is the config directory, which controls different groups of high-level project variables through 9 YAML files. Also within config is a transforms directory, that can be used to house additional YAML files which perscribe routines for transforming input and output data. More detailed information about project configurations can be found on the [Configuration](config.md) page.
+The first of these is the config directory, which controls different groups of high-level project variables through 9 YAML files. Also within config is a transforms directory, that can be used to house additional YAML files which perscribe routines for transforming input and output data. More detailed information about project configurations can be found on the [Configuration](configuration/config.md) page.
 
-The second is a modules directory, which is a place to house any modules that are custom-built for the project. Initially this will be empty, but users can optionally add their own models, data sources and transforms, losses, metrics and optimizers. More detailed information about impleementing and including custom modules can be found on the [Create Modules](create_modules.md) page.
+The second is a modules directory, which is a place to house any modules that are custom-built for the project. Initially this will be empty, but users can optionally add their own models, data sources and transforms, losses, metrics and optimizers. More detailed information about impleementing and including custom modules can be found on the [Create Modules](creating_modules.md) page.
 
-Once Deeplodocus is executed, another directory will be generated to store any resultant model weight files, logs and training history from the current session. The name of this directory is controlled by the user through the [config/project.yaml](config.md#project) file. 
+Once Deeplodocus is executed, another directory will be generated to store any resultant model weight files, logs and training history from the current session. The name of this directory is controlled by the user through the [config/project.yaml](configuration/config.md#project) file. 
 
 ```python
 deeplodocus_project
