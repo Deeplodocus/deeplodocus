@@ -659,7 +659,7 @@ class Brain(FrontalLobe):
                         exec("self.%s" % command)
                     elif flag == DEEP_CMD_PRINT:
                         exec("Notification(DEEP_NOTIF_RESULT, self.%s)" % command)
-                except DeepError as e:
+                except DeepError:
                     time.sleep(0.1)
                 except KeyboardInterrupt:
                     self.sleep()

@@ -26,6 +26,8 @@ class Namespace(object):
         for arg in args:
             if isinstance(arg, str):
                 self.load(arg)
+            elif isinstance(arg, list) or isinstance(arg, tuple):
+                [self.load(file) for file in arg]
             elif isinstance(arg, dict):
                 self.add(arg)
             else:

@@ -439,6 +439,7 @@ class Dataset(object):
         # Weak reference to this current Dataset
         weakref_dataset = weakref.ref(self)
 
+
         # Generate every single PipelineEntry
         for i, entry in enumerate(entries):
 

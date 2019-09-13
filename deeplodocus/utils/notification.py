@@ -168,7 +168,6 @@ class Notification(object):
                 print("%s%s%s" % (CBLUE, message, CEND))
                 if self.log is True:
                     self.__add_log(message)
-
         raise DeepError
 
     def __error(self, message: str) -> None:
