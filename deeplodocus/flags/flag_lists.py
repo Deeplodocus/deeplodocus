@@ -1,5 +1,4 @@
-
-
+from deeplodocus.flags.load_as import *
 from deeplodocus.flags.dtype import *
 from deeplodocus.flags.source import *
 from deeplodocus.flags.load import *
@@ -11,20 +10,20 @@ from deeplodocus.flags.save import *
 from deeplodocus.flags.verbose import *
 from deeplodocus.flags.event import *
 from deeplodocus.flags.admin import *
-from deeplodocus.flags.load_as import *
+from deeplodocus.flags.dtype import *
 
-# DATA TYPES
-DEEP_LIST_DTYPE = [
-    DEEP_DTYPE_IMAGE,
-    DEEP_DTYPE_VIDEO,
-    DEEP_DTYPE_BOOLEAN,
-    DEEP_DTYPE_INTEGER,
-    DEEP_DTYPE_FLOAT,
-    DEEP_DTYPE_SEQUENCE,
-    DEEP_DTYPE_AUDIO,
-    DEEP_DTYPE_NP_ARRAY,
-    DEEP_DTYPE_STRING,
-    DEEP_DTYPE_SEQUENCE
+# LOAS_AS
+DEEP_LIST_LOAD_AS = [
+    DEEP_LOAD_AS_IMAGE,
+    DEEP_LOAD_AS_VIDEO,
+    DEEP_LOAD_AS_BOOLEAN,
+    DEEP_LOAD_AS_INTEGER,
+    DEEP_LOAD_AS_FLOAT,
+    DEEP_LOAD_AS_SEQUENCE,
+    DEEP_LOAD_AS_AUDIO,
+    DEEP_LOAD_AS_NP_ARRAY,
+    DEEP_LOAD_AS_STRING,
+    DEEP_LOAD_AS_SEQUENCE
     ]
 
 
@@ -117,19 +116,19 @@ DEEP_LIST_ADMIN = [
 ]
 
 
-# LOAD_AS
-DEEP_LIST_LOAD_AS = [
-    DEEP_LOAD_AS_FLOAT8,
-    DEEP_LOAD_AS_FLOAT16,
-    DEEP_LOAD_AS_FLOAT32,
-    DEEP_LOAD_AS_FLOAT64,
-    DEEP_LOAD_AS_UINT8,
-    DEEP_LOAD_AS_UINT16,
-    DEEP_LOAD_AS_UINT32,
-    DEEP_LOAD_AS_UINT64,
-    DEEP_LOAD_AS_INT8,
-    DEEP_LOAD_AS_INT16,
-    DEEP_LOAD_AS_INT32,
-    DEEP_LOAD_AS_INT64,
-    DEEP_LOAD_AS_STR
+# DTYPE
+DEEP_LIST_DTYPE = [
+    DEEP_DTYPE_FLOAT8,
+    DEEP_DTYPE_FLOAT16,
+    DEEP_DTYPE_FLOAT32,
+    DEEP_DTYPE_FLOAT64,
+    DEEP_DTYPE_UINT8,
+    DEEP_DTYPE_UINT16,
+    DEEP_DTYPE_UINT32,
+    DEEP_DTYPE_UINT64,
+    DEEP_DTYPE_INT8,
+    DEEP_DTYPE_INT16,
+    DEEP_DTYPE_INT32,
+    DEEP_DTYPE_INT64,
+    DEEP_DTYPE_STR
 ]
