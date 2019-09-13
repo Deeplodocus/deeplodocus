@@ -5,6 +5,8 @@ from typing import Optional
 from deeplodocus.utils.notification import Notification
 from deeplodocus.flags import DEEP_EXT_YAML
 from deeplodocus.utils import get_main_path
+from deeplodocus.flags.msg import *
+from deeplodocus.flags.notif import *
 
 
 class ProjectUtility(object):
