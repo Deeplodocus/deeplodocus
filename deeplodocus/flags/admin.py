@@ -6,6 +6,12 @@ DEEP_ADMIN_START_PROJECT = Flag(
     names=["start_project", "startproject", "start-project"]
 )
 
+DEEP_ADMIN_RUN_PROJECT = Flag(
+    name="Run Project",
+    description="runproject : Run a deeplodocus project",
+    names=["runproject", "run-project", "run_project"]
+)
+
 DEEP_ADMIN_VERSION = Flag(
     name="Version",
     description="version : Display Deeplodocus Version",
@@ -20,31 +26,31 @@ DEEP_ADMIN_HELP = Flag(
 
 DEEP_ADMIN_TRANSFORMER = Flag(
     name="Transformer",
-    description="Create a template transformer file",
+    description="transformer : Create a template transformer file",
     names=["transformer"]
 )
 
 DEEP_ADMIN_OUTPUT_TRANSFORMER = Flag(
     name="Output Transformer",
-    description="Create a template output transformer file",
+    description="output-transformer : Create a template output transformer file",
     names=["outputtransformer", "output-transformer", "output_transformer"]
 )
 
 DEEP_ADMIN_ONEOF_TRANSFORMER = Flag(
     name="One-of Transformer",
-    description="Create a template one-of input transformer file",
+    description="oneof-transformer : Create a template one-of input transformer file",
     names=["oneoftransformer", "oneof-transformer", "oneof_transformer", "one-of-transformer", "one_of_transformer"]
 )
 
 DEEP_ADMIN_SEQUENTIAL_TRANSFORMER = Flag(
     name="Sequential Transformer",
-    description="Create a template sequential input transformer file",
+    description="sequential-transformer : Create a template sequential input transformer file",
     names=["sequentialtransformer", "sequential-transformer", "sequential_transformer"]
 )
 
 DEEP_ADMIN_SOMEOF_TRANSFORMER = Flag(
-    name="Sequential Transformer",
-    description="Create a template sequential input transformer file",
+    name="Some-of Transformer",
+    description="someof-transformer : Create a template sequential input transformer file",
     names=["someoftransformer", "someof-transformer", "someof_transformer", "some-of-transformer", "some_of_transformer"]
 )
 
