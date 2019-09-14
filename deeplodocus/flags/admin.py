@@ -1,15 +1,15 @@
 from deeplodocus.utils.flag import Flag
 
-DEEP_ADMIN_START_PROJECT = Flag(
+DEEP_ADMIN_NEW_PROJECT = Flag(
     name="Start Project",
-    description="startproject : Start a deeplodocus project",
-    names=["start_project", "startproject", "start-project"]
+    description="new-project : Initialise a new deeplodocus project",
+    names=["new-project", "newproject", "new_project"]
 )
 
 DEEP_ADMIN_RUN_PROJECT = Flag(
     name="Run Project",
-    description="runproject : Run a deeplodocus project",
-    names=["runproject", "run-project", "run_project"]
+    description="run-project : Run a deeplodocus project",
+    names=["run-project", "runproject", "run_project"]
 )
 
 DEEP_ADMIN_VERSION = Flag(

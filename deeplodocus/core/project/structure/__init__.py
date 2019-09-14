@@ -26,5 +26,8 @@ DEEP_DIRECTORY_TREE = {
         "optimizers": None
     },
     "data": None,
+    "config": {
+        "transformers": None
+    },
     "FILES": ["main.py"]
 }
