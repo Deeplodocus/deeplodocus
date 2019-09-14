@@ -456,7 +456,7 @@ class Dataset(object):
 
             # Create new PipelineEntry
             pe = PipelineEntry(index=entries[i]["index"],
-                               load_as=entries[i]["load_as"],
+                               convert_to=entries[i]["convert_to"],
                                move_axis=entries[i]["move_axis"],
                                entry_type=entry_type,
                                dataset=weakref_dataset,
@@ -512,7 +512,7 @@ class Dataset(object):
             # Create new Entry
             e = Entry(index=entries[i]["index"],
                       name=entries[i]["name"],
-                      data_type=entries[i]["data_type"],
+                      load_as=entries[i]["load_as"],
                       dataset=weakref_dataset,
                       enable_cache=entries[i]["enable_cache"])
 

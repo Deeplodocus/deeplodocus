@@ -30,7 +30,7 @@ class PipelineEntry(object):
                  dataset: weakref,
                  entry_type: Flag,
                  entry_type_index: int,
-                 load_as: Optional[List[int]] = None,
+                 convert_to: Optional[List[int]] = None,
                  move_axis: Optional[List[int]] = None):
 
         # Index of the PipelineEntry instance
@@ -47,7 +47,7 @@ class PipelineEntry(object):
 
         # Data formatter
         self.formatter = Formatter(pipeline_entry=weakref.ref(self),
-                                   load_as=load_as,
+                                   convert_to=convert_to,
                                    move_axis=move_axis)
 
     def format(self, data: Any) -> Any:

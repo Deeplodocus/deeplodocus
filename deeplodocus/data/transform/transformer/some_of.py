@@ -24,12 +24,13 @@ class SomeOf(Transformer):
     The random number is bounded by a min and max
     """
 
-    def __init__(self, name: str,
+    def __init__(self,
+                 name: str,
                  mandatory_transforms_start:  Union[Namespace, List[dict]],
                  transforms:  Union[Namespace, List[dict]],
                  mandatory_transforms_end:  Union[Namespace, List[dict]],
-                 number_transformations: Optional[int] = None,
-                 number_transformations_min: Optional[int] = None,
+                 num_transformations: Optional[int] = None,
+                 num_transformations_min: Optional[int] = None,
                  num_transformations_max: Optional[int] = None) -> None:
         """
         AUTHORS:
@@ -59,20 +60,20 @@ class SomeOf(Transformer):
                          mandatory_transforms_end=mandatory_transforms_end)
 
         # Compute the number of transformation required
-        if number_transformations is None:
+        if num_transformations is None:
             self.num_transformations = None
 
-            if number_transformations_min is None:
+            if num_transformations_min is None:
                 self.num_transformations_min = 1
             else:
-                self.num_transformations_min = int(number_transformations_min)
+                self.num_transformations_min = int(num_transformations_min)
 
             if num_transformations_max is None:
                 self.num_transformations_max = len(self.list_transforms)
             else:
                 self.num_transformations_max = int(num_transformations_max)
         else:
-            self.num_transformations = number_transformations
+            self.num_transformations = num_transformations
             self.num_transformations_min = None
             self.num_transformations_max = None
 
