@@ -237,6 +237,10 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_DTYPE: int,
                     DEEP_CONFIG_DEFAULT: None,
                 },
+                "use_raw_instances": {
+                    DEEP_CONFIG_DTYPE: bool,
+                    DEEP_CONFIG_DEFAULT: False,
+                },
                 "entries": [
                     {
                         "name": {

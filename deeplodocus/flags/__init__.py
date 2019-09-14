@@ -23,6 +23,7 @@ from deeplodocus.flags.source import *
 from deeplodocus.flags.transformer import *
 from deeplodocus.flags.ui import *
 from deeplodocus.flags.verbose import *
+from deeplodocus.flags.load_as import *
 #from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 #

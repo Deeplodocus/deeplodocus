@@ -14,7 +14,8 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.data.load.source_pointer import SourcePointer
 from deeplodocus.data.load.pipeline_entry import PipelineEntry
 from deeplodocus.data.transform.transform_manager import TransformManager
-from deeplodocus.utils.generic_utils import get_corresponding_flag
+from deeplodocus.utils.generic_utils import get_corresponding_flag, list_namespace2list_dict
+from deeplodocus.utils.namespace import Namespace
 
 # Deeplodocus flags
 from deeplodocus.flags import *
@@ -36,11 +37,13 @@ class Dataset(object):
 
     def __init__(self,
                  name: str,
-                 entries: List[dict],
+                 entries: List[Namespace],
                  num_instances: int,
                  transform_manager: Optional[TransformManager],
                  use_raw_data: bool = True,
                  ):
+
+        entries = list_namespace2list_dict(entries)
 
         # Name of the Dataset
         self.name = name
