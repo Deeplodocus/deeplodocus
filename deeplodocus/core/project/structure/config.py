@@ -322,6 +322,7 @@ DEEP_CONFIG = {
             "inputs": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str],
+                DEEP_CONFIG_INIT: ["config/transformers/input.yaml"]
             },
             "labels": {
                 DEEP_CONFIG_DEFAULT: None,
@@ -344,6 +345,7 @@ DEEP_CONFIG = {
             "inputs": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str],
+                DEEP_CONFIG_INIT: ["config/transformers/input.yaml"]
             },
             "labels": {
                 DEEP_CONFIG_DEFAULT: None,
