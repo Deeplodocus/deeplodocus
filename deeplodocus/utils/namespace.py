@@ -224,6 +224,8 @@ class Namespace(object):
             for key, item in dictionary.items():
                 if isinstance(item, dict):
                     item = self.__dict2namespace(item)
+                elif isinstance(item, list):
+                    item = [self.__dict2namespace(i) if isinstance(i, dict) else i for i in item]
                 namespace.__add({key: item})
         return namespace
 

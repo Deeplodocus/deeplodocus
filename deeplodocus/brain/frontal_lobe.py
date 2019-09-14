@@ -547,8 +547,10 @@ class FrontalLobe(object):
             # output_transformer.summary()
 
             # Dataset
-            dataset = Dataset(**self.config.data.dataset.train.get(),
-                              transform_manager=transform_manager)
+            dataset = Dataset(
+                **self.config.data.dataset.train.get(),
+                transform_manager=transform_manager
+            )
 
             # Trainer
             self.trainer = Trainer(

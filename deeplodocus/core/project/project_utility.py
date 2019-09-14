@@ -81,25 +81,15 @@ class ProjectUtility(object):
         """
         # Path in which the deep structure will be copied
         project_path = "%s/%s" % (self.main_path, self.project_name)
-
-        # Get the path to the original files
-        #source_project_structure = "%s/structure" % os.path.abspath(os.path.dirname(__file__))
-
         # Check if the project already exists
         if self.__check_exists(project_path):
-
-            # If we can continue copy the deep structure from original folder to the deep project folder
-            # copy_tree(source_project_structure, project_path, update=1)
-
-            # Copy the required config files
+            # Initialise the config files from config.py
             self.__init_config()
+            # Initialise other project directories and files from DEEP_DIRECTORY_TREE
             self.__init_directory_tree(
                 DEEP_DIRECTORY_TREE,
                 file_source="%s/structure" % os.path.abspath(os.path.dirname(__file__))
             )
-
-            # Clean the structure (remove __pycache__ folder and __ini__.py files)
-            # self.__clean_structure(project_path)
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_PROJECT_GENERATED, log=False)
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_PROJECT_NOT_GENERATED, log=False)
@@ -192,35 +182,7 @@ class ProjectUtility(object):
                         namespace.get()[key] = item.get()[DEEP_CONFIG_DEFAULT]
                 else:
                     self.__set_config_defaults(item)
-
-    @staticmethod
-    def __clean_structure(deeplodocus_project_path):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-
-        Remove __init__.py files and __pycache__ folders
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return: None
-        """
-        # Browse inside all files and folders in the new generated project
-        for root, dirs, files in os.walk(deeplodocus_project_path):
-            # Remove init files
-            if os.path.isfile(root + "/__init__.py"):
-                os.remove(root + "/__init__.py")
-            # Remove pycache folders
-            [dirs.remove(dirname) for dirname in dirs[:] if dirname.startswith('.') or dirname == '__pycache__']
+            elif isinstance(item, list):
+                for i in item:
+                    if isinstance(i, Namespace):
+                        self.__set_config_defaults(i)
