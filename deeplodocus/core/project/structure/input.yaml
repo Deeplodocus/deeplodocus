@@ -1,0 +1,16 @@
+# Sequential Transformer
+# Divide by 127.5
+# Minus 1
+method: sequential
+name: Input Transformer
+transforms:
+  - scale:
+    name: scale
+    module: deeplodocus.app.transforms.generic
+    kwargs:
+      divide: 127.5
+  - bias:
+    name: bias
+    module: deeplodocus.app.transforms.generic
+    kwargs:
+      minus: 1
