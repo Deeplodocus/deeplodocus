@@ -23,8 +23,8 @@ class SourceWrapper(Source):
     """
 
     def __init__(self,
+                 name: str,
                  module: str,
-                 origin: str,
                  kwargs: dict,
                  index: int = -1,
                  is_loaded: bool = True,
@@ -40,8 +40,8 @@ class SourceWrapper(Source):
                          instance_id=instance_id)
 
         # Module wrapped and its origin
-        module, self.origin = get_module(module=origin,
-                                         name=module)
+        module, self.origin = get_module(module=module,
+                                         name=name)
         # Load module
         self.module = module(**kwargs)
 

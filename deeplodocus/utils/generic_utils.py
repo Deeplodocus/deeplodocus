@@ -108,6 +108,13 @@ def convert2bool(value):
     except TypeError:
         return None
 
+def list_namespace2list_dict(namespaces: List[Namespace]) -> List[dict]:
+
+    list_dicts = list()
+    for i in namespaces:
+        list_dicts.append(i.get_all())
+
+    return list_dicts
 
 def convert_namespace(namespace):
         """
@@ -202,7 +209,7 @@ def get_int_or_float(data):
     try:
         number_as_float = float(data)
         number_as_int = int(number_as_float)
-        return DEEP_DTYPE_INTEGER if number_as_float == number_as_int else DEEP_DTYPE_FLOAT
+        return DEEP_LOAD_AS_INTEGER if number_as_float == number_as_int else DEEP_LOAD_AS_FLOAT
     except ValueError:
         return False
 

@@ -14,7 +14,8 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.data.load.source_pointer import SourcePointer
 from deeplodocus.data.load.pipeline_entry import PipelineEntry
 from deeplodocus.data.transform.transform_manager import TransformManager
-from deeplodocus.utils.generic_utils import get_corresponding_flag
+from deeplodocus.utils.generic_utils import get_corresponding_flag, list_namespace2list_dict
+from deeplodocus.utils.namespace import Namespace
 
 # Deeplodocus flags
 from deeplodocus.flags import *
@@ -36,11 +37,13 @@ class Dataset(object):
 
     def __init__(self,
                  name: str,
-                 entries: List[dict],
+                 entries: List[Namespace],
                  num_instances: int,
                  transform_manager: Optional[TransformManager],
                  use_raw_data: bool = True,
                  ):
+
+        entries = list_namespace2list_dict(entries)
 
         # Name of the Dataset
         self.name = name
@@ -117,6 +120,9 @@ class Dataset(object):
 
         # Load items
         items, are_transformed = self.__load_from_entries(index)
+
+        # Convert to numpy array
+        items = self.__convert_to_numpy(items)
 
         # Transform items
         if self.transform_manager is not None:
@@ -317,6 +323,13 @@ class Dataset(object):
             items[i] = pipeline_entry.format(items[i])
 
         return items
+
+    def __convert_to_numpy(self, items: List[Any]) -> List[Any]:
+        np_items = list()
+        for item in items:
+            np_items.append(np.array(item))
+
+        return np_items
 
     def __split_data_by_entry_type(self, items: List[Any]) -> Tuple[List[Any], List[Any], List[Any]]:
         """

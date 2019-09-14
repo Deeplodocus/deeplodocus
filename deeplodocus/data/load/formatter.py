@@ -85,8 +85,6 @@ class Formatter(object):
 
         # Else it is a unique item
         else:
-            # Convert to numpy array
-            data = np.array(data)
 
             # Convert data type
             if self.convert_to is not None:
@@ -102,7 +100,6 @@ class Formatter(object):
             return [data]
         else:
             return data
-
 
     def __check_move_axis(self, move_axis: Optional[List[int]]) -> Optional[List[int]]:
         """

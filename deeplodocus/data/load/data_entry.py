@@ -347,7 +347,7 @@ class Entry(object):
         for i, source in enumerate(sources):
 
             # Get the Source module and add it to the list
-            module, origin = get_module(name=source["module"], module=source["origin"], browse=DEEP_MODULE_SOURCES)
+            module, origin = get_module(name=source["name"], module=source["module"], browse=DEEP_MODULE_SOURCES)
 
             # If the source is not a real source
             if issubclass(module, Source) is False:
@@ -356,8 +356,8 @@ class Entry(object):
 
                 # Create a source wrapper with the new ID
                 s = SourceWrapper(index=index,
+                                  name=source["name"],
                                   module=source["module"],
-                                  origin=source["origin"],
                                   kwargs=source["kwargs"])
             else:
                 # If the subclass is a real Source
