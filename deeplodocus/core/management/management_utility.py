@@ -69,8 +69,8 @@ class ManagementUtility(object):
         """
 
         if len(self.argv) > 1:
-            if DEEP_ADMIN_START_PROJECT.corresponds(str(self.argv[1])):
-                self.__startproject(main_path=os.getcwd())
+            if DEEP_ADMIN_NEW_PROJECT.corresponds(str(self.argv[1])):
+                self.__newproject(main_path=os.getcwd())
             elif DEEP_ADMIN_VERSION.corresponds(str(self.argv[1])):
                 self.__version()
             elif DEEP_ADMIN_HELP.corresponds(str(self.argv[1])):
@@ -249,7 +249,7 @@ Select one of:
         version = str(__version__)
         Notification(DEEP_NOTIF_INFO, "DEEPLODOCUS VERSION : " + str(version),  log=False)
 
-    def __startproject(self, main_path: str):
+    def __newproject(self, main_path: str):
         """
         AUTHORS:
         --------
