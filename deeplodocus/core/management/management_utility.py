@@ -12,6 +12,7 @@ from deeplodocus.flags.admin import *
 from deeplodocus.flags.notif import *
 from deeplodocus.core.project.generators import *
 from deeplodocus.core.project.structure.transformers import *
+from deeplodocus.brain import Brain
 
 # Deeplodocus flags
 from deeplodocus.flags import DEEP_LIST_ADMIN
@@ -68,12 +69,14 @@ class ManagementUtility(object):
         """
 
         if len(self.argv) > 1:
-            if DEEP_ADMIN_START_PROJECT.corresponds(str(self.argv[1])):
-                self.__startproject(main_path=os.getcwd())
+            if DEEP_ADMIN_NEW_PROJECT.corresponds(str(self.argv[1])):
+                self.__newproject(main_path=os.getcwd())
             elif DEEP_ADMIN_VERSION.corresponds(str(self.argv[1])):
                 self.__version()
             elif DEEP_ADMIN_HELP.corresponds(str(self.argv[1])):
                 self.__help()
+            elif DEEP_ADMIN_RUN_PROJECT.corresponds(str(self.argv[1])):
+                self.__run_project()
             elif DEEP_ADMIN_OUTPUT_TRANSFORMER.corresponds((str(self.argv[1]))):
                 self.__output_transformer()
             elif DEEP_ADMIN_ONEOF_TRANSFORMER.corresponds((str(self.argv[1]))):
@@ -83,7 +86,11 @@ class ManagementUtility(object):
             elif DEEP_ADMIN_TRANSFORMER.corresponds((str(self.argv[1]))):
                 self.__transformer()
             else:
-                Notification(DEEP_NOTIF_ERROR, "The following command does not exits : " + str(self.argv[1]),  log=False)
+                Notification(
+                    DEEP_NOTIF_ERROR,
+                    "The following command does not exist : %s" % str(self.argv[1]),
+                    log=False
+                )
         else:
             self.__help()
 
@@ -160,6 +167,14 @@ Select one of:
         generate_transformer(SOMEOF_TRANSFORMER, filename=filename)
         Notification(DEEP_NOTIF_SUCCESS, "New some-of transformer file created : %s" % filename, log=False)
 
+    def __run_project(self):
+        try:
+            config_dir = self.argv[2]
+        except IndexError:
+            config_dir = "./config"
+        brain = Brain(config_dir=config_dir)
+        brain.wake()
+
     @staticmethod
     def __generate_filename(filename, n=2):
         """
@@ -234,7 +249,7 @@ Select one of:
         version = str(__version__)
         Notification(DEEP_NOTIF_INFO, "DEEPLODOCUS VERSION : " + str(version),  log=False)
 
-    def __startproject(self, main_path: str):
+    def __newproject(self, main_path: str):
         """
         AUTHORS:
         --------
@@ -258,7 +273,7 @@ Select one of:
         """
 
         main_path = main_path
-        name = "deeplodocus_project_" + datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d-%H:%M:%S')
+        name = "deeplodocus_project"
 
         if len(self.argv) > 2:
             name = self.argv[2]
