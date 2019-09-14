@@ -27,7 +27,8 @@ DEEP_DIRECTORY_TREE = {
     },
     "data": None,
     "config": {
-        "transformers": None
+        "transformers": None,
+        "FILES": ["data.yaml"]
     },
     "FILES": ["main.py"]
 }

@@ -1,0 +1,77 @@
+dataloader:
+  batch_size: 16
+  num_workers: 4
+enabled:
+  train: True
+  validation: False
+  test: False
+  predict: False
+datasets:
+  # Training set
+  - name: "Train MNIST"
+    type: "train"
+    num_instances: Null
+    entries:
+      # Input
+      - name: "MNIST Image"
+        type: "input"
+        data_type: "image"
+        load_as: "float32"
+        move_axis: Null
+        enable_cache: False
+        sources:
+          - name: "MNIST"
+            module: "torchvision.datasets"
+            kwargs:
+              root: "./MNIST"
+              train: True          # Use training data
+              download: True
+      # Label
+      - name: "MNIST Label"
+        type: "label"
+        data_type: "integer"
+        load_as: "int8"
+        move_axis: Null
+        enable_cache: False
+        sources:
+          - name: "SourcePointer"  # Point to an existing data source
+            module: Null
+            kwargs:
+              entry_id: 0           # From the first entry
+              source_id: 0          # From the first source
+              instance_id: 1        # Load the second item
+  # Validation set
+  - name: "Validation MNIST"
+    type: "validation"
+    num_instances: Null
+    entries:
+      - name: "MNIST Image"
+        type: "input"
+        data_type: "image"
+        load_as: "float32"
+        move_axis: Null
+        enable_cache: False
+        sources:
+          - name: "MNIST"
+            module: "torchvision.datasets"
+            kwargs:
+              root: "./MNIST"
+              train: False         # Use validation data
+              download: True
+      # Label
+      - name: "MNIST Label"
+        type: "label"
+        data_type: "integer"
+        load_as: "int8"
+        move_axis: Null
+        enable_cache: False
+        sources:
+          - name: "SourcePointer"   # Point to an existing data source
+            module: Null
+            kwargs:
+              entry_id: 0           # From the first entry
+              source_id: 0          # From the first source
+              instance_id: 1        # Load the second item
+
+
+
