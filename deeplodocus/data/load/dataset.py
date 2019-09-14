@@ -121,6 +121,9 @@ class Dataset(object):
         # Load items
         items, are_transformed = self.__load_from_entries(index)
 
+        # Convert to numpy array
+        items = self.__convert_to_numpy(items)
+
         # Transform items
         if self.transform_manager is not None:
             items = self.__transform(index=index,
@@ -320,6 +323,13 @@ class Dataset(object):
             items[i] = pipeline_entry.format(items[i])
 
         return items
+
+    def __convert_to_numpy(self, items: List[Any]) -> List[Any]:
+        np_items = list()
+        for item in items:
+            np_items.append(np.array(item))
+
+        return np_items
 
     def __split_data_by_entry_type(self, items: List[Any]) -> Tuple[List[Any], List[Any], List[Any]]:
         """
