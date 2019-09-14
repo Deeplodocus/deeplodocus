@@ -1,22 +1,18 @@
 # Starting a Project
 
-Use Deeplodocus's `start-project` command, followed by a name for your new project, to generate a new Deeplodocus directory. This will contain all the files necessary to begin your next deep learning project. Note that `startproject` and `start_project` will also be accepted.
+Use Deeplodocus's `new-project` command, followed by a name for your new project, to generate a new Deeplodocus directory. This will contain all the files necessary to begin your next deep learning project. Note that `newproject` and `new_project` will also be accepted.
 
 ```bash
-$ deeplodocus startproject <project-name>
+$ deeplodocus new-project <project-name>
 ```
 
-Other entry commands include:
-
-- `deeplodocus run-project` to run your current project.
-- `deeplodocus version` to display the version number of the current Deeplodocus installation.
-- `deeplodocus help` to display a list of avalaible entry commands.
+A comprehensive list of Deeplodocus entry commands can be found [here](getting_started.md#entry-commands). 
 
 ## Project Structure
 
 A complete Deeplodocus project directory will contain a main Python script and two sub-directories. 
 
-The first of these is the config directory, which controls different groups of high-level project variables through 9 YAML files. Also within config is a transforms directory, that can be used to house additional YAML files which perscribe routines for transforming input and output data. More detailed information about project configurations can be found on the [Configuration](configuration/config.md) page.
+The first of these is the config directory, which controls different groups of high-level project variables through 9 YAML files. Also within config is a transformers directory, that can be used to house additional YAML files which perscribe routines for transforming input and output data. More detailed information about project configurations can be found on the [Configuration](configuration/config.md) page.
 
 The second is a modules directory, which is a place to house any modules that are custom-built for the project. Initially this will be empty, but users can optionally add their own models, data sources and transforms, losses, metrics and optimizers. More detailed information about impleementing and including custom modules can be found on the [Create Modules](creating_modules.md) page.
 
@@ -25,7 +21,7 @@ Once Deeplodocus is executed, another directory will be generated to store any r
 ```python
 deeplodocus_project
     ├ config                  # Directory for config files
-    │    ├ transforms         # Directory for transformer files
+    │    ├ transformers       # Directory for transformer files
     │    ├ data.yaml
     │    ├ history.yaml
     │    ├ losses.yaml
@@ -37,6 +33,36 @@ deeplodocus_project
     ├ modules                 # Directory for custom-build modules
     └ main.py                 # Python script for running Deeplodocus
 ```
+
+## Entry Commands
+
+Deeplodocus entry commands are designed to help you to build and run your project. You have already come across the `new-project` command, yet there are also a series of commands to generate template files and to run your project. 
+
+- `deeplodocus help` - display a list of all available entry commands.
+- `deeplodocus version` - display the version number of your Deeplodocus installation.
+- `deeplodocus new-project <project-name>` - initialize a new Deeplodocus project.
+
+#### Transformer Templates
+
+Deeplodocus transformers are a way of grouping transform functions into routines that can be applied at different stages of your deep learning pipeline. There are four different types of transformer to choose from, and each works sligltly differently - more information about transformers can be found [here](configuration/transformers.md). 
+
+The `transformer` command will print the selection of possible transformers, and prompt the user to choose one to be generated. However, if you know which template you want, you can ask for it explicitly: 
+
+- `deeplodocus transformer <filename>` - display list of transformers and let the user choose one.
+- `deeplodocus sequential-transformer <filename>` - generate a sequential transformer template.
+- `deeplodocus oneof-transformer <filename>` - generate a one-of transformer template.
+- `deeplodocus someof-transformer <filename>` - generate a some-of transformer template.
+- `deeplodocus output-transformer <filename>` - generate an output trasformer template.
+
+#### Run Project
+
+The simplest way to run your new Deeplodocus project is with the `run-project` command:
+
+```bash
+$ deeplodous run-project <path-to-config>
+```
+
+If no subsequent arguments are given, `"./config"` will be used as the path to the config directory. 
 
 # Running a Project
 
