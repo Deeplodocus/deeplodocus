@@ -232,7 +232,6 @@ DEEP_CONFIG = {
                 "type": {
                     DEEP_CONFIG_DTYPE: str,
                     DEEP_CONFIG_DEFAULT: "train",
-                    DEEP_CONFIG_INIT: "image"
                 },
                 "num_instances": {
                     DEEP_CONFIG_DTYPE: int,
