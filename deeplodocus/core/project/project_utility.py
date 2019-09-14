@@ -151,12 +151,13 @@ class ProjectUtility(object):
                         dst="/".join([self.main_path, self.project_name] + parent)
                     )
             else:
-                os.mkdir(
+                os.makedirs(
                     "/".join(
                         [self.main_path, self.project_name]
                         + parent
                         + [key]
-                    )
+                    ),
+                    exist_ok=True
                 )
             if isinstance(item, dict):
                 self.__init_directory_tree(
