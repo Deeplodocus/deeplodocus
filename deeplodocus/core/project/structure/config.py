@@ -24,7 +24,8 @@ DEEP_CONFIG_HISTORY = "history"
 # Wildcard place holders
 DEEP_CONFIG_WILDCARD_DEFAULT = {
     DEEP_CONFIG_METRICS: "accuracy",
-    DEEP_CONFIG_LOSSES: "loss"
+    DEEP_CONFIG_LOSSES: "loss",
+    "datasets": "MNIST Train"
 }
 
 # List of all config sections
@@ -101,6 +102,15 @@ DEEP_CONFIG = {
         }
     },
     DEEP_CONFIG_MODEL: {
+        "name": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "LeNet"
+        },
+        "module": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: None,
+            DEEP_CONFIG_INIT: "deeplodocus.app.models.lenet"
+        },
         "from_file": {
             DEEP_CONFIG_DTYPE: bool,
             DEEP_CONFIG_DEFAULT: False
@@ -109,19 +119,10 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: None
         },
-        "module": {
-            DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: None,
-            DEEP_CONFIG_INIT: "deeplodocus.app.models.vgg"
-        },
-        "name": {
-            DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "VGG16"
-        },
         "input_size": {
             DEEP_CONFIG_DTYPE: [[int]],
             DEEP_CONFIG_DEFAULT: None,
-            DEEP_CONFIG_INIT: [[3, 224, 224]]
+            DEEP_CONFIG_INIT: [[1, 28, 28]]
         },
         "kwargs": {
             DEEP_CONFIG_DTYPE: dict,
@@ -129,14 +130,14 @@ DEEP_CONFIG = {
         }
     },
     DEEP_CONFIG_OPTIMIZER: {
+        "name": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "Adam"
+        },
         "module": {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: None,
             DEEP_CONFIG_INIT: "torch.optim"
-        },
-        "name": {
-            DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "Adam"
         },
         "kwargs": {
             DEEP_CONFIG_DTYPE: dict,
@@ -205,7 +206,8 @@ DEEP_CONFIG = {
         "enabled": {
             "train": {
                 DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: False
+                DEEP_CONFIG_DEFAULT: False,
+                DEEP_CONFIG_INIT: True
             },
             "validation": {
                 DEEP_CONFIG_DTYPE: bool,
@@ -220,80 +222,87 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DEFAULT: False
             }
         },
-        "datasets": {
-                    DEEP_CONFIG_DTYPE: [
+        "datasets": [
+            {
+                "name": {
+                    DEEP_CONFIG_DTYPE: str,
+                    DEEP_CONFIG_DEFAULT: "Dataset",
+                    DEEP_CONFIG_INIT: "Train MNIST"
+                },
+                "type": {
+                    DEEP_CONFIG_DTYPE: str,
+                    DEEP_CONFIG_DEFAULT: "train",
+                    DEEP_CONFIG_INIT: "image"
+                },
+                "num_instances": {
+                    DEEP_CONFIG_DTYPE: int,
+                    DEEP_CONFIG_DEFAULT: None,
+                },
+                "entries": [
+                    {
+                        "name": {
+                            DEEP_CONFIG_DTYPE: str,
+                            DEEP_CONFIG_DEFAULT: "Data Entry",
+                            DEEP_CONFIG_INIT: "MNIST Image"
+                        },
+                        "type": {
+                            DEEP_CONFIG_DTYPE: str,
+                            DEEP_CONFIG_DEFAULT: "input",
+                        },
+                        "data_type": {
+                            DEEP_CONFIG_DTYPE: str,
+                            DEEP_CONFIG_DEFAULT: "image",
+                        },
+                        "load_as":
                         {
-                            "name": {
-                                DEEP_CONFIG_DTYPE: str,
-                                DEEP_CONFIG_DEFAULT: "training dataset"
-                            },
-                            "type": {
-                                DEEP_CONFIG_DTYPE: str,
-                                DEEP_CONFIG_DEFAULT: "train"
-                            },
-                            "num_instances": {
-                                DEEP_CONFIG_DTYPE: int,
-                                DEEP_CONFIG_DEFAULT: None
-                            },
-                            "entries": [
-                                {
-                                    "name": {
-                                        DEEP_CONFIG_DTYPE: str,
-                                        DEEP_CONFIG_DEFAULT: "entry"
-                                    },
-                                    "type": {
-                                        DEEP_CONFIG_DTYPE: str,
-                                        DEEP_CONFIG_DEFAULT: "input"
-                                    },
-                                    "data_type": {
-                                        DEEP_CONFIG_DTYPE: str,
-                                        DEEP_CONFIG_DEFAULT: "image"
-                                    },
-                                    "load_as": {
-                                        DEEP_CONFIG_DTYPE: str,
-                                        DEEP_CONFIG_DEFAULT: "float16"
-                                    },
-                                    "move_axis": {
-                                        DEEP_CONFIG_DTYPE: [int],
-                                        DEEP_CONFIG_DEFAULT: None
-                                    },
-                                    "enable_cache": {
-                                        DEEP_CONFIG_DTYPE: bool,
-                                        DEEP_CONFIG_DEFAULT: False
-                                    },
-                                    "sources": [
-                                            {
-                                                "module": {
-                                                    DEEP_CONFIG_DTYPE: str,
-                                                    DEEP_CONFIG_DEFAULT: "module_name"
-                                                },
-                                                "origin": {
-                                                    DEEP_CONFIG_DTYPE: str,
-                                                    DEEP_CONFIG_DEFAULT: None
-                                                },
-                                                "kwargs": {
-                                                    DEEP_CONFIG_DTYPE: dict,
-                                                    DEEP_CONFIG_DEFAULT: {}
-                                                }
-                                            }
-                                    ]
+                            DEEP_CONFIG_DTYPE: str,
+                            DEEP_CONFIG_DEFAULT: "float32",
+                        },
+                        "move_axis": {
+                            DEEP_CONFIG_DTYPE: [int],
+                            DEEP_CONFIG_DEFAULT: None,
+                        },
+                        "enable_cache": {
+                            DEEP_CONFIG_DTYPE: bool,
+                            DEEP_CONFIG_DEFAULT: False,
+                        },
+                        "sources": [
+                            {
+                                "name": {
+                                    DEEP_CONFIG_DTYPE: str,
+                                    DEEP_CONFIG_DEFAULT: "MNIST",
+                                },
+                                "module": {
+                                    DEEP_CONFIG_DTYPE: str,
+                                    DEEP_CONFIG_DEFAULT: None,
+                                    DEEP_CONFIG_INIT: "torchvision.datasets"
+                                },
+                                "kwargs": {
+                                    DEEP_CONFIG_DTYPE: dict,
+                                    DEEP_CONFIG_DEFAULT: {},
+                                    DEEP_CONFIG_INIT: {
+                                        "root": "./MNIST",
+                                        "train": True,
+                                        "download": True
+                                    }
                                 }
-                            ]
-                        }
-                    ]
-
-                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
     },
     DEEP_CONFIG_LOSSES: {
         DEEP_CONFIG_WILDCARD: {
+            "name": {
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_DEFAULT: "CrossEntropyLoss"
+            },
             "module": {
                 DEEP_CONFIG_DTYPE: str,
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_INIT: "torch.nn.modules.loss"
-            },
-            "name": {
-                DEEP_CONFIG_DTYPE: str,
-                DEEP_CONFIG_DEFAULT: "CrossEntropyLoss"
             },
             "weight": {
                 DEEP_CONFIG_DTYPE: float,
@@ -314,12 +323,10 @@ DEEP_CONFIG = {
             "inputs": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str],
-                DEEP_CONFIG_INIT: "config/transforms/transform_input.yaml"
             },
             "labels": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str],
-                DEEP_CONFIG_INIT: "config/transforms/transform_label.yaml"
             },
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
@@ -338,12 +345,10 @@ DEEP_CONFIG = {
             "inputs": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str],
-                DEEP_CONFIG_INIT: "config/transforms/transform_input.yaml"
             },
             "labels": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str],
-                DEEP_CONFIG_INIT: "config/transforms/transform_label.yaml"
             },
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
@@ -362,12 +367,10 @@ DEEP_CONFIG = {
             "inputs": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str],
-                DEEP_CONFIG_INIT: "config/transforms/transform_input.yaml"
             },
             "labels": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str],
-                DEEP_CONFIG_INIT: "config/transforms/transform_label.yaml"
             },
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
@@ -399,13 +402,13 @@ DEEP_CONFIG = {
         },
     DEEP_CONFIG_METRICS: {
         DEEP_CONFIG_WILDCARD: {
-            "module": {
-                DEEP_CONFIG_DTYPE: str,
-                DEEP_CONFIG_DEFAULT: None
-            },
             "name": {
                 DEEP_CONFIG_DTYPE: str,
                 DEEP_CONFIG_DEFAULT: "accuracy"
+            },
+            "module": {
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_DEFAULT: None
             },
             "kwargs": {
                 DEEP_CONFIG_DTYPE: dict,
