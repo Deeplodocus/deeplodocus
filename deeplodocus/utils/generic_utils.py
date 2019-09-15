@@ -335,10 +335,18 @@ def browse_module(name, modules, silence=False, fatal=False) -> callable:
                 onerror=lambda x: None
         ):
 
-            # TODO : Remove when torch module is updated to 1.0.1+
+            #
             # Fix the loading a of useless torch module(temporary)
+            #
+
+            # ISSUE WITH TORCH 1.0.0
             if module_path == "torch.nn.parallel.distributed_c10d":
                 continue
+            # ISSUE WITH TORCH 1.2.0
+            elif module_path =="torch.nn._intrinsic.qat" or module_path == "torch.nn.qat":
+                continue
+
+            print(module_path)
 
             # Try to get the module
             module = get_specific_module(name, module_path, silence=silence, fatal=fatal)
