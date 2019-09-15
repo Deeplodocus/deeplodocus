@@ -375,6 +375,16 @@ class Dataset(object):
             elif DEEP_ENTRY_ADDITIONAL_DATA.corresponds(pipeline_entry.get_entry_type()):
                 additional_data.append(items[i])
 
+        # # If the entry is an input and is single element list we return it as a list so it can be correctly unpacked in the trainer
+        # if DEEP_ENTRY_INPUT.corresponds(info=entry_type()) and len(data) == 1:
+        #     return [data]
+        # else:
+        #     return data
+
+        # # If the entry is an input and is single element list we return it as a list so it can be correctly unpacked in the trainer
+        if len(inputs) == 1:
+            inputs = [inputs]
+
         return inputs, labels, additional_data
 
     def __generate_entries(self, entries: List[dict]) -> None:
