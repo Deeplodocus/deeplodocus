@@ -55,7 +55,7 @@ datasets:
           - name: "MNIST"
             module: "torchvision.datasets"
             kwargs:
-              root: "./MNIST"
+              root: "./data/MNIST"
               train: False          # Use validation data
               download: True
       # Label
