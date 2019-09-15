@@ -414,6 +414,12 @@ class Brain(FrontalLobe):
             else:
                 Logs(log_type, directory, ext).delete()
 
+    def pause(self):
+        instruction = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
+        if instruction is not "":
+            self.__execute_command(instruction)
+
+
     def ui(self):
         """
         AUTHORS:
