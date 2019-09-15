@@ -14,7 +14,8 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.data.load.source_pointer import SourcePointer
 from deeplodocus.data.load.pipeline_entry import PipelineEntry
 from deeplodocus.data.transform.transform_manager import TransformManager
-from deeplodocus.utils.generic_utils import get_corresponding_flag
+from deeplodocus.utils.generic_utils import get_corresponding_flag, list_namespace2list_dict
+from deeplodocus.utils.namespace import Namespace
 
 # Deeplodocus flags
 from deeplodocus.flags import *
@@ -36,11 +37,13 @@ class Dataset(object):
 
     def __init__(self,
                  name: str,
-                 entries: List[dict],
+                 entries: List[Namespace],
                  num_instances: int,
                  transform_manager: Optional[TransformManager],
                  use_raw_data: bool = True,
                  ):
+
+        entries = list_namespace2list_dict(entries)
 
         # Name of the Dataset
         self.name = name
@@ -117,6 +120,9 @@ class Dataset(object):
 
         # Load items
         items, are_transformed = self.__load_from_entries(index)
+
+        # Convert to numpy array
+        items = self.__convert_to_numpy(items)
 
         # Transform items
         if self.transform_manager is not None:
@@ -318,6 +324,13 @@ class Dataset(object):
 
         return items
 
+    def __convert_to_numpy(self, items: List[Any]) -> List[Any]:
+        np_items = list()
+        for item in items:
+            np_items.append(np.array(item))
+
+        return np_items
+
     def __split_data_by_entry_type(self, items: List[Any]) -> Tuple[List[Any], List[Any], List[Any]]:
         """
         AUTHORS:
@@ -361,6 +374,16 @@ class Dataset(object):
             # ADDITIONAL DATA
             elif DEEP_ENTRY_ADDITIONAL_DATA.corresponds(pipeline_entry.get_entry_type()):
                 additional_data.append(items[i])
+
+        # # If the entry is an input and is single element list we return it as a list so it can be correctly unpacked in the trainer
+        # if DEEP_ENTRY_INPUT.corresponds(info=entry_type()) and len(data) == 1:
+        #     return [data]
+        # else:
+        #     return data
+
+        # # If the entry is an input and is single element list we return it as a list so it can be correctly unpacked in the trainer
+        if len(inputs) == 1:
+            inputs = [inputs]
 
         return inputs, labels, additional_data
 
@@ -456,7 +479,7 @@ class Dataset(object):
 
             # Create new PipelineEntry
             pe = PipelineEntry(index=entries[i]["index"],
-                               load_as=entries[i]["load_as"],
+                               convert_to=entries[i]["convert_to"],
                                move_axis=entries[i]["move_axis"],
                                entry_type=entry_type,
                                dataset=weakref_dataset,
@@ -512,7 +535,7 @@ class Dataset(object):
             # Create new Entry
             e = Entry(index=entries[i]["index"],
                       name=entries[i]["name"],
-                      data_type=entries[i]["data_type"],
+                      load_as=entries[i]["load_as"],
                       dataset=weakref_dataset,
                       enable_cache=entries[i]["enable_cache"])
 

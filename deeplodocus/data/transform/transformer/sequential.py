@@ -3,7 +3,6 @@ from typing import Any
 from typing import Union
 from typing import List
 
-
 # Deeplodocus imports
 from deeplodocus.data.transform.transformer.transformer import Transformer
 from deeplodocus.utils.namespace import Namespace

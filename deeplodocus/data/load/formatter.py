@@ -35,14 +35,14 @@ class Formatter(object):
     def __init__(self,
                  pipeline_entry: weakref,
                  move_axis: Optional[List[int]] = None,
-                 load_as: Optional[List[int]] = None,
+                 convert_to: Optional[List[int]] = None,
                  ):
 
         # Pipeline entry weakref
         self.pipeline_entry = pipeline_entry
 
-        # Optional load_as to define final data type
-        self.load_as = self.__check_load_as(load_as)
+        # Optional convert_to attribute to define final data type
+        self.convert_to = self.__check_convert_to(convert_to)
 
         # Optional sequence to move_axis
         self.move_axis = self.__check_move_axis(move_axis)
@@ -72,37 +72,29 @@ class Formatter(object):
 
         :return data (Any): the formatted data entry
         """
-
         # If we have to format a list of items
         if isinstance(data, list):
             formatted_data = []
 
             for d in data:
 
-                fd = self.format(d)
+                fd = self.format(d, entry_type)
                 formatted_data.append(fd)
             data = formatted_data
 
         # Else it is a unique item
         else:
-            # Convert to numpy array
-            data = np.array(data)
 
             # Convert data type
-            if self.load_as is not None:
+            if self.convert_to is not None:
                 # Use the name of the Flag instance directly as the name of the data type
-                data = data.astype(self.load_as.names[0])
+                data = data.astype(self.convert_to.names[0])
 
             # Move the axes
             if self.move_axis is not None:
                 data = self.__transpose(data)
 
-        # If the entry is an input and is single element list we return it as a list so it can be correctly unpacked in the trainer
-        if DEEP_ENTRY_INPUT.corresponds(info=entry_type()) and len(data) == 1:
-            return [data]
-        else:
-            return data
-
+        return data
 
     def __check_move_axis(self, move_axis: Optional[List[int]]) -> Optional[List[int]]:
         """
@@ -156,7 +148,7 @@ class Formatter(object):
                          solutions="The move_axis argument must be a list of integers index at 0")
 
     @staticmethod
-    def __check_load_as(load_as: Union[str, None, Flag]) -> Optional[Flag]:
+    def __check_convert_to(convert_to: Union[str, None, Flag]) -> Optional[Flag]:
         """
         AUTHORS:
         --------
@@ -166,24 +158,24 @@ class Formatter(object):
         DESCRIPTION:
         ------------
 
-        Check if the load_as argument is correct and return the corresponding Flag
+        Check if the convert_to argument is correct and return the corresponding Flag
 
         PARAMETERS:
         -----------
 
-        :param load_as(Union[str, None, Flag]): The load_as argument given in the config file
+        :param convert_to(Union[str, None, Flag]): The convert_to argument given in the config file
 
         RETURN:
         -------
 
-        :return (Flag): The corresponding DEEP_LOAD_AS flag.
+        :return (Flag): The corresponding DEEP_DTYPE_AS flag.
         """
-        if load_as is None:
+        if convert_to is None:
             return None
         else:
             return get_corresponding_flag(
-                flag_list=DEEP_LIST_LOAD_AS,
-                info=load_as
+                flag_list=DEEP_LIST_DTYPE,
+                info=convert_to
             )
 
     def __transpose(self, data) -> np.array:

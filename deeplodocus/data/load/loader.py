@@ -32,7 +32,7 @@ class Loader(object):
 
     def __init__(self,
                  data_entry: weakref,
-                 data_type: Optional[str] = None,
+                 load_as: Optional[str] = None,
                  cv_library: Union[str, None, Flag] = DEEP_LIB_OPENCV
                  ):
 
@@ -40,7 +40,7 @@ class Loader(object):
         self.data_entry = data_entry
 
         # Optional type of data to load (Still highly recommended to define it)
-        self.data_type = data_type
+        self.load_as = load_as
 
         # Computer Vision library
         self.warning_video = None
@@ -72,13 +72,13 @@ class Loader(object):
 
         :return: None
         """
-        # Check the data type
-        self.data_type = self.__check_data_type(self.data_type)
+        # Check the load_as argument
+        self.load_as = self.__check_load_as(self.load_as)
 
         # Set self.checked as True
         self.checked = True
 
-    def __check_data_type(self, data_type: Union[str, int, Flag, None]) -> Flag:
+    def __check_load_as(self, load_as: Union[str, int, Flag, None]) -> Flag:
         """
         AUTHORS:
         --------
@@ -95,29 +95,29 @@ class Loader(object):
         PARAMETERS:
         -----------
 
-        :param data_type (Union[str, int, None]): The data type in a raw format given by the user
+        :param load_as (Union[str, int, None]): The data type in a raw format given by the user
 
         RETURN:
         -------
 
-        :return data_type(Flag): The data type of the entry
+        :return load_as(Flag): The data type of the entry
         """
 
-        if data_type is None:
+        if load_as is None:
             # Get an instance
             instance_example, is_loaded, _ = self.data_entry().__get_first_item()
 
             if is_loaded is True:
-                data_type = None
+                load_as = None
             else:
                 # Automatically check the data type
-                data_type = self.__estimate_data_type(instance_example)
+                load_as = self.__estimate_load_as(instance_example)
         else:
-            data_type = get_corresponding_flag(flag_list=DEEP_LIST_DTYPE,
-                                               info=data_type)
-        return data_type
+            load_as = get_corresponding_flag(flag_list=DEEP_LIST_LOAD_AS,
+                                               info=load_as)
+        return load_as
 
-    def __estimate_data_type(self, data: str) -> Flag:
+    def __estimate_load_as(self, data: str) -> Flag:
         """
         AUTHORS:
         --------
@@ -142,19 +142,19 @@ class Loader(object):
 
         # If we have a list of item, we check that they all contain the same type
         if isinstance(data, list):
-            dtypes = []
+            load_as_list = []
             # Get all the data type
             for d in data:
-                dt = self.__estimate_data_type(d)
-                dtypes.append(dt)
+                dt = self.__estimate_load_as(d)
+                load_as_list.append(dt)
 
             # Check the data types are all the same
-            for dt in dtypes:
-                if dtypes[0].corresponds(dt) is False:
+            for dt in load_as_list:
+                if load_as_list[0].corresponds(dt) is False:
                     Notification(DEEP_NOTIF_FATAL, "Data type in your sequence of data are not all the same")
 
             # If all the same then return the data type
-            return dtypes[0]
+            return load_as_list[0]
 
         # If not a list
         else:
@@ -164,19 +164,19 @@ class Loader(object):
 
             # IMAGE
             if mime == "image":
-                return DEEP_DTYPE_IMAGE
+                return DEEP_LOAD_AS_IMAGE
             # VIDEO
             elif mime == "video":
-                return DEEP_DTYPE_VIDEO
+                return DEEP_LOAD_AS_VIDEO
             # FLOAT
-            elif DEEP_DTYPE_FLOAT.corresponds(get_int_or_float(data)):
-                return DEEP_DTYPE_FLOAT
+            elif DEEP_LOAD_AS_FLOAT.corresponds(get_int_or_float(data)):
+                return DEEP_LOAD_AS_FLOAT
             # INTEGER
-            elif DEEP_DTYPE_INTEGER.corresponds(get_int_or_float(data)):
-                return DEEP_DTYPE_INTEGER
+            elif DEEP_LOAD_AS_INTEGER.corresponds(get_int_or_float(data)):
+                return DEEP_LOAD_AS_INTEGER
             # NUMPY ARRAY
             if is_np_array(data) is True:
-                return DEEP_DTYPE_NP_ARRAY
+                return DEEP_LOAD_AS_NP_ARRAY
             # Type not handled
             else:
                 Notification(DEEP_NOTIF_FATAL, DEEP_MSG_DATA_NOT_HANDLED % data)
@@ -219,27 +219,27 @@ class Loader(object):
                     loaded_data.append(ld)
 
             # IMAGE
-            elif DEEP_DTYPE_IMAGE.corresponds(self.data_type):
+            elif DEEP_LOAD_AS_IMAGE.corresponds(self.load_as):
                 # Load image
                 loaded_data = self.__load_image(data)
 
             # VIDEO
-            elif DEEP_DTYPE_VIDEO.corresponds(self.data_type):
+            elif DEEP_LOAD_AS_VIDEO.corresponds(self.load_as):
                 loaded_data = self.__load_video(data)
 
             # INTEGER
-            elif DEEP_DTYPE_INTEGER.corresponds(self.data_type):
+            elif DEEP_LOAD_AS_INTEGER.corresponds(self.load_as):
                 loaded_data = int(data)
 
             # FLOAT NUMBER
-            elif DEEP_DTYPE_FLOAT.corresponds(self.data_type):
+            elif DEEP_LOAD_AS_FLOAT.corresponds(self.load_as):
                 loaded_data = float(data)
 
-            elif DEEP_DTYPE_STRING.corresponds(self.data_type):
+            elif DEEP_LOAD_AS_STRING.corresponds(self.load_as):
                 loaded_data = str(data)
 
             # NUMPY ARRAY
-            elif DEEP_DTYPE_NP_ARRAY.corresponds(self.data_type):
+            elif DEEP_LOAD_AS_NP_ARRAY.corresponds(self.load_as):
                 loaded_data = np.load(data)
 
             # Data type not recognized
