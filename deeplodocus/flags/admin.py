@@ -6,10 +6,10 @@ DEEP_ADMIN_NEW_PROJECT = Flag(
     names=["new-project", "newproject", "new_project"]
 )
 
-DEEP_ADMIN_RUN_PROJECT = Flag(
-    name="Run Project",
-    description="run-project : Run a deeplodocus project",
-    names=["run-project", "runproject", "run_project"]
+DEEP_ADMIN_RUN = Flag(
+    name="Run",
+    description="run : Run a deeplodocus project",
+    names=["run", "run-project", "runproject", "run_project"]
 )
 
 DEEP_ADMIN_VERSION = Flag(
