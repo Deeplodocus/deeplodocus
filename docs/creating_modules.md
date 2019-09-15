@@ -22,6 +22,10 @@ You will have to define the following functions in a class inheriting `Source`:
 #### Example
 
 ```python
+# Python imports
+from typing import Tuple, Any, Optional
+
+# Deeplodocus imports
 from deeplodocus.data.load.source import Source
 
 class CustomSource(Source):
@@ -29,7 +33,7 @@ class CustomSource(Source):
                  index: int = -1,
                  is_loaded: bool = False,
                  is_transformed: bool = False,
-                 num_instances=None,
+                 num_instances: Optional[int] = None,
                  instance_id: int = 0
                  ):
 
@@ -73,16 +77,37 @@ class CustomSource(Source):
 
 ### Definition
 
-TODO: how to define a custom model
-
+Deeplodocus models follows the PyTorch conventions. 
 ### Configuration
 
-TODO: how to configure a custom model
-
+All you will need are a class inheriting `torch.nn.Module`, an \_\_init__() method and a forward() method.
 ### Example
 
-TODO: example of implementing a custom model
+The following example is used to create LeNet for MNIST.
+```python
+import torch.nn as nn
+import torch.nn.functional as F
 
+
+class LeNet(nn.Module):
+
+    def __init__(self, num_channels=1, num_classes=10):
+        super(LeNet, self).__init__()
+        self.conv1 = nn.Conv2d(num_channels, 20, 5, 1)
+        self.conv2 = nn.Conv2d(20, 50, 5, 1)
+        self.fc1 = nn.Linear(4*4*50, 84)
+        self.fc2 = nn.Linear(84, num_classes)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = F.relu(self.conv2(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = x.view(-1, 4*4*50)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return F.log_softmax(x, dim=1)
+```
 ## Losses
 
 #### Definition
