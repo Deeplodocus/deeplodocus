@@ -128,6 +128,7 @@ class TransformManager(object):
             Notification(DEEP_NOTIF_FATAL, "The following type of entry does not exist : "
                          + str(entry.get_entry_type().get_description()))
 
+
         # If it is a NoTransformer instance
         if list_transformers[entry.get_entry_type_index()].has_transforms() is False:
             return data
@@ -328,7 +329,7 @@ class TransformManager(object):
                 transformer = OneOf(**config.get())
             # SOME OF
             elif DEEP_TRANSFORMER_SOME_OF.corresponds(flag):
-                SomeOf(**config.get())
+                transformer = SomeOf(**config.get())
             # If the method does not exist
             else:
                 Notification(DEEP_NOTIF_FATAL, "The following transformation method does not exist : " + str(config.method))
