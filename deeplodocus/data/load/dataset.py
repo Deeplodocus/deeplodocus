@@ -98,7 +98,6 @@ class Dataset(object):
 
         :return item(List[Any]): The list of items at the desired index in each Entry instance
         """
-
         # If the dataset is not unlimited
         if self.length is not None:
             # If the index given is too big => Error
@@ -118,8 +117,11 @@ class Dataset(object):
             index = 0
             augment = True
 
+        # Get the index of the original instance (before transformation)
+        index_raw_instance = index % self.number_raw_instances
+
         # Load items
-        items, are_transformed = self.__load_from_entries(index)
+        items, are_transformed = self.__load_from_entries(index_raw_instance)
 
         # Convert to numpy array
         items = self.__convert_to_numpy(items)
