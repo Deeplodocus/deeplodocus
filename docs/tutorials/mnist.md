@@ -171,9 +171,9 @@ dataloader:
         entries:
             -   name: "MNIST image"
                 type: "input"
-                data_type: "image"
-                load_as: "float16"
-                move_axis: Null
+                load_as: "image"
+                convert_to: "float32"
+                move_axis: [2, 1, 0]
                 enable_cache: true
                 sources :
                     - name: "MNIST"
@@ -185,8 +185,8 @@ dataloader:
     
             -   name: "MNIST label"
                 type: "label"
-                data_type: "integer"
-                load_as: "int8"
+                load_as: "integer"
+                convert_to: "int64"
                 move_axis: Null
                 enable_cache: false
                 sources :
@@ -206,9 +206,9 @@ dataloader:
         entries:
             -   name: "MNIST image"
                 type: "input"
-                data_type: "image"
-                load_as: "float16"
-                move_axis: Null
+                load_as: "image"
+                convert_to: "float32"
+                move_axis: [2, 1, 0]
                 enable_cache: true
                 sources :
                     - name: "MNIST"
@@ -220,8 +220,8 @@ dataloader:
     
             -   name: "MNIST label"
                 type: "label"
-                data_type: "integer"
-                load_as: "int8"
+                load_as: "integer"
+                convert_to: "int64"
                 move_axis: Null
                 enable_cache: false
                 sources :

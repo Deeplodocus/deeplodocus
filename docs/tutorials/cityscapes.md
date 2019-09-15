@@ -3,6 +3,89 @@
 # Cityscapes with SegNet
 
 #### Define the Data
+```yaml
+#data.yaml 
+dataloader:
+  batch_size: 2 # Batch of 2 images
+  num_workers: 1  # 1 Worker loading the images
+  enabled:
+    train: True         # We train the network
+    validation: True    # We validate the network during the training
+    test: False
+    predict: False
+  datasets:
+  
+    #
+    # TRAINING SET
+    #
+    - name: "Train Cityscapes"
+      type: "train"
+      num_instances: 60000
+        entries:
+            -   name: "Cityscapes image"
+                type: "input"
+                load_as: "image"
+                convert_to: "float32"
+                move_axis: [2, 1, 0]
+                enable_cache: true
+                sources :
+                    - name: "Cityscapes"
+                      module: "torchvision.datasets"
+                      kwargs:
+                        root: "./data/cityscapes"
+                        split: "train"
+                        target_type: "semantic"
+    
+            -   name: "Cityscapes semantic"
+                type: "label"
+                load_as: "image"
+                convert_to: "int64"
+                move_axis: Null
+                enable_cache: false
+                sources :
+                    - name: "SourcePointer"
+                      module: Null
+                      kwargs:
+                        entry_id: 0
+                        source_id: 0
+                        instance_id: 1
+    
+    #
+    # VALIDATION SET
+    #
+    - name: "Validate Cityscapes"
+      type: "validation"
+      num_instances: Null
+        entries:
+            -   name: "Cityscapes image"
+                type: "input"
+                load_as: "image"
+                convert_to: "float32"
+                move_axis: [2, 1, 0]
+                enable_cache: true
+                sources :
+                    - name: "MNIST"
+                      module: "torchvision.datasets"
+                      kwargs:
+                        root: "./data/cityscapes"
+                        split: "val"
+                        mode: "coarse"
+                        target_type: "semantic"
+    
+            -   name: "Cityscapes semantic"
+                type: "label"
+                load_as: "image"
+                convert_to: "int64"
+                move_axis: Null
+                enable_cache: false
+                sources :
+                    - name: "SourcePointer"
+                      module: Null
+                      kwargs:
+                        entry_id: 0
+                        source_id: 0
+                        instance_id: 1
+```
 
 #### Define the Data Transformations
 
@@ -23,6 +106,14 @@ mandatory_transforms_start:
       shape: [256, 128, 3]
       padding: 0
       keep_aspect: True
+      
+    - randomcrop:
+      name: "random_crop"
+      module: Null
+      kwargs:{}
+      
+  - randomintensityshit
+  - blurs      
 
 transforms:
     - name : "random_blur"
@@ -58,6 +149,7 @@ transforms:
     kwargs:
       index_channel: 3
       
+
   # We then resize the image to [256, 128, 3], the expected input size of the network
   - resize:
     name: resize
@@ -149,3 +241,18 @@ kwargs:
       batch_norm: True
       num_classes: 31 # 31 classes as output
 ```
+
+#### Define the Loss function
+
+```yaml
+# losses.yaml
+CrossEntropy:
+  module: Null
+  name: "CrossEntropy2d"
+  weight: 1
+  kwargs:
+```
+
+#### Metrics, Optimizer and Project
+
+The metrics, optimizer and project files will be the same as the MNIST tutorial. :)

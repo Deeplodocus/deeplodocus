@@ -4,7 +4,7 @@ Deeplodocus allows you to load data from different sources. Within the Deeplodoc
 
 Because Deeplodocus uses PyTorch as main backend, it takes advantage of the PyTorch multiprocessing `Dataloader` class. Therefore, Deeplodocus's sources are based on the PyTorch `Dataset` format.
 
-Before reading this section, we advise you to have a look at the Dataset architecture of Deeplodocus explained in the [GETTING STARTED](getting_started.md#Data_Architecture) section.
+Before reading this section, we advise you to have a look at the Dataset architecture of Deeplodocus explained in the [GETTING STARTED](getting_started.md#data-architecture) section.
 ## Use a Deeplodocus Source
 
 #### File
