@@ -1,5 +1,6 @@
 from deeplodocus.utils.notification import Notification
 
+from deeplodocus.flags.notif import *
 
 class Metrics(object):
 
