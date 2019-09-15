@@ -1,18 +1,21 @@
 import numpy as np
+import torch
 import cv2
 
 
-class Classification(object):
+class ShowImageClassification(object):
 
     def __init__(self,
-                 window_name="Predictions", wait=1, scale=1, divide=1, multiply=1, plus=0, minus=0):
+                 window_name="Predictions", wait=1, scale=1):
         self.window_name = window_name
         self.wait = wait
         self.scale = scale
-        self.divide = divide
-        self.multiply = multiply
-        self.plus = plus
-        self.minus = minus
+
+    def __repr__(self):
+        return "<ShowImageClassification Transform Object>"
+
+    def __str__(self):
+        return self.__repr__
 
     @staticmethod
     def __convert_to_rgb(inputs):
@@ -29,6 +32,16 @@ class Classification(object):
             i[i > 255] = 255
             i[i < 0] = 0
         return inputs
+
+    @staticmethod
+    def __normalize(image):
+        min_value = torch.min(image)
+        value_range = torch.max(image) - min_value
+        image -= min_value
+        image *= 255 / value_range
+        #image += 1
+        #image *= 127.5
+        return image
 
     @staticmethod
     def __extract_images(inputs):
@@ -53,7 +66,7 @@ class Classification(object):
         return images
 
     def forward(self, inputs=None, outputs=None, labels=None):
-        inputs = self.__transform(inputs[0])
+        inputs = self.__normalize(inputs[0])
         inputs = self.__extract_images(inputs)
         inputs = self.__convert_to_rgb(inputs)
         inputs = self.__apply_color(inputs, outputs, labels)
@@ -62,11 +75,6 @@ class Classification(object):
         cv2.imshow(self.window_name, images)
         cv2.waitKey(self.wait)
         return outputs
-
-    def __transform(self, inputs):
-        inputs += self.plus - self.minus
-        inputs *= self.multiply / self.divide
-        return inputs
 
     def finish(self):
         cv2.destroyWindow(self.window_name)
