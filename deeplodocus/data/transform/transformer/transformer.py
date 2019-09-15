@@ -192,7 +192,6 @@ class Transformer(object):
 
         loaded_transforms = []
         if transforms is not None:
-            print(transforms)
             for transform in transforms:
                 transform_name = list(transform.get_all().keys())[0]
                 transform = transform.get_all()[transform_name]

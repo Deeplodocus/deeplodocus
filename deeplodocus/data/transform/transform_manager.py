@@ -320,7 +320,6 @@ class TransformManager(object):
             #
             # Create the corresponding Transformer
             #
-
             # SEQUENTIAL
             if DEEP_TRANSFORMER_SEQUENTIAL.corresponds(flag):
                 transformer = Sequential(**config.get())
@@ -333,7 +332,6 @@ class TransformManager(object):
             # If the method does not exist
             else:
                 Notification(DEEP_NOTIF_FATAL, "The following transformation method does not exist : " + str(config.method))
-
         return transformer
 
     @staticmethod
