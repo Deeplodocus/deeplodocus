@@ -75,7 +75,7 @@ class ManagementUtility(object):
                 self.__version()
             elif DEEP_ADMIN_HELP.corresponds(str(self.argv[1])):
                 self.__help()
-            elif DEEP_ADMIN_RUN_PROJECT.corresponds(str(self.argv[1])):
+            elif DEEP_ADMIN_RUN.corresponds(str(self.argv[1])):
                 self.__run_project()
             elif DEEP_ADMIN_OUTPUT_TRANSFORMER.corresponds((str(self.argv[1]))):
                 self.__output_transformer()
