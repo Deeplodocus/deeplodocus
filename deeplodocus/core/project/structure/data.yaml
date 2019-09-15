@@ -50,7 +50,7 @@ datasets:
         load_as: "image"
         convert_to: "float32"
         move_axis: [2, 1, 0]
-        enable_cache: False
+        enable_cache: True
         sources:
           - name: "MNIST"
             module: "torchvision.datasets"
