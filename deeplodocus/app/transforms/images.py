@@ -7,6 +7,8 @@ from typing import Tuple
 from collections import OrderedDict
 
 # Deeplodocus imports
+from deeplodocus.utils.notification import Notification
+from deeplodocus.flags.notif import *
 from deeplodocus.data.transform.transform_data import TransformData
 from deeplodocus.flags.lib import *
 """
@@ -71,9 +73,11 @@ def random_crop(
         dx = int(image.shape[1] / crop_ratio[0])
         dy = int(image.shape[0] / crop_ratio[1])
     elif scale is not None:
+        if scale > 1:
+            Notification(DEEP_NOTIF_FATAL, " : random_crop : scale must be less than 1")
         if isinstance(scale, list) or isinstance(scale, tuple):
             # Define a random scale between the given bounds
-            scale = np.random.randint(*scale)
+            scale = np.random.random() * (scale[1] - scale[0]) + scale[0]
         # Calculate the height and width of the cropped patch
         dx = int(image.shape[1] * scale)
         dy = int(image.shape[0] * scale)
