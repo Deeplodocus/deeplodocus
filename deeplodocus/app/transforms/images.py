@@ -14,7 +14,13 @@ This file contains all the default transforms for images
 """
 
 
-def random_crop(image: np.array, output_size=None, output_ratio=None, scale=None) -> Tuple[np.array, TransformData]:
+def random_crop(
+        image: np.array,
+        crop_size=None,
+        crop_ratio=None,
+        scale=None,
+        resize=False
+) -> Tuple[np.array, TransformData]:
     """
     AUTHORS:
     --------
@@ -29,10 +35,11 @@ def random_crop(image: np.array, output_size=None, output_ratio=None, scale=None
     PARAMETERS:
     -----------
 
-    :param image (np.array): The input image to crop
-    :param output_size:
-    :param output_ratio:
+    :param image: (np.array): The input image to crop
+    :param crop_size:
+    :param crop_ratio:
     :param scale:
+    :param resize: (bool) Whether or not to resize the image to the original shape after cropping
 
     RETURN:
     -------
@@ -41,28 +48,28 @@ def random_crop(image: np.array, output_size=None, output_ratio=None, scale=None
     :return transform(dict): The parameters of the crop
     """
     # Set the cropped image width and height (dx, dy)
-    if output_size is not None:
-        # If output_size is a list of lists, i.e. ((lower_bound, upper_bound), (lower_bound, upper_bound))
-        if any(isinstance(item, list) or isinstance(item, tuple) for item in output_size):
-            # Define a random output_size between the given bounds
-            output_size = {
-                np.random.randint(*output_size[0]),
-                np.random.randint(*output_size[1])
+    if crop_size is not None:
+        # If crop_size is a list of lists, i.e. ((lower_bound, upper_bound), (lower_bound, upper_bound))
+        if any(isinstance(item, list) or isinstance(item, tuple) for item in crop_size):
+            # Define a random crop_size between the given bounds
+            crop_size = {
+                np.random.randint(*crop_size[0]),
+                np.random.randint(*crop_size[1])
             }
         # Calculate the height and width of the cropped patch
-        dx = output_size[0]
-        dy = output_size[1]
-    elif output_ratio is not None:
-        # If output_ratio is a list of lists, i.e. ((lower_bound, upper_bound), (lower_bound, upper_bound))
-        if any(isinstance(item, list) or isinstance(item, tuple) for item in output_ratio):
-            # Define a random output_ratio between the given bounds
-            output_ratio = (
-                image.shape[1] / np.random.randint(*output_size[0]),
-                image.shape[0] / np.random.randint(*output_size[1])
+        dx = crop_size[0]
+        dy = crop_size[1]
+    elif crop_ratio is not None:
+        # If crop_ratio is a list of lists, i.e. ((lower_bound, upper_bound), (lower_bound, upper_bound))
+        if any(isinstance(item, list) or isinstance(item, tuple) for item in crop_ratio):
+            # Define a random crop_ratio between the given bounds
+            crop_ratio = (
+                image.shape[1] / np.random.randint(*crop_size[0]),
+                image.shape[0] / np.random.randint(*crop_size[1])
             )
         # Calculate the height and width of the cropped patch
-        dx = int(image.shape[1] / output_ratio[0])
-        dy = int(image.shape[0] / output_ratio[1])
+        dx = int(image.shape[1] / crop_ratio[0])
+        dy = int(image.shape[0] / crop_ratio[1])
     elif scale is not None:
         if isinstance(scale, list) or isinstance(scale, tuple):
             # Define a random scale between the given bounds
@@ -85,17 +92,18 @@ def random_crop(image: np.array, output_size=None, output_ratio=None, scale=None
                               method=crop,
                               module_path=__name__,
                               kwargs={
-                                  "coords": (x0, y0, x1, y1)
+                                  "coords": (x0, y0, x1, y1),
+                                  "resize": True
                                   }
                               )
 
-    cropped_image, _ = crop(image, (x0, y0, x1, y1))
+    cropped_image, _ = crop(image, (x0, y0, x1, y1), resize=resize)
 
     # Return the cropped image and transform kwargs
     return cropped_image, transform
 
 
-def crop(image: np.array, coords: Union[List, Tuple]) -> Tuple[np.array, None]:
+def crop(image: np.array, coords: Union[List, Tuple], resize: bool = False) -> Tuple[np.array, None]:
     """
     AUTHORS:
     --------
@@ -111,8 +119,9 @@ def crop(image: np.array, coords: Union[List, Tuple]) -> Tuple[np.array, None]:
     PARAMETERS:
     -----------
 
-    :param image (np.array): The input image
-    :param coords (list): The coordinates to be cropped
+    :param image:  (np.array): The input image
+    :param coords: (list): The coordinates to be cropped
+    :param resize: (bool) Whether or not to resize the image to the original shape after cropping
 
     RETURN:
     -------
@@ -121,7 +130,11 @@ def crop(image: np.array, coords: Union[List, Tuple]) -> Tuple[np.array, None]:
     :return: None
     """
     x0, y0, x1, y1 = coords
-    return image[y0: y1, x0: x1, ...], None
+    if resize:
+        height, width = image.shape[0:2]
+        return cv2.resize(image[y0: y1, x0: x1, ...], (width, height)), None
+    else:
+        return image[y0: y1, x0: x1, ...], None
 
 
 def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> Tuple[Any, TransformData]:
