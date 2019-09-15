@@ -170,8 +170,6 @@ class Logs(object):
         :return: None
         """
         if not os.path.isfile(self.__get_path()):
-            print(self.directory)
-            print("-------------")
             os.makedirs(self.directory, exist_ok=True)
             open(self.__get_path(), "w").close()
 
