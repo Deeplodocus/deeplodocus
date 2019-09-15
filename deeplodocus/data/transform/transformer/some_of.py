@@ -53,8 +53,7 @@ class SomeOf(Transformer):
 
         :return: None
         """
-        super().__init__(self,
-                         name=name,
+        super().__init__(name=name,
                          mandatory_transforms_start=mandatory_transforms_start,
                          transforms=transforms,
                          mandatory_transforms_end=mandatory_transforms_end)
