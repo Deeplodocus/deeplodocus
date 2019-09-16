@@ -6,15 +6,15 @@ from deeplodocus.flags.notif import *
 
 class ConfusionMatrix(object):
 
-    def __init__(self, filename="ConfusionMatrix", output_index=0):
-        self.output_index = output_index
+    def __init__(self, filename="ConfusionMatrix.csv", fill=5):
         self.filename = filename
         self.n_classes = None
         self.matrix = None
+        self.fill = fill
 
     def forward(self, outputs=None, labels=None):
-        label = labels[:, self.output_index].cpu().numpy()
-        output = outputs[self.output_index].cpu().numpy()
+        label = labels.cpu().numpy()
+        output = outputs.cpu().numpy()
         if self.n_classes is None:
             self.n_classes = output.shape[1]
             self.matrix = np.zeros((self.n_classes, self.n_classes), dtype=int)
@@ -28,7 +28,14 @@ class ConfusionMatrix(object):
     def one_hot_encode(batch, depth):
         return np.eye(depth)[batch].astype(np.uint8)
 
+    def print(self):
+        Notification(DEEP_NOTIF_RESULT, "┌" + "─" * ((self.fill + 3) * self.matrix.shape[1] - 3) + "┐")
+        for row in self.matrix:
+            Notification(DEEP_NOTIF_RESULT, "│" + " : ".join([str(i).rjust(self.fill, " ") for i in row]) + "│")
+        Notification(DEEP_NOTIF_RESULT, "└" + "─" * ((self.fill + 3) * self.matrix.shape[1] - 3) + "┘")
+
     def finish(self):
-        filepath = "%s.csv" % self.filename
-        np.savetxt(filepath, self.matrix, fmt="%i", delimiter=",")
-        Notification(DEEP_NOTIF_SUCCESS, "confusion matrix saved to : %s" % filepath)
+        Notification(DEEP_NOTIF_RESULT, "Confusion matrix :")
+        self.print()
+        np.savetxt(self.filename, self.matrix, fmt="%i", delimiter=",")
+        Notification(DEEP_NOTIF_SUCCESS, "Confusion matrix saved to : %s" % self.filename)

@@ -537,7 +537,6 @@ class FrontalLobe(object):
 
             Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[train_index].name)
 
-
             # Input Transform Manager
             transform_manager = TransformManager(
                 **self.config.transform.train.get(ignore="outputs")
