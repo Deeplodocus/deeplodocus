@@ -39,8 +39,6 @@ class ShowImageClassification(object):
         value_range = torch.max(image) - min_value
         image -= min_value
         image *= 255 / value_range
-        #image += 1
-        #image *= 127.5
         return image
 
     @staticmethod

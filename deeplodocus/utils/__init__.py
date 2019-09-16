@@ -24,5 +24,4 @@ def get_main_path():
 
     :return: The path to the main file
     """
-    #return os.path.dirname(os.path.abspath(__main__.__file__))
-    return os.getcwd()
+    return os.path.dirname(os.path.abspath(__main__.__file__))

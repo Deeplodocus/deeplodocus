@@ -1,5 +1,5 @@
 dataloader:
-  batch_size: 16
+  batch_size: 32
   num_workers: 4
 enabled:
   train: True         # Enable the trainer
