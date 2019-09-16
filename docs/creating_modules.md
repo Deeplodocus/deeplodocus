@@ -142,15 +142,110 @@ TODO: example of implementing a custom metric
 
 #### Definition
 
-TODO: how to define a custom data transform
+A data transform is a transformation operation applied after loading the data. It is applied on CPU in order to achieve an atomic data transforms.
 
 #### Configuration
 
-TODO: how to configure a custom data transform
+A classic data transform must return its resulting output and a second output as `None`
+This last output is required to be integrated into the `TransformManager` (see Random Data Transforms for more info)
+
 
 #### Example
 
-TODO: example of implementing a custom data transform
+```python
+import random
+import numpy as np
+import cv2
+
+def blur(image: np.array, kernel_size: int) -> Tuple[Any, None]:
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Apply a blur to the image
+
+    PARAMETERS:
+    -----------
+
+    :param image (np.array): The image to transform
+    :param kernel_size (int): Kernel size
+
+    RETURN:
+    -------
+
+    :return: The blurred image
+    :return: None
+    """
+    return cv2.blur(image, (int(kernel_size), int(kernel_size))), None
+
+```
+
+### Random Data Transforms
+
+#### Definition
+
+A random data transform is a CPU transformation operation which will be applied when loading the data.
+The difference with a classic data transform is it will use random parameters
+
+Such a function is compatible with the `Pointer` transformer thanks to its second return parameters which is a TransformData
+
+#### Configuration
+
+The random data transform works exactly the same way as a classic data transform. The only difference is the second parameter returned is a TransformData containing the parameters of the transform applied.
+
+#### Example
+
+This example shows how to create a random blur function. To do so, the blur function must be already existing (see Data Transforms section)
+```python
+import random
+import numpy as np
+from deeplodocus.data.transform.transform_data import TransformData
+
+def random_blur(image: np.array, kernel_size_min: int, kernel_size_max: int) -> Tuple[Any, dict]:
+    """
+    AUTHORS:
+    --------
+
+    :author: Alix Leroy
+
+    DESCRIPTION:
+    ------------
+
+    Apply a random blur to the image
+
+
+    PARAMETERS:
+    -----------
+
+    :param image: np.array: The image to transform
+    :param kernel_size_min: int: Min size of the kernel
+    :param kernel_size_max: int: Max size of the kernel
+
+
+    RETURN:
+    -------
+
+    :return: The blurred image
+    :return: The last transform data
+    """
+    kernel_size = (random.randint(kernel_size_min // 2, kernel_size_max // 2)) * 2 + 1
+    image, _ = blur(image, kernel_size)
+    
+    # Store the parameters of the random blur
+    transform = TransformData(name="blur",
+                              method=blur,
+                              module_path=__name__,
+                              kwargs={
+                                  "kernel_size": kernel_size
+                                  }
+                              )
+    return image, transform
+```
 
 ### Output Transforms
 
@@ -170,11 +265,11 @@ TODO: example of implementing a custom output transform
 
 #### Definition
 
-TODO: how to define a custom optimiser
+Optimizers are used to compute the gradient for the back-propagation.
 
 #### Configuration
 
-TODO: how to configure a custom optimiser
+The Deeplodocus optimizer follow the PyTorch format. Please refer to the PyTorch documentation to create your own optimizer.
 
 #### Example
 
