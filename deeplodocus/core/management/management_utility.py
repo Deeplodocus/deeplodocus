@@ -1,10 +1,9 @@
 # Python imports
 import sys
 import os
-import datetime
-import time
 
 # Deeplodocus imports
+from deeplodocus.utils import get_main_path
 from deeplodocus.utils.notification import Notification
 from deeplodocus.core.project.project_utility import ProjectUtility
 from deeplodocus import __version__
@@ -168,6 +167,8 @@ Select one of:
         Notification(DEEP_NOTIF_SUCCESS, "New some-of transformer file created : %s" % filename, log=False)
 
     def __run_project(self):
+        Notification(DEEP_NOTIF_WARNING, "The run project command does not support custom modules")
+        Notification(DEEP_NOTIF_WARNING, "If you need to import custom modules use : python3 main.py")
         try:
             config_dir = self.argv[2]
         except IndexError:
