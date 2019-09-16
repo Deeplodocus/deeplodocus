@@ -7,7 +7,9 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.utils import get_main_path
 from deeplodocus.flags.msg import *
 from deeplodocus.flags.notif import *
-from deeplodocus.core.project.structure.config.config import *
+from deeplodocus.core.project.structure.config import *
+from deeplodocus.core.project.structure import DEEP_DIRECTORY_TREE
+
 
 
 class ProjectUtility(object):

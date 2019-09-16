@@ -617,6 +617,7 @@ class FrontalLobe(object):
             dataset = Dataset(**self.config.data.datasets[validation_index].get(ignore="type"),
                               transform_manager=transform_manager)
 
+
             # Validator
             self.validator = Tester(
                 **self.config.data.dataloader.get(),
@@ -674,6 +675,7 @@ class FrontalLobe(object):
 
             dataset = Dataset(**self.config.data.datasets[test_index].get(ignore="type"),
                               transform_manager=transform_manager)
+
             # Tester
             self.tester = Tester(
                 **self.config.data.dataloader.get(),
@@ -708,6 +710,7 @@ class FrontalLobe(object):
             dataset = Dataset(
                 **self.config.data.datasets[predict_index].get(ignore="type"),
                 transform_manager=transform_manager)
+
             # Predictor
             self.predictor = Predictor(
                 **self.config.data.dataloader.get(),

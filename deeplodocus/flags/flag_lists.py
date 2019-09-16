@@ -1,5 +1,5 @@
-
 from deeplodocus.flags.load_as import *
+from deeplodocus.flags.dtype import *
 from deeplodocus.flags.source import *
 from deeplodocus.flags.load import *
 from deeplodocus.flags.entry import *
@@ -12,7 +12,7 @@ from deeplodocus.flags.event import *
 from deeplodocus.flags.admin import *
 from deeplodocus.flags.dtype import *
 
-# DATA TYPES
+# LOAS_AS
 DEEP_LIST_LOAD_AS = [
     DEEP_LOAD_AS_IMAGE,
     DEEP_LOAD_AS_VIDEO,
@@ -117,7 +117,7 @@ DEEP_LIST_ADMIN = [
 ]
 
 
-# LOAD_AS
+# DTYPE
 DEEP_LIST_DTYPE = [
     DEEP_DTYPE_FLOAT8,
     DEEP_DTYPE_FLOAT16,
