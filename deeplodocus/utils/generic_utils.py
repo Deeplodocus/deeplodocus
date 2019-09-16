@@ -1,6 +1,10 @@
 """
 This script contains useful generic functions
 """
+
+import os
+from deeplodocus.utils import get_main_path
+
 import re
 import pkgutil
 import random
@@ -108,6 +112,7 @@ def convert2bool(value):
     except TypeError:
         return None
 
+
 def list_namespace2list_dict(namespaces: List[Namespace]) -> List[dict]:
 
     list_dicts = list()
@@ -115,6 +120,7 @@ def list_namespace2list_dict(namespaces: List[Namespace]) -> List[dict]:
         list_dicts.append(i.get_all())
 
     return list_dicts
+
 
 def convert_namespace(namespace):
         """
