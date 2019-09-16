@@ -53,8 +53,7 @@ class SomeOf(Transformer):
 
         :return: None
         """
-        super().__init__(self,
-                         name=name,
+        super().__init__(name=name,
                          mandatory_transforms_start=mandatory_transforms_start,
                          transforms=transforms,
                          mandatory_transforms_end=mandatory_transforms_end)
@@ -121,7 +120,7 @@ class SomeOf(Transformer):
                     number_transforms_applied = random.randint(self.num_transformations_min, self.num_transformations_max)
 
                 # Select random transforms from the list
-                index_transforms_applied = random.sample(range(len(self.list_transforms)), number_transforms_applied ).sort()       # Sort the list numerically
+                index_transforms_applied = sorted(random.sample(range(len(self.list_transforms)), number_transforms_applied))      # Sort the list numerically
 
                 # Add the randomly selected transforms to the transform list
                 for index in index_transforms_applied:

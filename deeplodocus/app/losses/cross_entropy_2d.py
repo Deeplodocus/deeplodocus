@@ -96,6 +96,7 @@ def cross_entropy2d(outputs, targets, weight=None, size_average=True, ignore_ind
 
     :return loss(tensor): The 2D Cross Entropy
     """
+
     # Get the dimension of the outputs and the targets
     _, c, h, w = outputs.size()
     _, ht, wt = targets.size()
@@ -110,6 +111,6 @@ def cross_entropy2d(outputs, targets, weight=None, size_average=True, ignore_ind
 
     # Compute the 1D loss on the flatten tensors
     loss = F.cross_entropy(
-        outputs, targets, weight=weight, size_average=size_average, ignore_index=ignore_index
+        outputs, targets, weight=weight, reduction="mean",  ignore_index=ignore_index
     )
     return loss
