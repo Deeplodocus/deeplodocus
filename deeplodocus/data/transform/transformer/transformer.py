@@ -195,7 +195,9 @@ class Transformer(object):
             for transform in transforms:
 
                 # Switch from Namespace to dict
-                transform = transform.get_all()
+                #transform = transform.get_all()    # ONly when there is no name
+                transform_name = list(transform.get_all())[0]
+                transform = transform.get_all()[transform_name]
 
                 if "module" not in transform:
                     transform["module"] = None
