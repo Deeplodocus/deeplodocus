@@ -1,0 +1,19 @@
+method: "sequential"
+name: "Transformer for MNIST input"
+
+mandatory_transforms_start:
+  - normalize:
+      name: normalize_image
+      module:
+      kwargs:
+        standard_deviation: 255
+        mean: 127.5
+
+  - reshape:
+      name: reshape
+      module:
+      kwargs:
+        shape: [28, 28, 1]
+transforms: Null
+
+mandatory_transforms_end: Null

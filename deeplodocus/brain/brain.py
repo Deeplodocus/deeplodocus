@@ -21,7 +21,7 @@ from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.notification import Notification, DeepError
 from deeplodocus.utils.vis_utils import plot_history
 from deeplodocus.brain.visual_cortex.graph import Graph
-from deeplodocus.core.project.deep_structure.config.config import *
+from deeplodocus.core.project.structure.config import *
 
 
 class Brain(FrontalLobe):
@@ -414,6 +414,12 @@ class Brain(FrontalLobe):
             else:
                 Logs(log_type, directory, ext).delete()
 
+    def pause(self):
+        instruction = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
+        if instruction is not "":
+            self.__execute_command(instruction)
+
+
     def ui(self):
         """
         AUTHORS:
@@ -663,6 +669,8 @@ class Brain(FrontalLobe):
                     time.sleep(0.1)
                 except KeyboardInterrupt:
                     self.sleep()
+                except AttributeError as e:
+                    Notification(DEEP_NOTIF_ERROR, "Deeplodocus's " + str(e))
 
     def __preprocess_command(self, command):
         """
@@ -817,7 +825,8 @@ if __name__ == "__main__":
         brain.wake()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", type=str, default="config",
-                        help="Path to the config directory")
+    parser.add_argument(
+        "-c", type=str, default="config",
+        help="Path to the config directory")
     arguments = parser.parse_args()
     main(arguments)

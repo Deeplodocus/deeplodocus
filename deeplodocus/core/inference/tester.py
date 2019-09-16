@@ -127,7 +127,12 @@ class Tester(GenericEvaluator):
 
             # Compute the metrics
             if self.transform_manager is not None:
-                outputs = self.transform_manager.transform(outputs)
+                outputs = self.transform_manager.transform(
+                    inputs=inputs,
+                    outputs=outputs,
+                    labels=labels,
+                    additional_data=additional_data
+                )
             batch_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
             # Apply weights to the losses
@@ -143,6 +148,9 @@ class Tester(GenericEvaluator):
 
         # Calculate the sum of the losses
         sum_losses = dict_utils.sum_dict(total_losses)
+
+        # Call finish on all output transforms
+        self.transform_manager.finish()
 
         return sum_losses, total_losses, total_metrics
 
@@ -170,7 +178,7 @@ class Tester(GenericEvaluator):
         """
         self.metrics = metrics
 
-    def set_losses(self, losses:dict):
+    def set_losses(self, losses: dict):
         """
         AUTHORS:
         --------

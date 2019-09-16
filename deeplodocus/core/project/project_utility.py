@@ -1,12 +1,15 @@
 import os
-from distutils.dir_util import copy_tree
+import shutil
 from typing import Optional
 
+from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification
-from deeplodocus.flags.notif import *
-from deeplodocus.flags.msg import *
-from deeplodocus.core.project.deep_structure.config.config import *
 from deeplodocus.utils import get_main_path
+from deeplodocus.flags.msg import *
+from deeplodocus.flags.notif import *
+from deeplodocus.core.project.structure.config import *
+from deeplodocus.core.project.structure import DEEP_DIRECTORY_TREE
+
 
 
 class ProjectUtility(object):
@@ -80,21 +83,15 @@ class ProjectUtility(object):
         """
         # Path in which the deep structure will be copied
         project_path = "%s/%s" % (self.main_path, self.project_name)
-
-        # Get the path to the original files
-        source_project_structure = "%s/deep_structure" % os.path.abspath(os.path.dirname(__file__))
-
         # Check if the project already exists
         if self.__check_exists(project_path):
-
-            # If we can continue copy the deep structure from original folder to the deep project folder
-            copy_tree(source_project_structure, project_path, update=1)
-
-            # Copy the required config files
+            # Initialise the config files from config.py
             self.__init_config()
-
-            # Clean the structure (remove __pycache__ folder and __ini__.py files)
-            self.__clean_structure(project_path)
+            # Initialise other project directories and files from DEEP_DIRECTORY_TREE
+            self.__init_directory_tree(
+                DEEP_DIRECTORY_TREE,
+                file_source="%s/structure" % os.path.abspath(os.path.dirname(__file__))
+            )
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_PROJECT_GENERATED, log=False)
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_PROJECT_NOT_GENERATED, log=False)
@@ -135,6 +132,32 @@ class ProjectUtility(object):
             if isinstance(namespace, Namespace):
                 namespace.save("%s/%s%s" % (config_dir, key, DEEP_EXT_YAML))
 
+    def __init_directory_tree(self, dictionary, file_source=".", parent=None):
+        if parent is None:
+            parent = ["."]
+        for key, item in dictionary.items():
+            if key == "FILES":
+                for file_path in item:
+                    shutil.copy(
+                        src="/".join((file_source, file_path)),
+                        dst="/".join([self.main_path, self.project_name] + parent)
+                    )
+            else:
+                os.makedirs(
+                    "/".join(
+                        [self.main_path, self.project_name]
+                        + parent
+                        + [key]
+                    ),
+                    exist_ok=True
+                )
+            if isinstance(item, dict):
+                self.__init_directory_tree(
+                    item,
+                    file_source=file_source,
+                    parent=parent+[key]
+                )
+
     def __rename_wildcards(self, namespace):
         """
         :param namespace:
@@ -161,35 +184,7 @@ class ProjectUtility(object):
                         namespace.get()[key] = item.get()[DEEP_CONFIG_DEFAULT]
                 else:
                     self.__set_config_defaults(item)
-
-    @staticmethod
-    def __clean_structure(deeplodocus_project_path):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-
-        Remove __init__.py files and __pycache__ folders
-
-        PARAMETERS:
-        -----------
-
-        None
-
-        RETURN:
-        -------
-
-        :return: None
-        """
-        # Browse inside all files and folders in the new generated project
-        for root, dirs, files in os.walk(deeplodocus_project_path):
-            # Remove init files
-            if os.path.isfile(root + "/__init__.py"):
-                os.remove(root + "/__init__.py")
-            # Remove pycache folders
-            [dirs.remove(dirname) for dirname in dirs[:] if dirname.startswith('.') or dirname == '__pycache__']
+            elif isinstance(item, list):
+                for i in item:
+                    if isinstance(i, Namespace):
+                        self.__set_config_defaults(i)

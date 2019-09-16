@@ -255,13 +255,6 @@ class Trainer(GenericEvaluator):
                 # Compute losses
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
 
-                # Transform outputs
-                if self.transform_manager is not None:
-                    outputs = self.transform_manager.transform(outputs)
-
-                # Compute metrics
-                result_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
-
                 # Add weights to losses
                 result_losses = dict_utils.apply_weight(result_losses, vars(self.losses))
 
@@ -274,6 +267,18 @@ class Trainer(GenericEvaluator):
                 # Performs a parameter update based on the current gradient (stored in .grad attribute of a parameter)
                 # and the update rule
                 self.optimizer.step()
+
+                # Transform outputs
+                if self.transform_manager is not None:
+                    outputs = self.transform_manager.transform(
+                        inputs=inputs,
+                        outputs=outputs,
+                        labels=labels,
+                        additional_data=additional_data
+                    )
+
+                # Compute metrics
+                result_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
                 # Detach the tensors from the network
                 outputs, total_loss, result_losses, result_metrics = self.detach(
@@ -333,6 +338,7 @@ class Trainer(GenericEvaluator):
                 args={"model": self.model}
             )
         )
+        self.transform_manager.finish()
 
     """
     "

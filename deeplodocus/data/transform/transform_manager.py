@@ -13,7 +13,7 @@ from deeplodocus.data.transform.transformer.no_transformer import NoTransformer
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.flags import *
-from deeplodocus.data.load.entry import Entry
+from deeplodocus.data.load.pipeline_entry import PipelineEntry
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 #Deeplodocus flags
@@ -72,7 +72,7 @@ class TransformManager(object):
         self.list_additional_data_transformers = self.__load_transformers(additional_data)
         self.summary()
 
-    def transform(self, data: Any, index: int, entry: Entry, augment: bool) -> Any:
+    def transform(self, data: Any, index: int, entry: PipelineEntry, augment: bool) -> Any:
         """
         AUTHORS:
         --------
@@ -92,7 +92,7 @@ class TransformManager(object):
 
         :param data: (Any): The data to transform
         :param index: (int): The index of the data to transform
-        :param entry: (Entry): The entry of the data
+        :param entry: (PipelineEntry): The entry of the data
 
 
         RETURN:
@@ -128,16 +128,17 @@ class TransformManager(object):
             Notification(DEEP_NOTIF_FATAL, "The following type of entry does not exist : "
                          + str(entry.get_entry_type().get_description()))
 
+
         # If it is a NoTransformer instance
-        if list_transformers[entry.get_entry_index()].has_transforms() is False:
+        if list_transformers[entry.get_entry_type_index()].has_transforms() is False:
             return data
 
         # Check if the transformer points to another transformer
-        pointer, pointer_entry_index = list_transformers[entry.get_entry_index()].get_pointer()
+        pointer, pointer_entry_index = list_transformers[entry.get_entry_type_index()].get_pointer()
 
         # If we do not point to another transformer, transform directly the data
         if pointer is None:
-            transformed_data = list_transformers[entry.get_entry_index()].transform(data, index, augment)
+            transformed_data = list_transformers[entry.get_entry_type_index()].transform(data, index, augment)
 
         #
         # If we point to another transformer, load the transformer then transform the data
@@ -320,7 +321,6 @@ class TransformManager(object):
             #
             # Create the corresponding Transformer
             #
-
             # SEQUENTIAL
             if DEEP_TRANSFORMER_SEQUENTIAL.corresponds(flag):
                 transformer = Sequential(**config.get())
@@ -329,11 +329,10 @@ class TransformManager(object):
                 transformer = OneOf(**config.get())
             # SOME OF
             elif DEEP_TRANSFORMER_SOME_OF.corresponds(flag):
-                SomeOf(**config.get())
+                transformer = SomeOf(**config.get())
             # If the method does not exist
             else:
                 Notification(DEEP_NOTIF_FATAL, "The following transformation method does not exist : " + str(config.method))
-
         return transformer
 
     @staticmethod

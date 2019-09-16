@@ -8,7 +8,7 @@ from typing import Any
 # Third party libs
 
 # Deeplodocus imports
-from deeplodocus.utils.generic_utils import get_module
+from deeplodocus.utils.generic_utils import get_module, list_namespace2list_dict
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.flag import Flag
 from deeplodocus.utils.namespace import Namespace
@@ -61,7 +61,7 @@ class Transformer(object):
 
         :return: None
         """
-        self.__name = name
+        self.name = name
         self.last_index = None
         self.transformer_entry = None
         self.transformer_index = None
@@ -95,7 +95,7 @@ class Transformer(object):
         :return: None
         """
 
-        Notification(DEEP_NOTIF_INFO, "Transformer '" + str(self.__name) + "' summary :")
+        Notification(DEEP_NOTIF_INFO, "Transformer '" + str(self.name) + "' summary :")
 
         # MANDATORY TRANSFORMS START
         if len(self.list_mandatory_transforms_start) > 0:
@@ -193,6 +193,12 @@ class Transformer(object):
         loaded_transforms = []
         if transforms is not None:
             for transform in transforms:
+
+                # Switch from Namespace to dict
+                #transform = transform.get_all()    # ONly when there is no name
+                transform_name = list(transform.get_all())[0]
+                transform = transform.get_all()[transform_name]
+
                 if "module" not in transform:
                     transform["module"] = None
 
