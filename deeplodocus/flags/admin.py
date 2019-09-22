@@ -1,9 +1,15 @@
 from deeplodocus.utils.flag import Flag
 
-DEEP_ADMIN_START_PROJECT = Flag(
+DEEP_ADMIN_NEW_PROJECT = Flag(
     name="Start Project",
-    description="startproject : Start a deeplodocus project",
-    names=["start_project", "startproject", "start-project"]
+    description="new-project : Initialise a new deeplodocus project",
+    names=["new-project", "newproject", "new_project"]
+)
+
+DEEP_ADMIN_RUN = Flag(
+    name="Run",
+    description="run : Run a deeplodocus project",
+    names=["run", "run-project", "runproject", "run_project"]
 )
 
 DEEP_ADMIN_VERSION = Flag(
@@ -20,31 +26,31 @@ DEEP_ADMIN_HELP = Flag(
 
 DEEP_ADMIN_TRANSFORMER = Flag(
     name="Transformer",
-    description="Create a template transformer file",
+    description="transformer : Create a template transformer file",
     names=["transformer"]
 )
 
 DEEP_ADMIN_OUTPUT_TRANSFORMER = Flag(
     name="Output Transformer",
-    description="Create a template output transformer file",
+    description="output-transformer : Create a template output transformer file",
     names=["outputtransformer", "output-transformer", "output_transformer"]
 )
 
 DEEP_ADMIN_ONEOF_TRANSFORMER = Flag(
     name="One-of Transformer",
-    description="Create a template one-of input transformer file",
+    description="oneof-transformer : Create a template one-of input transformer file",
     names=["oneoftransformer", "oneof-transformer", "oneof_transformer", "one-of-transformer", "one_of_transformer"]
 )
 
 DEEP_ADMIN_SEQUENTIAL_TRANSFORMER = Flag(
     name="Sequential Transformer",
-    description="Create a template sequential input transformer file",
+    description="sequential-transformer : Create a template sequential input transformer file",
     names=["sequentialtransformer", "sequential-transformer", "sequential_transformer"]
 )
 
 DEEP_ADMIN_SOMEOF_TRANSFORMER = Flag(
-    name="Sequential Transformer",
-    description="Create a template sequential input transformer file",
+    name="Some-of Transformer",
+    description="someof-transformer : Create a template sequential input transformer file",
     names=["someoftransformer", "someof-transformer", "someof_transformer", "some-of-transformer", "some_of_transformer"]
 )
 

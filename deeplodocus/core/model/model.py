@@ -8,6 +8,7 @@ from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.notification import Notification
 from deeplodocus.flags import DEEP_MSG_MODEL_CHECK_CHANNELS
 
+from deeplodocus.flags import *
 
 def load_model(
         name, module, kwargs, device,

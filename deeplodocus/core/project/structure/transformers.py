@@ -125,8 +125,8 @@ SEQUENTIAL_TRANSFORMER = {
         DEEP_CONFIG_DEFAULT: "Sequential Transformer",
         DEEP_CONFIG_DTYPE: str,
     },
-    DEEP_CONFIG_COMMENT + "1": "\n# Every transform in here will be called sequentially at the start:",
-    "mandatory_transform_start": [
+    DEEP_CONFIG_COMMENT + "1": "\n# Every transform in here will be called first:",
+    "mandatory_transforms_start": [
         {
             DEEP_CONFIG_WILDCARD: {
                 DEEP_CONFIG_INIT: "<Transform-Name>",
@@ -171,7 +171,7 @@ SEQUENTIAL_TRANSFORMER = {
             }
         }
     ],
-    DEEP_CONFIG_COMMENT + "3": "\n# Every transform in here will be called sequentially at the end:",
+    DEEP_CONFIG_COMMENT + "3": "\n# Finally, every transform in here will be called at the end:",
     "mandatory_transforms_end": [
         {
             DEEP_CONFIG_WILDCARD: {

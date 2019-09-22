@@ -1,7 +1,7 @@
 from deeplodocus.flags.admin import *
 from deeplodocus.flags.backend import *
 from deeplodocus.flags.cmd import *
-from deeplodocus.flags.dtype import *
+from deeplodocus.flags.load_as import *
 from deeplodocus.flags.entry import *
 from deeplodocus.flags.event import *
 from deeplodocus.flags.exit import *
@@ -10,7 +10,7 @@ from deeplodocus.flags.filter import *
 from deeplodocus.flags.flag_lists import *
 from deeplodocus.flags.lib import *
 from deeplodocus.flags.load import *
-from deeplodocus.flags.load_as import *
+from deeplodocus.flags.dtype import *
 from deeplodocus.flags.log import *
 from deeplodocus.flags.memorize import *
 from deeplodocus.flags.module import *
@@ -23,6 +23,7 @@ from deeplodocus.flags.source import *
 from deeplodocus.flags.transformer import *
 from deeplodocus.flags.ui import *
 from deeplodocus.flags.verbose import *
+from deeplodocus.flags.load_as import *
 #from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 #

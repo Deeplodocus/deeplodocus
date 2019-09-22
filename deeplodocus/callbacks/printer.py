@@ -63,7 +63,7 @@ class Printer(object):
     # NB: NOT STATICMETHOD
     def validation_epoch_end(self, losses, total_loss, metrics):
         print_metrics = ", ".join(
-            ["%s : %.4e" % (TOTAL_LOSS, Decimal(total_loss.item()))]
+            ["%s : %.4e" % (TOTAL_LOSS, Decimal(total_loss))]
             + ["%s : %.4e" % (loss_name, Decimal(value.item())) for (loss_name, value) in losses.items()]
             + ["%s : %.4e" % (metric_name, Decimal(value))for (metric_name, value) in metrics.items()]
         )

@@ -6,8 +6,6 @@ site_url: http://deeplodocus.org
 repo_url: http://github.com/Deeplodocus/deeplodocus
 edit_uri: http://github.com/Deeplodocus/deeplodocus
 
-
-
 theme:
     name: readthedocs
     highlightjs: true
@@ -19,17 +17,12 @@ theme:
 docs_dir: 'docs'
 
 nav:
-<<<<<<< HEAD
-  - HOME: home.md
-  - GETTING STARTED: getting_started.md
-  - CONFIGURATION: config.md
-  - CREATING MODULES: create_modules.md
-=======
   - HOME: index.md
   - GETTING STARTED: getting_started.md
-  - CONFIGURATION: config.md
+  - CONFIGURATION:
+    - Main Configurations: configuration/config.md
+    - Transformers: configuration/transformers.md
   - CREATING MODULES: creating_modules.md
->>>>>>> hotfix-0.3.1
   - EXISTING MODULES:
     - Data Sources: existing_modules/data_sources.md
     - Models: existing_modules/models.md
