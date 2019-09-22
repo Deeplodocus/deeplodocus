@@ -11,7 +11,6 @@ from deeplodocus.core.project.structure.config import *
 from deeplodocus.core.project.structure import DEEP_DIRECTORY_TREE
 
 
-
 class ProjectUtility(object):
     """
     AUTHORS:
