@@ -150,7 +150,11 @@ Path to the module that contains the chosen model. If no module is given, Deeplo
 - **Data type:** str
 - **Default value:** None
 
+<<<<<<< HEAD
 Note: More informaton about pre-built deeplodocus models can be found [here](existing_modules.md#models).
+=======
+Note: More informaton about pre-built deeplodocus models can be found [here](existing_modules/models.md).
+>>>>>>> hotfix-0.3.1
 
 #### from_file
 
@@ -213,7 +217,11 @@ Path to the module that contains the chosen loss. If no module is given, Deeplod
 - **Data type:** str
 - **Default value:** None
 
+<<<<<<< HEAD
 Note: More informaton about existing PyTorch loss functions can be found [here](https://pytorch.org/docs/stable/nn.html#loss-functions), and some additional deeplodocus losses can be found [here](existing_modules.md#losses).
+=======
+Note: More informaton about existing PyTorch loss functions can be found [here](https://pytorch.org/docs/stable/nn.html#loss-functions), and some additional deeplodocus losses can be found [here](existing_modules/losses.md).
+>>>>>>> hotfix-0.3.1
 
 #### weight
 
@@ -260,7 +268,11 @@ Path to the module that contains the chosen loss. If no module is given, Deeplod
 - **Data type:** str
 - **Default value:** None
 
+<<<<<<< HEAD
 Note: More informaton about existing metrics that come with Deeplodocus can be found [here](existing_modules.md#metrics).
+=======
+Note: More informaton about existing metrics that come with Deeplodocus can be found [here](existing_modules/metrics.md).
+>>>>>>> hotfix-0.3.1
 
 #### kwargs
 
@@ -271,7 +283,11 @@ Any keyword arguments to be parsed to the metric.
 
 ## Transform
 
+<<<<<<< HEAD
 A series of input, label, additional data and output transformers can be specified in the transform.yaml file. 
+=======
+A series of input, label, additional data and output transformers can be specified in the transform.yaml file. More informaton about existing transforms can be found [here](existing_modules/transforms.md).
+>>>>>>> hotfix-0.3.1
 
 ```yaml
 # Example transform.yaml file

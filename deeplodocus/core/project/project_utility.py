@@ -3,7 +3,9 @@ from distutils.dir_util import copy_tree
 from typing import Optional
 
 from deeplodocus.utils.notification import Notification
-from deeplodocus.flags import DEEP_EXT_YAML
+from deeplodocus.flags.notif import *
+from deeplodocus.flags.msg import *
+from deeplodocus.core.project.deep_structure.config.config import *
 from deeplodocus.utils import get_main_path
 from deeplodocus.flags.msg import *
 from deeplodocus.flags.notif import *

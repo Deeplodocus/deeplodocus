@@ -19,10 +19,17 @@ theme:
 docs_dir: 'docs'
 
 nav:
+<<<<<<< HEAD
   - HOME: home.md
   - GETTING STARTED: getting_started.md
   - CONFIGURATION: config.md
   - CREATING MODULES: create_modules.md
+=======
+  - HOME: index.md
+  - GETTING STARTED: getting_started.md
+  - CONFIGURATION: config.md
+  - CREATING MODULES: creating_modules.md
+>>>>>>> hotfix-0.3.1
   - EXISTING MODULES:
     - Data Sources: existing_modules/data_sources.md
     - Models: existing_modules/models.md
