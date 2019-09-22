@@ -57,7 +57,7 @@ class Predictor(GenericInferer):
         :return outputs->dict: the total losses and total metrics for the model over the test data set
         """
         self.model = self.model if model is None else model
-
+        self.model.eval()
         # Initialise an empty list to store outputs
         inputs = []
         outputs = []
