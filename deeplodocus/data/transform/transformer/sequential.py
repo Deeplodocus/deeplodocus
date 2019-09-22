@@ -3,7 +3,6 @@ from typing import Any
 from typing import Union
 from typing import List
 
-
 # Deeplodocus imports
 from deeplodocus.data.transform.transformer.transformer import Transformer
 from deeplodocus.utils.namespace import Namespace
@@ -48,11 +47,10 @@ class Sequential(Transformer):
 
         :return: None
         """
-        Transformer.__init__(self,
-                             name=name,
-                             mandatory_transforms_start=mandatory_transforms_start,
-                             transforms=transforms,
-                             mandatory_transforms_end=mandatory_transforms_end)
+        super().__init__(name=name,
+                         mandatory_transforms_start=mandatory_transforms_start,
+                         transforms=transforms,
+                         mandatory_transforms_end=mandatory_transforms_end)
 
     def transform(self, transformed_data: Any, index: int, augment: bool) -> Any:
         """

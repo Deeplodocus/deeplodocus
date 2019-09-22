@@ -21,4 +21,4 @@ DEEP_SAVE_CONDITION_LESS = Flag(name="Less than",
 
 DEEP_SAVE_CONDITION_GREATER = Flag(name="Greater than",
                                    description="Call saver when given metric is greater than all previous values",
-                                   names=[">", "bigger", "greater"])
+                                   names=[">", "bigger", "greater", "more"])

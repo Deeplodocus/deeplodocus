@@ -1,4 +1,4 @@
-from deeplodocus.utils import get_main_path
+import os
 from deeplodocus.utils.colors import *
 from deeplodocus.utils.deep_error import DeepError
 from deeplodocus.flags.ext import DEEP_EXT_LOGS
@@ -168,7 +168,6 @@ class Notification(object):
                 print("%s%s%s" % (CBLUE, message, CEND))
                 if self.log is True:
                     self.__add_log(message)
-
         raise DeepError
 
     def __error(self, message: str) -> None:
@@ -439,6 +438,6 @@ class Notification(object):
         """
         Logs(
             log_type=DEEP_LOG_NOTIFICATION,
-            directory=get_main_path(),
+            directory=os.getcwd(),
             extension=DEEP_EXT_LOGS
         ).add(message)

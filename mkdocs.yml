@@ -31,5 +31,7 @@ nav:
     - Transforms: existing_modules/transforms.md
     - Optimizers: existing_modules/optimizers.md
   - API: api.md
-  - TUTORIALS: tutorials.md
+  - TUTORIALS:
+    - MNIST: tutorials/mnist.md
+    - Cityscapes: tutorials/cityscapes.md
   - ABOUT: about.md
