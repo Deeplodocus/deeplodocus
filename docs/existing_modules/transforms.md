@@ -60,7 +60,6 @@ kwargs:
   method: nearest
 ```
 
-## Generic Transforms
+# Generic Transforms
 
 TODO
-

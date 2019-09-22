@@ -112,7 +112,7 @@ venv.bak/
 # Deeplodocus logs
 deeplodocus/brain/logs
 deeplodocus/brain/results
-deeplodocus/core/project/deep_structure/logs/*
+deeplodocus/core/project/structure/logs/*
 test/results/*
 test
 deeplodocus/server/*

@@ -21,11 +21,14 @@ from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
 from deeplodocus.core.model.model import load_model
 from deeplodocus.core.optimizer.optimizer import load_optimizer
 from deeplodocus.data.load.dataset import Dataset
+from deeplodocus.data.transform.output import OutputTransformer
 from deeplodocus.data.transform.transform_manager import TransformManager
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.generic_utils import get_int_or_float
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 from deeplodocus.utils.notification import Notification
+
+# Deeplodocus flags
 from deeplodocus.flags import *
 
 
@@ -228,8 +231,7 @@ class FrontalLobe(object):
         if self.predictor is None:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NO_PREDICTOR)
         else:
-            inputs, outputs = self.predictor.predict(self.model)
-        self.visualise(inputs, outputs)
+            self.predictor.predict(self.model)
 
     def load(self):
         """
@@ -429,7 +431,7 @@ class FrontalLobe(object):
 
                 # Check the weight
                 if self.config.losses.check("weight", key):
-                    if get_corresponding_flag(flag_list=[DEEP_DTYPE_INTEGER, DEEP_DTYPE_FLOAT],
+                    if get_corresponding_flag(flag_list=[DEEP_LOAD_AS_INTEGER, DEEP_LOAD_AS_FLOAT],
                                               info=get_int_or_float(config.weight), fatal=False) is None:
                         Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have a correct weight argument" % key)
                 else:
@@ -531,29 +533,44 @@ class FrontalLobe(object):
         """
         # If the train step is enabled
         if self.config.data.enabled.train:
-            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.train.name)
+            train_index = self.get_dataset_index("train")
 
-            # Transform Manager
-            transform_manager = TransformManager(**self.config.transform.train.get())
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[train_index].name)
+
+            # Input Transform Manager
+            transform_manager = TransformManager(
+                **self.config.transform.train.get(ignore="outputs")
+            )
+
+            # Output Transformer
+            output_transform_manager = OutputTransformer(
+                transform_files=self.config.transform.train.get("outputs")
+            )
+            # output_transformer.summary()
 
             # Dataset
-            dataset = Dataset(**self.config.data.dataset.train.get(),
-                              transform_manager=transform_manager,
-                              cv_library=self.config.project.cv_library)
+            dataset = Dataset(
+                **self.config.data.datasets[train_index].get(ignore="type"),
+                transform_manager=transform_manager
+            )
+
             # Trainer
-            self.trainer = Trainer(**self.config.data.dataloader.get(),
-                                   model=self.model,
-                                   dataset=dataset,
-                                   metrics=self.metrics,
-                                   losses=self.losses,
-                                   optimizer=self.optimizer,
-                                   num_epochs=self.config.training.num_epochs,
-                                   initial_epoch=self.config.training.initial_epoch,
-                                   shuffle_method=self.config.training.shuffle,
-                                   verbose=self.config.history.verbose,
-                                   tester=self.validator)
+            self.trainer = Trainer(
+                **self.config.data.dataloader.get(),
+                model=self.model,
+                dataset=dataset,
+                metrics=self.metrics,
+                losses=self.losses,
+                optimizer=self.optimizer,
+                num_epochs=self.config.training.num_epochs,
+                initial_epoch=self.config.training.initial_epoch,
+                shuffle_method=self.config.training.shuffle,
+                verbose=self.config.history.verbose,
+                tester=self.validator,
+                transform_manager=output_transform_manager
+            )
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.train.name)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % "Training set")
 
     def load_validator(self):
         """
@@ -580,24 +597,38 @@ class FrontalLobe(object):
         """
         # If the validation step is enabled
         if self.config.data.enabled.validation:
-            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.validation.name)
+
+            validation_index = self.get_dataset_index("validation")
+
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[validation_index].name)
 
             # Transform Manager
-            transform_manager = TransformManager(**self.config.transform.validation.get())
+            transform_manager = TransformManager(
+                **self.config.transform.validation.get(ignore="outputs")
+            )
+
+            # Output Transformer
+            output_transform_manager = OutputTransformer(
+                transform_files=self.config.transform.validation.get("outputs")
+            )
+            # output_transformer.summary()
 
             # Dataset
-            dataset = Dataset(**self.config.data.dataset.validation.get(),
-                              transform_manager=transform_manager,
-                              cv_library=self.config.project.cv_library)
+            dataset = Dataset(**self.config.data.datasets[validation_index].get(ignore="type"),
+                              transform_manager=transform_manager)
+
 
             # Validator
-            self.validator = Tester(**self.config.data.dataloader.get(),
-                                    model=self.model,
-                                    dataset=dataset,
-                                    metrics=self.metrics,
-                                    losses=self.losses)
+            self.validator = Tester(
+                **self.config.data.dataloader.get(),
+                model=self.model,
+                dataset=dataset,
+                metrics=self.metrics,
+                losses=self.losses,
+                transform_manager=output_transform_manager
+            )
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.validation.name)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % "Validation set")
 
     def load_tester(self):
         """
@@ -624,46 +655,71 @@ class FrontalLobe(object):
         """
         # If the test step is enabled
         if self.config.data.enabled.test:
-            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.test.name)
 
-            # Transform Manager
-            transform_manager = TransformManager(**self.config.transform.test.get())
+            test_index = self.get_dataset_index("test")
+
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[test_index].name)
+
+            # Input Transform Manager
+            transform_manager = TransformManager(
+                **self.config.transform.test.get(ignore="outputs")
+            )
+
+            # Output Transformer
+            output_transform_manager = OutputTransformer(
+                transform_files=self.config.transform.test.get("outputs")
+            )
+            # output_transformer.summary()
 
             # Dataset
-            dataset = Dataset(**self.config.data.dataset.test.get(),
-                              transform_manager=transform_manager,
-                              cv_library=self.config.project.cv_library)
+
+            dataset = Dataset(**self.config.data.datasets[test_index].get(ignore="type"),
+                              transform_manager=transform_manager)
+
             # Tester
-            self.tester = Tester(**self.config.data.dataloader.get(),
-                                 model=self.model,
-                                 dataset=dataset,
-                                 metrics=self.metrics,
-                                 losses=self.losses)
+            self.tester = Tester(
+                **self.config.data.dataloader.get(),
+                model=self.model,
+                dataset=dataset,
+                metrics=self.metrics,
+                losses=self.losses,
+                transform_manager=output_transform_manager
+            )
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.test.name)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % "Test set")
 
     def load_predictor(self):
         # If the predict step is enabled
         if self.config.data.enabled.predict:
-            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.predict.name)
 
-            # Transform Manager
-            transform_manager = TransformManager(**self.config.transform.predict.get(ignore="outputs"))
+            predict_index = self.get_dataset_index("predict")
+
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[predict_index].name)
+
+            # Input Transform Manager
+            transform_manager = TransformManager(
+                **self.config.transform.predict.get(ignore="outputs")
+            )
+
+            # Output Transform Manager
+            output_transform_manager = OutputTransformer(
+                transform_files=self.config.transform.predict.get("outputs")
+            )
 
             # Dataset
             dataset = Dataset(
-                **self.config.data.dataset.predict.get(),
-                transform_manager=transform_manager,
-                cv_library=self.config.project.cv_library
-            )
+                **self.config.data.datasets[predict_index].get(ignore="type"),
+                transform_manager=transform_manager)
+
             # Predictor
             self.predictor = Predictor(
                 **self.config.data.dataloader.get(),
                 model=self.model,
-                dataset=dataset
+                dataset=dataset,
+                transform_manager=output_transform_manager
             )
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.predict.name)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % "Prediction set")
 
     def load_memory(self):
         """
@@ -846,3 +902,15 @@ class FrontalLobe(object):
             return True
         else:
             return False
+
+
+    def get_dataset_index(self, dataset_type: str):
+
+        datasets = self.config.data.datasets
+
+        for i, d in enumerate(datasets):
+            if d.type == dataset_type:
+                return i
+
+        Notification(DEEP_NOTIF_FATAL, "The dataset type %s is not defined"%dataset_type)
+
