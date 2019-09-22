@@ -431,7 +431,7 @@ class FrontalLobe(object):
 
                 # Check the weight
                 if self.config.losses.check("weight", key):
-                    if get_corresponding_flag(flag_list=[DEEP_DTYPE_INTEGER, DEEP_DTYPE_FLOAT],
+                    if get_corresponding_flag(flag_list=[DEEP_LOAD_AS_INTEGER, DEEP_LOAD_AS_FLOAT],
                                               info=get_int_or_float(config.weight), fatal=False) is None:
                         Notification(DEEP_NOTIF_FATAL, "The loss function %s doesn't have a correct weight argument" % key)
                 else:
@@ -533,7 +533,9 @@ class FrontalLobe(object):
         """
         # If the train step is enabled
         if self.config.data.enabled.train:
-            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.train.name)
+            train_index = self.get_dataset_index("train")
+
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[train_index].name)
 
             # Input Transform Manager
             transform_manager = TransformManager(
@@ -548,7 +550,7 @@ class FrontalLobe(object):
 
             # Dataset
             dataset = Dataset(
-                **self.config.data.dataset.train.get(),
+                **self.config.data.datasets[train_index].get(ignore="type"),
                 transform_manager=transform_manager
             )
 
@@ -568,7 +570,7 @@ class FrontalLobe(object):
                 transform_manager=output_transform_manager
             )
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.train.name)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % "Training set")
 
     def load_validator(self):
         """
@@ -595,7 +597,10 @@ class FrontalLobe(object):
         """
         # If the validation step is enabled
         if self.config.data.enabled.validation:
-            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.validation.name)
+
+            validation_index = self.get_dataset_index("validation")
+
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[validation_index].name)
 
             # Transform Manager
             transform_manager = TransformManager(
@@ -609,7 +614,7 @@ class FrontalLobe(object):
             # output_transformer.summary()
 
             # Dataset
-            dataset = Dataset(**self.config.data.dataset.validation.get(),
+            dataset = Dataset(**self.config.data.datasets[validation_index].get(ignore="type"),
                               transform_manager=transform_manager)
 
 
@@ -623,7 +628,7 @@ class FrontalLobe(object):
                 transform_manager=output_transform_manager
             )
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.validation.name)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % "Validation set")
 
     def load_tester(self):
         """
@@ -650,7 +655,10 @@ class FrontalLobe(object):
         """
         # If the test step is enabled
         if self.config.data.enabled.test:
-            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.test.name)
+
+            test_index = self.get_dataset_index("test")
+
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[test_index].name)
 
             # Input Transform Manager
             transform_manager = TransformManager(
@@ -665,7 +673,7 @@ class FrontalLobe(object):
 
             # Dataset
 
-            dataset = Dataset(**self.config.data.dataset.test.get(),
+            dataset = Dataset(**self.config.data.datasets[test_index].get(ignore="type"),
                               transform_manager=transform_manager)
 
             # Tester
@@ -678,12 +686,15 @@ class FrontalLobe(object):
                 transform_manager=output_transform_manager
             )
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.test.name)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % "Test set")
 
     def load_predictor(self):
         # If the predict step is enabled
         if self.config.data.enabled.predict:
-            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.dataset.predict.name)
+
+            predict_index = self.get_dataset_index("predict")
+
+            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[predict_index].name)
 
             # Input Transform Manager
             transform_manager = TransformManager(
@@ -697,7 +708,7 @@ class FrontalLobe(object):
 
             # Dataset
             dataset = Dataset(
-                **self.config.data.dataset.predict.get(),
+                **self.config.data.datasets[predict_index].get(ignore="type"),
                 transform_manager=transform_manager)
 
             # Predictor
@@ -708,7 +719,7 @@ class FrontalLobe(object):
                 transform_manager=output_transform_manager
             )
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % self.config.data.dataset.predict.name)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % "Prediction set")
 
     def load_memory(self):
         """
@@ -891,3 +902,15 @@ class FrontalLobe(object):
             return True
         else:
             return False
+
+
+    def get_dataset_index(self, dataset_type: str):
+
+        datasets = self.config.data.datasets
+
+        for i, d in enumerate(datasets):
+            if d.type == dataset_type:
+                return i
+
+        Notification(DEEP_NOTIF_FATAL, "The dataset type %s is not defined"%dataset_type)
+

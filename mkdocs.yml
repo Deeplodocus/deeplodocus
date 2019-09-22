@@ -6,8 +6,6 @@ site_url: http://deeplodocus.org
 repo_url: http://github.com/Deeplodocus/deeplodocus
 edit_uri: http://github.com/Deeplodocus/deeplodocus
 
-
-
 theme:
     name: readthedocs
     highlightjs: true

@@ -14,7 +14,8 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.data.load.source_pointer import SourcePointer
 from deeplodocus.data.load.pipeline_entry import PipelineEntry
 from deeplodocus.data.transform.transform_manager import TransformManager
-from deeplodocus.utils.generic_utils import get_corresponding_flag
+from deeplodocus.utils.generic_utils import get_corresponding_flag, list_namespace2list_dict
+from deeplodocus.utils.namespace import Namespace
 
 # Deeplodocus flags
 from deeplodocus.flags import *
@@ -36,11 +37,13 @@ class Dataset(object):
 
     def __init__(self,
                  name: str,
-                 entries: List[dict],
+                 entries: List[Namespace],
                  num_instances: int,
                  transform_manager: Optional[TransformManager],
                  use_raw_data: bool = True,
                  ):
+
+        entries = list_namespace2list_dict(entries)
 
         # Name of the Dataset
         self.name = name
@@ -95,7 +98,6 @@ class Dataset(object):
 
         :return item(List[Any]): The list of items at the desired index in each Entry instance
         """
-
         # If the dataset is not unlimited
         if self.length is not None:
             # If the index given is too big => Error
@@ -115,8 +117,14 @@ class Dataset(object):
             index = 0
             augment = True
 
+        # Get the index of the original instance (before transformation)
+        index_raw_instance = index % self.number_raw_instances
+
         # Load items
-        items, are_transformed = self.__load_from_entries(index)
+        items, are_transformed = self.__load_from_entries(index_raw_instance)
+
+        # Convert to numpy array
+        items = self.__convert_to_numpy(items)
 
         # Transform items
         if self.transform_manager is not None:
@@ -318,6 +326,13 @@ class Dataset(object):
 
         return items
 
+    def __convert_to_numpy(self, items: List[Any]) -> List[Any]:
+        np_items = list()
+        for item in items:
+            np_items.append(np.array(item))
+
+        return np_items
+
     def __split_data_by_entry_type(self, items: List[Any]) -> Tuple[List[Any], List[Any], List[Any]]:
         """
         AUTHORS:
@@ -361,6 +376,16 @@ class Dataset(object):
             # ADDITIONAL DATA
             elif DEEP_ENTRY_ADDITIONAL_DATA.corresponds(pipeline_entry.get_entry_type()):
                 additional_data.append(items[i])
+
+        # # If the entry is an input and is single element list we return it as a list so it can be correctly unpacked in the trainer
+        # if DEEP_ENTRY_INPUT.corresponds(info=entry_type()) and len(data) == 1:
+        #     return [data]
+        # else:
+        #     return data
+
+        # # If the entry is an input and is single element list we return it as a list so it can be correctly unpacked in the trainer
+        if len(inputs) == 1:
+            inputs = [inputs]
 
         return inputs, labels, additional_data
 
@@ -438,7 +463,6 @@ class Dataset(object):
 
         # Weak reference to this current Dataset
         weakref_dataset = weakref.ref(self)
-
 
         # Generate every single PipelineEntry
         for i, entry in enumerate(entries):

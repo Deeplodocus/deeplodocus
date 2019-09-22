@@ -72,7 +72,6 @@ class Formatter(object):
 
         :return data (Any): the formatted data entry
         """
-
         # If we have to format a list of items
         if isinstance(data, list):
             formatted_data = []
@@ -85,8 +84,6 @@ class Formatter(object):
 
         # Else it is a unique item
         else:
-            # Convert to numpy array
-            data = np.array(data)
 
             # Convert data type
             if self.convert_to is not None:
@@ -97,12 +94,7 @@ class Formatter(object):
             if self.move_axis is not None:
                 data = self.__transpose(data)
 
-        # If the entry is an input and is single element list we return it as a list so it can be correctly unpacked in the trainer
-        if DEEP_ENTRY_INPUT.corresponds(info=entry_type()) and len(data) == 1:
-            return [data]
-        else:
-            return data
-
+        return data
 
     def __check_move_axis(self, move_axis: Optional[List[int]]) -> Optional[List[int]]:
         """

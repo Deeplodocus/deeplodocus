@@ -1,6 +1,10 @@
 """
 This script contains useful generic functions
 """
+
+import os
+from deeplodocus.utils import get_main_path
+
 import re
 import pkgutil
 import random
@@ -109,6 +113,15 @@ def convert2bool(value):
         return None
 
 
+def list_namespace2list_dict(namespaces: List[Namespace]) -> List[dict]:
+
+    list_dicts = list()
+    for i in namespaces:
+        list_dicts.append(i.get_all())
+
+    return list_dicts
+
+
 def convert_namespace(namespace):
         """
         AUTHORS:
@@ -202,7 +215,7 @@ def get_int_or_float(data):
     try:
         number_as_float = float(data)
         number_as_int = int(number_as_float)
-        return DEEP_DTYPE_INTEGER if number_as_float == number_as_int else DEEP_DTYPE_FLOAT
+        return DEEP_LOAD_AS_INTEGER if number_as_float == number_as_int else DEEP_LOAD_AS_FLOAT
     except ValueError:
         return False
 
@@ -328,9 +341,15 @@ def browse_module(name, modules, silence=False, fatal=False) -> callable:
                 onerror=lambda x: None
         ):
 
-            # TODO : Remove when torch module is updated to 1.0.1+
+            #
             # Fix the loading a of useless torch module(temporary)
+            #
+
+            # ISSUE WITH TORCH 1.0.0
             if module_path == "torch.nn.parallel.distributed_c10d":
+                continue
+            # ISSUE WITH TORCH 1.2.0
+            elif module_path =="torch.nn._intrinsic.qat" or module_path == "torch.nn.qat":
                 continue
 
             # Try to get the module

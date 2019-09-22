@@ -59,7 +59,7 @@ class Predictor(GenericInferer):
         :return outputs->dict: the total losses and total metrics for the model over the test data set
         """
         self.model = self.model if model is None else model
-
+        self.model.eval()
         for minibatch_index, minibatch in enumerate(self.dataloader, 0):
             inputs, labels, additional_data = self.clean_single_element_list(minibatch)
             inputs, labels = self.to_device(inputs, model.device), self.to_device(labels, model.device)

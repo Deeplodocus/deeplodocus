@@ -1,11 +1,11 @@
 dataloader:
-  batch_size: 16
+  batch_size: 32
   num_workers: 4
 enabled:
-  train: True
-  validation: True
-  test: False
-  predict: False
+  train: True         # Enable the trainer
+  validation: True    # Enable the validator
+  test: False         # There is no tester
+  predict: False      # Do enable the predictor
 datasets:
   # Training set
   - name: "Train MNIST"
@@ -15,26 +15,26 @@ datasets:
       # Input
       - name: "MNIST Image"
         type: "input"
-        data_type: "image"
-        load_as: "float32"
-        move_axis: Null
-        enable_cache: False
+        load_as: "image"
+        convert_to: "float32"
+        move_axis: [2, 0, 1]
+        enable_cache: True
         sources:
           - name: "MNIST"
             module: "torchvision.datasets"
             kwargs:
-              root: "./MNIST"
+              root: "./data/MNIST"
               train: True          # Use training data
               download: True
       # Label
       - name: "MNIST Label"
         type: "label"
-        data_type: "integer"
-        load_as: "int8"
+        load_as: "integer"
+        convert_to: "int64"
         move_axis: Null
         enable_cache: False
         sources:
-          - name: "SourcePointer"  # Point to an existing data source
+          - name: "SourcePointer"   # Point to an existing data source
             module: Null
             kwargs:
               entry_id: 0           # From the first entry
@@ -47,22 +47,22 @@ datasets:
     entries:
       - name: "MNIST Image"
         type: "input"
-        data_type: "image"
-        load_as: "float32"
-        move_axis: Null
-        enable_cache: False
+        load_as: "image"
+        convert_to: "float32"
+        move_axis: [2, 0, 1]
+        enable_cache: True
         sources:
           - name: "MNIST"
             module: "torchvision.datasets"
             kwargs:
-              root: "./MNIST"
-              train: False         # Use validation data
+              root: "./data/MNIST"
+              train: False          # Use validation data
               download: True
       # Label
       - name: "MNIST Label"
         type: "label"
-        data_type: "integer"
-        load_as: "int8"
+        load_as: "integer"
+        convert_to: "int64"
         move_axis: Null
         enable_cache: False
         sources:
@@ -72,6 +72,3 @@ datasets:
               entry_id: 0           # From the first entry
               source_id: 0          # From the first source
               instance_id: 1        # Load the second item
-
-
-
