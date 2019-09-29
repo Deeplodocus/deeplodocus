@@ -21,7 +21,9 @@ docs_dir: 'docs'
 nav:
   - HOME: index.md
   - GETTING STARTED: getting_started.md
-  - CONFIGURATION: config.md
+  - CONFIGURATION:
+    - Main Configurations: configuration/config.md
+    - Transformers: configuration/transformers.md
   - CREATING MODULES: creating_modules.md
   - EXISTING MODULES:
     - Data Sources: existing_modules/data_sources.md
