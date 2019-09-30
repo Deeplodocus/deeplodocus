@@ -20,4 +20,4 @@ TODO
 
 # Output Transformers
 
-TODO
+During training, validation and testing, output tranformers are applied to the batches of data immediately after inference by the model. and before metrics are calculated.  
