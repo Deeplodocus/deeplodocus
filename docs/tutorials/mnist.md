@@ -15,7 +15,7 @@ In this tutorial we will explain how to perform the following :
 
 #### Start a Deeplodocus project
 
-Before starting a Deeplodocus project, please make sure you already installed the [PyTorch](pytorch.org) version corresponding to your installation.
+Before starting a Deeplodocus project, please make sure you already installed the [PyTorch](http://pytorch.org) version corresponding to your installation.
 Then, you can install Deeplodocus using the following command :
 
 ```bash

@@ -16,8 +16,8 @@ On startup, each of the configuration files are loaded into a single variable na
 
 Config is a Namespace object, more details of which can be found in the [Namespace section of the API page](config.md#namespace). Users have direct acces to the config variable via Deeplodocus terminal, for example:
 
-- The [summary](api.md#summary) method can be used to view config - `config.summary()`
-- A [snapshot](api.md#snapshot) of the config file can be taken - `config.snapshot()`
+- The [summary](../api.md#summary) method can be used to view config - `config.summary()`
+- A [snapshot](../api.md#snapshot) of the config file can be taken - `config.snapshot()`
 - Sub-domains can be viewed individually - `config.project.summary()`
 - Variables can be edited - `config.training.num_epochs = 10`
 
@@ -150,7 +150,7 @@ Path to the module that contains the chosen model. If no module is given, Deeplo
 - **Data type:** str
 - **Default value:** None
 
-Note: More informaton about pre-built deeplodocus models can be found [here](existing_modules/models.md).
+Note: More informaton about pre-built deeplodocus models can be found [here](../existing_modules/models.md).
 
 #### from_file
 
@@ -213,7 +213,7 @@ Path to the module that contains the chosen loss. If no module is given, Deeplod
 - **Data type:** str
 - **Default value:** None
 
-Note: More informaton about existing PyTorch loss functions can be found [here](https://pytorch.org/docs/stable/nn.html#loss-functions), and some additional deeplodocus losses can be found [here](existing_modules/losses.md).
+Note: More informaton about existing PyTorch loss functions can be found [here](https://pytorch.org/docs/stable/nn.html#loss-functions), and some additional deeplodocus losses can be found [here](../existing_modules/losses.md).
 
 #### weight
 
@@ -260,7 +260,7 @@ Path to the module that contains the chosen loss. If no module is given, Deeplod
 - **Data type:** str
 - **Default value:** None
 
-Note: More informaton about existing metrics that come with Deeplodocus can be found [here](existing_modules/metrics.md).
+Note: More informaton about existing metrics that come with Deeplodocus can be found [here](../existing_modules/metrics.md).
 
 #### kwargs
 
@@ -271,7 +271,7 @@ Any keyword arguments to be parsed to the metric.
 
 ## Transform
 
-A series of input, label, additional data and output transformers can be specified in the transform.yaml file. More informaton about existing transforms can be found [here](existing_modules/transforms.md).
+A series of input, label, additional data and output transformers can be specified in the transform.yaml file. More informaton about existing transforms can be found [here](../existing_modules/transforms.md).
 
 ```yaml
 # Example transform.yaml file
