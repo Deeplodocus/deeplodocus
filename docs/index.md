@@ -1,6 +1,6 @@
 # What is Deeplodocus?
 
-In one line, Deeplodocus is a modular, flexible and accessible environment for the structured and rapid development of deep learning projects. 
+Deeplodocus is a modular, flexible and accessible environment for the structured and rapid development of deep learning projects. 
 
 The challenge of training, testing and deploying artificial neural networks involves the completion and integration of numerous complex sub-routines. Efficient data loading and augmentation, model design and optimisation procedures are all non-trivial tasks that require structured management throughout any deep learning project. However, approaching each one of these tasks from scratch is not always necessary—especially given the curent range of machine learning libraries—and instead the development of only select modules is often be more efficient. Therefore, Deeplodocus is a flexible environment that enables users to seamlessly integrate any number of existing and custom modules to rapidly build powerful deep learning projects.
 
