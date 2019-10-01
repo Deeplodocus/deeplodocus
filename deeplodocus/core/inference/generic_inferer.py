@@ -223,16 +223,20 @@ class GenericInferer(object):
         if isinstance(outputs, list):
             for i, o in enumerate(outputs):
                 outputs[i] = self.recursive_detach(o)
-
         elif isinstance(outputs, tuple):
             tuple_list = []
             for o in outputs:
                 i = self.recursive_detach(o)
                 tuple_list.append(i)
-
             outputs = tuple(tuple_list)
-
+        elif isinstance(outputs, dict):
+            detached_outputs = {}
+            for key, item in outputs.items():
+                try:
+                    detached_outputs[key] = self.recursive_detach(item)
+                except AttributeError:
+                    detached_outputs[key] = item
+            outputs = detached_outputs
         else:
             outputs = outputs.detach()
-
         return outputs
