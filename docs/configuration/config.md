@@ -6,13 +6,13 @@ The configurations detailed by files in the config directory are the core of any
 - [Data](config.md#data) - configure your datasets
 - [Model](config.md#model) - set up your model
 - [Losses](config.md#losses) -configure your loss functions.
-- [Metrics](config.md#metrics) - pconfigure any metric functions
+- [Metrics](config.md#metrics) - configure any metric functions
 - [Transform](config.md#transform) - configure your transformation routines
 - [Optimizer](config.md#optimizer) - configure your optimizer
 - [Training](config.md#training) - set your training conditions
 - [History](config.md#history) - configurations for storing training and validation history
 
-On startup, each of the configuration files are loaded into a single variable named config and the datatype of each entry is checked. If any entries are missing or cannot be converted to the expected data type, they will be added/corrected with a default value and a warning will be issued to explain the change made.
+On startup, each of the configuration files are loaded into a single variable named config and the data type of each entry is checked. If any entries are missing or cannot be converted to the expected data type, they will be added/corrected with a default value and a warning will be issued to explain the change made.
 
 Config is a Namespace object, more details of which can be found in the [Namespace section of the API page](config.md#namespace). Users have direct acces to the config variable via Deeplodocus terminal, for example:
 
@@ -76,7 +76,7 @@ The hardware device to use for executing forward and backward passes of the mode
 - **Data type:** [int]
 - **Default value:** "auto"
 - **Supported options:**
-	-  "auto" will use all avaialble CUDA devices
+	-  "auto" will use all available CUDA devices
 	- [0, 1, ... n] will use CUDA devices which have index values in the given list
 	
 #### logs: history_train_batches
@@ -213,7 +213,7 @@ Path to the module that contains the chosen loss. If no module is given, Deeplod
 - **Data type:** str
 - **Default value:** None
 
-Note: More informaton about existing PyTorch loss functions can be found [here](https://pytorch.org/docs/stable/nn.html#loss-functions), and some additional deeplodocus losses can be found [here](../existing_modules/losses.md).
+Note: More information about existing PyTorch loss functions can be found [here](https://pytorch.org/docs/stable/nn.html#loss-functions), and some additional deeplodocus losses can be found [here](existing_modules/losses.md).
 
 #### weight
 
@@ -260,7 +260,7 @@ Path to the module that contains the chosen loss. If no module is given, Deeplod
 - **Data type:** str
 - **Default value:** None
 
-Note: More informaton about existing metrics that come with Deeplodocus can be found [here](../existing_modules/metrics.md).
+Note: More information about existing metrics that come with Deeplodocus can be found [here](../existing_modules/metrics.md).
 
 #### kwargs
 

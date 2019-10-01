@@ -669,8 +669,8 @@ class Brain(FrontalLobe):
                     time.sleep(0.1)
                 except KeyboardInterrupt:
                     self.sleep()
-                #except AttributeError as e:
-                #    Notification(DEEP_NOTIF_ERROR, str(e))
+                except AttributeError as e:
+                    Notification(DEEP_NOTIF_ERROR, str(e))
 
     def __preprocess_command(self, command):
         """
