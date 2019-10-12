@@ -290,9 +290,8 @@ def resize(image: np.array, shape, keep_aspect: bool = False, padding: int = 0, 
 
     # If we want to keep the aspect
     if keep_aspect:
-        scale = min(np.asarray(shape[0:2]) / np.asarray(image.shape[0:2]))
-        new_size = np.array(image.shape[0:2]) * scale
-        image = cv2.resize(image, (int(new_size[1]), int(new_size[0])), interpolation=method)
+        scale = min(np.asarray((shape[1], shape[0])) / np.asarray(image.shape[0:2]))
+        image = cv2.resize(image, (0, 0), fx=scale, fy=scale, interpolation=method)
         image, _ = pad(image, shape, padding)
 
     else:
@@ -319,9 +318,9 @@ def pad(image, shape, value: int = 0) -> Tuple[np.array, None]:
 
     PARAMETERS;
     -----------
-
-    :param image (np.array): input image
-    :param value (int): Padding value
+    :param shape: (np.array): input image
+    :param image: (np.array): input image
+    :param value:  (int): Padding value
 
     RETURN:
     -------
@@ -329,20 +328,13 @@ def pad(image, shape, value: int = 0) -> Tuple[np.array, None]:
     :return padded(np.array): Padded image
     :return: None
     """
-    num_channels = 1 if image.ndim == 2 else image.shape[2]
-
-    padded = np.zeros(shape)
+    padded = np.zeros((int(shape[1]), int(shape[0])))
     padded.fill(value)
-    y0 = int((shape[0] - image.shape[0]) / 2)
-    x0 = int((shape[1] - image.shape[1]) / 2)
+    y0 = int((shape[1] - image.shape[0]) / 2)
+    x0 = int((shape[0] - image.shape[1]) / 2)
     y1 = y0 + image.shape[0]
     x1 = x0 + image.shape[1]
-
-    if num_channels == 1:
-        padded[y0:y1, x0:x1, 0] = image
-    else:
-        padded[y0:y1, x0:x1, :] = image
-
+    padded[y0:y1, x0:x1, ...] = image
     return padded, None
 
 
