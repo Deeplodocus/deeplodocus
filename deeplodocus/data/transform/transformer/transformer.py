@@ -260,11 +260,6 @@ class Transformer(object):
                     DEEP_NOTIF_FATAL,
                     "ValueError : %s : %s" % (str(e), DEEP_MSG_TRANSFORM_VALUE_ERROR)
                 )
-            except TypeError as e:
-                Notification(
-                    DEEP_NOTIF_FATAL,
-                    "TypeError : %s" % (str(e))
-                )
 
             # Update the last transforms used and the last index
             if last_method_used is None:
