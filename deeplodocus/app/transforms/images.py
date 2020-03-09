@@ -328,7 +328,10 @@ def pad(image, shape, value: int = 0) -> Tuple[np.array, None]:
     :return padded(np.array): Padded image
     :return: None
     """
-    padded = np.zeros((int(shape[1]), int(shape[0])))
+    if image.ndim == 3:
+        padded = np.zeros((int(shape[1]), int(shape[0]), image.shape[2]))
+    else:
+        padded = np.zeros((int(shape[1]), int(shape[0])))
     padded.fill(value)
     y0 = int((shape[1] - image.shape[0]) / 2)
     x0 = int((shape[0] - image.shape[1]) / 2)

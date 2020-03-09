@@ -259,11 +259,14 @@ class FrontalLobe(object):
         self.load_optimizer()    # Always load the optimizer after the model
         self.load_losses()
         self.load_metrics()
-        self.load_validator()       # Always load the validator before the trainer
-        self.load_tester()
-        self.load_trainer()
+        self.load_datasets()
         self.load_predictor()
         self.load_memory()
+
+    def load_datasets(self):
+        self.load_validator()
+        self.load_tester()
+        self.load_trainer()
 
     def load_model(self):
         """
@@ -372,8 +375,11 @@ class FrontalLobe(object):
             if self.config.model.from_file:
                 checkpoint = self.__load_checkpoint()
                 if "optimizer_state_dict" in checkpoint:
-                    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-                    msg += " with state dict from %s" % self.config.model.file
+                    try:
+                        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+                        msg += " with state dict from %s" % self.config.model.file
+                    except ValueError as e:
+                        Notification(DEEP_NOTIF_WARNING, str(e))
 
             # If model exists, load the into the frontal lobe
             if optimizer is None:

@@ -488,6 +488,11 @@ class Brain(FrontalLobe):
     def plot_graph(self, format="svg"):
         Graph(self.model, self.model.named_parameters())
 
+    def edit_optimizer(self, **kwargs):
+        for key, value in kwargs.items():
+            for param_group in self.optimizer.param_groups:
+                param_group[key] = value
+
     """
     "
     " Private Methods
@@ -665,8 +670,8 @@ class Brain(FrontalLobe):
                         exec("self.%s" % command)
                     elif flag == DEEP_CMD_PRINT:
                         exec("Notification(DEEP_NOTIF_RESULT, self.%s)" % command)
-                #except DeepError:
-                #    time.sleep(0.1)
+                except DeepError:
+                    time.sleep(0.1)
                 except KeyboardInterrupt:
                     self.sleep()
                 except AttributeError as e:

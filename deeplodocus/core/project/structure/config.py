@@ -395,6 +395,10 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str]
             },
+            "labels": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: [str],
+            },
             "additional_data": {
                 DEEP_CONFIG_DEFAULT: None,
                 DEEP_CONFIG_DTYPE: [str]

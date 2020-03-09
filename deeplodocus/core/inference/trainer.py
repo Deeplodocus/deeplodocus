@@ -2,7 +2,9 @@
 import weakref
 
 # Backend imports
+import torch
 import torch.nn as nn
+from math import ceil
 
 # Deeplodocus imports
 from deeplodocus.data.load.dataset import Dataset
@@ -23,14 +25,10 @@ class Trainer(GenericEvaluator):
     """
     AUTHORS:
     --------
-
     :author: Alix Leroy
-
     DESCRIPTION:
     ------------
-
     Trainer instance to train a model
-
     PUBLIC METHOD:
     --------------
     :method fit: Start the training
@@ -38,13 +36,11 @@ class Trainer(GenericEvaluator):
     :method continue_training: Continue the training of the model
     :method saving_required: Send a signal to the Saver in order to save the model
     :method send_save_params: Send the parameters to the Saver
-
     PRIVATE METHOD:
     ---------------
     :method __init__: Initialize the Trainer
     :method __train: Loop over the dataset to train the network
     :method  __evaluate_epoch: Evaluate the model using the Validator
-
     """
 
     """
@@ -72,17 +68,12 @@ class Trainer(GenericEvaluator):
         """
         AUTHORS:
         --------
-
         :author: Alix Leroy
-
         DESCRIPTION:
         ------------
-
         Initialize a Trainer instance
-
         PARAMETERS:
         -----------
-
         :param model (torch.nn.Module): The model which has to be trained
         :param dataset (Dataset): The dataset to be trained on
         :param metrics (dict): The metrics to analyze
@@ -98,10 +89,8 @@ class Trainer(GenericEvaluator):
         :param save_condition (int): DEEP_SAVE flag, when to save the results
         :param tester (Tester): The tester to use for validation
         :param model_name (str): The name of the model
-
         RETURN:
         -------
-
         :return: None
         """
         # Initialize the GenericEvaluator par
@@ -157,22 +146,15 @@ class Trainer(GenericEvaluator):
         """
         AUTHORS:
         --------
-
         :author: Alix Leroy
-
         DESCRIPTION:
         ------------
-
         Evaluate the model using the tester
-
         PARAMETERS:
         -----------
-
         None
-
         RETURN:
         -------
-
         :return: The total_loss, the individual losses and the individual metrics
         """
         # Initialize the losses and metrics results
@@ -187,26 +169,58 @@ class Trainer(GenericEvaluator):
         else:
             return total_validation_loss, result_losses, result_metrics
 
+    def __clean_and_move_data(self, minibatch):
+        inputs, labels, additional_data = self.clean_single_element_list(minibatch)
+        inputs = self.to_device(inputs, self.model.device)
+        labels = self.to_device(labels, self.model.device)
+        additional_data = self.to_device(additional_data, self.model.device)
+        return inputs, labels, additional_data
+
+    def __split_minibatch(self, data, split=1):
+        if split == 1:
+            return data
+        elif data is None:
+            return [None] * split
+        elif isinstance(data, list):
+            new_data = []
+            for i in range(split):
+                new_items = []
+                for item in data:
+                    n = ceil(item.shape[0] / split)
+                    try:
+                        new_items.append(item[i * n: (i + 1) * n, ...])
+                        print(i * n, (i + 1) * n)
+                    except IndexError:
+                        new_items.append(item[i * n:, ...])
+                new_data.append(new_items)
+            return new_data
+        else:
+            return self.__split_tensor(data, split)
+
+    @staticmethod
+    def __split_tensor(tensor, split):
+        n = ceil(tensor.shape[0] / split)
+        new_tensor = []
+        for i in range(split):
+            try:
+                new_tensor.append(tensor[i * n: (i + 1) * n, ...])
+            except IndexError:
+                new_tensor.append(tensor[i * n:, ...])
+        return new_tensor
+
     def __train(self, first_training: bool = True) -> None:
         """
         AUTHORS:
         --------
-
         :author: Alix Leroy
-
         DESCRIPTION:
         ------------
-
         Loop over the dataset to train the network
-
         PARAMETERS:
         -----------
-
         :param first_training (bool): Whether more epochs have been required after initial training or not
-
         RETURN:
         -------
-
         :return: None
         """
         if first_training is True:
@@ -231,28 +245,19 @@ class Trainer(GenericEvaluator):
             # Put model into train mode for the start of the epoch
             self.model.train()
 
+            split = 2
             for minibatch_index, minibatch in enumerate(self.dataloader, 0):
-
-                # Clean the given data
-                inputs, labels, additional_data = self.clean_single_element_list(minibatch)
-
-                # zero the parameter gradients
+                inputs, labels, additional_data = self.__clean_and_move_data(minibatch)
                 self.optimizer.zero_grad()
 
-                # Set the data to the corresponding device
-                inputs = self.to_device(inputs, self.model.device)
-                labels = self.to_device(labels, self.model.device)
-                additional_data = self.to_device(additional_data, self.model.device)
-
                 # Infer the output of the batch
-                try:
-                    outputs = self.model(*inputs)
-                except RuntimeError as e:
-                    Notification(DEEP_NOTIF_FATAL, "RuntimeError : %s" % str(e))
-                except TypeError as e:
-                    Notification(DEEP_NOTIF_FATAL, "TypeError : %s" % str(e))
+                #try:
+                outputs = self.model(*inputs)
+                #except RuntimeError as e:
+                #    Notification(DEEP_NOTIF_FATAL, "RuntimeError : %s" % str(e))
+                #except TypeError as e:
+                #    Notification(DEEP_NOTIF_FATAL, "TypeError : %s" % str(e))
 
-                # Compute losses
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
 
                 # Add weights to losses
@@ -350,22 +355,15 @@ class Trainer(GenericEvaluator):
         """
         AUTHORS:
         --------
-
         :author: Alix Leroy
-
         DESCRIPTION:
         ------------
-
         Fit the model to the dataset
-
         PARAMETERS:
         -----------
-
         :param first_training: (bool, optional): Whether it is the first training on the model or not
-
         RETURN:
         -------
-
         :return: None
         """
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_TRAINING_STARTED)
@@ -376,25 +374,18 @@ class Trainer(GenericEvaluator):
         """
         AUTHORS:
         --------
-
         :author: Alix Leroy
-
         DESCRIPTION:
         ------------
-
         Detach the tensors from the graph
-
         PARAMETERS:
         -----------
-
         :param outputs:
         :param total_loss:
         :param result_losses:
         :param result_metrics:
-
         RETURN:
         -------
-
         :return outputs:
         :return total_loss:
         :return result_losses:
@@ -423,23 +414,16 @@ class Trainer(GenericEvaluator):
         """
         AUTHORS:
         --------
-
         :author: Alix Leroy
         :author: Samuel Westlake
-
         DESCRIPTION:
         ------------
-
         Function to know the number of epochs when continuing the training
-
         PARAMETERS:
         -----------
-
         None
-
         RETURN:
         -------
-
         :return: None
         """
         if epochs is None:
@@ -461,23 +445,16 @@ class Trainer(GenericEvaluator):
         """
         AUTHORS:
         --------
-
         :author: Alix Leroy
-
         DESCRIPTION:
         ------------
-
         Signal to send the model to be saved if require
         NB : Contains a signal, cannot be static
-
         PARAMETERS:
         -----------
-
         :param saving_required: (bool): Whether saving the model is required or not
-
         RETURN:
         -------
-
         None
         """
         if saving_required is True:
@@ -492,23 +469,16 @@ class Trainer(GenericEvaluator):
         """
         AUTHORS:
         --------
-
         :author: Samuel Westlake
         :author: Alix Leroy
-
         DESCRIPTION:
         ------------
-
         Send the saving parameters to the Saver
-
         PARAMETERS:
         -----------
-
         :param inp: The input size of the model (required for ONNX models)
-
         RETURN:
         -------
-
         :return: None
         """
         Thalamus().add_signal(
@@ -521,4 +491,3 @@ class Trainer(GenericEvaluator):
                       "inp": inp}
             )
         )
-
