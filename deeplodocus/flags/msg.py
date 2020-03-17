@@ -202,4 +202,4 @@ DEEP_MSG_METRIC_NOT_LOADED = "Metrics not loaded"
 
 DEEP_MSG_SHUFFLE_NOT_FOUND = "Shuffling method does not exist : %s"
 DEEP_MSG_SHUFFLE_COMPLETE = "Dataset shuffled with method : %s"
-
+DEEP_MSG_NO_SHUFFLE = "Dataset not shuffled"
