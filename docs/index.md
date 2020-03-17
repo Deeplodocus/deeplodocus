@@ -1,3 +1,5 @@
+![Logo](figures/logo.png  "Logo")
+
 # What is Deeplodocus?
 
 Deeplodocus is a modular, flexible and accessible environment for the structured and rapid development of deep learning projects. 

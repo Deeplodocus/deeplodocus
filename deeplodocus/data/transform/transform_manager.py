@@ -315,24 +315,33 @@ class TransformManager(object):
             # Get the corresponding flag
             flag = get_corresponding_flag(flag_list=DEEP_LIST_TRANSFORMERS, info=config.method, fatal = False)
 
-            # Remove the method from the config
-            delattr(config, 'method')
-
             #
             # Create the corresponding Transformer
             #
-            # SEQUENTIAL
-            if DEEP_TRANSFORMER_SEQUENTIAL.corresponds(flag):
-                transformer = Sequential(**config.get())
-            # ONE OF
-            elif DEEP_TRANSFORMER_ONE_OF.corresponds(flag):
-                transformer = OneOf(**config.get())
-            # SOME OF
-            elif DEEP_TRANSFORMER_SOME_OF.corresponds(flag):
-                transformer = SomeOf(**config.get())
-            # If the method does not exist
-            else:
-                Notification(DEEP_NOTIF_FATAL, "The following transformation method does not exist : " + str(config.method))
+            try:
+                # SEQUENTIAL
+                if DEEP_TRANSFORMER_SEQUENTIAL.corresponds(flag):
+                    transformer = Sequential(**config.get(ignore="method"))
+                # ONE OF
+                elif DEEP_TRANSFORMER_ONE_OF.corresponds(flag):
+                    transformer = OneOf(**config.get(ignore="method"))
+                # SOME OF
+                elif DEEP_TRANSFORMER_SOME_OF.corresponds(flag):
+                    transformer = SomeOf(**config.get(ignore="method"))
+                # If the method does not exist
+                else:
+                    Notification(
+                        DEEP_NOTIF_FATAL,
+                        "Unknown transformer method specified in %s : %s" % (config_entry, config.method),
+                        solutions=["Ensure a valid transformer method is specified in %s" % config_entry]
+                    )
+            except TypeError as e:
+                Notification(
+                    DEEP_NOTIF_FATAL,
+                    "TypeError when loading transformer : %s : %s" % (config_entry, e),
+                    solutions=["Check the syntax of %s" % config_entry]
+
+                )
         return transformer
 
     @staticmethod
