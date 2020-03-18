@@ -1,11 +1,20 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+import contextlib
 
+from deeplodocus.utils.notification import Notification
+from deeplodocus.flags.notif import *
 from deeplodocus.utils.generic_utils import get_specific_module
-from deeplodocus.app.layers.empty import EmptyLayer
 
 
-class YOLOv3(nn.Module):
+skip_dict = {
+    "Darknet53": (36, 61),
+    "Darknet19": (8, 13)
+}
+
+
+class YOLO(nn.Module):
 
     """
     Original article: https://pjreddie.com/media/files/papers/YOLOv3.pdf
@@ -14,19 +23,18 @@ class YOLOv3(nn.Module):
     def __init__(
             self,
             backbone=None,
-            num_classes=80,
-            skip_layers=(36, 61),
-            input_shape=(256, 256),
+            num_classes=10,
+            skip_layers=None,
             anchors=(
-                ((116, 90), (156, 198), (373, 326)),
+                ((10, 13), (16, 30), (22, 23)),
                 ((30, 61), (62, 45), (59, 119)),
-                ((10, 13), (16, 30), (22, 23))
-            ),
-            normalized_anchors=False,
-            predict=False
+                ((116, 90), (156, 198), (373, 326))
+            )
     ):
-        super(YOLOv3, self).__init__()
-        # Default backbone arguments
+        super(YOLO, self).__init__()
+        self.num_classes = num_classes
+
+        # If no backbone specified, set default backbone arguments
         if backbone is None:
             backbone = {
                 "name": "Daknet53",
@@ -36,124 +44,109 @@ class YOLOv3(nn.Module):
                     "include_top": False
                 }
             }
+            skip_layers = (36, 61)
 
-        # Scale anchors by image dimensions if the anchors are normalized
-        if normalized_anchors:
-            anchors = [[(a[0] * input_shape[1], a[1] * input_shape[0]) for a in anchor] for anchor in anchors]
-
-        self.predicting = predict
-
-        # Get the number of anchor boxes
-        num_anchors = len(anchors)
+        # If skip layers not specified, select the appropriate indices in accordance with skip_dict
+        with contextlib.suppress(KeyError):
+            for key, skip in skip_dict.items():
+                if backbone["name"].startswith(key) and skip_layers is None:
+                    skip_layers = skip
+                    Notification(DEEP_NOTIF_INFO, "%s detected : skip layers set to %s" % (key, str(skip)))
 
         # Get and initialise the backbone module
         backbone_module = get_specific_module(name=backbone["name"], module=backbone["module"], fatal=True)
         self.backbone = backbone_module(**backbone["kwargs"])
 
-        # The keys to extract from the list
+        # Indices of the layers to connect to in the backbone
         self.skip_layers = skip_layers
 
-        # CONVOLUTIONAL LAYERS/BLOCKS (ConvBlocks consist of 4 conv layers)
+        # CONVOLUTIONAL LAYERS/BLOCKS (ConvBlocks contain 4 conv layers)
         self.conv_1_1 = ConvLayer(in_channels=1024, out_channels=512, kernel_size=1, negative_slope=0.1)
         self.conv_1_2 = ConvBlock(1024)
         self.conv_1_3 = ConvLayer(in_channels=512, out_channels=1024, kernel_size=3, padding=1, negative_slope=0.1)
-        self.conv_1_4 = nn.Conv2d(in_channels=1024, out_channels=num_anchors * (num_classes + 5), kernel_size=1)
+        self.conv_1_4 = nn.Conv2d(in_channels=1024, out_channels=len(anchors) * (num_classes + 5), kernel_size=1)
 
         self.conv_2_1 = ConvLayer(in_channels=512, out_channels=256, kernel_size=1, negative_slope=0.1)
         self.conv_2_2 = ConvLayer(in_channels=768, out_channels=256, kernel_size=1, negative_slope=0.1)
         self.conv_2_3 = ConvBlock(512)
         self.conv_2_4 = ConvLayer(in_channels=256, out_channels=512, kernel_size=3, padding=1, negative_slope=0.1)
-        self.conv_2_5 = nn.Conv2d(in_channels=512, out_channels=num_anchors * (num_classes + 5), kernel_size=1)
+        self.conv_2_5 = nn.Conv2d(in_channels=512, out_channels=len(anchors) * (num_classes + 5), kernel_size=1)
 
         self.conv_3_1 = ConvLayer(in_channels=256, out_channels=128, kernel_size=1, negative_slope=0.1)
         self.conv_3_2 = ConvLayer(in_channels=384, out_channels=128, kernel_size=1, negative_slope=0.1)
         self.conv_3_3 = ConvBlock(256)
         self.conv_3_4 = ConvLayer(in_channels=128, out_channels=256, kernel_size=3, padding=1, negative_slope=0.1)
-        self.conv_3_5 = nn.Conv2d(in_channels=256, out_channels=num_anchors * (num_classes + 5), kernel_size=1)
+        self.conv_3_5 = nn.Conv2d(in_channels=256, out_channels=len(anchors) * (num_classes + 5), kernel_size=1)
 
         # UPSAMPLE LAYER
         self.upsample = nn.Upsample(scale_factor=2, mode="nearest")
 
         # YOLO LAYERS
-        self.yolo_layer_1 = YoloLayer(
-            num_classes=num_classes,
-            image_shape=input_shape,
-            anchors=anchors[0]
-        )
-        self.yolo_layer_2 = YoloLayer(
-            num_classes=num_classes,
-            image_shape=input_shape,
-            anchors=anchors[1]
-        )
-        self.yolo_layer_3 = YoloLayer(
-            num_classes=num_classes,
-            image_shape=input_shape,
-            anchors=anchors[2]
-        )
-        self.predict(predict)
+        # Layer 1 - detection on largest scale
+        self.yolo_layer_1 = YoloLayer(anchors=anchors[2])
+        # Layer 2 - detection on mid scale
+        self.yolo_layer_2 = YoloLayer(anchors=anchors[1])
+        # Layer 3 - detection on smallest scale
+        self.yolo_layer_3 = YoloLayer(anchors=anchors[0])
+
+        # Classify after backbone
+        self.classifier = nn.Linear(in_features=1024, out_features=num_classes)
 
     def forward(self, x):
-        # BACKBONE
+        if not (x.shape[2] % 32 == 0 and x.shape[3] % 32 == 0):
+            Notification(
+                DEEP_NOTIF_FATAL,
+                "in YOLO.forward(x) : input height and width must be divisible by 32 : got %s" % str(x.shape)
+            )
+        image_shape = x.shape[2:4]
+
+        # BACKBONE - initial feature detection
         x = self.backbone(x)                                            # b x 1024 x h/32 x w/32
 
         # DETECTION ON LARGEST SCALE
-        x = self.conv_1_1(x)                                            # b x 512 x h/32 x w/32
-        x = self.conv_1_2(x)                                            # b x 512 x h/32 x w/32
+        x = self.conv_1_1(x)                                            # b x 512  x h/32 x w/32
+        x = self.conv_1_2(x)                                            # b x 512  x h/32 x w/32
         output_1 = self.conv_1_3(x)                                     # b x 1024 x h/32 x w/32
-        output_1 = self.conv_1_4(output_1)                              # b x 255 x h/32 x w/32
-        output_1 = self.yolo_layer_1(output_1)                          # First YOLO layer
+        output_1 = self.conv_1_4(output_1)                              # b x 255  x h/32 x w/32
+        output_1 = self.yolo_layer_1(output_1, image_shape)             # First YOLO layer (large scale)
 
         # DETECTION ON MID SCALE
-        x = self.conv_2_1(x)                                            #
-        x = self.upsample(x)                                            # b x 256 x h/12 x w/16
-        x = torch.cat((x, self.backbone.skip[self.skip_layers[1]]), 1)  # Concatenate x with second backbone skip layer
-        x = self.conv_2_2(x)
-        x = self.conv_2_3(x)
-        output_2 = self.conv_2_4(x)
-        output_2 = self.conv_2_5(output_2)
-        output_2 = self.yolo_layer_2(output_2)
+        x = self.conv_2_1(x)                                            # b x 256 x h/32 x w/32
+        x = self.upsample(x)                                            # b x 256 x h/16 x w/16
+        skip = self.backbone.skip[self.skip_layers[1]]                  # Get skip layer from backbone
+        x = torch.cat((x, skip), 1)                                     # Concatenate x with second backbone skip layer
+        x = self.conv_2_2(x)                                            # b x 256 x h/16 x w/16
+        x = self.conv_2_3(x)                                            # b x 256 x h/16 x w/16
+        output_2 = self.conv_2_4(x)                                     # b x 512 x h/16 x w/16
+        output_2 = self.conv_2_5(output_2)                              # b x a * (num_classes + num_types + 5) x h/16 x w/16
+        output_2 = self.yolo_layer_2(output_2, image_shape)             # Second YOLO layer (mid scale)
 
         # DETECTION ON SMALLEST SCALE
-        x = self.conv_3_1(x)
-        x = self.upsample(x)
-        x = torch.cat((x, self.backbone.skip[self.skip_layers[0]]), 1)
-        x = self.conv_3_2(x)
-        x = self.conv_3_3(x)
-        output_3 = self.conv_3_4(x)
-        output_3 = self.conv_3_5(output_3)
-        output_3 = self.yolo_layer_3(output_3)
+        x = self.conv_3_1(x)                                            # b x 128 x h/16 x w/16
+        x = self.upsample(x)                                            # b x 128 x h/8  x w/8
+        skip = self.backbone.skip[self.skip_layers[0]]
+        x = torch.cat((x, skip), 1)  # Concatenate x with first backbone skip layer
+        x = self.conv_3_2(x)                                            # b x 128 x h/8  x w/8
+        x = self.conv_3_3(x)                                            # b x 128 x h/8  x w/8
+        output_3 = self.conv_3_4(x)                                     # b x 128 x h/8  x w/8
+        output_3 = self.conv_3_5(output_3)                              # b x a * (num_classes + num_types + 5) x h/8 x w/8
+        output_3 = self.yolo_layer_3(output_3, image_shape)             # Third YOLO layer (small scale)
 
-        # Return the concatenation of all three yolo layers
-        if self.predicting:
-            return torch.cat((output_1, output_2, output_3), 1)
-        else:
-            return output_1, output_2, output_3
-
-    def predict(self, mode=True):
-        """
-        :param mode:
-        :return:
-        """
-        if mode:
-            # Put model into evaluation mode
-            self.eval()
-        # Set predicting here and for all yolo layers
-        self.predicting = mode
-        self.yolo_layer_1.predicting = mode
-        self.yolo_layer_2.predicting = mode
-        self.yolo_layer_3.predicting = mode
-
-    def train(self, mode=True):
-        """
-        Same as for a typical nn.Module, but also sets predict to False
-        :param mode:
-        :return:
-        """
-        self.training = mode
-        for module in self.children():
-            module.train(mode)
-        self.predict(False)
-        return self
+        return {
+            "detections": [output_1, output_2, output_3],
+            "scaled_anchors": torch.stack(
+                (
+                    self.yolo_layer_1.scaled_anchors,
+                    self.yolo_layer_2.scaled_anchors,
+                    self.yolo_layer_3.scaled_anchors
+                ), 0
+            ),
+            "strides": (
+                self.yolo_layer_1.stride,
+                self.yolo_layer_2.stride,
+                self.yolo_layer_3.stride
+            )
+        }
 
 
 class ConvBlock(nn.Module):
@@ -196,7 +189,15 @@ class ConvBlock(nn.Module):
 
 
 class ConvLayer(nn.Module):
+    """
+    Author: Samuel Westlake
 
+    Acts to package:
+        > a convolutional layer
+        > batch normalisation
+        > ReLU activation
+    into a single layer (in that order).
+    """
     def __init__(
             self, in_channels, out_channels,
             kernel_size=3,
@@ -215,81 +216,47 @@ class ConvLayer(nn.Module):
             stride=stride,
             padding=padding
         )
-        if batch_norm:
-            self.norm_layer = nn.BatchNorm2d(out_channels)
-        else:
-            self.norm_layer = EmptyLayer()
-        if negative_slope == 0:
-            self.activation_layer = nn.ReLU()
-        else:
-            self.activation_layer = nn.LeakyReLU(negative_slope=negative_slope)
+        self.norm_layer = nn.BatchNorm2d(out_channels) if batch_norm else None
+        self.activation_layer = nn.ReLU() if negative_slope == 0 else nn.LeakyReLU(negative_slope)
 
     def forward(self, x):
         x = self.conv_layer(x)
-        x = self.norm_layer(x)
+        if self.norm_layer is not None:
+            x = self.norm_layer(x)
         x = self.activation_layer(x)
         return x
 
 
 class YoloLayer(nn.Module):
 
-    def __init__(self, anchors, num_classes, image_shape, num_anchors=3, predict=False):
+    def __init__(self, anchors):
         super(YoloLayer, self).__init__()
-        self.num_classes = num_classes
-        self.num_anchors = len(anchors)
-        self.image_shape = image_shape      # (height, width)
-        self.num_anchors = num_anchors
         self.anchors = anchors
-        self.num_classes = num_classes
-        self.mse_loss = nn.MSELoss(size_average=True)   # Coordinate loss
-        self.bce_loss = nn.BCELoss(size_average=True)   # Objectiveness loss
-        self.ce_loss = nn.CrossEntropyLoss()            # Class loss
-        self.predicting = predict
+        self.scaled_anchors = None
+        self.stride = None
+        self.shape = None
+        self.x = None
+        self.y = None
 
-    def forward(self, x):
-        FloatTensor = torch.cuda.FloatTensor if x.is_cuda else torch.FloatTensor
-        batch_size, _, h, w = x.shape
-
-        # Stride should be 32, 16 or 8
-        stride = self.image_shape[1] / w
+    def forward(self, x, image_shape):
+        (b, _, h, w), a = x.shape, len(self.anchors)
+        if self.shape != (h, w):
+            self.shape = (h, w)
+            self.stride = image_shape[1] / w
+            self.x = torch.arange(w, device=x.device).repeat(h, 1).view([1, 1, h, w]).float()
+            self.y = torch.arange(h, device=x.device).repeat(w, 1).t().view([1, 1, h, w]).float()
+            self.scaled_anchors = torch.tensor(self.anchors, device=x.device, dtype=torch.float32) / self.stride
 
         # Unpack predictions b x num_anchors x h x w x [num_classes + 5]
-        prediction = x.view(
-            batch_size,
-            self.num_anchors,
-            self.num_classes + 5,
-            h,
-            w
-        ).permute(0, 1, 3, 4, 2).contiguous()
+        x = x.view(b, a, -1, h, w).permute(0, 1, 3, 4, 2).contiguous()
 
-        # Scaled anchor width and height and cell offsets
-        scaled_anchors = FloatTensor(self.anchors) / stride
-        cx = torch.arange(w).repeat(h, 1).view([1, 1, h, w]).type(FloatTensor)
-        cy = torch.arange(h).repeat(w, 1).t().view([1, 1, h, w]).type(FloatTensor)
+        # Apply transforms to bx, by, bw, bh
+        bx = torch.sigmoid(x[..., 0]) + self.x
+        by = torch.sigmoid(x[..., 1]) + self.y
+        bw = self.scaled_anchors[:, 0].view(1, a, 1, 1) * torch.exp(x[..., 2])
+        bh = self.scaled_anchors[:, 1].view(1, a, 1, 1) * torch.exp(x[..., 3])
 
-        # Get all outputs
-        bx = torch.sigmoid(prediction[..., 0]) + cx
-        by = torch.sigmoid(prediction[..., 1]) + cy
-        bw = scaled_anchors[:, 0].view(1, self.num_anchors, 1, 1) * torch.exp(prediction[..., 2])
-        bh = scaled_anchors[:, 1].view(1, self.num_anchors, 1, 1) * torch.exp(prediction[..., 3])
-        obj = torch.sigmoid(prediction[..., 4])
-        cls = torch.sigmoid(prediction[..., 5:])
-
-        # Recombine predictions after activations have been applied
-        prediction = torch.cat((
-            bx.view(*bx.shape, 1),
-            by.view(*by.shape, 1),
-            bw.view(*bw.shape, 1),
-            bh.view(*bh.shape, 1),
-            obj.view(*obj.shape, 1),
-            cls
-        ), 4)
-
-        if self.predicting:
-            # Scale up by stride
-            prediction[..., 0:4] *= stride
-            # Return flattened predictions
-            return prediction.view(batch_size, -1, self.num_classes + 5)
-        else:
-            # If not in prediction mode, return predictions without offsets and with anchors
-            return prediction, scaled_anchors
+        return torch.cat(
+            (bx[..., None], by[..., None], bw[..., None], bh[..., None], x[..., 4:]),
+            dim=4
+        )

@@ -665,12 +665,12 @@ class Brain(FrontalLobe):
                         exec("self.%s" % command)
                     elif flag == DEEP_CMD_PRINT:
                         exec("Notification(DEEP_NOTIF_RESULT, self.%s)" % command)
-                except DeepError:
-                    time.sleep(0.1)
+                #except DeepError:
+                #    time.sleep(0.1)
                 except KeyboardInterrupt:
                     self.sleep()
-                except AttributeError as e:
-                    Notification(DEEP_NOTIF_ERROR, str(e))
+                #except AttributeError as e:
+                #    Notification(DEEP_NOTIF_ERROR, str(e))
 
     def __preprocess_command(self, command):
         """
