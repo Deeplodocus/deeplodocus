@@ -52,3 +52,9 @@ DEEP_LOAD_AS_NP_ARRAY = Flag(
     description="Numpy array type",
     names=["numpy", "npy", "npz", "numpy array", "numpy_array", "numpy-array"]
 )
+
+DEEP_LOAD_AS_GIVEN = Flag(
+    name="Given",
+    description="Load the data as given (unchanged)",
+    names=["given", "unchanged"]
+)
