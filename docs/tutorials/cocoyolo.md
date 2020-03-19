@@ -251,7 +251,7 @@ This is because the COCO images are different sizes and need to be resized befor
 Because of this, we need to normalise the bounding box labels by the width and height of their respective image. 
 
 
-![TransformerPipeline](figures/tutorials/cocoyolo/transformer.png  "TransformerPipeline")
+![TransformerPipeline](../figures/tutorials/cocoyolo/transformer.png  "TransformerPipeline")
 
 
 In this current configuration, the transforms functions applied in the validation pipeline will the same as those for the training pipeline. 
