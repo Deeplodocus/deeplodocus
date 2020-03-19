@@ -34,4 +34,5 @@ nav:
   - TUTORIALS:
     - MNIST: tutorials/mnist.md
     - Cityscapes: tutorials/cityscapes.md
+    - COCO with YOLO: tutorials/cocoyolo.md
   - ABOUT: about.md
