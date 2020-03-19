@@ -250,13 +250,14 @@ class YoloLayer(nn.Module):
         # Unpack predictions b x num_anchors x h x w x [num_classes + 5]
         x = x.view(b, a, -1, h, w).permute(0, 1, 3, 4, 2).contiguous()
 
-        # Apply transforms to bx, by, bw, bh
+        # Apply transforms to obj, bx, by, bw, bh
+        obj = torch.sigmoid(x[..., 4])
         bx = torch.sigmoid(x[..., 0]) + self.x
         by = torch.sigmoid(x[..., 1]) + self.y
         bw = self.scaled_anchors[:, 0].view(1, a, 1, 1) * torch.exp(x[..., 2])
         bh = self.scaled_anchors[:, 1].view(1, a, 1, 1) * torch.exp(x[..., 3])
 
         return torch.cat(
-            (bx[..., None], by[..., None], bw[..., None], bh[..., None], x[..., 4:]),
+            (bx[..., None], by[..., None], bw[..., None], bh[..., None], obj[..., None], x[..., 5:]),
             dim=4
         )

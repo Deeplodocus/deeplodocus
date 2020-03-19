@@ -231,7 +231,8 @@ Any keyword arguments to be parsed to the loss.
 
 ## Metrics
 
-Any number of metrics can be specified in metrics.yaml. Give each metric a unique name, followed by a series of defining entries, as seen below. The unique name given will be used when displaying metric values and saving to training and validation history.
+Any number of metrics can be specified in metrics.yaml. Give each metric a unique name, followed by a series of defining entries, as seen below. 
+The unique name given will be used when displaying metric values and saving to training and validation history.
 
 ```yaml
 # Example metrics.yaml file
