@@ -125,8 +125,6 @@ class NonMaximumSuppression(object):
         self._batch += 1
         self._total_batches += 1
         if (not self._batch % self.skip) and self._total_batches >= self.initial_skip:
-            # Apply sigmoid to objectness scores
-            outputs["detections"][..., 4] = torch.sigmoid(outputs["detections"][..., 4])
             b, n, _ = outputs["detections"].shape
             # Initialise a tensor to put detections in
             detections = torch.zeros((b, n, 6), device=outputs["detections"].device)
