@@ -5,10 +5,10 @@ from torch.nn.modules import CrossEntropyLoss, MSELoss, BCEWithLogitsLoss
 
 class ObjectLoss(nn.Module):
 
-    def __init__(self, iou_threshold=0.5, obj_weight=2):
+    def __init__(self, iou_threshold=0.5, noobj_weight=0.5):
         super(ObjectLoss, self).__init__()
         self.iou_threshold = iou_threshold
-        self.bce = BCEWithLogitsLoss(pos_weight=torch.tensor(obj_weight))
+        self.noobj_weight = noobj_weight
 
     def forward(self, outputs, targets):
         # Unpack YOLO outputs
@@ -40,7 +40,11 @@ class ObjectLoss(nn.Module):
         # Concatenate all ground truths and predictions
         ground_truth = torch.cat([gt.view(-1) for gt in ground_truth], dim=0)
         predictions = torch.cat([p[..., 4].view(-1) for p in predictions], dim=0)
-        return self.bce(predictions[ground_truth != -1], ground_truth[ground_truth != -1])
+        return self.mse_loss(predictions, ground_truth)
+
+    def mse_loss(self, prediction, gt):
+        return self.noobj_weight * torch.mean((prediction[gt == 0] - gt[gt == 0]) ** 2) \
+               + torch.mean((prediction[gt == 1] - gt[gt == 1]) ** 2)
 
     def suppress_anchors(self, overlap):
         b, t, s, a = overlap.shape
