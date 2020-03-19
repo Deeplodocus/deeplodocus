@@ -213,7 +213,7 @@ Path to the module that contains the chosen loss. If no module is given, Deeplod
 - **Data type:** str
 - **Default value:** None
 
-Note: More information about existing PyTorch loss functions can be found [here](https://pytorch.org/docs/stable/nn.html#loss-functions), and some additional deeplodocus losses can be found [here](existing_modules/losses.md).
+Note: More information about existing PyTorch loss functions can be found [here](https://pytorch.org/docs/stable/nn.html#loss-functions), and some additional deeplodocus losses can be found [here](../existing_modules/losses.md).
 
 #### weight
 
