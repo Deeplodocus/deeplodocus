@@ -9,17 +9,17 @@ In this tutorial, we will walk through each step to configure a Deeplodocus proj
 1. [Download the COCO Detection Dataset](coco.md#1-download-the-coco-detection-dataset)
 2. [Install pycocotools](coco.md#2-install-pycocotools)
 
-**Project Setup:**
+**Project setup:**
 
 1. [Initialise a new project](coco.md#1-initialise-the-project)
-2. [Include the Dataset](coco.md#2-include-the-dataset)
-3. [Data Configuration](coco.md#3-data-configuration)
-4. [Configure the Model](coco.md#4-configure-the-model)
-5. [Configure Loss Functions](coco.md#5-configure-loss-functions)
+2. [Data Configuration](coco.md#2-data-configuration)
+3. [Model Configuration](coco.md#3-model-configuration)
+4. [Loss & Metric Configuration](coco.md#4-loss-metric-configuration)
+5. [Optimiser Configuration](coco.md#5-optimiser-configuration)
 6. [Transformer Configuration](coco.md#6-transformer-configuration)
     - [Input Transformer](coco.md#51-input-transformer)
     - [Output Transformer](coco.md#52-output-transformer)
-7. [Start Training](coco.md#7-start-training)
+7. [Training](coco.md#7-training)
 
 A copy of this project can be cloned from [here](https://github.com/Deeplodocus/COCO-with-YOLO) - but don't forget to follow the prerequisite steps below. 
 
@@ -61,7 +61,9 @@ Initialise a new Deeplodocus project in your terminal with:
 deeplodocus new-project COCO-with-YOLO
 ```
 
-## 2. Include the Dataset
+## 2. Data Configuration
+
+### 2.1. Include the Dataset
 
 Make sure the dataset is in the right place.
 After initialising your project and extracting COCO, the data in your project should be structured like this: 
@@ -81,12 +83,11 @@ data
     └─  ...
 ```
 
-## 3. Data Configuration
 
 Setting up the data configurations is one of most complicated steps in this project - but bare with us, we'll soon be feeding COCO efficiently into our data-hungry network. 
 Open up the **config/data.yaml** file, and let's get started. 
     
-### Data loader    
+### 2.2. Data loader    
 
 At the top of the file you'll see the entry for **dataloader**, use this to set the batch size and the number of workers. 
 If you have limited GPU memory, you may need to reduce your batch size.
@@ -96,7 +97,7 @@ dataloader:
   batch_size: 32        # Possible batch sizes will depend on the available memory 
   num_workers: 4        # This will depend on your CPU, you probably have at least 4 cores
 ```
-### Enable the required pipelines
+### 2.3. Enable the required pipelines
 
 Next, us the **enabled** entry to enable different types of pipeline. 
 As we only have training and validation data in this case, we need to enable just the trainer and validator as follows:
@@ -109,7 +110,7 @@ enabled:
   predict: False        # There is no prediction data
 ```
 
-### Dataset
+### 2.4. Configure the dataset
 
 Finally, we arrive at the **datasets** entry.
 We define this with a list of two items, which configure the training and validation portions of the dataset respectively. 
@@ -153,12 +154,6 @@ datasets:
               instance_id: 1        # Take the second item - the label
 ```
 
-!!! note "Why are we using a SourcePointer?"
-    When using torchvision datasets, the input and label entries are loaded together in a list. 
-    This does not change how we configure the input source.
-    However, for the label source, we use a SourcePointer to reference the second item from the first (and only) source of the first (input) entry. 
-
-
 Now, we can include the validation configurations, which will look very similar. 
 There are only 4 differences: 
 
@@ -183,7 +178,7 @@ Validation dataset configurations:
         move_axis: [2, 0, 1]
         enable_cache: True
         sources:
-          - name: COCODetection
+          - name: CocoDetection
             module: torchvision.datasets
             kwargs:
               root: data/val2017
@@ -204,7 +199,12 @@ Validation dataset configurations:
               instance_id: 1   
 ``` 
 
-## 4. Configure the Model
+!!! note "Why are we using a SourcePointer?"
+    When using torchvision datasets, the input and label entries are loaded together in a list. 
+    This does not change how we configure the input source.
+    However, for the label source, we use a SourcePointer to reference the second item from the first (and only) source of the first (input) entry. 
+
+## 3. Model Configuration
 
 Open and edit the **config/model.yaml** file to specify our object detector. 
 
@@ -241,9 +241,9 @@ You should now be able to load the model and print a summary, like this:
     
     Additionally, our source code for [YOLO](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/models/yolo.py) and [Darknet](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/models/darknet.py) can be found on GitHub. 
     
-## 5. Configure Loss Functions
+## 4. Loss & Metric Configuration
 
-With YOLO fully-configured, we must now set up the loss functions that are critical for training.
+### 4.1. Losses
 
 We have split the YOLO loss function into three components which relate to the objectness score, bounding box coordinates and object classifications respectively.
 Thus, we need to configure each independently as follows:
@@ -255,7 +255,7 @@ ObjectLoss:
   weight: 1
   kwargs:
     iou_threshold: 0.5
-    noobj_weight: 10                      # Equivalent to lambda_noobj
+    noobj_weight: 10                      # Equivalent to λ_noobj
 BoxLoss:
   name: BoxLoss                           # Name of the Python class to use
   module: deeplodocus.app.losses.yolo     # Import from deeplodocus app
@@ -269,8 +269,33 @@ ClassLoss:
   kwargs: {}
 ```
 
-We have implemented these loss functions as explianed by [the original YOLO paper](https://arxiv.org/pdf/1506.02640.pdf), and all source code is published [here](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/losses/yolo.py).
+We have implemented these loss functions as explained by [the original YOLO paper](https://arxiv.org/pdf/1506.02640.pdf), and all source code is published [here](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/losses/yolo.py).
 
+### 4.2. Metrics
+
+Currently, Deeplodocus does not include any of the traditional metrics for evaluating object detection.
+Unless you wish to include you own metrics, make sure that the **config/metrics.yaml** file is empty. 
+
+## 5. Optimiser Configuration
+
+Have a look at the optimiser configurations specified in **config/optimizer.yaml**.
+By default we have specified the Adam optimiser from [torch.optim](https://pytorch.org/docs/stable/optim.html).
+The learning rate is specified by **lr**, and additional parameters can also be given.  
+
+```yaml
+name: "Adam"
+module: "torch.optim"
+kwargs:
+  lr: 0.0001
+  betas: [0.9, 0.999]
+  weight_decay: 0
+```
+
+!!! note 
+    Make sure the learning rate is not too high, otherwise training can become unstable. 
+    If you are able to use a pre-trained backbone, a learning rate of 1e-3 should be just fine. 
+    However, if you are training from scratch - like in this tutorial - a lower learning rate will be necessary in the beginning. 
+    
 ## 6. Transformer Configuration
 
 The final critical step is the configuration of two data transformers:
@@ -340,30 +365,24 @@ transforms: Null
 mandatory_transforms_end: Null
 ```
 
-The first of these transforms the label by formatting it into an array of size (100 x 5) and normalising the bounding box coordinates.
-In this array, each row corresponds to a new ground truth object and the 5 columns contain to the centre point, width, height and class of each object (x, y, w, h, cls).
-
-After the boxes have been normalised, the second transform is used to resize the input image to (448 x 448 x 3).
-
-!!! note "How does this work?"
-    **Stage 1:**
-        
-    - An input (image) is inputted to the **[reformat_pointer](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/transforms/yolo/input.py)** function, which returns:
-        - The given image (unchanged),
-        - A **TransformData** object that stores the shape of the given image as well as a second transform function named **[reformat](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/transforms/yolo/label.py)**.
-    - Becuase the label transformer points to the input transformer, the label will inputted to the function specified by this **TransformData** object, which:
-        - Formats the label into a numpy array,
-        - Normalises the box coordinages w.r.t the given image shape. 
-        
-    **Stage 2:**
-        
-    - The input (image) is then given to the **[resize](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/transforms/yolo/input.py)** function, which returns:
-        - The image, resized to (448 x 448),
-        - A **TransformData** object that points to an **[empty](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/transforms/__init__.py)** transformer function.
-    - The label is given to the **[empty](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/transforms/__init__.py)** transform.
-        - This is just a place holder transform - the label is returned unchanged.
-        
-    This process is illustrated below:
+The first stage is use to format the label into an array of size (100 x 5), then normalise the box coordinates by the corresponding image shape.
+    
+- An input (image) is given to the **[reformat_pointer](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/transforms/yolo/input.py)** function, which returns:
+    - the image (unchanged) and,
+    - a **TransformData** object that stores the shape of the given image as well as a second transform function named **[reformat](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/transforms/yolo/label.py)**.
+- Since the label transformer points to the input transformer, the label will inputted to the function specified by this **TransformData** object, which:
+    - formats the label into a numpy array and,
+    - normalises the box coordinages w.r.t the given image shape. 
+    
+The second stage is responsible for resizing the input image to (448 x 448 x 3). 
+    
+- The image is inputted to the **[resize](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/transforms/yolo/input.py)** function, which returns:
+    - the image, resized to (448 x 448) and,
+    - a **TransformData** object that points to an **[empty](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/transforms/__init__.py)** transformer function.
+- The label is given to the **[empty](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/transforms/__init__.py)** transform.
+    - This is just a place holder transform - the label is returned unchanged.
+    
+This process is illustrated below:
 
 ![TransformerPipeline](../figures/tutorials/coco/transformer.png  "TransformerPipeline")
 
@@ -410,6 +429,8 @@ transforms:
       wait: 1                                       # How long to wait (ms) (0 = wait for a keypress)
       width: 2                                      # Line width for drawing boxes
       skip: *skip                                   # How many batches to skip
+      lab_col: [32, 200, 32]                        # Color for drawing ground truth boxes (BGR)
+      det_col: [32, 32, 200]                        # Color for drawing model detections (BGR)
 ```
 
 The first transform, collects all of the YOLO detections from each of the three scales into a single array.
@@ -418,7 +439,7 @@ The third and final function draws the ground truth and the object detections in
 
 The source code for each of these transform functions can be found [here](https://github.com/Deeplodocus/deeplodocus/blob/master/deeplodocus/app/transforms/yolo/output.py).
 
-## 7. Start Training
+## 7. Training
 
 Now you're good to go! Just run the project main file, enter **load()**, **train()** and let it run.
 Don't forget that you can also play with the optimiser and training configurations.  
