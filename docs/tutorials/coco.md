@@ -255,7 +255,7 @@ ObjectLoss:
   weight: 1
   kwargs:
     iou_threshold: 0.5
-    noobj_weight: 10                      # Equivalent to λ_noobj
+    noobj_weight: 0.5                     # Equivalent to λ_noobj
 BoxLoss:
   name: BoxLoss                           # Name of the Python class to use
   module: deeplodocus.app.losses.yolo     # Import from deeplodocus app
