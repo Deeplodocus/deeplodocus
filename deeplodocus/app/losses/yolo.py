@@ -1,14 +1,14 @@
 import torch
 import torch.nn as nn
-from torch.nn.modules import CrossEntropyLoss, MSELoss
+from torch.nn.modules import CrossEntropyLoss, MSELoss, BCEWithLogitsLoss
 
 
 class ObjectLoss(nn.Module):
 
-    def __init__(self, iou_threshold=0.5, noobj_weight=0.5):
+    def __init__(self, iou_threshold=0.5, obj_weight=0.5):
         super(ObjectLoss, self).__init__()
         self.iou_threshold = iou_threshold
-        self.noobj_weight = noobj_weight
+        self.bce_loss = BCEWithLogitsLoss(pos_weight=torch.tensor(obj_weight, dtype=torch.float))
 
     def forward(self, outputs, targets):
         # Unpack YOLO outputs
@@ -40,11 +40,11 @@ class ObjectLoss(nn.Module):
         # Concatenate all ground truths and predictions
         ground_truth = torch.cat([gt.view(-1) for gt in ground_truth], dim=0)
         predictions = torch.cat([p[..., 4].view(-1) for p in predictions], dim=0)
-        return self.mse_loss(predictions, ground_truth)
+        return self.bce_loss(predictions, ground_truth)
 
-    def mse_loss(self, prediction, gt):
-        return self.noobj_weight * torch.mean((prediction[gt == 0] - gt[gt == 0]) ** 2) \
-               + torch.mean((prediction[gt == 1] - gt[gt == 1]) ** 2)
+    #def mse_loss(self, prediction, gt):
+    #    return self.noobj_weight * torch.mean((prediction[gt == 0] - gt[gt == 0]) ** 2) \
+    #           + torch.mean((prediction[gt == 1] - gt[gt == 1]) ** 2)
 
     @staticmethod
     def get_zeroed_targets(targets, shapes):
@@ -73,7 +73,7 @@ class BoxLoss(nn.Module):
         # Make tensor of prediction shapes
         shapes = torch.tensor([p.shape[2:4] for p in predictions], device=anchors.device)               # (s, 2)
         # Get cell indices of each target for each scale (b x t x s x 3)
-        target_cells = get_target_cells(targets, shapes).view(-1, s, 3)[mask].permute(1, 0, 2)     # (s, ?, 3)
+        target_cells = get_target_cells(targets, shapes).view(-1, s, 3)[mask].permute(1, 0, 2)          # (s, ?, 3)
         # Get scaled targets
         scaled_targets = self.get_scaled_targets(targets[..., 0:4], shapes)                             # (b, t, s, 4)
         # Zero the targets for comparison with prior bounding boxes
@@ -81,7 +81,10 @@ class BoxLoss(nn.Module):
         # Calculate Jaccard Index between each zeroed target and each prior bounding box
         overlap = calc_overlap(anchors, zeroed_targets)
         # Suppress or ignore some target-anchors
-        anchor_indices = suppress_anchors(overlap, iou_threshold=self.iou_threshold)[mask].permute(1, 0, 2)  # (s, ?, 3)
+        anchor_indices = suppress_anchors(
+            overlap,
+            iou_threshold=self.iou_threshold
+        ).view(-1, s, a)[mask].permute(1, 0, 2)                                                         # (s, ?, 3)
         # Initialise list of ground truth tensors
         ground_truth = [torch.zeros((b, a, h, w, 4), device=anchors.device) for h, w in shapes]
         # Reshape the scaled targets into something more convenient
