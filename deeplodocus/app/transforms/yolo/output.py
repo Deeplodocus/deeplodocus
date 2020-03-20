@@ -153,7 +153,7 @@ class Visualize(object):
             cols=None,
             width=1,
             lab_col=(32, 200, 32),
-            out_col=(32, 32, 200),
+            det_col=(32, 32, 200),
             initial_skip=0
     ):
         """
@@ -176,7 +176,7 @@ class Visualize(object):
         self.wait = wait
         self.width = width
         self.lab_col = tuple(lab_col)
-        self.out_col = tuple(out_col)
+        self.det_col = tuple(det_col)
         self.initial_skip = initial_skip
         self._total_batches = 0
         self._batch = 0
@@ -205,7 +205,7 @@ class Visualize(object):
                 inputs = self.__draw_boxes(inputs, labels, color=self.lab_col, width=self.width, scale=True)
 
             # Draw model predictions
-            inputs = self.__draw_boxes(inputs, predictions, color=self.out_col, width=self.width)
+            inputs = self.__draw_boxes(inputs, predictions, color=self.det_col, width=self.width)
 
             # Stitch all images into one large image
             images = self.__stitch_images(inputs)
