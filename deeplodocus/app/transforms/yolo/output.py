@@ -2,12 +2,13 @@ import cv2
 import contextlib
 import numpy as np
 import torch
+from torchvision.ops import nms
 
 from deeplodocus.utils.notification import Notification
 from deeplodocus.flags.notif import DEEP_NOTIF_WARNING
 
 
-class Concatenate(object):
+class Activate(object):
 
     def __init__(self, skip=1, initial_skip=0):
         """
@@ -20,7 +21,7 @@ class Concatenate(object):
         self._total_batches = 0
 
     def __repr__(self):
-        return "<Concatenate Transform Object>"
+        return "<Activate Transform Object>"
 
     def forward(self, outputs):
         """
@@ -31,115 +32,58 @@ class Concatenate(object):
         self._batch += 1
         self._total_batches += 1
         if (not self._batch % self.skip) and self._total_batches >= self.initial_skip:
-            for i in range(len(outputs["detections"])):
-                b, _, _, _, n = outputs["detections"][i].shape
-                outputs["detections"][i][..., 0:4] *= outputs["strides"][i]
-                outputs["detections"][i] = outputs["detections"][i].view(b, -1, n)
-            outputs["detections"] = torch.cat(outputs["detections"], 1)
+            outputs.inference = torch.cat(
+                [
+                    self.__forward(x, anchors=anchors, stride=stride)
+                    for x, anchors, stride in
+                    zip(outputs.inference, outputs.anchors, outputs.strides)
+                ], dim=1
+            )
         return outputs
+
+    @staticmethod
+    def __forward(x, anchors, stride):
+        b, a, h, w, n = x.shape
+        # Make grids of cell locations
+        cx = torch.arange(w, device=x.device).repeat(h, 1).view([1, 1, h, w]).float()
+        cy = torch.arange(h, device=x.device).repeat(w, 1).t().view([1, 1, h, w]).float()
+        # Apply transforms to bx, by, bw, bh
+        x[..., 0] = (torch.sigmoid(x[..., 0]) + cx) * stride
+        x[..., 1] = (torch.sigmoid(x[..., 1]) + cy) * stride
+        x[..., 2:4] = anchors.view(1, a, 1, 1, 2) * torch.exp(x[..., 2:4])
+        x[..., 4:] = torch.sigmoid(x[..., 4:])
+        return x.view(b, -1, n)
 
     def finish(self):
         self._batch = 0
 
 
-class NonMaximumSuppression(object):
+class NMS(object):
 
-    def __init__(self, num_types=4, num_classes=10, iou_threshold=0.5, obj_threshold=0.5, skip=1, initial_skip=0):
+    def __init__(self, skip=1, initial_skip=0, iou_threshold=0.5, obj_threshold=0.5):
         self.iou_threshold = iou_threshold
         self.obj_threshold = obj_threshold
-        self.num_types = num_types
-        self.num_classes = num_classes
         self.skip = skip
         self.initial_skip = initial_skip
         self._batch = 0
         self._total_batches = 0
 
-    def __repr__(self):
-        return "<NonMaximumSupression Transform Object>"
-
-    @staticmethod
-    def __area(tensor):
-        dims = list(range(tensor.dim()))
-        dims.reverse()
-        return (tensor.permute(*dims)[0] - tensor.permute(*dims)[2]) * (tensor.permute(*dims)[1] - tensor.permute(*dims)[3])
-
-    def __iou(self, active, others):
-        x0 = torch.max(others[:, 0], active[0])
-        y0 = torch.max(others[:, 1], active[1])
-        x1 = torch.min(others[:, 2], active[2])
-        y1 = torch.min(others[:, 3], active[3])
-        mask = (x0 < x1) * (y0 < y1)
-        intersection = (x1 - x0) * (y1 - y0) * mask.type(active.dtype)
-        return intersection / (self.__area(active) + self.__area(others) - intersection)
-
-    @staticmethod
-    def __xywh2rect(xywh):
-        dims = list(range(xywh.dim()))
-        dims.reverse()
-        rect = torch.zeros(xywh.shape, dtype=xywh.dtype).permute(*dims)
-        rect = rect.to(device=xywh.device)
-        rect[0] = xywh.permute(*dims)[0] - xywh.permute(*dims)[2] / 2
-        rect[1] = xywh.permute(*dims)[1] - xywh.permute(*dims)[3] / 2
-        rect[2] = xywh.permute(*dims)[0] + xywh.permute(*dims)[2] / 2
-        rect[3] = xywh.permute(*dims)[1] + xywh.permute(*dims)[3] / 2
-        return rect.permute(*dims)
-
-    @staticmethod
-    def __compress_classes(outputs):
-        compressed_outputs = outputs[:, 0:6]
-        with contextlib.suppress(RuntimeError):
-            _, cls = outputs[:, 5:].max(1)
-            compressed_outputs[:, 5] = cls
-        return compressed_outputs
-
-    def __obj_supression(self, outputs):
-        return outputs[outputs[:, 4] > self.obj_threshold]
-
-    def __non_maximum_supression(self, outputs):
-        n = outputs.shape[-1]
-        suppressed_outputs = []
-        while outputs.shape[0]:
-            _, i = outputs[:, 4].max(0)                     # Get index of output with highest obj score
-            current = outputs[i, :]                         # Set as current
-            suppressed_outputs.append(current)              # Append current to list
-            ious = self.__iou(
-                self.__xywh2rect(current[0:4]),
-                self.__xywh2rect(outputs[:, 0:4])
-            )                                               # Get iou scores between current and and all outputs
-            outputs = outputs[ious < self.iou_threshold]    # Remove outputs which overlap by more than the threshold
-        if suppressed_outputs:
-            return torch.stack(suppressed_outputs, 0)
-        else:
-            return torch.tensor((), device=outputs.device).view(-1, n)
-
-    def __forward(self, outputs):
-        # Remove outputs where object score is less than obj_threshold
-        outputs = self.__obj_supression(outputs)
-        # Change class and type predictions from one-hot encoded to a single value
-        outputs = self.__compress_classes(outputs)
-        # Perform non-maximum suppression
-        outputs = self.__non_maximum_supression(outputs)
-        return outputs
-
     def forward(self, outputs):
         self._batch += 1
         self._total_batches += 1
         if (not self._batch % self.skip) and self._total_batches >= self.initial_skip:
-            b, n, _ = outputs["detections"].shape
-            outputs["detections"][..., 4] = torch.sigmoid(outputs["detections"][..., 4])
-            # Initialise a tensor to put detections in
-            detections = torch.zeros((b, n, 6), device=outputs["detections"].device)
-            # Perform nms on each batch
-            for i, output in enumerate(outputs["detections"]):
-                dets = self.__forward(output)
-                detections[i, 0:dets.shape[0], :] = dets
-            # Minimise size of second dimension
-            # Because the number of detections should be much smaller than n
-            outputs["detections"] = detections[:, ~ torch.all(detections.view(-1, n) == 0, dim=0)]
+            for b, batch in enumerate(outputs.inference):
+                t, n = batch.shape
+                batch = batch[batch[:, 4] > self.obj_threshold]
+                indices = nms(xywh2rect(batch[:, 0:4]), batch[:, 4], self.iou_threshold)
+                k = torch.zeros([batch.shape[0]] * 2, device=batch.device)
+                k[:indices.shape[0]] = torch.eye(batch.shape[0], device=batch.device)[indices]
+                batch = torch.mm(k, batch)
+                batch[torch.all(k == 0)] = -1
+                new_batch = torch.zeros(t, n, device=batch.device, dtype=batch.dtype).fill_(-1)
+                new_batch[0:batch.shape[0]] = batch
+                outputs.inference[b] = new_batch
         return outputs
-
-    def finish(self):
-        self._batch = 0
 
 
 class Visualize(object):
@@ -147,14 +91,18 @@ class Visualize(object):
     def __init__(
             self,
             window_name="YOLO Visualization",
+            obj_threshold=0.5,
             scale=1.0,
             skip=1,
             wait=1,
             rows=None,
             cols=None,
             width=1,
+            key=None,
             lab_col=(32, 200, 32),
             det_col=(32, 32, 200),
+            font_scale=1.0,
+            font_thickness=1,
             initial_skip=0
     ):
         """
@@ -166,10 +114,11 @@ class Visualize(object):
         :param cols: int: number of cols when stitching the batch of images into a single large image
         :param width: int: line width for drawing boxes
         :param lab_col: tuple(ints): the color for drawing label
-        :param out_col: tuple(ints): the color for the output label
+        :param det_col: tuple(ints): the color for the output label
         :param initial_skip: int: the number of batches to skip initially
         """
         self.window_name = window_name
+        self.obj_threshold = obj_threshold
         self.scale = scale
         self.rows = rows
         self.cols = cols
@@ -178,9 +127,15 @@ class Visualize(object):
         self.width = width
         self.lab_col = tuple(lab_col)
         self.det_col = tuple(det_col)
+        self.font_scale = font_scale
+        self.font_thickness = font_thickness
         self.initial_skip = initial_skip
         self._total_batches = 0
         self._batch = 0
+        self.key = key
+        if key is not None:
+            with open(key, "r") as file:
+                self.key = [i.strip() for i in file.readlines() if i.strip()]
 
     def __repr__(self):
         return "<Visualize Transform Object>"
@@ -196,29 +151,27 @@ class Visualize(object):
         self._batch += 1
         self._total_batches += 1
         if (not self._batch % self.skip) and self._total_batches >= self.initial_skip:
-            inputs = inputs[0].permute((0, 2, 3, 1)).cpu().numpy().astype(np.uint8)     # Convert to numpy
-            inputs = np.ascontiguousarray(inputs[:, :, :, [2, 1, 0]])                   # Convert to bgr
-            predictions = outputs["detections"].detach().cpu().clone().numpy()
-
+            if inputs is None:
+                inputs = np.zeros((16, 512, 512, 3), dtype=np.uint8)
+            else:
+                inputs = inputs[0].permute((0, 2, 3, 1)).cpu().numpy().astype(np.uint8)  # Convert to numpy
+                inputs = np.ascontiguousarray(inputs[:, :, :, [2, 1, 0]])  # Convert to bgr
+            detections = outputs.inference.detach().cpu().clone().numpy()  # Get detections as numpy
             # Draw labels
             if labels is not None:
-                labels = labels.cpu().clone().numpy()
-                inputs = self.__draw_boxes(inputs, labels, color=self.lab_col, width=self.width, scale=True)
-
+                labels = labels.cpu().numpy()
+                inputs = self.__draw_boxes(inputs, labels, color=self.lab_col, width=self.width)
+            # Remove predictions where objectness score < obj_threshold
+            detections[detections[..., 4] < self.obj_threshold] = -1
             # Draw model predictions
-            inputs = self.__draw_boxes(inputs, predictions, color=self.det_col, width=self.width)
-
-            # Stitch all images into one large image
-            images = self.__stitch_images(inputs)
-
+            inputs = self.__draw_boxes(inputs, detections, color=self.det_col, width=self.width)
+            images = self.__stitch_images(inputs)  # Stitch all images into one large image
             # Rescale
             if self.scale != 1:
                 images = cv2.resize(images, (0, 0), fx=self.scale, fy=self.scale)
-
             # Display
             cv2.imshow(self.window_name, images)
             cv2.waitKey(self.wait)
-
         return outputs
 
     def finish(self):
@@ -247,8 +200,7 @@ class Visualize(object):
             images[h * j:h * (j + 1), w * i:w * (i + 1), :] = image
         return images
 
-    @staticmethod
-    def __draw_boxes(images, boxes, color=(32, 200, 32), width=1, scale=False):
+    def __draw_boxes(self, images, boxes, color=(32, 200, 32), width=1):
         """
         Author: SW
         Draw the given boxes on the given images
@@ -256,16 +208,27 @@ class Visualize(object):
         :param boxes: np array: array of boxes to draw (b x n x 4) (xywh format)
         :param color: tuple(ints): color for the boxes
         :param width: int: width of the box lines
-        :param scale: bool: if the boxes need to be scaled up or not
         :return: images with given boxes drawn
         """
-        if scale:
-            # Make bbox values absolute
-            boxes = scale_boxes(boxes, images.shape)
-        for image, rects in zip(images, xywh2rect(boxes).astype(int)):
-            for box in rects:
-                if not np.all(box < 0):
-                    cv2.rectangle(image, tuple(box[0:2]), tuple(box[2:4]), color, width)
+        for image, batch in zip(images, boxes):
+            batch = batch[~ np.all(batch == -1, axis=1)]
+            classes = np.argmax(batch[:, 5:], axis=1) if batch.shape[1] > 5 else batch[:, 4]
+            for rect, cls in zip(xywh2rect(batch[:, 0:4]), classes.astype(int)):
+                cv2.rectangle(image, tuple(rect[0:2]), tuple(rect[2:4]), color, width)
+                cv2.putText(
+                    image,
+                    str(cls) if self.key is None else self.key[cls],
+                    tuple(rect[0:2]),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    self.font_scale,
+                    color,
+                    self.font_thickness
+                )
+                #except TypeError:
+                #    Notification(
+                #        DEEP_NOTIF_WARNING,
+                #        "Unable to draw rectangle : p1=%s : p2=%s" % (tuple(rect[0:2]), tuple(rect[2:4]))
+                #    )
         return images
 
     def __get_rows_cols(self, n):
@@ -307,18 +270,6 @@ class Visualize(object):
                 "yolo/output/Visualize : Not all images are displayed : n=%i, rows=%i, cols=%i" % (n, rows, cols)
             )
         return rows, cols
-
-
-def scale_boxes(boxes, shape):
-    """
-    Author: SW
-    Scale the given bounding boxes by the given shape
-    :param boxes: np array: given bounding boxes
-    :param shape: tuple(ints/floats): shape to scale by (h, w)
-    :return: np array: scaled bounding boxes
-    """
-    boxes[..., 0:4] *= np.tile(np.array(shape[1:3])[[1, 0]], 2).reshape(1, 1, -1)
-    return boxes
 
 
 def xywh2rect(array, indices=(0, 1, 2, 3)):

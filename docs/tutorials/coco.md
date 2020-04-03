@@ -1,6 +1,17 @@
 # COCO with YOLO
 
+Last updated: 21/03/2020
+
+- Complexity: **MEDIUM**
+- Computational requirement: **HIGH**
+
+
 In this tutorial, we will walk through each step to configure a Deeplodocus project for object detection on the COCO dataset using our implementation of YOLOv3.
+We will primarily focus on demonstrating how to:
+
+- configuring the CocoDetection dataset from torchvision,
+- configuring YOLOv3 and its associated loss functions and,
+- transforming the input and label data.
 
 ![COCODemo](../figures/tutorials/coco/ground-truths.png  "COCODemo")
 
