@@ -245,12 +245,12 @@ class Trainer(GenericEvaluator):
                 additional_data = self.to_device(additional_data, self.model.device)
 
                 # Infer the output of the batch
-                try:
-                    outputs = self.model(*inputs)
-                except RuntimeError as e:
-                    Notification(DEEP_NOTIF_FATAL, "RuntimeError : %s" % str(e))
-                except TypeError as e:
-                    Notification(DEEP_NOTIF_FATAL, "TypeError : %s" % str(e))
+                #try:
+                outputs = self.model(*inputs)
+                #except RuntimeError as e:
+                #    Notification(DEEP_NOTIF_FATAL, "RuntimeError : %s" % str(e))
+                #except TypeError as e:
+                #    Notification(DEEP_NOTIF_FATAL, "TypeError : %s" % str(e))
 
                 # Compute losses
                 result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)

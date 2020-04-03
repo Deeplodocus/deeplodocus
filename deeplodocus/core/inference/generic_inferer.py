@@ -2,12 +2,12 @@ from typing import Tuple
 from typing import Union
 from typing import List
 
-
 from torch.utils.data import DataLoader
 from torch.nn import Module
 from torch import Tensor
 
 from deeplodocus.data.load.dataset import Dataset
+from deeplodocus.utils.namespace import Namespace
 
 
 class GenericInferer(object):
@@ -237,6 +237,13 @@ class GenericInferer(object):
                 except AttributeError:
                     detached_outputs[key] = item
             outputs = detached_outputs
+        elif isinstance(outputs, Namespace):
+            detached_outputs = {}
+            for key, item in outputs.__dict__.items():
+                try:
+                    detached_outputs[key] = self.recursive_detach(item)
+                except AttributeError:
+                    detached_outputs[key] = item
         else:
             outputs = outputs.detach()
         return outputs

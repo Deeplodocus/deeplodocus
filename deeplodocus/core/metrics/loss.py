@@ -170,7 +170,6 @@ class Loss(GenericMetric):
         output_list = ["out", "y_pred", "y_predicted", "output", "outputs"]
         label_list = ["y", "y_expect", "y_expected", "label", "labels", "target", "targets"]
         additional_data_list = ["additional_data", "aditional_data"]
-
         for arg in arguments_list:
             if arg in input_list:
                 if self.is_custom is False:
@@ -186,5 +185,5 @@ class Loss(GenericMetric):
             elif arg == "self":
                 continue
             else:
-                Notification(DEEP_NOTIF_FATAL, "The following argument is not handled by the Deeplodocus loss system, please check the documentation : " + str(arg))
+               Notification(DEEP_NOTIF_FATAL, "The following argument is not handled by the Deeplodocus loss system, please check the documentation : " + str(arg))
         return arguments
