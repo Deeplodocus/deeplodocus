@@ -217,6 +217,8 @@ Validation dataset configurations:
 
 ## 3. Model Configuration
 
+![YOLOSummary](../figures/tutorials/coco/YOLO-19.png  "YOLOSummary")
+
 Open and edit the **config/model.yaml** file to specify our object detector. 
 
 ```yaml
