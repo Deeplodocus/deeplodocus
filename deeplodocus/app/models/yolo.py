@@ -128,8 +128,8 @@ class YOLO(nn.Module):
         x = torch.cat((x, skip), 1)  # Concatenate x with second backbone skip layer
         x = self.conv_2_2(x)  # b x 256 x h/16 x w/16
         x = self.conv_2_3(x)  # b x 256 x h/16 x w/16
-        output_2 = self.conv_2_4(x)  # b x 3 * (num cls + 5) x h/16 x w/16
-        output_2 = self.conv_2_5(output_2)  # b x 255  x h/16 x w/16
+        output_2 = self.conv_2_4(x)  # b x 512  x h/16 x w/16
+        output_2 = self.conv_2_5(output_2)  # b x 3 * (num cls + 5) x h/16 x w/16
         output_2 = self.unpack(output_2, s=1)  # Unpack predictions across anchors
 
         # DETECTION ON SMALLEST SCALE
