@@ -12,13 +12,14 @@ from deeplodocus.utils.namespace import Namespace
 
 class YOLOLoss(nn.Module):
 
-    def __init__(self, iou_threshold=0.5, obj_weight=[0.5, 2], box_weight=5, class_weight=None):
+    def __init__(self, iou_threshold=0.5, obj_weight=[0.5, 2], box_weight=5, class_weight=None, min_class_weight=0):
         super(YOLOLoss, self).__init__()
         self.iou_threshold = iou_threshold
         self.obj_weight = torch.tensor(obj_weight)
         self.box_weight = box_weight
         self.bce = BCEWithLogitsLoss(reduce=False)
         self.class_weight = class_weight
+        self.min_class_weight = min_class_weight
         self._cls_freq = None
 
     def forward(self, outputs, targets):
@@ -122,7 +123,7 @@ class YOLOLoss(nn.Module):
         return box, obj, cls
 
     def __update_class_weights(self, targets, num_classes):
-        if self.class_weight == None:
+        if self.class_weight is None:
             return torch.ones(num_classes)
         elif self.class_weight == "auto":
             if self._cls_freq is None:
@@ -133,7 +134,7 @@ class YOLOLoss(nn.Module):
                 accumulate=True
             )
             weight = torch.sum(self._cls_freq) / (num_classes * self._cls_freq)
-            weight[weight < 1] = 1
+            weight[weight < self.min_class_weight] = self.min_class_weight
             return weight
         else:
             return torch.tensor(self.class_weight)
