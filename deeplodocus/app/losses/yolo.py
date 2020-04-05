@@ -125,7 +125,7 @@ class YOLOLoss(nn.Module):
     def __update_class_weights(self, targets, num_classes):
         if self.class_weight is None:
             return torch.ones(num_classes)
-        elif self.class_weight == "auto":
+        elif self.class_weight.lower() == "auto":
             if self._cls_freq is None:
                 self._cls_freq = torch.zeros(num_classes)
             self._cls_freq.index_put_(
