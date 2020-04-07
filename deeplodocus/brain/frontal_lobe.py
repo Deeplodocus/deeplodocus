@@ -386,6 +386,11 @@ class FrontalLobe(object):
         else:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_OPTIM_MODEL_NOT_LOADED)
 
+    def edit_optimizer(self, **kwargs):
+        for key, value in kwargs.items():
+            for param_group in self.optimizer.param_groups:
+                param_group[key] = value
+
     def load_losses(self):
         """
         AUTHORS:
