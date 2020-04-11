@@ -415,6 +415,10 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DTYPE: str,
                 DEEP_CONFIG_DEFAULT: None
             },
+            "reduce": {
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_DEFAULT: "mean"
+            },
             "kwargs": {
                 DEEP_CONFIG_DTYPE: dict,
                 DEEP_CONFIG_DEFAULT: {}
