@@ -78,24 +78,6 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DTYPE: [int],
             DEEP_CONFIG_DEFAULT: "auto"
         },
-        "logs": {
-            "history_train_batches": {
-                DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
-            },
-            "history_train_epochs": {
-                DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
-            },
-            "history_validation": {
-                DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
-            },
-            "notification": {
-                DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
-            }
-        },
         "on_wake": {
             DEEP_CONFIG_DTYPE: [str],
             DEEP_CONFIG_DEFAULT: None
@@ -149,10 +131,24 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: "default"
         },
-        "memorize": {
-            DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "batch"
-        }
+        "enabled": {
+            "train_batches": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            },
+            "train_epochs": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            },
+            "validation": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            },
+            "notification": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            }
+        },
     },
     DEEP_CONFIG_TRAINING: {
         "num_epochs": {

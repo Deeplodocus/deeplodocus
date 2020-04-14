@@ -48,6 +48,7 @@ class Flag(object):
         """
         self.name = name
         self.names = names
+        self.var_name = name.lower().replace(" ", "_")
         self.description = description
         self.index = FlagIndexer().generate_unique_index()
 

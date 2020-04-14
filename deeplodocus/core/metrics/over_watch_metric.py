@@ -2,13 +2,8 @@
 from typing import Union
 
 # Deeplodocus imports
-from deeplodocus.utils.flag import Flag
+from deeplodocus.flags import *
 from deeplodocus.utils.generic_utils import get_corresponding_flag
-
-# Deeplodocus flags
-from deeplodocus.flags.flag_lists import DEEP_LIST_SAVE_CONDITIONS
-from deeplodocus.flags import TOTAL_LOSS
-from deeplodocus.flags.save import DEEP_SAVE_CONDITION_LESS
 
 
 class OverWatchMetric(object):
@@ -24,7 +19,7 @@ class OverWatchMetric(object):
     Metric to overwatch during the training
     """
 
-    def __init__(self, name: str = TOTAL_LOSS, condition: Union[Flag, int, str, None] = DEEP_SAVE_CONDITION_LESS):
+    def __init__(self, name: str = DEEP_LOG_TOTAL_LOSS, condition: Union[Flag, int, str, None] = DEEP_SAVE_CONDITION_LESS):
         """
         AUTHORS:
         --------
@@ -43,10 +38,12 @@ class OverWatchMetric(object):
         """
         self.name = name
         self.value = 0.0
-        self.condition = get_corresponding_flag(flag_list=DEEP_LIST_SAVE_CONDITIONS,
-                                                info=condition,
-                                                fatal=False,
-                                                default=DEEP_SAVE_CONDITION_LESS)
+        self.condition = get_corresponding_flag(
+            flag_list=DEEP_LIST_SAVE_CONDITIONS,
+            info=condition,
+            fatal=False,
+            default=DEEP_SAVE_CONDITION_LESS
+        )
 
     """
     "

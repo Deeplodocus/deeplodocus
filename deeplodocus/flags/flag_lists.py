@@ -2,6 +2,7 @@ from deeplodocus.flags.load_as import *
 from deeplodocus.flags.dataset import *
 from deeplodocus.flags.source import *
 from deeplodocus.flags.load import *
+from deeplodocus.flags.log import *
 from deeplodocus.flags.entry import *
 from deeplodocus.flags.lib import *
 from deeplodocus.flags.transformer import *
@@ -51,6 +52,24 @@ DEEP_LIST_LOAD_METHOD = [
     DEEP_LOAD_METHOD_HARDDRIVE,
     DEEP_LOAD_METHOD_SERVER
 ]
+
+# LOG HISTORY
+DEEP_LIST_LOG_HISTORY = [
+    DEEP_LOG_TRAIN_BATCHES,
+    DEEP_LOG_TRAIN_EPOCHS,
+    DEEP_LOG_VALIDATION
+]
+
+# HISTORY HEADER
+DEEP_LIST_HISTORY_HEADER = [
+    DEEP_LOG_WALL_TIME,
+    DEEP_LOG_RELATIVE_TIME,
+    DEEP_LOG_EPOCH,
+    DEEP_LOG_BATCH,
+    DEEP_LOG_TOTAL_LOSS
+]
+
+
 # ENTRIES
 DEEP_LIST_ENTRY = [
     DEEP_ENTRY_INPUT,

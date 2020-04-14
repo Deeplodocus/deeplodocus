@@ -1,12 +1,8 @@
 from decimal import Decimal
 
 from deeplodocus.utils.notification import Notification
-from deeplodocus.flags import TOTAL_LOSS, TRAINING, VALIDATION         # NEEDS TO BE RELOCATED
 from deeplodocus.brain.thalamus import Thalamus
-from deeplodocus.flags.event import DEEP_EVENT_PRINT_TRAINING_EPOCH_END
-from deeplodocus.flags.event import DEEP_EVENT_PRINT_VALIDATION_EPOCH_END
-from deeplodocus.flags.event import DEEP_EVENT_PRINT_TRAINING_BATCH_END
-from deeplodocus.flags.notif import *
+from deeplodocus.flags import *
 
 
 class Printer(object):
@@ -57,7 +53,7 @@ class Printer(object):
     @staticmethod
     def compose_text(total_loss, losses, metrics, sep=" : "):
         return sep.join(
-            ["%s : %.4e" % (TOTAL_LOSS, Decimal(total_loss))]
+            ["%s : %.4e" % (DEEP_LOG_TOTAL_LOSS.name, Decimal(total_loss))]
             + ["%s : %.4e" % (loss_name, Decimal(value)) for (loss_name, value) in losses.items()]
             + ["%s : %.4e " % (metric_name, Decimal(value)) for (metric_name, value) in metrics.items()]
         )

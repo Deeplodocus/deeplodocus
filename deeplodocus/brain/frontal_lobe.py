@@ -111,7 +111,7 @@ class FrontalLobe(object):
         self.metrics = None
         self.losses = None
         self.optimizer = None
-        self.hippocampus = None
+        self.memory= None
         self.device = None
         self.device_ids = None
         self.printer = Printer()
@@ -180,14 +180,16 @@ class FrontalLobe(object):
         :return: None
         """
         if self.trainer is not None:
-            if self.hippocampus is None:
+            if self.memory is None:
                 Notification(DEEP_NOTIF_ERROR, "Memory not loaded")
                 response = Notification(DEEP_NOTIF_INPUT, "Would you like to load memory now? (y/n)").get()
-                if get_corresponding_flag(DEEP_LIST_RESPONSE, response).corresponds(DEEP_RESPONSE_YES):
-                    self.load_memory()
-                else:
-                    return
-                self.trainer.train()
+                while True:
+                    if DEEP_RESPONSE_YES.corresponds(response):
+                        self.load_memory()
+                        return
+                    elif DEEP_RESPONSE_NO.corresponds(response):
+                        return
+            self.trainer.train()
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TRAINER)
 
@@ -697,18 +699,18 @@ class FrontalLobe(object):
 
         :return: None
         """
-        overwatch_metric = OverWatchMetric(**self.config.training.overwatch.get())
-        history_directory = "/".join((get_main_path(), self.config.project.session, "history"))
-        weights_directory = "/".join((get_main_path(), self.config.project.session, "weights"))
-
-        self.hippocampus = Hippocampus(
+        Notification(DEEP_NOTIF_INFO, "Loading memory")
+        self.memory = Hippocampus(
             **self.config.training.saver.get(),
             verbose=self.config.history.verbose,
-            memorize=self.config.history.memorize,
-            overwatch_metric=overwatch_metric,
-            history_directory=history_directory,
-            weights_directory=weights_directory
+            enable_train_batches=self.config.history.enabled.train_batches,
+            enable_train_epochs=self.config.history.enabled.train_epochs,
+            enable_validation=self.config.history.enabled.validation,
+            overwatch_metric=OverWatchMetric(**self.config.training.overwatch.get()),
+            history_directory="/".join((get_main_path(), self.config.project.session, "history")),
+            weights_directory="/".join((get_main_path(), self.config.project.session, "weights"))
         )
+        Notification(DEEP_NOTIF_SUCCESS, "Memory loaded")
 
     def save_model(self):
         Thalamus().add_signal(
