@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
 
 from deeplodocus.data.load.dataset import Dataset
-from deeplodocus.utils import dict_utils
-from deeplodocus.flags import DEEP_VERBOSE_BATCH
-from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
+from deeplodocus.flags import *
+from deeplodocus.utils.namespace import Namespace
 
 
-class Tester(GenericEvaluator):
+class Tester(object):
     """
     AUTHORS:
     --------
@@ -23,6 +23,7 @@ class Tester(GenericEvaluator):
 
     def __init__(
             self,
+            name: str,
             model: nn.Module,
             dataset: Dataset,
             metrics: dict,
@@ -61,19 +62,23 @@ class Tester(GenericEvaluator):
 
         :return: None
         """
-
-        super().__init__(
-            model=model,
-            dataset=dataset,
-            metrics=metrics,
-            losses=losses,
-            batch_size=batch_size,
-            num_workers=num_workers,
-            verbose=verbose,
-        )
+        self.name = name
+        self.model = model
+        self.dataset = dataset
+        self.metrics = metrics
+        self.losses = losses
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.verbose = verbose
         self.transform_manager = transform_manager
+        self.dataloader = DataLoader(
+            dataset=dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers
+        )
 
-    def evaluate(self, model: nn.Module):
+    def evaluate(self):
         """
         AUTHORS:
         --------
@@ -98,16 +103,13 @@ class Tester(GenericEvaluator):
         :return total_losses (dict): Total losses for the model over the test data set
         :return total_metrics (dict): Total metrics for the model over the test data set
         """
-        # Put model into evaluation mode
-        self.model.eval()
 
-        # Make dictionaries like losses and metrics but initialised with lists
-        total_losses = dict_utils.like(vars(self.losses), [])
-        total_metrics = dict_utils.like(vars(self.metrics), [])
+        self.model.eval()  # Put model into evaluation mode
+        self.losses.reset(self.dataset.type)  # Reset corresponding losses
+        self.metrics.reset(self.dataset.type)  # Reset corresponding metrics
 
         # Loop through each mini batch
         for minibatch_index, minibatch in enumerate(self.dataloader, 0):
-            # Get the data
             inputs, labels, additional_data = self.clean_single_element_list(minibatch)
 
             # Set the data to the corresponding device
@@ -117,15 +119,13 @@ class Tester(GenericEvaluator):
 
             # Infer the outputs from the model over the given mini batch
             with torch.no_grad():
-                outputs = model(*inputs)
-
-            # Detach the tensor from the graph (avoids leaking memory)
-            outputs = self.recursive_detach(outputs)
+                outputs = self.model(*inputs)
+            outputs = self.detach(outputs)  # Detach the tensor from the graph
 
             # Compute the losses
-            batch_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
+            self.losses.forward(self.dataset.type, outputs, labels, inputs, additional_data)
 
-            # Compute the metrics
+            # Compute output transforms
             if self.transform_manager is not None:
                 outputs = self.transform_manager.transform(
                     inputs=inputs,
@@ -133,28 +133,18 @@ class Tester(GenericEvaluator):
                     labels=labels,
                     additional_data=additional_data
                 )
-            batch_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
 
-            # Apply weights to the losses
-            batch_losses = dict_utils.apply_weight(batch_losses, vars(self.losses))
+            # Compute the metrics
+            self.metrics.forward(self.dataset.type, outputs, labels, inputs, additional_data)
 
-            # Append the losses and metrics for this batch to the total losses and metrics
-            total_losses = dict_utils.apply(total_losses, batch_losses, "append")
-            total_metrics = dict_utils.apply(total_metrics, batch_metrics, "append")
+        self.transform_manager.finish()  # Call finish on all output transforms
+        loss, losses = self.losses.reduce(self.dataset.type)  # Get total loss and mean of each loss
+        metrics = self.metrics.reduce(self.dataset.type)  # Get total metric values
 
-        # Calculate the mean for each loss and metric
-        total_losses = dict_utils.mean(total_losses)
-        total_metrics = dict_utils.mean(total_metrics)
+        return loss.item(), losses, metrics
 
-        # Calculate the sum of the losses
-        sum_losses = dict_utils.sum_dict(total_losses)
-
-        # Call finish on all output transforms
-        self.transform_manager.finish()
-
-        return sum_losses, total_losses, total_metrics
-
-    def set_metrics(self, metrics: dict):
+    @staticmethod
+    def clean_single_element_list(minibatch: list) -> list:
         """
         AUTHORS:
         --------
@@ -164,40 +154,62 @@ class Tester(GenericEvaluator):
         DESCRIPTION:
         ------------
 
-        Setter for self.metrics
+        Convert single element lists from the batch into an element
 
         PARAMETERS:
         -----------
 
-        :param metrics: dict: The metrics we want to analyze
+        :param batch->list: The batch to clean
 
         RETURN:
         -------
 
-        :return: None
+        :return cleaned_batch->list: The cleaned batch
         """
-        self.metrics = metrics
+        cleaned_minibatch = []
+        # For each entry in the minibatch:
+        # If it is a single element list -> Make it the single element
+        # If it is an empty list -> Make it None
+        # Else -> Do not change
+        for entry in minibatch:
+            if isinstance(entry, list) and len(entry) == 1:
+                cleaned_minibatch.append(entry[0])
+            elif isinstance(entry, list) and len(entry) == 0:
+                cleaned_minibatch.append(None)
+            else:
+                cleaned_minibatch.append(entry)
+        return cleaned_minibatch
 
-    def set_losses(self, losses: dict):
-        """
-        AUTHORS:
-        --------
+    def to_device(self, x, device):
+        if isinstance(x, list):
+            x_ = []
+            for item in x:
+                item = self.to_device(item, device)
+                x_.append(item)
+            return x_
 
-        :author: Alix Leroy
+        else:
+            try:
+                return x.to(device)
+            except AttributeError:
+                try:
+                    return [item.to(device=device) for item in x if item is not None]
+                except TypeError:
+                    return None
 
-        DESCRIPTION:
-        ------------
+    def detach(self, x):
+        if isinstance(x, list):
+            x = [self.detach(item) for item in x]
+        elif isinstance(x, tuple):
+            x = tuple([self.detach(item) for item in x])
+        elif isinstance(x, dict):
+            x = {key: self.detach(item) for key, item in x.items()}
+        elif isinstance(x, Namespace):
+            x = {key: self.detach(item) for key, item in x.__dict__.items()}
+        else:
+            try:
+                x = x.detach()
+            except AttributeError:
+                pass
+        return x
 
-        Setter for self.losses
-
-        PARAMETERS:
-        -----------
-
-        :param losses: dict: The losses we want to analyze
-
-        RETURN:
-        -------
-
-        :return: None
-        """
-        self.losses = losses

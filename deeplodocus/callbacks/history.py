@@ -37,11 +37,9 @@ class History(object):
 
     def __init__(
         self,
-        metrics: dict,
-        losses: dict,
         log_dir: str = "history",
-        train_batches_filename: str = "history_batches_training.csv",
-        train_epochs_filename: str = "history_epochs_training.csv",
+        train_batches_filename: str = "history_train_batches.csv",
+        train_epochs_filename: str = "history_train_epochs.csv",
         validation_filename: str = "history_validation.csv",
         verbose: Flag = DEEP_VERBOSE_BATCH,
         memorize: Flag = DEEP_MEMORIZE_BATCHES,
@@ -51,78 +49,35 @@ class History(object):
             condition=DEEP_SAVE_CONDITION_LESS
         )
     ):
-
         self.log_dir = log_dir
         self.verbose = verbose
-        self.metrics = metrics
-        self.losses = losses
         self.memorize = get_corresponding_flag([DEEP_MEMORIZE_BATCHES, DEEP_MEMORIZE_EPOCHS], info=memorize)
         self.save_signal = save_signal
         self.overwatch_metric = overwatch_metric
+        self.file_paths = {
+            "train_batches": "/".join((log_dir, train_batches_filename)),
+            "train_epochs": "/".join((log_dir, train_epochs_filename)),
+            "validation": "/".join((log_dir, validation_filename))
+        }
+        self.header = {[WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS]
 
-        # Running metrics
-        self.running_total_loss = 0
-        self.running_losses = {}
-        self.running_metrics = {}
-
-        self.train_batches_history = multiprocessing.Manager().Queue()
-        self.train_epochs_history = multiprocessing.Manager().Queue()
-        self.validation_history = multiprocessing.Manager().Queue()
-
-        # Add headers to history files
-        train_batches_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH, BATCH, TOTAL_LOSS]
-                                         + list(vars(losses).keys())
-                                         + list(vars(metrics).keys()))
-        train_epochs_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS]
-                                        + list(vars(losses).keys())
-                                        + list(vars(metrics).keys()))
-        validation_headers = ",".join([WALL_TIME, RELATIVE_TIME, EPOCH,  TOTAL_LOSS]
-                                      + list(vars(losses).keys())
-                                      + list(vars(metrics).keys()))
-
-        # Create the history files
-        self.__add_logs("history_train_batches", log_dir, ".csv", train_batches_headers)
-        self.__add_logs("history_train_epochs", log_dir, ".csv", train_epochs_headers)
-        self.__add_logs("history_validation", log_dir, ".csv", validation_headers)
-
-        self.start_time = 0
-        self.paused = False
-
-        # Filepaths
-        self.log_dir = log_dir
-        self.train_batches_filename = train_batches_filename
-        self.train_epochs_filename = train_epochs_filename
-        self.validation_filename = validation_filename
-
-        # Load histories
-        self.__load_histories()
+        self.__init_files()
 
         # Connect to signals
         Thalamus().connect(
             receiver=self.on_batch_end,
             event=DEEP_EVENT_ON_BATCH_END,
-            expected_arguments=[
-                "minibatch_index",
-                "num_minibatches",
-                "epoch_index",
-                "total_loss",
-                "result_losses",
-                "result_metrics",
-                "epoch_index"
-            ]
+            expected_arguments=["batch_index", "num_batches", "epoch_index", "loss", "losses", "metrics"]
         )
         Thalamus().connect(
             receiver=self.on_epoch_end,
             event=DEEP_EVENT_ON_EPOCH_END,
-            expected_arguments=[
-                "epoch_index",
-                "num_epochs",
-                "num_minibatches",
-                "total_validation_loss",
-                "result_validation_losses",
-                "result_validation_metrics",
-                "num_minibatches_validation"
-            ]
+            expected_arguments=["epoch_index", "loss", "losses",  "metrics",]
+        )
+        Thalamus().connect(
+            receiver=self.on_validation_end,
+            event=DEEP_EVENT_ON_VALIDATION_END,
+            expected_arguments=["epoch_index", "loss", "losses", "metrics"]
         )
         Thalamus().connect(
             receiver=self.on_train_begin,
@@ -134,20 +89,43 @@ class History(object):
             event=DEEP_EVENT_ON_TRAINING_END,
             expected_arguments=[]
         )
-
         Thalamus().connect(
             receiver=self.on_epoch_start,
             event=DEEP_EVENT_ON_EPOCH_START,
-            expected_arguments=[
-                "epoch_index",
-                "num_epochs"
-            ]
+            expected_arguments=["epoch_index", "num_epochs"]
         )
         Thalamus().connect(
             receiver=self.send_training_loss,
             event=DEEP_EVENT_REQUEST_TRAINING_LOSS,
             expected_arguments=[]
         )
+
+    def __init_files(self):
+        # Check if each history file exists
+        # (A file is considered to not exists if it is empty)
+        exists = {
+            file_name: {
+                "exists": os.path.exists(file_path) and os.path.getsize(file_path) > 0,
+                "file_path": file_path
+            } for file_name, file_path in self.file_paths.items()
+        }
+
+        # Inform user of already existing history files
+        # Ask if they may be overwritten - if not, they will be appended to
+        overwrite = False
+        if any([v["exists"] for _, v in exists.items()]):
+            Notification(DEEP_NOTIF_WARNING, "The following history files already exist : ")
+            for file_name, v in exists.items():
+                if v["exists"]:
+                    Notification(DEEP_NOTIF_WARNING, "\t- %s : %s" % (file_name, v["file_path"]))
+            response = Notification(DEEP_NOTIF_INPUT, "Would you like to overwrite them? (y/n)").get()
+            if get_corresponding_flag(DEEP_LIST_RESPONSE, response).corresponds(DEEP_RESPONSE_YES):
+                overwrite = True
+
+        for file_name, v in exists.items():
+            if overwrite or not[v["exists"]]:
+                with open(v["file_path"], "w") as _:
+                    pass
 
     def on_train_begin(self):
         """
@@ -186,13 +164,7 @@ class History(object):
         if DEEP_VERBOSE_BATCH.corresponds(self.verbose) or DEEP_VERBOSE_EPOCH.corresponds(self.verbose):
             Notification(DEEP_NOTIF_INFO, EPOCH_START % (epoch_index, num_epochs))
 
-    def on_batch_end(self,
-                     minibatch_index: int,
-                     num_minibatches: int,
-                     epoch_index: int,
-                     total_loss: int,
-                     result_losses: dict,
-                     result_metrics: dict):
+    def on_batch_end(self, batch_index: int, num_batches: int, epoch_index: int, loss: float, losses: dict, metrics: dict):
         """
         AUTHORS:
         --------
@@ -210,37 +182,32 @@ class History(object):
         :param minibatch_index: int: Index of the current minibatch
         :param num_minibatches: int: Number of minibatches per epoch
         :param epoch_index: int: Index of the current epoch
-        :param total_loss: int: The total loss
-        :param result_losses: dict: List of resulting losses
-        :param result_metrics: dict: List of resulting metrics
+        :param total_loss:
+        :param losses:
+        :param metrics:
 
         RETURN:
         -------
 
         :return: None
         """
-        # Save the running metrics
-        self.running_total_loss = self.running_total_loss + total_loss
-        self.running_losses = merge_sum_dict(self.running_losses, result_losses)
-        self.running_metrics = merge_sum_dict(self.running_metrics, result_metrics)
-
         # If the user wants to print stats for each batch
         if DEEP_VERBOSE_BATCH.corresponds(self.verbose):
-
             # Print training loss and metrics on batch end
             Thalamus().add_signal(
                 Signal(
                     event=DEEP_EVENT_PRINT_TRAINING_BATCH_END,
                     args={
-                        "losses": result_losses,
-                        "total_loss": total_loss,
-                        "metrics": result_metrics,
-                        "num_minibatches": num_minibatches,
-                        "minibatch_index": minibatch_index,
+                        "loss": loss,
+                        "losses": losses,
+                        "metrics": metrics,
+                        "num_batches": num_batches,
+                        "batch_index": batch_index,
                         "epoch_index": epoch_index
                     }
                 )
             )
+        return
 
         # Save the data in memory
         if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize):
@@ -250,22 +217,15 @@ class History(object):
                     epoch_index,
                     minibatch_index,
                     total_loss] + \
-                    [value.item() for (loss_name, value) in result_losses.items()] + \
-                    [value for (metric_name, value) in result_metrics.items()]
+                    [value.item() for (loss_name, value) in losses.items()] + \
+                    [value for (metric_name, value) in metrics.items()]
             self.train_batches_history.put(data)
 
         # Save the history after 10 batches
         if self.train_batches_history.qsize() > 10:
             self.save(only_batches=True)
 
-    def on_epoch_end(self,
-                     epoch_index: int,
-                     num_epochs: int,
-                     num_minibatches: int,
-                     total_validation_loss: int,
-                     result_validation_losses: dict,
-                     result_validation_metrics: dict,
-                     num_minibatches_validation: int):
+    def on_epoch_end(self, epoch_index: int, loss: float, losses: dict, metrics: dict):
         """
         AUTHORS:
         --------
@@ -282,12 +242,7 @@ class History(object):
         -----------
 
         :param epoch_index: int: current epoch index
-        :param num_epochs: int: total number of epoch
-        :param num_minibatches: int: number of minibatches per epoch
-        :param total_validation_loss:
-        :param result_validation_losses:
-        :param result_validation_metrics:
-        :param num_minibatches_validation:
+
 
         RETURN:
         -------
@@ -301,13 +256,10 @@ class History(object):
             Thalamus().add_signal(
                 Signal(
                     event=DEEP_EVENT_PRINT_TRAINING_EPOCH_END,
-                    args={
-                        "losses": {key: value / num_minibatches for key, value in self.running_losses.items()},
-                        "total_loss": self.running_total_loss / num_minibatches,
-                        "metrics": {key: value / num_minibatches for key, value in self.running_metrics.items()},
-                    }
+                    args={"epoch_index": epoch_index, "loss": loss, "losses": losses, "metrics": metrics}
                 )
             )
+        return
 
         # If recording on batch or epoch
         if DEEP_MEMORIZE_BATCHES.corresponds(self.memorize) or DEEP_MEMORIZE_EPOCHS.corresponds(self.memorize):
@@ -323,7 +275,6 @@ class History(object):
 
         self.running_total_loss = 0
         self.running_losses = {}
-        self.running_metrics = {}
 
         # MANAGE VALIDATION HISTORY
         if total_validation_loss is not None:
@@ -372,6 +323,42 @@ class History(object):
 
         Notification(DEEP_NOTIF_SUCCESS, EPOCH_END % (epoch_index, num_epochs))
         self.save()
+
+    def on_validation_end(self, epoch_index: int, loss: float, losses: dict, metrics: dict):
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+        :author: Samuel Westlake
+
+        DESCRIPTION:
+        ------------
+
+        Method for managing history at the end of each epoch
+
+        PARAMETERS:
+        -----------
+
+        :param epoch_index: int: current epoch index
+
+
+        RETURN:
+        -------
+
+        :return: None
+        """
+        # MANAGE TRAINING HISTORY
+        if DEEP_VERBOSE_EPOCH.corresponds(self.verbose) or DEEP_VERBOSE_BATCH.corresponds(self.verbose):
+
+            # Print the training loss and metrics on epoch end
+            Thalamus().add_signal(
+                Signal(
+                    event=DEEP_EVENT_PRINT_VALIDATION_EPOCH_END,
+                    args={"epoch_index": epoch_index, "loss": loss, "losses": losses, "metrics": metrics}
+                )
+            )
+        return
 
     def on_train_end(self):
         """

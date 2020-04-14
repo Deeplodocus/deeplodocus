@@ -37,6 +37,7 @@ class Dataset(object):
 
     def __init__(self,
                  name: str,
+                 type: Flag,
                  entries: List[Namespace],
                  num_instances: int,
                  transform_manager: Optional[TransformManager],
@@ -44,32 +45,24 @@ class Dataset(object):
                  ):
 
         entries = list_namespace2list_dict(entries)
-
-        # Name of the Dataset
-        self.name = name
+        self.name = name  # Name of the Dataset
+        self.type = get_corresponding_flag(DEEP_LIST_DATASET, type)
 
         # List containing the Entry instances
-        self.entries = list()
+        self.entries = []
         self.__generate_entries(entries=entries)
 
         # List containing the PipelineEntry instances
-        self.pipeline_entries = list()
+        self.pipeline_entries = []
         self.__generate_pipeline_entries(entries=entries)
 
-        # Number of raw instances
-        self.number_raw_instances = self.__calculate_number_raw_instances()
-
-        # Length of the Dataset
-        self.length = self.__compute_length(desired_length=num_instances,
-                                            num_raw_instances=self.number_raw_instances)
-
-        # List of items indices
-        self.item_order = np.arange(self.length)
-
-        # Whether we want to use raw data or only transformed data
-        self.use_raw_data = use_raw_data
-
-        # TransformManager
+        self.number_raw_instances = self.__calculate_number_raw_instances()  # Number of raw instances
+        self.length = self.__compute_length(
+            desired_length=num_instances,
+            num_raw_instances=self.number_raw_instances
+        )  # Length of the Dataset
+        self.item_order = np.arange(self.length)   # List of items indices
+        self.use_raw_data = use_raw_data  # Whether we want to use raw data or only transformed data
         self.transform_manager = transform_manager
 
     def __getitem__(self, index: int):

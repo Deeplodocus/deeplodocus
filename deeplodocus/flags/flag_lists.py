@@ -1,5 +1,5 @@
 from deeplodocus.flags.load_as import *
-from deeplodocus.flags.dtype import *
+from deeplodocus.flags.dataset import *
 from deeplodocus.flags.source import *
 from deeplodocus.flags.load import *
 from deeplodocus.flags.entry import *
@@ -11,6 +11,9 @@ from deeplodocus.flags.verbose import *
 from deeplodocus.flags.event import *
 from deeplodocus.flags.admin import *
 from deeplodocus.flags.dtype import *
+from deeplodocus.flags.reduce import *
+from deeplodocus.flags.response import *
+
 
 # LOAS_AS
 DEEP_LIST_LOAD_AS = [
@@ -25,6 +28,14 @@ DEEP_LIST_LOAD_AS = [
     DEEP_LOAD_AS_STRING,
     DEEP_LOAD_AS_SEQUENCE,
     DEEP_LOAD_AS_GIVEN
+]
+
+# DATASET
+DEEP_LIST_DATASET = [
+    DEEP_DATASET_TRAIN,
+    DEEP_DATASET_VAL,
+    DEEP_DATASET_TEST,
+    DEEP_DATASET_PREDICTION
 ]
 
 # SOURCES
@@ -129,4 +140,18 @@ DEEP_LIST_DTYPE = [
     DEEP_DTYPE_INT32,
     DEEP_DTYPE_INT64,
     DEEP_DTYPE_STR
+]
+
+# REDUCE
+DEEP_LIST_REDUCE = [
+    DEEP_REDUCE_MEAN,
+    DEEP_REDUCE_MEAN,
+    DEEP_REDUCE_SUM,
+    DEEP_REDUCE_LAST
+]
+
+# RESPONSE
+DEEP_LIST_RESPONSE = [
+    DEEP_RESPONSE_YES,
+    DEEP_RESPONSE_NO,
 ]

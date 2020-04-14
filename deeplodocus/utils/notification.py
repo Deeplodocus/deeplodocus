@@ -1,11 +1,9 @@
 import os
+
+from deeplodocus.flags import *
 from deeplodocus.utils.colors import *
 from deeplodocus.utils.deep_error import DeepError
-from deeplodocus.flags.ext import DEEP_EXT_LOGS
-from deeplodocus.flags.log import DEEP_LOG_NOTIFICATION
-from deeplodocus.flags.msg import DEEP_MSG_NOTIF_UNKNOWN
 from deeplodocus.utils.logs import Logs
-from deeplodocus.flags.notif import *
 
 
 class Notification(object):

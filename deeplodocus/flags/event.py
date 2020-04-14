@@ -19,6 +19,16 @@ DEEP_EVENT_ON_EPOCH_END = Flag(
     description="Event : On Epoch End",
     names=["epoch end", "end epoch", "on epoch end"]
 )
+DEEP_EVENT_ON_VALIDATION_END = Flag(
+    name="On Evaluation End",
+    description="Event : On Evaluation End",
+    names=["val end", "end val", "on val end", "validation end"]
+)
+DEEP_EVENT_ON_EVALUATION_END = Flag(
+    name="On Evaluation End",
+    description="Event : On Evaluation End",
+    names=["eval end", "end eval", "on eval end", "evaluation end"]
+)
 DEEP_EVENT_ON_TRAINING_START = Flag(
     name="On Training Start",
     description="Event : On Training Start",

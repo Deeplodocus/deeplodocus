@@ -1,25 +1,25 @@
 # Python imports
 import weakref
+from math import ceil
 
 # Backend imports
 import torch.nn as nn
+from torch.utils.data import DataLoader
+
 
 # Deeplodocus imports
+from deeplodocus.brain.signal import Signal
+from deeplodocus.brain.thalamus import Thalamus
+from deeplodocus.core.metrics import Metrics
 from deeplodocus.data.load.dataset import Dataset
 from deeplodocus.core.inference.tester import Tester
-from deeplodocus.utils.notification import Notification
-import deeplodocus.utils.dict_utils as dict_utils
-from deeplodocus.utils.dict_utils import sum_dict
-from deeplodocus.core.inference.generic_evaluator import GenericEvaluator
-from deeplodocus.brain.thalamus import Thalamus
-from deeplodocus.brain.signal import Signal
-
-# Deeplodocus flags
 from deeplodocus.flags import *
+from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.generic_utils import get_corresponding_flag
+from deeplodocus.utils.notification import Notification
 
 
-class Trainer(GenericEvaluator):
+class Trainer(object):
     """
     AUTHORS:
     --------
@@ -55,16 +55,17 @@ class Trainer(GenericEvaluator):
 
     def __init__(
             self,
-            model: nn.Module,
-            dataset: Dataset,
-            metrics: dict,
-            losses: dict,
-            optimizer,
-            num_epochs: int,
+            dataset,
+            name="Trainer",
+            model=None,
+            optimizer=None,
+            losses=None,
+            metrics=None,
+            num_epochs: int = 10,
             initial_epoch: int = 1,
             batch_size: int = 4,
-            shuffle_method: Flag = DEEP_SHUFFLE_NONE,
             num_workers: int = 4,
+            shuffle_method: Flag = DEEP_SHUFFLE_NONE,
             verbose: Flag = DEEP_VERBOSE_BATCH,
             tester: Tester = None,
             transform_manager=None
@@ -104,44 +105,36 @@ class Trainer(GenericEvaluator):
 
         :return: None
         """
-        # Initialize the GenericEvaluator par
-        super().__init__(
-            model=model,
-            dataset=dataset,
-            metrics=metrics,
-            losses=losses,
-            batch_size=batch_size,
-            num_workers=num_workers,
-            verbose=verbose
-        )
-        self.optimizer = optimizer
-        self.initial_epoch = initial_epoch
-        self.epoch = None
-        self.validation_loss = None
-        self.num_epochs = num_epochs
-        self.transform_manager = transform_manager
 
-        # Load shuffling method
+        self.dataset = dataset
+        self.name = name
+        self.model = model
+        self.losses = losses
+        self.optimizer = optimizer
+        self.metrics = Metrics() if metrics is None else metrics
+        self.transform_manager = transform_manager
+        self.initial_epoch = initial_epoch
+        self.num_epochs = num_epochs
+        self.num_workers = num_workers
+        self.batch_size = batch_size
+        self.verbose = verbose
+        self.epoch = None
+        self.num_minibatches = ceil(len(dataset) / batch_size)
+        self.tester = tester
+        self.dataloader = DataLoader(
+            dataset=dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers
+        )
         self.shuffle_method = get_corresponding_flag(
-            DEEP_LIST_SHUFFLE,
-            shuffle_method,
+            DEEP_LIST_SHUFFLE, shuffle_method,
             fatal=False,
             default=DEEP_SHUFFLE_NONE
         )
-
-        if isinstance(tester, Tester):
-            self.tester = tester          # Tester for validation
-            self.tester.set_metrics(metrics=metrics)
-            self.tester.set_losses(losses=losses)
-        else:
-            self.tester = None
-
-        # Early stopping
         # self.stopping = Stopping(stopping_parameters)
 
-        #
         # Connect signals
-        #
         Thalamus().connect(
             receiver=self.saving_required,
             event=DEEP_EVENT_SAVING_REQUIRED,
@@ -158,7 +151,7 @@ class Trainer(GenericEvaluator):
         AUTHORS:
         --------
 
-        :author: Alix Leroy
+        :author: Samuel Westlake, Alix Leroy
 
         DESCRIPTION:
         ------------
@@ -175,17 +168,19 @@ class Trainer(GenericEvaluator):
 
         :return: The total_loss, the individual losses and the individual metrics
         """
-        # Initialize the losses and metrics results
-        total_validation_loss = None
-        result_losses = None
-        result_metrics = None
-
-        # If a tester is available compute the losses and metrics
         if self.tester is not None:
-            total_validation_loss, result_losses, result_metrics = self.tester.evaluate(model=self.model)
-            return total_validation_loss.item(), result_losses, result_metrics
-        else:
-            return total_validation_loss, result_losses, result_metrics
+            loss, losses, metrics = self.tester.evaluate()
+            Thalamus().add_signal(
+                Signal(
+                    event=DEEP_EVENT_ON_VALIDATION_END,
+                    args={
+                        "epoch_index": self.epoch,
+                        "loss": loss,
+                        "losses": losses,
+                        "metrics": metrics,
+                    }
+                )
+            )
 
     def __train(self, first_training: bool = True) -> None:
         """
@@ -213,7 +208,6 @@ class Trainer(GenericEvaluator):
             Thalamus().add_signal(signal=Signal(event=DEEP_EVENT_ON_TRAINING_START, args={}))
 
         for self.epoch in range(self.initial_epoch + 1, self.num_epochs + 1):
-
             Thalamus().add_signal(
                 signal=Signal(
                     event=DEEP_EVENT_ON_EPOCH_START,
@@ -228,10 +222,12 @@ class Trainer(GenericEvaluator):
             if self.shuffle_method is not None:
                 self.dataset.shuffle(self.shuffle_method)
 
-            # Put model into train mode for the start of the epoch
+            # Put model into train mode and reset training losses and metrics
             self.model.train()
+            self.losses.reset(self.dataset.type)
+            self.metrics.reset(self.dataset.type)
 
-            for minibatch_index, minibatch in enumerate(self.dataloader, 0):
+            for minibatch_index, minibatch in enumerate(self.dataloader, 1):
 
                 # Clean the given data
                 inputs, labels, additional_data = self.clean_single_element_list(minibatch)
@@ -245,93 +241,67 @@ class Trainer(GenericEvaluator):
                 additional_data = self.to_device(additional_data, self.model.device)
 
                 # Infer the output of the batch
-                #try:
                 outputs = self.model(*inputs)
-                #except RuntimeError as e:
-                #    Notification(DEEP_NOTIF_FATAL, "RuntimeError : %s" % str(e))
-                #except TypeError as e:
-                #    Notification(DEEP_NOTIF_FATAL, "TypeError : %s" % str(e))
 
-                # Compute losses
-                result_losses = self.compute_metrics(self.losses, inputs, outputs, labels, additional_data)
-
-                # Add weights to losses
-                result_losses = dict_utils.apply_weight(result_losses, vars(self.losses))
-
-                # Sum all the result of the losses
-                total_loss = sum_dict(result_losses)
+                # Calculate train losses and total training loss
+                train_loss, train_losses = self.losses.forward(
+                    self.dataset.type, outputs, labels, inputs, additional_data
+                )
 
                 # Accumulates the gradient (by addition) for each parameter
-                total_loss.backward()
+                train_loss.backward()
 
-                # Performs a parameter update based on the current gradient (stored in .grad attribute of a parameter)
-                # and the update rule
+                # Performs a parameter update based on the current gradient
                 self.optimizer.step()
+
+                # Detach output tensors (recursive)
+                outputs = self.detach(outputs)
 
                 # Transform outputs
                 if self.transform_manager is not None:
-                    outputs = self.transform_manager.transform(
-                        inputs=inputs,
-                        outputs=outputs,
-                        labels=labels,
-                        additional_data=additional_data
-                    )
+                    outputs = self.transform_manager.transform(outputs, inputs, labels, additional_data)
 
-                # Compute metrics
-                result_metrics = self.compute_metrics(self.metrics, inputs, outputs, labels, additional_data)
-
-                # Detach the tensors from the network
-                outputs, total_loss, result_losses, result_metrics = self.detach(
-                    outputs=outputs,
-                    total_loss=total_loss,
-                    result_losses=result_losses,
-                    result_metrics=result_metrics
+                # Update training metrics and get values for current batch
+                train_metrics = self.metrics.forward(
+                    self.dataset.type, outputs, labels, inputs, additional_data
                 )
 
-                # Send signal batch end
+                # Send signal batch end - print and save to batch history
                 Thalamus().add_signal(
                     Signal(
                         event=DEEP_EVENT_ON_BATCH_END,
                         args={
-                            "minibatch_index": minibatch_index + 1,
-                            "num_minibatches": self.num_minibatches,
+                            "batch_index": minibatch_index,
+                            "num_batches": self.num_minibatches,
                             "epoch_index": self.epoch,
-                            "total_loss": total_loss.item(),
-                            "result_losses": result_losses,
-                            "result_metrics": result_metrics
+                            "loss": train_loss.item(),
+                            "losses": train_losses,
+                            "metrics": train_metrics
                         }
                     )
                 )
 
-            # Reset the dataset (transforms cache)
-            self.dataset.reset()
+            # EPOCH END
+            self.dataset.reset()  # Reset the dataset (transforms cache)
 
-            # Evaluate the model
-            self.validation_loss, result_validation_losses, result_validation_metrics = self.__evaluate_epoch()
+            train_loss, train_losses = self.losses.reduce(self.dataset.type)
+            train_metrics = self.metrics.reduce(self.dataset.type)
 
-            if self.tester is not None:
-                num_minibatches_validation = self.tester.get_num_minibatches()
-            else:
-                num_minibatches_validation = None
-
-            # Send signal epoch end
+            # Send signal batch end - print and save to training epoch history
             Thalamus().add_signal(
                 Signal(
                     event=DEEP_EVENT_ON_EPOCH_END,
                     args={
                         "epoch_index": self.epoch,
-                        "num_epochs": self.num_epochs,
-                        "model": weakref.ref(self.model),
-                        "num_minibatches": self.num_minibatches,
-                        "total_validation_loss": self.validation_loss,
-                        "result_validation_losses": result_validation_losses,
-                        "result_validation_metrics": result_validation_metrics,
-                        "num_minibatches_validation": num_minibatches_validation,
+                        "loss": train_loss.item(),
+                        "losses": train_losses,
+                        "metrics": train_metrics
                     }
                 )
             )
 
-        # Send signal end training
+            self.__evaluate_epoch()
+
         Thalamus().add_signal(
             Signal(
                 event=DEEP_EVENT_ON_TRAINING_END,
@@ -340,18 +310,12 @@ class Trainer(GenericEvaluator):
         )
         self.transform_manager.finish()
 
-    """
-    "
-    " PUBLIC METHODS
-    "
-    """
-
-    def fit(self, first_training: bool = True)->None:
+    def train(self, first_training: bool = True) -> bool:
         """
         AUTHORS:
         --------
 
-        :author: Alix Leroy
+        :author: Samuel Westlake, Alix Leroy
 
         DESCRIPTION:
         ------------
@@ -368,56 +332,24 @@ class Trainer(GenericEvaluator):
 
         :return: None
         """
+        # Pre-training checks
+        if self.model is None:
+            Notification(DEEP_NOTIF_ERROR, "Could not begin training : No model detected by the trainer")
+            return False
+        if self.losses is None:
+            Notification(DEEP_NOTIF_ERROR, "Could not begin training : No losses detected by the trainer")
+            return False
+        if self.optimizer is None:
+            Notification(DEEP_NOTIF_ERROR, "Could not begin training : No optimizer detected by the trainer")
+            return False
+        if self.model is None:
+            Notification(DEEP_NOTIF_ERROR, "Could not begin training : No model detected by the trainer")
+            return False
+
         Notification(DEEP_NOTIF_INFO, DEEP_MSG_TRAINING_STARTED)
         self.__train(first_training=first_training)
         Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_TRAINING_FINISHED)
-
-    def detach(self, outputs, total_loss, result_losses, result_metrics):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Detach the tensors from the graph
-
-        PARAMETERS:
-        -----------
-
-        :param outputs:
-        :param total_loss:
-        :param result_losses:
-        :param result_metrics:
-
-        RETURN:
-        -------
-
-        :return outputs:
-        :return total_loss:
-        :return result_losses:
-        :return result_metrics:
-        """
-
-        # Detach the total loss
-        total_loss = total_loss.detach()
-
-        # Detach the outputs recursively (Tuple + list)
-        outputs = self.recursive_detach(outputs)
-
-        # Detach the losses
-        for key, value in result_losses.items():
-            result_losses[key] = value.detach()
-
-        # Metric tensors already detached in self.compute_metrics for more efficiency
-        # Please keep these commented line in order not to forget
-        # for key, value in result_metrics.items():
-        #     if isinstance(value, Tensor):
-        #         result_metrics[key] = value.detach()
-
-        return outputs, total_loss, result_losses, result_metrics
+        return True
 
     def continue_training(self, epochs=None):
         """
@@ -522,3 +454,72 @@ class Trainer(GenericEvaluator):
             )
         )
 
+    @staticmethod
+    def clean_single_element_list(batch: list) -> list:
+        """
+        AUTHORS:
+        --------
+
+        :author: Alix Leroy
+
+        DESCRIPTION:
+        ------------
+
+        Convert single element lists from the batch into an element
+
+        PARAMETERS:
+        -----------
+
+        :param batch->list: The batch to clean
+
+        RETURN:
+        -------
+
+        :return cleaned_batch->list: The cleaned batch
+        """
+        cleaned_minibatch = []
+        # For each entry in the minibatch:
+        # If it is a single element list -> Make it the single element
+        # If it is an empty list -> Make it None
+        # Else -> Do not change
+        for item in batch:
+            if isinstance(item, list) and len(item) == 1:
+                cleaned_minibatch.append(item[0])
+            elif isinstance(item, list) and len(item) == 0:
+                cleaned_minibatch.append(None)
+            else:
+                cleaned_minibatch.append(item)
+        return cleaned_minibatch
+
+    def to_device(self, x, device):
+        if isinstance(x, list):
+            x_ = []
+            for item in x:
+                item = self.to_device(item, device)
+                x_.append(item)
+            return x_
+
+        else:
+            try:
+                return x.to(device)
+            except AttributeError:
+                try:
+                    return [item.to(device=device) for item in x if item is not None]
+                except TypeError:
+                    return None
+
+    def detach(self, x):
+        if isinstance(x, list):
+            x = [self.detach(item) for item in x]
+        elif isinstance(x, tuple):
+            x = tuple([self.detach(item) for item in x])
+        elif isinstance(x, dict):
+            x = {key: self.detach(item) for key, item in x.items()}
+        elif isinstance(x, Namespace):
+            x = {key: self.detach(item) for key, item in x.__dict__.items()}
+        else:
+            try:
+                x = x.detach()
+            except AttributeError:
+                pass
+        return x

@@ -1,4 +1,5 @@
 # DEEP MESSAGES / TEXT / STATEMENTS
+# DEEP MESSAGES / TEXT / STATEMENTS
 
 
 # Deep Error
@@ -172,6 +173,7 @@ DEEP_MSG_OPTIM_MODEL_NOT_LOADED = "Could not load optimizer : Model not loaded"
 # DEEP_FATAL
 DEEP_MSG_LOSS_NOT_FOUND = "Loss not found : %s"
 DEEP_MSG_LOSS_NOT_TORCH = "Loss is not a torch.nn.Module instance : %s : %s from %s"
+DEEP_MSG_LOSS_UNEXPECTED_ARG = "Loss requires unexpected argument : %s"
 
 # DEEP_SUCCESS
 DEEP_MSG_LOSS_LOADED = "Loss loaded : %s : %s from %s"
@@ -181,12 +183,16 @@ DEEP_MSG_LOSS_LOADING = "Loading loss : %s"
 DEEP_MSG_LOSS_NONE = "No losses to load"
 DEEP_MSG_LOSS_NOT_LOADED = "Losses not loaded"
 
+DEEP_MSG_LOSS_ARG_MISSING = "Loss does not seem to require the expected argument : %s"
+
+
 ###################
 # DEEP_MSG_METRIC #
 ###################
 
-# DEEP_FATAL
+# DEEP_FATAL/ERROR
 DEEP_MSG_METRIC_NOT_FOUND = "Metric not found : %s"
+DEEP_MSG_METRIC_UNEXPECTED_ARG = "Metric requires unexpected argument : %s"
 
 # DEEP_SUCCESS
 DEEP_MSG_METRIC_LOADED = "Metric loaded : %s : %s from %s"
@@ -194,7 +200,10 @@ DEEP_MSG_METRIC_LOADED = "Metric loaded : %s : %s from %s"
 # DEEP_INFO
 DEEP_MSG_METRIC_LOADING = "Loading metric : %s"
 DEEP_MSG_METRIC_NONE = "No metrics to load"
-DEEP_MSG_METRIC_NOT_LOADED = "Metrics not loaded"
+DEEP_MSG_METRICS_NOT_LOADED = "Metrics not loaded"
+
+# DEEP_WARNING
+DEEP_MSG_METRIC_ARG_MISSING = "Metric does not seem to require the expected argument : %s"
 
 ####################
 # DEEP_MSG_SHUFFLE #

@@ -1,6 +1,7 @@
 from deeplodocus.flags.admin import *
 from deeplodocus.flags.backend import *
 from deeplodocus.flags.cmd import *
+from deeplodocus.flags.dataset import *
 from deeplodocus.flags.load_as import *
 from deeplodocus.flags.entry import *
 from deeplodocus.flags.event import *
@@ -24,6 +25,8 @@ from deeplodocus.flags.transformer import *
 from deeplodocus.flags.ui import *
 from deeplodocus.flags.verbose import *
 from deeplodocus.flags.load_as import *
+from deeplodocus.flags.reduce import *
+from deeplodocus.flags.response import *
 #from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 #
