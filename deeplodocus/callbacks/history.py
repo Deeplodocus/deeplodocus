@@ -8,7 +8,7 @@ from typing import Union
 # Deeplodocus imports
 from deeplodocus.brain.signal import Signal
 from deeplodocus.brain.thalamus import Thalamus
-from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
+from deeplodocus.core.metrics import OverWatch
 from deeplodocus.flags import *
 from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.notification import Notification
@@ -38,21 +38,22 @@ class History(object):
         validation_filename: str = "history_validation.csv",
         verbose: Flag = DEEP_VERBOSE_BATCH,
         save_signal: Flag = DEEP_SAVE_SIGNAL_END_EPOCH,
-        overwatch_metric: OverWatchMetric = OverWatchMetric(
+        overwatch_metric: OverWatch = OverWatch(
             name=DEEP_LOG_TOTAL_LOSS,
             condition=DEEP_SAVE_CONDITION_LESS
         ),
         write_interval: int = 10,
         enable_train_batches: bool = True,
         enable_train_epochs: bool = True,
-        enable_validation: bool = True
+        enable_validation: bool = True,
+        overwrite: bool = None
     ):
         self.log_dir = log_dir
         self.verbose = get_corresponding_flag(DEEP_LIST_VERBOSE, verbose)
         self.save_signal = get_corresponding_flag(DEEP_LIST_SAVE_SIGNAL, save_signal)
         self.overwatch_metric = overwatch_metric
         self.write_interval = write_interval
-        self.overwrite = None
+        self.overwrite = overwrite
         self.file_paths = {
             flag.var_name: "/".join((log_dir, file_name))
             for flag, file_name in zip(
@@ -120,27 +121,34 @@ class History(object):
         self.__init_files()
 
     def __init_files(self):
-        # If history files exist, check if they can be overwritten
-        if self.overwrite is None:
-            # Check if any history files already exist
-            exists = [
-                (file_name, file_path)
-                for file_name, file_path in self.file_paths.items()
-                if os.path.exists(file_path) and os.path.getsize(file_path) > 0
-            ]
-            if exists:
-                Notification(DEEP_NOTIF_WARNING, "The following history files already exist : ")
-                for file_name, file_path in exists:
-                    Notification(DEEP_NOTIF_WARNING, "\t- %s : %s" % (file_name, file_path))
-                while self.overwrite is None:
-                    response = Notification(DEEP_NOTIF_INPUT, "Would you like to overwrite them? (y/n)").get()
-                    if DEEP_RESPONSE_YES.corresponds(response):
-                        self.overwrite = True
-                        for file_name, file_path in self.file_paths.items():
-                            with open(file_path, "w") as _:
-                                pass
-                    elif DEEP_RESPONSE_NO.corresponds(response):
-                        self.overwrite = False
+        # Check if each of the expected history files already exist
+        exists = [
+            True if os.path.exists(file_path) and os.path.getsize(file_path) > 0 else False
+            for file_name, file_path in self.file_paths.items()
+        ]
+        # If history files exist and we don't know if they can be overwritten or not
+        if self.overwrite is None and any(exists):
+            # Inform user what exists
+            Notification(DEEP_NOTIF_WARNING, "The following history files already exist : ")
+            for ex, (file_name, path) in zip(exists, self.file_paths.items()):
+                if ex:
+                    Notification(DEEP_NOTIF_WARNING, "\t- %s : %s" % (file_name, path))
+            # Ask if they can be overwritten or not
+            while self.overwrite is None:
+                r = Notification(DEEP_NOTIF_INPUT, "Would you like to overwrite them? (y/n)").get()
+                if DEEP_RESPONSE_YES.corresponds(r):
+                    self.overwrite = True
+                    break
+                elif DEEP_RESPONSE_NO.corresponds(r):
+                    self.overwrite = False
+                    break
+        for en, (_, ex), (file_name, path) in zip(exists, self.enabled.items(), self.file_paths.items()):
+            # If file exists and is enabled
+            if en and (not ex or self.overwrite):
+                with open(path, "w"):
+                    pass
+            elif self.overwrite and ex and not en:
+                os.remove(path)
 
     def __init_file(self, file_name):
         # If a file is found to not exists, use this to re-initialise it
@@ -204,7 +212,7 @@ class History(object):
         # Write history file headers
         for file_name, file_path in self.file_paths.items():
             # If the file exists and cannot be overwritten
-            if not self.overwrite and os.path.getsize(file_path):
+            if not self.overwrite and os.path.exists(file_path) and os.path.getsize(file_path):
                 # Get the header of the file
                 with open(file_path, "r") as file:
                     new_header = file.readline().strip().split(",")
@@ -215,7 +223,7 @@ class History(object):
                 # Update header
                 self.headers[file_name] = new_header
                 self.__update_header(file_name)
-            else:
+            elif self.enabled[file_name]:
                 self.__init_file(file_name)
         self._training_start = time.time()
 

@@ -6,7 +6,7 @@ from typing import Union
 from deeplodocus.callbacks.saver import Saver
 from deeplodocus.callbacks.history import History
 from deeplodocus.core.metrics import Metrics
-from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
+from deeplodocus.core.metrics import OverWatch
 from deeplodocus.utils.generic_utils import generate_random_alphanumeric
 
 # Deeplodocus flags
@@ -38,7 +38,7 @@ class Hippocampus(object):
     def __init__(
             self,
             verbose: Flag = DEEP_VERBOSE_BATCH,
-            overwatch_metric: OverWatchMetric = OverWatchMetric(
+            overwatch_metric: OverWatch = OverWatch(
                 name=DEEP_LOG_TOTAL_LOSS,
                 condition=DEEP_SAVE_CONDITION_LESS
             ),

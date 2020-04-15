@@ -8,7 +8,7 @@ from deeplodocus.flags.save import *
 from deeplodocus.flags.notif import *
 from deeplodocus.flags.ext import DEEP_EXT_PYTORCH, DEEP_EXT_ONNX
 from deeplodocus.flags.msg import DEEP_MSG_MODEL_SAVED, DEEP_MSG_SAVER_IMPROVED, DEEP_MSG_SAVER_NOT_IMPROVED
-from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
+from deeplodocus.core.metrics import OverWatch
 from deeplodocus.brain.signal import Signal
 from deeplodocus.brain.thalamus import Thalamus
 from deeplodocus.utils.generic_utils import get_corresponding_flag
@@ -123,7 +123,7 @@ class Saver(object):
         if DEEP_SAVE_SIGNAL_END_TRAINING.corresponds(self.save_signal):
             self.save_model()
 
-    def on_overwatch_metric_computed(self, current_overwatch_metric: OverWatchMetric):
+    def on_overwatch_metric_computed(self, current_overwatch_metric: OverWatch):
         """
         AUTHORS:
         --------

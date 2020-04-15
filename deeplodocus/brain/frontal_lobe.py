@@ -14,8 +14,7 @@ from deeplodocus.callbacks.printer import Printer
 from deeplodocus.core.inference.tester import Tester
 from deeplodocus.core.inference.predictor import Predictor
 from deeplodocus.core.inference.trainer import Trainer
-from deeplodocus.core.metrics import Metrics, Losses
-from deeplodocus.core.metrics.over_watch_metric import OverWatchMetric
+from deeplodocus.core.metrics import Losses, Metrics, OverWatch
 from deeplodocus.core.model.model import load_model
 from deeplodocus.core.optimizer.optimizer import load_optimizer
 from deeplodocus.data.load.dataset import Dataset
@@ -706,7 +705,7 @@ class FrontalLobe(object):
             enable_train_batches=self.config.history.enabled.train_batches,
             enable_train_epochs=self.config.history.enabled.train_epochs,
             enable_validation=self.config.history.enabled.validation,
-            overwatch_metric=OverWatchMetric(**self.config.training.overwatch.get()),
+            overwatch_metric=OverWatch(**self.config.training.overwatch.get()),
             history_directory="/".join((get_main_path(), self.config.project.session, "history")),
             weights_directory="/".join((get_main_path(), self.config.project.session, "weights"))
         )
