@@ -1,7 +1,7 @@
 from deeplodocus.utils.flag import Flag
 
 DEEP_DATASET_TRAIN = Flag(
-    name="Train",
+    name="Training",
     description="Training portion of the dataset",
     names=["train", "training"]
 )

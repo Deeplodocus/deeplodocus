@@ -33,7 +33,7 @@ class Saver(object):
             self,
             name: str = "no_model_name",
             save_directory: str = "weights",
-            save_signal: Flag = DEEP_EVENT_ON_EPOCH_END,
+            save_signal: Flag = DEEP_EVENT_EPOCH_END,
             method: Flag = DEEP_SAVE_FORMAT_PYTORCH,
             overwrite: bool = False
     ):
@@ -68,7 +68,7 @@ class Saver(object):
         )
         Thalamus().connect(
             receiver=self.on_training_end,
-            event=DEEP_EVENT_ON_TRAINING_END,
+            event=DEEP_EVENT_TRAINING_END,
             expected_arguments=[]
         )
         Thalamus().connect(

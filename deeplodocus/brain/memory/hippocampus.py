@@ -37,11 +37,7 @@ class Hippocampus(object):
 
     def __init__(
             self,
-            verbose: Flag = DEEP_VERBOSE_BATCH,
-            overwatch_metric: OverWatch = OverWatch(
-                name=DEEP_LOG_TOTAL_LOSS,
-                condition=DEEP_SAVE_CONDITION_LESS
-            ),
+            overwatch: OverWatch = OverWatch(),
             save_signal: Flag = DEEP_SAVE_SIGNAL_AUTO,
             method: Flag = DEEP_SAVE_FORMAT_PYTORCH,
             enable_train_batches: bool = True,
@@ -51,20 +47,15 @@ class Hippocampus(object):
             history_directory: str = "history",
             weights_directory: str = "weights"
     ):
-        save_signal = get_corresponding_flag(
-            DEEP_LIST_SAVE_SIGNAL,
-            info=save_signal,
-            default=DEEP_SAVE_SIGNAL_AUTO
-        )
+        save_signal = get_corresponding_flag(DEEP_LIST_SAVE_SIGNAL, save_signal)
         self.history = History(
             log_dir=history_directory,
             save_signal=save_signal,
-            verbose=verbose,
-            overwatch_metric=overwatch_metric,
             enable_train_batches=enable_train_batches,
             enable_train_epochs=enable_train_epochs,
             enable_validation=enable_validation
         )
+        self.overwatch = overwatch
         self.saver = Saver(
             save_directory=weights_directory,
             save_signal=save_signal,

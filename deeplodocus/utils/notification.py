@@ -156,13 +156,13 @@ class Notification(object):
 
         # If possible solutions are given, print them too
         if solutions is not None:
-            message = "DEEP INFO : %s" % "Possible solutions : "
+            message = "DEEP INFO    : %s" % "Possible solutions : "
             print("%s%s%s" % (CBLUE, message, CEND))
             if self.log is True:
                 self.__add_log(message)
             solutions = solutions if isinstance(solutions, list) else [solutions]
             for i, solution in enumerate(solutions):
-                message = "DEEP INFO : %i : %s" % (i + 1, solution)
+                message = "DEEP INFO    : %i : %s" % (i + 1, solution)
                 print("%s%s%s" % (CBLUE, message, CEND))
                 if self.log is True:
                     self.__add_log(message)
@@ -193,7 +193,7 @@ class Notification(object):
         :return: None
 
         """
-        message = "DEEP ERROR : %s" % message
+        message = "DEEP ERROR   : %s" % message
         print("%s%s%s" % (CRED, message, CEND))
         if self.log is True:
             self.__add_log(message)
@@ -313,7 +313,7 @@ class Notification(object):
         :return: None
 
         """
-        message = "DEEP INFO : %s" % message
+        message = "DEEP INFO    : %s" % message
         print("%s%s%s" % (CBLUE, message, CEND))
         if self.log is True:
             self.__add_log(message)
@@ -400,7 +400,7 @@ class Notification(object):
 
         :return: None
         """
-        message = "DEEP INPUT : " + str(message)
+        message = "DEEP INPUT   : " + str(message)
         print(CBLINK + CBOLD + str(message) + CEND)
         # Wait for an input from the user
         self.response = input("> ")

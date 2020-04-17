@@ -103,8 +103,11 @@ DEEP_MSG_DATA_GREATER = "Dataset number (%i) is greater than the number of insta
 DEEP_MSG_DATA_INDEX_ERROR_SOLUTION_1 = "Make sure inputs are given for your %s dataset in config/data/dataset"
 DEEP_MSG_DATA_INDEX_ERROR_SOLUTION_2 = "Disable your %s dataset in config/data/enabled"
 
-# DEEP_SUCCESS
-DEEP_MSG_DATA_LOADED = "Dataset loaded : %s"
+
+# Loading
+DEEP_MSG_LOADING = "Loading %s : %s from %s"
+DEEP_MSG_LOADED = "Loaded %s : %s from %s"
+DEEP_MSG_MODULE_NOT_FOUND = "Could not load %s : %s from %s"
 
 ######################
 # DEEP_MSG_TRANSFORM #
@@ -118,7 +121,11 @@ DEEP_MSG_TRANSFORM_VALUE_ERROR = "Transforms must return two items"
 #####################
 
 DEEP_MSG_TRAINING_STARTED = "Started training"
-DEEP_MSG_TRAINING_FINISHED = "Finished training !"
+DEEP_MSG_TRAINING_FINISHED = "Finished training"
+DEEP_MSG_EPOCH_START = "Start of epoch : %s"
+DEEP_MSG_EPOCH_END = "End of epoch : %s"
+DEEP_MSG_EVALUATION_STARTED = "Started evaluation"
+DEEP_MSG_EVALUATION_FINISHED = "Finished evaluation"
 
 #######################
 # DEEP_MSG_CV_LIBRARY #

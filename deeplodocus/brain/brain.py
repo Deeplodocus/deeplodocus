@@ -419,7 +419,6 @@ class Brain(FrontalLobe):
         if instruction is not "":
             self.__execute_command(instruction)
 
-
     def ui(self):
         """
         AUTHORS:

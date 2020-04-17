@@ -74,7 +74,7 @@ class Metrics(GenericMetrics):
             )
             self.__dict__[name] = m
             self.names.append(name)
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_METRIC_LOADED % (name, m.name, m.module_path))
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOADED % ("metric", "%s : %s" % (name, m.name), m.module_path))
         except DeepError:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_METRIC_NOT_FOUND % name)
 
@@ -127,7 +127,7 @@ class Losses(GenericMetrics):
             )
             self.__dict__[name] = m
             self.names.append(name)
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOSS_LOADED % (name, m.name, m.module_path))
+            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOADED % ("loss", "%s : %s" % (name, m.name), m.module_path))
         except DeepError:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_LOSS_NOT_FOUND % name)
 
@@ -144,11 +144,10 @@ class Losses(GenericMetrics):
     def reduce(self, flag):
         flag = get_corresponding_flag(DEEP_LIST_DATASET, flag, fatal=False)
         losses = {
-            loss_name: sum(values) / len(values)
+            loss_name: (sum(values) / len(values)).item()
             for loss_name, values in self.values[flag.name.lower()].items()
         }
         loss = sum([value for _, value in losses.items()])
-        losses = {loss_name: value.item() for loss_name, value in losses.items()}
         return loss, losses
 
     def summary(self):
@@ -162,8 +161,7 @@ class Metric(object):
         method, module_path = get_module(
             name=name,
             module=module_path,
-            browse={**DEEP_MODULE_METRICS, **DEEP_MODULE_LOSSES},
-            silence=True
+            browse={**DEEP_MODULE_METRICS, **DEEP_MODULE_LOSSES}
         )
         # If metric is not found by get_module, raise DEEP_FATAL
         if method is None:
@@ -266,8 +264,7 @@ class Loss(object):
         method, module_path = get_module(
             name=name,
             module=module_path,
-            browse={**DEEP_MODULE_LOSSES},
-            silence=True
+            browse={**DEEP_MODULE_LOSSES}
         )
 
         # If metric is not found by get_module, raise DEEP_FATAL
@@ -375,7 +372,12 @@ class OverWatch(object):
     Metric to overwatch during the training
     """
 
-    def __init__(self, name: str = DEEP_LOG_TOTAL_LOSS, condition: Union[Flag, int, str, None] = DEEP_SAVE_CONDITION_LESS):
+    def __init__(
+            self,
+            metric: str = DEEP_LOG_TOTAL_LOSS,
+            condition: Union[Flag, None] = DEEP_SAVE_CONDITION_LESS,
+            dataset: Union[Flag, None] = DEEP_DATASET_VAL
+    ):
         """
         AUTHORS:
         --------
@@ -392,14 +394,12 @@ class OverWatch(object):
         :param name (str): The name of the metric to over watch
         :param condition (Flag):
         """
-        self.name = name
-        self.value = 0.0
-        self.condition = get_corresponding_flag(
-            flag_list=DEEP_LIST_SAVE_CONDITIONS,
-            info=condition,
-            fatal=False,
-            default=DEEP_SAVE_CONDITION_LESS
+        self.metric = metric
+        self.dataset = DEEP_DATASET_VAL if dataset is None else get_corresponding_flag(
+            [DEEP_DATASET_TRAIN, DEEP_DATASET_VAL], dataset
         )
+        self.condition = condition if condition is None else condition
+        self.value = None
 
     def set_value(self, value: float):
         self.value = value

@@ -10,10 +10,7 @@ import torch.nn.functional
 from deeplodocus.brain.memory.hippocampus import Hippocampus
 from deeplodocus.brain.signal import Signal
 from deeplodocus.brain.thalamus import Thalamus
-from deeplodocus.callbacks.printer import Printer
-from deeplodocus.core.inference.tester import Tester
-from deeplodocus.core.inference.predictor import Predictor
-from deeplodocus.core.inference.trainer import Trainer
+from deeplodocus.core.inference import Trainer, Tester
 from deeplodocus.core.metrics import Losses, Metrics, OverWatch
 from deeplodocus.core.model.model import load_model
 from deeplodocus.core.optimizer.optimizer import load_optimizer
@@ -110,10 +107,9 @@ class FrontalLobe(object):
         self.metrics = None
         self.losses = None
         self.optimizer = None
-        self.memory= None
+        self.memory = None
         self.device = None
         self.device_ids = None
-        self.printer = Printer()
 
     def set_device(self):
         """
@@ -155,7 +151,7 @@ class FrontalLobe(object):
         except TypeError:
             Notification(DEEP_NOTIF_FATAL, DEEP_MSG_PROJECT_DEVICE_NOT_FOUND % self.config.project.device)
 
-    def train(self):
+    def train(self, *args, **kwargs):
         """
         AUTHORS:
         --------
@@ -181,22 +177,22 @@ class FrontalLobe(object):
         if self.trainer is not None:
             if self.memory is None:
                 Notification(DEEP_NOTIF_ERROR, "Memory not loaded")
-                response = Notification(DEEP_NOTIF_INPUT, "Would you like to load memory now? (y/n)").get()
+                r = Notification(DEEP_NOTIF_INPUT, "Would you like to load memory now? (y/n)").get()
                 while True:
-                    if DEEP_RESPONSE_YES.corresponds(response):
+                    if DEEP_RESPONSE_YES.corresponds(r):
                         self.load_memory()
                         return
-                    elif DEEP_RESPONSE_NO.corresponds(response):
+                    elif DEEP_RESPONSE_NO.corresponds(r):
                         return
-            self.trainer.train()
+            self.trainer.train(*args, **kwargs)
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TRAINER)
 
-    def continue_training(self, epochs=None):
-        """
-        :return:
-        """
-        self.trainer.continue_training(epochs=epochs)
+    def validate(self):
+        if self.validator is None:
+            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NO_VALIDATOR)
+        else:
+            self.validator.evaluate()
 
     def test(self):
         """
@@ -222,17 +218,9 @@ class FrontalLobe(object):
         :return: None
         """
         if self.tester is None:
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NO_TESTER)
+            Notification(DEEP_NOTIF_ERROR, DEEP_MSG_NO_TESTER)
         else:
-            total_loss, losses, metrics = self.tester.evaluate(self.model)
-            self.printer.validation_epoch_end(losses, total_loss, metrics)
-
-    def validate(self):
-        if self.validator is None:
-            Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NO_VALIDATOR)
-        else:
-            total_loss, losses, metrics = self.validator.evaluate(self.model)
-            self.printer.validation_epoch_end(losses, total_loss, metrics)
+            self.tester.evaluate(self.model)
 
     def predict(self):
         if self.predictor is None:
@@ -266,10 +254,14 @@ class FrontalLobe(object):
         self.load_optimizer()    # Always load the optimizer after the model
         self.load_losses()
         self.load_metrics()
-        self.load_validator()       # Always load the validator before the trainer
-        self.load_tester()
-        self.load_trainer()
-        self.load_predictor()
+        if self.config.data.enabled.validation:
+            self.load_validator()       # Always load the validator before the trainer
+        if self.config.data.enabled.test:
+            self.load_tester()
+        if self.config.data.enabled.train:
+            self.load_trainer()
+        if self.config.data.enabled.prediction:
+            self.load_predictor()
         self.load_memory()
 
     def load_model(self):
@@ -293,8 +285,17 @@ class FrontalLobe(object):
 
         :return model->torch.nn.Module:  The model
         """
-        model = None
+        self.loading_message("Model")
+        Notification(
+            DEEP_NOTIF_INFO,
+            DEEP_MSG_LOADING % (
+                "model",
+                self.config.model.name,
+                "default modules" if self.config.model.module is None else self.config.model.module
+            )
+        )
 
+        model = None
         checkpoint = self.__load_checkpoint()
 
         if self.config.model.from_file:
@@ -308,33 +309,34 @@ class FrontalLobe(object):
                     batch_size=self.config.data.dataloader.batch_size,
                     **self.config.model.get_all(ignore=["from_file", "file", "name", "module"]),
                     model_state_dict=checkpoint["model_state_dict"],
-                    weights_path=self.config.model.file,
-                    notif=DEEP_NOTIF_WARNING
+                    weights_path=self.config.model.file
                 )
             elif model is None:
-                name = self.config.model.name
-                origin = self.config.model.module
                 model_state_dict = checkpoint["model_state_dict"] if "model_state_dict" in checkpoint else checkpoint
                 model = self.__load_model(
-                    name=name,
-                    module=origin,
+                    name=self.config.model.name,
+                    module=self.config.model.module,
                     device=self.device,
                     device_ids=self.device_ids,
                     batch_size=self.config.data.dataloader.batch_size,
                     **self.config.model.get_all(ignore=["from_file", "file", "name", "module"]),
                     model_state_dict=model_state_dict,
-                    weights_path=self.config.model.file,
-                    notif=DEEP_NOTIF_WARNING
+                    weights_path=self.config.model.file
                 )
+            state_msg = "with weights from : " % self.config.model.file
         else:
             model = self.__load_model(
                 device=self.device,
                 device_ids=self.device_ids,
                 batch_size=self.config.data.dataloader.batch_size,
-                **self.config.model.get_all(ignore=["from_file", "file"]),
-                notif=DEEP_NOTIF_FATAL
+                **self.config.model.get_all(ignore=["from_file", "file"])
             )
+            state_msg = ""
         self.model = model
+        Notification(
+            DEEP_NOTIF_SUCCESS,
+            DEEP_MSG_LOADED % ("model", model.name, model.origin) + state_msg
+        )
 
         # Update trainer and evaluators with new model
         for item in (self.trainer, self.validator, self.tester, self.predictor):
@@ -370,14 +372,16 @@ class FrontalLobe(object):
 
         :return: None
         """
+        self.loading_message("Optimizer")
         # If a module is specified, edit the optimizer name to include the module (for notification purposes)
-        if self.config.optimizer.module is None:
-            optimizer_path = "%s from default modules" % self.config.optimizer.name
-        else:
-            optimizer_path = "%s from %s" % (self.config.optimizer.name, self.config.optimizer.module)
-
-        # Notify the user which model is being collected and from where
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_OPTIM_LOADING % optimizer_path)
+        Notification(
+            DEEP_NOTIF_INFO,
+            DEEP_MSG_LOADING % (
+                "optimizer",
+                self.config.optimizer.name,
+                "default modules" if self.config.optimizer.module is None else self.config.optimizer.module
+            )
+        )
 
         # An optimizer cannot be loaded without a model (self.model.parameters() is required)
         if self.model is not None:
@@ -386,23 +390,33 @@ class FrontalLobe(object):
                 model_parameters=self.model.parameters(),
                 **self.config.optimizer.get()
             )
-            msg = "%s from %s" % (self.config.optimizer.name, optimizer.module)
+            state_msg = ""
             if self.config.model.from_file:
                 checkpoint = self.__load_checkpoint()
                 if "optimizer_state_dict" in checkpoint:
                     optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-                    msg += " with state dict from %s" % self.config.model.file
+                    state_msg = " with state dict from %s" % self.config.model.file
 
             # If model exists, load the into the frontal lobe
             if optimizer is None:
-                Notification(DEEP_NOTIF_FATAL, DEEP_MSG_OPTIM_NOT_FOUND % optimizer_path)
+                Notification(
+                    DEEP_NOTIF_FATAL,
+                    DEEP_MSG_MODULE_NOT_FOUND % (
+                        "optimizer",
+                        self.config.optimizer.name,
+                        "default modules" if self.config.optimizer.module is None else self.config.optimizer.module
+                    )
+                )
             else:
                 self.optimizer = optimizer
-                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_OPTIM_LOADED % msg)
+                Notification(
+                    DEEP_NOTIF_SUCCESS,
+                    DEEP_MSG_LOADED % ("optimizer", self.optimizer.name, self.optimizer.module) + state_msg + state_msg
+                )
 
                 if self.trainer is not None:
                     self.trainer.optimizer = self.optimizer
-                    Notification(DEEP_NOTIF_INFO, "%s : Optimizer updated" % self.trainer.name)
+                    Notification(DEEP_NOTIF_INFO, "Trainer : Optimizer updated")
 
         # Notify the user that a model must be loaded
         else:
@@ -435,13 +449,16 @@ class FrontalLobe(object):
 
         :return loss_functions->dict: The losses
         """
-
+        self.loading_message("Losses")
         self.losses = Losses(self.config.losses.get())
         # Update metrics for trainer, validator, tester and predictor
-        for item in (self.trainer, self.validator, self.tester, self.predictor):
+        for n, item in zip(
+            ("Trainer", "Validator", "Tester", "Predictor"),
+            (self.trainer, self.validator, self.tester, self.predictor),
+        ):
             if item is not None:
                 item.losses = self.losses
-                Notification(DEEP_NOTIF_INFO, "%s : Losses updated" % item.name)
+                Notification(DEEP_NOTIF_INFO, "%s : Losses updated" % n)
 
     def load_metrics(self):
         """
@@ -461,6 +478,7 @@ class FrontalLobe(object):
         -------
         return: None
         """
+        self.loading_message("Metrics")
         self.metrics = Metrics(self.config.metrics.get())
         # Update metrics for trainer, validator, tester and predictor
         for item in (self.trainer, self.validator, self.tester, self.predictor):
@@ -492,39 +510,33 @@ class FrontalLobe(object):
         """
         # If the train step is enabled
         if self.config.data.enabled.train:
-            i = self.get_dataset_index(DEEP_DATASET_TRAIN)  # Get index of train dataset
-            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[i].name)
-
-            # Input Transform Manager
+            self.loading_message("Trainer")
+            # Input transform manager
             transform_manager = TransformManager(**self.config.transform.train.get(ignore="outputs"))
 
             # Output Transformer
-            output_transform_manager = OutputTransformer(transform_files=self.config.transform.train.get("outputs"))
+            output_transform_manager = OutputTransformer(
+                transform_files=self.config.transform.train.get("outputs")
+            )
 
             # Initialise training dataset
-            dataset = Dataset(
-                **self.config.data.datasets[i].get(),
-                transform_manager=transform_manager
-            )
+            i = self.get_dataset_index(DEEP_DATASET_TRAIN)  # Get index of train dataset
+            dataset = Dataset(**self.config.data.datasets[i].get(), transform_manager=transform_manager)
 
             # Initialise trainer
             self.trainer = Trainer(
                 dataset,
                 **self.config.data.dataloader.get(),
-                name="Trainer",
                 model=self.model,
                 metrics=self.metrics,
                 losses=self.losses,
                 optimizer=self.optimizer,
-                num_epochs=self.config.training.num_epochs,
-                initial_epoch=self.config.training.initial_epoch,
-                shuffle_method=self.config.training.shuffle,
-                verbose=self.config.history.verbose,
-                tester=self.validator,
+                **self.config.training.get(ignore=["overwatch", "saver"]),
+                validator=self.validator,
                 transform_manager=output_transform_manager
             )
         else:
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % DEEP_DATASET_TRAIN.name)
+            Notification(DEEP_NOTIF_INFO, "Trainer disabled")
 
     def load_validator(self):
         """
@@ -551,9 +563,7 @@ class FrontalLobe(object):
         """
         # If the validation step is enabled
         if self.config.data.enabled.validation:
-            i = self.get_dataset_index(DEEP_DATASET_VAL)
-            Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[i].name)
-
+            self.loading_message("Validator")
             # Transform Manager
             transform_manager = TransformManager(
                 **self.config.transform.validation.get(ignore="outputs")
@@ -565,6 +575,7 @@ class FrontalLobe(object):
             )
 
             # Initialise validation dataset
+            i = self.get_dataset_index(DEEP_DATASET_VAL)
             dataset = Dataset(
                 **self.config.data.datasets[i].get(),
                 transform_manager=transform_manager
@@ -573,12 +584,12 @@ class FrontalLobe(object):
             # Initialise validator
             self.validator = Tester(
                 **self.config.data.dataloader.get(),
-                name="Validator",
                 model=self.model,
                 dataset=dataset,
                 metrics=self.metrics,
                 losses=self.losses,
-                transform_manager=output_transform_manager
+                transform_manager=output_transform_manager,
+                name="Validator"
             )
 
             # Update trainer.tester with this new validator
@@ -612,6 +623,7 @@ class FrontalLobe(object):
         """
         # If the test step is enabled
         if self.config.data.enabled.test:
+            self.loading_message("Predictor")
             i = self.get_dataset_index(DEEP_DATASET_TEST)
             Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[i].name)
 
@@ -634,7 +646,6 @@ class FrontalLobe(object):
             # Initialise tester
             self.tester = Tester(
                 **self.config.data.dataloader.get(),
-                name="Tester",
                 model=self.model,
                 dataset=dataset,
                 metrics=self.metrics,
@@ -647,6 +658,7 @@ class FrontalLobe(object):
     def load_predictor(self):
         # If the predict step is enabled
         if self.config.data.enabled.predict:
+            self.loading_message("Predictor")
             i = self.get_dataset_index(DEEP_DATASET_PREDICTION)
             Notification(DEEP_NOTIF_INFO, DEEP_NOTIF_DATA_LOADING % self.config.data.datasets[i].name)
 
@@ -663,16 +675,17 @@ class FrontalLobe(object):
             # Initialise prediction dataset
             dataset = Dataset(
                 **self.config.data.datasets[i].get(),
-                transform_manager=transform_manager)
+                transform_manager=transform_manager
+            )
 
             # Initialise predictor
-            self.predictor = Predictor(
-                **self.config.data.dataloader.get(),
-                name="Predictor",
-                model=self.model,
-                dataset=dataset,
-                transform_manager=output_transform_manager
-            )
+            #self.predictor = Predictor(
+            #    **self.config.data.dataloader.get(),
+            #    name="Predictor",
+            #    model=self.model,
+            #    dataset=dataset,
+            #    transform_manager=output_transform_manager
+            #)
         else:
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_DATA_DISABLED % DEEP_DATASET_PREDICTION.name)
 
@@ -698,14 +711,13 @@ class FrontalLobe(object):
 
         :return: None
         """
-        Notification(DEEP_NOTIF_INFO, "Loading memory")
+        self.loading_message("Memory")
         self.memory = Hippocampus(
             **self.config.training.saver.get(),
-            verbose=self.config.history.verbose,
             enable_train_batches=self.config.history.enabled.train_batches,
             enable_train_epochs=self.config.history.enabled.train_epochs,
             enable_validation=self.config.history.enabled.validation,
-            overwatch_metric=OverWatch(**self.config.training.overwatch.get()),
+            overwatch=OverWatch(**self.config.training.overwatch.get()),
             history_directory="/".join((get_main_path(), self.config.project.session, "history")),
             weights_directory="/".join((get_main_path(), self.config.project.session, "weights"))
         )
@@ -779,8 +791,6 @@ class FrontalLobe(object):
             name, module, device, device_ids,
             batch_size=None,
             model_state_dict=None,
-            notif=DEEP_NOTIF_WARNING,
-            weights_path="Unknown",
             **kwargs
     ):
         """
@@ -794,12 +804,6 @@ class FrontalLobe(object):
         :param kwargs:
         :return:
         """
-        if module is None:
-            model_path = "%s from default modules" % name
-        else:
-            model_path = "%s from %s" % (name, module)
-
-        Notification(DEEP_NOTIF_INFO, DEEP_MSG_MODEL_LOADING % model_path)
         model = load_model(
             name=name,
             module=module,
@@ -809,13 +813,6 @@ class FrontalLobe(object):
             model_state_dict=model_state_dict,
             **kwargs
         )
-        if model is None:
-            Notification(notif, DEEP_MSG_MODEL_NOT_FOUND % model_path)
-        else:
-            model_path = "%s from %s" % (model.name, model.origin)
-            if model_state_dict is not None:
-                model_path += " with weights from %s" % weights_path
-            Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODEL_LOADED % model_path)
         return model
 
     @staticmethod
@@ -853,3 +850,9 @@ class FrontalLobe(object):
                 return i
         Notification(DEEP_NOTIF_FATAL, "Unknown dataset type : %s" % flag.name)
 
+    @staticmethod
+    def loading_message(text: str):
+        text = "Loading %s :" % text
+        Notification(DEEP_NOTIF_INFO, "")
+        Notification(DEEP_NOTIF_INFO, text)
+        Notification(DEEP_NOTIF_INFO, "‾" * len(text))

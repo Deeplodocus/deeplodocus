@@ -61,7 +61,8 @@ class Dataset(object):
             desired_length=num_instances,
             num_raw_instances=self.number_raw_instances
         )  # Length of the Dataset
-        self.item_order = np.arange(self.length)   # List of items indices
+
+        self.item_order = np.arange(self.length)  # List of items indices
         self.use_raw_data = use_raw_data  # Whether we want to use raw data or only transformed data
         self.transform_manager = transform_manager
 
@@ -158,7 +159,7 @@ class Dataset(object):
         """
         return self.length
 
-    def shuffle(self, method: Flag) -> None:
+    def shuffle(self, method: Flag, verbose: bool = True) -> None:
         """
         AUTHORS:
         --------
@@ -180,24 +181,19 @@ class Dataset(object):
 
         :return: None
         """
-        # ALL DATASET
-        if DEEP_SHUFFLE_ALL.corresponds(info=method):
-            self.item_order = random.sample(range(0, self.number_raw_instances), self.length)
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_SHUFFLE_COMPLETE % method.name)
-
-        # NONE
-        elif DEEP_SHUFFLE_NONE.corresponds(info=method):
+        # No shuffling
+        if DEEP_SHUFFLE_NONE.corresponds(info=method):
             self.item_order = np.arange(self.length)
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_NO_SHUFFLE)
-
-        # BATCHES
-        elif DEEP_SHUFFLE_BATCHES.corresponds(info=method):
-            Notification(DEEP_NOTIF_ERROR, "Batch shuffling not implemented yet.")
-
-        # WRONG FLAG
+            if verbose:
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_NO_SHUFFLE)
+        # Shuffle all
+        elif DEEP_SHUFFLE_ALL.corresponds(info=method):
+            self.item_order = random.sample(range(0, self.number_raw_instances), self.length)
+            if verbose:
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_SHUFFLE_COMPLETE % method.name)
+        # Bad flag
         else:
             Notification(DEEP_NOTIF_ERROR, DEEP_MSG_SHUFFLE_NOT_FOUND % method.name)
-
         # Reset the TransformManager
         self.reset()
 
@@ -222,6 +218,9 @@ class Dataset(object):
         """
         if self.transform_manager is not None:
             self.transform_manager.reset()
+
+    def summary(self):
+        print("Sorry : to be implemented (dataset line ~ 224")
 
     def __load_from_entries(self, index):
 
@@ -315,12 +314,9 @@ class Dataset(object):
 
         return items
 
-    def __convert_to_numpy(self, items: List[Any]) -> List[Any]:
-        np_items = list()
-        for item in items:
-            np_items.append(np.array(item))
-
-        return np_items
+    @staticmethod
+    def __convert_to_numpy(items: List[Any]) -> List[Any]:
+        return [np.array(i) for i in items]
 
     def __split_data_by_entry_type(self, items: List[Any]) -> Tuple[List[Any], List[Any], List[Any]]:
         """
@@ -455,7 +451,6 @@ class Dataset(object):
 
         # Generate every single PipelineEntry
         for i, entry in enumerate(entries):
-
             entry_type = self.__check_entry_type(entries[i]["type"])
 
             if DEEP_ENTRY_INPUT.corresponds(entry_type):
@@ -468,12 +463,14 @@ class Dataset(object):
                 Notification(DEEP_NOTIF_FATAL, "The following entry type does not exist")
 
             # Create new PipelineEntry
-            pe = PipelineEntry(index=entries[i]["index"],
-                               convert_to=entries[i]["convert_to"],
-                               move_axis=entries[i]["move_axis"],
-                               entry_type=entry_type,
-                               dataset=weakref_dataset,
-                               entry_type_index=entry_type_index)
+            pe = PipelineEntry(
+                index=entries[i]["index"],
+                convert_to=entries[i]["convert_to"],
+                move_axis=entries[i]["move_axis"],
+                entry_type=entry_type,
+                dataset=weakref_dataset,
+                entry_type_index=entry_type_index
+            )
 
             if DEEP_ENTRY_INPUT.corresponds(entry_type):
                 inputs += 1
@@ -525,6 +522,7 @@ class Dataset(object):
             # Create new Entry
             e = Entry(index=entries[i]["index"],
                       name=entries[i]["name"],
+                      etype=entries[i]["type"],
                       load_as=entries[i]["load_as"],
                       dataset=weakref_dataset,
                       enable_cache=entries[i]["enable_cache"])
@@ -561,6 +559,7 @@ class Dataset(object):
         # SourcePointer instance are generated but not filled.
         # Weakref for SourcePointer instances are captured later in the generation process
         for i, _ in enumerate(self.entries):
+            Notification(DEEP_NOTIF_INFO, "Loading %s entry : %s" % (entries[i]["type"], entries[i]["name"]))
             self.entries[i].generate_sources(entries[i]["sources"])
 
     def __generate_source_pointers(self) -> None:
@@ -586,6 +585,7 @@ class Dataset(object):
         
         :return: None
         """
+
         # For each Entry
         for i, entry in enumerate(self.entries):
 
@@ -607,7 +607,9 @@ class Dataset(object):
 
                     # Send the Entry weakref to the SourcePointer
                     self.entries[i].set_source_pointer_weakref(source_id=j, entry_weakref=entry_weakref)
-                    #source.set_entry_weakref(entry_weakref)
+
+        if self.__check_num_sources():  # Check each entry has the same number of sources
+            self.__check_source_lengths()  # Check each source has the same number of instances
 
     @staticmethod
     def __generate_entry_and_source_indices(entries: List[dict]) -> List[dict]:
@@ -756,13 +758,13 @@ class Dataset(object):
             )
 
         # For each entry check if the number of raw instances is the same as the first input
-        for index, entry in enumerate(self.entries):
-            n = entry.__len__()
+        #for index, entry in enumerate(self.entries):
+        #    n = entry.__len__()
 
-            if n != num_raw_instances:
-                Notification(DEEP_NOTIF_FATAL, "Number of instances in " + str(self.pipeline_entries[0].get_entry_type()) +
-                             "-" + str(self.pipeline_entries[0].get_entry_index()) + " and " + str(self.pipeline_entries[index].get_entry_type()) +
-                             "-" + str(self.pipeline_entries[index].get_entry_index()) + " do not match.")
+        #    if n != num_raw_instances:
+        #        Notification(DEEP_NOTIF_FATAL, "Number of instances in " + str(self.pipeline_entries[0].get_entry_type()) +
+        #                     "-" + str(self.pipeline_entries[0].get_entry_index()) + " and " + str(self.pipeline_entries[index].get_entry_type()) +
+        #                     "-" + str(self.pipeline_entries[index].get_entry_index()) + " do not match.")
         return num_raw_instances
 
     @staticmethod
@@ -808,6 +810,39 @@ class Dataset(object):
     ############
     # CHECKERS #
     ############
+
+    def __check_num_sources(self):
+        if len(self.entries) < 2:
+            return True
+        else:
+            for e in self.entries[1:]:
+                if len(e.sources) != len(self.entries[0].sources):
+                    Notification(DEEP_NOTIF_ERROR, "Entries have differing numbers of sources")
+                    Notification(
+                        DEEP_NOTIF_ERROR,
+                        " : ".join(
+                            [
+                                "%s : %s" % (e, n) for e, n in zip(
+                                    [e.etype.name for e in self.entries],
+                                    [len(e.sources) for e in self.entries]
+                                )
+                            ]
+                        )
+                    )
+                    return False
+            return True
+
+    def __check_source_lengths(self):
+        for i in range(len(self.entries[0].sources)):
+            num_instances = [e.sources[i].compute_length() for e in self.entries]
+            if not all([n == num_instances[0] for n in num_instances]):
+                Notification(DEEP_NOTIF_ERROR, "Sources have differing lengths")
+                Notification(
+                    DEEP_NOTIF_ERROR,
+                    " : ".join("Source [%i] : %i" % (i, n) for i, n in enumerate(num_instances))
+                )
+                return False
+        return True
 
     @staticmethod
     def __check_entry_type(entry_type: Union[str, int, Flag]) -> Flag:
@@ -891,10 +926,6 @@ class Dataset(object):
             # Compute number of raw instances
             self.entries[i].compute_num_raw_instances()
 
-
-
-
-
     ###########
     # GETTERS #
     ###########
@@ -977,9 +1008,13 @@ class Dataset(object):
 
         # Check the Entry index
         if entry_index > len(self.entries):
-            Notification(DEEP_NOTIF_FATAL,
-                         "The SourcePointer %s in the Entry %s of the Dataset %s points to a non existing Entry ID %i" % (source_pointer.get_index(), entry.get_info(), self.get_info(), entry_index),
-                         solutions="Make sure the SourcePointer points to an existing Entry.")
+            Notification(
+                DEEP_NOTIF_FATAL,
+                "The SourcePointer %s in the Entry %s of the Dataset %s points to a non existing Entry ID %i" % (
+                    source_pointer.get_index(), entry.get_info(), self.get_info(), entry_index
+                ),
+                solutions="Make sure the SourcePointer points to an existing Entry."
+            )
 
         return entry_index
 

@@ -1,44 +1,100 @@
 from deeplodocus.utils.flag import Flag
 
-#
-# EVENT TYPES
-#
 
+# INFERENCE EVENTS
 DEEP_EVENT_UNDEFINED = Flag(
     name="Undefined",
     description="Event : Undefined",
     names=["none", "undefined"]
 )
-DEEP_EVENT_ON_BATCH_END = Flag(
-    name="On Batch End",
-    description="Event : On Batch End",
-    names=["batch end", "end batch", "end_batch", "on_batch_end"]
+DEEP_EVENT_BATCH_START = Flag(
+    name="Batch Start",
+    description="Event : Batch Start",
+    names=["batch start", "batch-start", "batch_start", "end start", "end-start", "end_start"]
 )
-DEEP_EVENT_ON_EPOCH_END = Flag(
-    name="On Epoch End",
-    description="Event : On Epoch End",
-    names=["epoch end", "end epoch", "on epoch end"]
+DEEP_EVENT_BATCH_END = Flag(
+    name="Batch End",
+    description="Event : Batch End",
+    names=["batch end", "batch-end", "batch_end", "end batch", "end-batch", "end_batch"]
 )
-DEEP_EVENT_ON_VALIDATION_END = Flag(
-    name="On Evaluation End",
-    description="Event : On Evaluation End",
-    names=["val end", "end val", "on val end", "validation end"]
+DEEP_EVENT_EPOCH_START = Flag(
+    name="Epoch Start",
+    description="Event : Epoch Start",
+    names=["epoch start", "epoch-start", "epoch_start", "start epoch", "start-epoch", "start_epoch"]
 )
-DEEP_EVENT_ON_EVALUATION_END = Flag(
-    name="On Evaluation End",
-    description="Event : On Evaluation End",
-    names=["eval end", "end eval", "on eval end", "evaluation end"]
+DEEP_EVENT_EPOCH_END = Flag(
+    name="Epoch End",
+    description="Event : Epoch End",
+    names=["epoch end", "epoch-end", "epoch_end", "end epoch", "end-epoch", "end_epoch"]
 )
-DEEP_EVENT_ON_TRAINING_START = Flag(
-    name="On Training Start",
-    description="Event : On Training Start",
-    names=["training start", "on training start"]
+DEEP_EVENT_VALIDATION_START = Flag(
+    name="Validation Start",
+    description="Event : Validation Start",
+    names=[
+        "val start", "val-start", "val_start", "start val", "start-val", "start_val",
+        "validation start", "validation-start", "validation_start",
+        "start validation", "start-validation", "start_validation"
+    ]
 )
-DEEP_EVENT_ON_TRAINING_END = Flag(
-    name="On Training End",
-    description="Event : On Training End",
-    names=["training end", "on training end"]
+DEEP_EVENT_VALIDATION_END = Flag(
+    name="Validation End",
+    description="Event : Validation End",
+    names=[
+        "val end", "val-end", "val_end", "end val", "end-val", "end_val",
+        "validation end", "validation-end", "validation_end",
+        "end validation", "end-validation", "end_validation"
+    ]
 )
+DEEP_EVENT_TRAINING_START = Flag(
+    name="Training Start",
+    description="Event : Training Start",
+    names=[
+        "training start", "training-start", "training_start",
+        "start training", "start-training", "start_training",
+        "train start", "train-start", "train_start",
+        "start train", "start-train", "start_train"
+    ]
+)
+DEEP_EVENT_TRAINING_END = Flag(
+    name="Training End",
+    description="Event : Training End",
+    names=[
+        "training end", "training-end", "training_end",
+        "end training", "end-training", "end_training",
+        "train end", "train-end", "train_end",
+        "end train", "end-train", "end_train"
+    ]
+)
+
+# SAVER EVENTS
+DEEP_SAVE_SIGNAL_END_BATCH = Flag(
+    name="End of batch",
+    description="Save the model after each mini-batch",
+    names=[
+        "batch", "onbatch", "on batch", "on-batch",  "on_batch",
+        "endbatch", "end batch", "end-batch", "end_batch"
+    ]
+)
+DEEP_SAVE_SIGNAL_END_EPOCH = Flag(
+    name="End of epoch",
+    description="Save the model after each epoch",
+    names=["epoch", "epochend", "epoch end", "epoch-end", "epoch_end", "endepoch", "end epoch", "end_epoch"]
+)
+DEEP_SAVE_SIGNAL_END_TRAINING = Flag(
+    name="End of training",
+    description="Save at the end of training",
+    names=[
+        "training", "endtraining", "end training", "end-training", "end_training",
+        "trainingend", "training end", "training-end", "training_end"
+    ]
+)
+DEEP_SAVE_SIGNAL_AUTO = Flag(
+    name="Auto",
+    description="Save the model when the evaluation metric is better than all previous values",
+    names=["auto", "default", "overwatch", "over_watch", "over-watch", "over watch"]
+)
+
+# OTHER EVENTS
 DEEP_EVENT_ON_UPDATE_ALL = Flag(
     name="On Update all",
     description="Event : On Update All",
@@ -68,11 +124,6 @@ DEEP_EVENT_OVERWATCH_METRIC_COMPUTED = Flag(
     name="Overwatch metric computed",
     description="Event : Overwatch Metric Computed",
     names=["overwatch", "overwatch metric", "overwatch metric computed"]
-)
-DEEP_EVENT_ON_EPOCH_START = Flag(
-    name="On Epoch Start",
-    description="Event : On Epoch Start",
-    names=["on epoch start"]
 )
 DEEP_EVENT_SAVING_REQUIRED = Flag(
     name="Is Saving Required",
@@ -104,67 +155,4 @@ DEEP_EVENT_SEND_SAVE_PARAMS_FROM_TRAINER = Flag(
     description="Send save params",
     names=["send_save_params"]
 )
-
-
-#
-# PRINT SIGNALS
-#
-DEEP_EVENT_PRINT_TRAINING_EPOCH_END = Flag(
-    name="Print training epoch end",
-    description="Print training results on epoch end",
-    names=["print_training_epoch_end"]
-)
-DEEP_EVENT_PRINT_VALIDATION_EPOCH_END = Flag(
-    name="Print validation epoch end",
-    description="Print validation results on epoch end",
-    names=["print_validation_epoch_end"]
-)
-DEEP_EVENT_PRINT_TRAINING_BATCH_END = Flag(
-    name="Print training epoch end",
-    description="Print training results on batch end",
-    names=["print_training_batch_end"]
-)
-
-#
-# MODEL SIGNALS
-#
-DEEP_SAVE_SIGNAL_END_BATCH = Flag(name="End of batch",
-                                  description="Save the model after each mini-batch",
-                                  names=["batch",
-                                         "onbatch",
-                                         "on batch",
-                                         "on-batch",
-                                         "on_batch",
-                                         "endbatch",
-                                         "end batch",
-                                         "end-batch",
-                                         "end_batch"])
-
-DEEP_SAVE_SIGNAL_END_EPOCH = Flag(name="End of epoch",
-                                  description="Save the model after each epoch",
-                                  names=["epoch",
-                                         "epochend",
-                                         "epoch end",
-                                         "epoch-end",
-                                         "epoch_end",
-                                         "endepoch",
-                                         "end epoch",
-                                         "end-epodh",
-                                         "end_epoch"])
-
-DEEP_SAVE_SIGNAL_END_TRAINING = Flag(name="End of training",
-                                     description="Save at the end of training",
-                                     names=["training",
-                                            "endtraining",
-                                            "end training"
-                                            "end-training",
-                                            "end_training",
-                                            "trainingend",
-                                            "training end",
-                                            "training-end",
-                                            "training_end"])
-
-DEEP_SAVE_SIGNAL_AUTO = Flag(name="Auto",
-                             description="Save the model when the evaluation metric is better than all previous values",
-                             names=["auto", "default", "overwatch", "over_watch", "over-watch", "over watch"])
 

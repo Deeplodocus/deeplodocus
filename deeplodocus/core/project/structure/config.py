@@ -66,6 +66,10 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: "version01"
         },
+        "enable_log": {
+            DEEP_CONFIG_DTYPE: bool,
+            DEEP_CONFIG_DEFAULT: True
+        },
         "cv_library": {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: "opencv"
@@ -127,10 +131,6 @@ DEEP_CONFIG = {
         }
     },
     DEEP_CONFIG_HISTORY: {
-        "verbose": {
-            DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "default"
-        },
         "enabled": {
             "train_batches": {
                 DEEP_CONFIG_DTYPE: bool,
@@ -143,21 +143,21 @@ DEEP_CONFIG = {
             "validation": {
                 DEEP_CONFIG_DTYPE: bool,
                 DEEP_CONFIG_DEFAULT: True
-            },
-            "notification": {
-                DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
             }
         },
     },
     DEEP_CONFIG_TRAINING: {
+        "verbose": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "default"
+        },
         "num_epochs": {
             DEEP_CONFIG_DTYPE: int,
             DEEP_CONFIG_DEFAULT: 10
         },
         "initial_epoch": {
             DEEP_CONFIG_DTYPE: int,
-            DEEP_CONFIG_DEFAULT: 0
+            DEEP_CONFIG_DEFAULT: None
         },
         "shuffle": {
             DEEP_CONFIG_DTYPE: str,
@@ -178,12 +178,16 @@ DEEP_CONFIG = {
             }
         },
         "overwatch": {
-            "name": {
+            "metric": {
                 DEEP_CONFIG_DEFAULT: "Total Loss",
                 DEEP_CONFIG_DTYPE: str
             },
             "condition": {
                 DEEP_CONFIG_DEFAULT: "less",
+                DEEP_CONFIG_DTYPE: str
+            },
+            "dataset": {
+                DEEP_CONFIG_DEFAULT: "validation",
                 DEEP_CONFIG_DTYPE: str
             }
         },
@@ -213,7 +217,7 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DTYPE: bool,
                 DEEP_CONFIG_DEFAULT: False
             },
-            "predict": {
+            "prediction": {
                 DEEP_CONFIG_DTYPE: bool,
                 DEEP_CONFIG_DEFAULT: False
             }
@@ -382,7 +386,7 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DTYPE: [str]
             }
         },
-        "predict": {
+        "prediction": {
             "name": {
                 DEEP_CONFIG_DTYPE: str,
                 DEEP_CONFIG_DEFAULT: "Predict Transform Manager",

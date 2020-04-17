@@ -20,7 +20,6 @@ DEEP_LOG_VALIDATION = Flag(
     names=["train_epochs", "train epochs", "training epochs", "training_epochs"]
 )
 
-
 DEEP_LOG_WALL_TIME = Flag(
     name="Wall Time",
     description="History : Wall Time header",

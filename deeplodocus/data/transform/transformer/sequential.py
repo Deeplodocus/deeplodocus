@@ -21,11 +21,13 @@ class Sequential(Transformer):
     Sequential class inheriting from Transformer which compute the list of transforms sequentially
     """
 
-    def __init__(self,
-                 name: str,
-                 mandatory_transforms_start: Union[Namespace, List[dict]],
-                 transforms: Union[Namespace, List[dict]],
-                 mandatory_transforms_end: Union[Namespace, List[dict]]):
+    def __init__(
+            self,
+            name: str,
+            mandatory_transforms_start: Union[Namespace, List[dict]],
+            transforms: Union[Namespace, List[dict]],
+            mandatory_transforms_end: Union[Namespace, List[dict]]
+    ):
         """
         AUTHORS:
         --------
