@@ -3,19 +3,19 @@ import torch.nn as nn
 import numpy as np
 from collections import OrderedDict
 
-from deeplodocus.flags import DEEP_MODULE_MODELS
 from deeplodocus.utils.generic_utils import get_module
 from deeplodocus.utils.notification import Notification
-from deeplodocus.flags import DEEP_MSG_MODEL_CHECK_CHANNELS
 
 from deeplodocus.flags import *
 
+
 def load_model(
         name, module, kwargs, device,
+        epoch=0,
         model_state_dict=None,
         device_ids=None,
         input_size=None,
-        batch_size=None
+        batch_size=None,
 ):
     # Get the model, should be nn.Module
     module, origin = get_module(name=name, module=module, browse=DEEP_MODULE_MODELS)
@@ -26,6 +26,7 @@ def load_model(
     class Model(module):
 
         def __init__(self, name, origin, device,
+                     epoch=0,
                      device_ids=None,
                      input_size=None,
                      batch_size=None,
@@ -34,11 +35,13 @@ def load_model(
             super(Model, self).__init__(**kwargs)
             self.name = name
             self.origin = origin
+            self.epoch = 0
             self.device_ids = device_ids
             self.input_size = input_size
             self.batch_size = batch_size
             self.model_dict = {} if model_dict is None else model_dict
             self.device = device
+            self.epoch = epoch
 
         def summary(self):
             """
@@ -190,6 +193,7 @@ def load_model(
         name=name,
         origin=origin,
         device=device,
+        epoch=epoch,
         device_ids=device_ids,
         input_size=input_size,
         batch_size=batch_size,

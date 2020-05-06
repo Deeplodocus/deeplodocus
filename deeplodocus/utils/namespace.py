@@ -236,7 +236,7 @@ class Namespace(object):
         :return: Namespace containing all data from the yaml file.
         """
         with open(file_name, "r") as file:
-            dictionary = yaml.load(file)
+            dictionary = yaml.load(file, Loader=yaml.FullLoader)
         return self.__dict2namespace(dictionary)
 
     def __add(self, dictionary, sub_space=None):

@@ -122,8 +122,8 @@ DEEP_MSG_TRANSFORM_VALUE_ERROR = "Transforms must return two items"
 
 DEEP_MSG_TRAINING_STARTED = "Started training"
 DEEP_MSG_TRAINING_FINISHED = "Finished training"
-DEEP_MSG_EPOCH_START = "Start of epoch : %s"
-DEEP_MSG_EPOCH_END = "End of epoch : %s"
+DEEP_MSG_EPOCH_START = "Start of epoch %s"
+DEEP_MSG_EPOCH_END = "End of epoch %s"
 DEEP_MSG_EVALUATION_STARTED = "Started evaluation"
 DEEP_MSG_EVALUATION_FINISHED = "Finished evaluation"
 
@@ -155,7 +155,7 @@ DEEP_MSG_MODEL_LOADED = "Model loaded : %s"
 
 # DEEP_INFO
 DEEP_MSG_MODEL_LOADING = "Loading model : %s"
-DEEP_MSG_MODEL_SAVED = "Model and weights saved to : %s"
+DEEP_MSG_MODEL_SAVED = "Model weights saved to : %s"
 
 ##################
 # DEEP_MSG_OPTIM #

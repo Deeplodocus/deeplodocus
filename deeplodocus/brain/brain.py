@@ -17,8 +17,8 @@ from deeplodocus.utils.dict_utils import convert_dict
 from deeplodocus.flags import *
 from deeplodocus.utils.generic_utils import convert
 from deeplodocus.utils.logo import Logo
-from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.notification import Notification, DeepError
+from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.vis_utils import plot_history
 from deeplodocus.brain.visual_cortex.graph import Graph
 from deeplodocus.core.project.structure.config import *
@@ -87,7 +87,7 @@ class Brain(FrontalLobe):
 
         :return: None
         """
-        self.__close_logs(force=True)
+        self.__move_log()
         Logo(version=__version__)
         FrontalLobe.__init__(self)          # Model Manager
         self.config_dir = config_dir
@@ -147,7 +147,7 @@ class Brain(FrontalLobe):
         if self.visual_cortex is not None:
             self.visual_cortex.stop()
         self.__good_bye()
-        self.__close_logs()
+        self.__move_log()
         raise SystemExit(0)
 
     def save_config(self):
@@ -355,65 +355,6 @@ class Brain(FrontalLobe):
         else:
             self.__check_config(DEEP_CONFIG[key], sub_space=key)
 
-    def __clear_logs(self, force=False):
-        """
-        AUTHORS:
-        --------
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-        Deletes logs that are not to be kept, as decided in the config settings
-
-        PARAMETERS:
-        -----------
-        :param force: bool Use if you want to force delete all logs
-
-        RETURN:
-        -------
-        :return: None
-        """
-        for log_type, (directory, ext) in DEEP_LOGS.items():
-            # If forced or log should not be kept, delete the log
-            if force or not self.config.project.logs.get(log_type):
-                Logs(log_type, directory, ext).delete()
-
-    def __close_logs(self, force=False):
-        """
-        AUTHORS:
-        --------
-        :author: Samuel Westlake
-
-        DESCRIPTION:
-        ------------
-        Closes logs that are to be kept and deletes logs that are to be deleted, as decided in the config settings
-
-        PARAMETERS:
-        -----------
-        :param force: bool: Use if you want to force all logs to close (use if you don't want logs to be deleted)
-
-        RETURN:
-        -------
-        :return: None
-        """
-        for log_type, (directory, ext) in DEEP_LOGS.items():
-            # If forced to closer or log should be kept, close the log
-            # NB: config does not have to exist if force is True
-            if log_type == DEEP_LOG_NOTIFICATION:
-                try:
-                    new_directory = "/".join(
-                        (get_main_path(), self.config.project.session, "logs")
-                    )
-                except AttributeError:
-                    new_directory = None
-            else:
-                new_directory = None
-            if force or self.config.project.logs.get(log_type):
-                if os.path.isfile("%s/%s%s" % (directory, log_type, ext)):
-                    Logs(log_type, directory, ext).close(new_directory)
-            else:
-                Logs(log_type, directory, ext).delete()
-
     def pause(self):
         instruction = Notification(DEEP_NOTIF_INPUT, DEEP_MSG_INSTRUCTRION).get()
         if instruction is not "":
@@ -604,6 +545,22 @@ class Brain(FrontalLobe):
                     )
                 )
         return new_value
+
+    def __move_log(self):
+        orig_name = "%s%s" % (DEEP_LOG_NOTIFICATION.var_name, DEEP_EXT_LOG)
+        if os.path.isfile(orig_name):
+            with open(orig_name, "r") as file:
+                line = file.readline()
+            t = line.split(".")[0]
+            t = t.replace(":", "-")
+            t = t.replace(" ", "_")
+            try:
+                directory = "%s/logs" % self.config.project.session
+                os.makedirs("%s/logs" % self.config.project.session, exist_ok=True)
+            except AttributeError:
+                directory = "."
+            new_name = "%s/%s_%s%s" % (directory, DEEP_LOG_NOTIFICATION.var_name, t, DEEP_EXT_LOG)
+            os.rename(orig_name, new_name)
 
     def __get_dtype_name(self, d_type):
         """

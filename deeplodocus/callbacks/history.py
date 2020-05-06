@@ -1,16 +1,13 @@
 import os
-import copy
 import time
 import datetime
-from decimal import Decimal
+import contextlib
 from typing import Union
 
 # Deeplodocus imports
 from deeplodocus.brain.signal import Signal
 from deeplodocus.brain.thalamus import Thalamus
-from deeplodocus.core.metrics import OverWatch
 from deeplodocus.flags import *
-from deeplodocus.utils.logs import Logs
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.generic_utils import get_corresponding_flag
 
@@ -75,50 +72,11 @@ class History(object):
         self._training_start = None
         self._batch_data = {}
         self._loss_data = {item: None for item in (TRAINING, VALIDATION)}
-        # Connect to signals
-        Thalamus().connect(
-            receiver=self.on_batch_end,
-            event=DEEP_EVENT_BATCH_END,
-            expected_arguments=["batch_index", "num_batches", "epoch_index", "loss", "losses", "metrics"]
-        )
-        Thalamus().connect(
-            receiver=self.on_epoch_end,
-            event=DEEP_EVENT_EPOCH_END,
-            expected_arguments=["epoch_index", "loss", "losses",  "metrics"]
-        )
-        Thalamus().connect(
-            receiver=self.on_validation_end,
-            event=DEEP_EVENT_VALIDATION_END,
-            expected_arguments=["epoch_index", "loss", "losses", "metrics"]
-        )
-        Thalamus().connect(
-            receiver=self.on_train_start,
-            event=DEEP_EVENT_TRAINING_START,
-            expected_arguments=[]
-        )
-        Thalamus().connect(
-            receiver=self.on_train_end,
-            event=DEEP_EVENT_TRAINING_END,
-            expected_arguments=[]
-        )
-        Thalamus().connect(
-            receiver=self.on_epoch_start,
-            event=DEEP_EVENT_EPOCH_START,
-            expected_arguments=["epoch_index", "num_epochs"]
-        )
-        Thalamus().connect(
-            receiver=self.send_training_loss,
-            event=DEEP_EVENT_REQUEST_TRAINING_LOSS,
-            expected_arguments=[]
-        )
         self.init_files()
 
     def on_train_start(self):
         self.write_headers()
         self.set_start_time()
-
-    def on_epoch_start(self, epoch_index: int, num_epochs: int):
-        pass
 
     def on_batch_end(self, loss, losses, metrics, epoch_index, batch_index, num_batches):
         if self.enabled[DEEP_LOG_TRAIN_BATCHES.var_name]:
@@ -184,14 +142,17 @@ class History(object):
     def set_start_time(self):
         rel_times = [0]
         for _, path in self.file_paths.items():
-            with open(path, "r") as file:
-                lines = file.readlines()
-            lines = [line.strip() for line in lines if line.strip()]
-            try:
-                i = lines[0].split(",").index(DEEP_LOG_RELATIVE_TIME.name)
-                rel_times.append(float(lines[-1].split(",")[i]))
-            except (ValueError, IndexError, TypeError):
-                pass
+            if os.path.exists(path):
+                with open(path, "r") as file:
+                    lines = file.readlines()
+                lines = [line.strip() for line in lines if line.strip()]
+                try:
+                    i = lines[0].split(",").index(DEEP_LOG_RELATIVE_TIME.name)
+                    rel_times.append(float(lines[-1].split(",")[i]))
+                except (ValueError, IndexError, TypeError):
+                    pass
+            else:
+                rel_times.append(0)
         self._training_start = time.time() - max(rel_times)
 
     def write_headers(self):
@@ -224,7 +185,7 @@ class History(object):
             Notification(DEEP_NOTIF_WARNING, "The following history files already exist : ")
             for ex, (file_name, path) in zip(exists, self.file_paths.items()):
                 if ex:
-                    Notification(DEEP_NOTIF_WARNING, "\t- %s : %s" % (file_name, path))
+                    Notification(DEEP_NOTIF_WARNING, "%s- %s : %s" % (" " * 2, file_name, path))
             # Ask if they can be overwritten or not
             while self.overwrite is None:
                 r = Notification(DEEP_NOTIF_INPUT, "Would you like to overwrite them? (y/n)").get()
@@ -240,10 +201,12 @@ class History(object):
                 with open(path, "w"):
                     pass
             elif self.overwrite and ex and not en:
-                os.remove(path)
+                with contextlib.suppress(FileNotFoundError):
+                    os.remove(path)
 
     def init_file(self, file_name):
         # If a file is found to not exists, use this to re-initialise it
+        os.makedirs("/".join(self.file_paths[file_name].split("/")[:-1]), exist_ok=True)
         with open(self.file_paths[file_name], "w") as file:
             file.write("%s\n" % ",".join(self.headers[file_name]))
 

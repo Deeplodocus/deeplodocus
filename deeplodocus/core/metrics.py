@@ -1,4 +1,5 @@
 import inspect
+import contextlib
 from typing import Union
 
 from deeplodocus.flags import *
@@ -6,7 +7,6 @@ from deeplodocus.flags.flag_lists import DEEP_LIST_DATASET
 from deeplodocus.utils.deep_error import DeepError
 from deeplodocus.utils.notification import Notification
 from deeplodocus.utils.generic_utils import get_corresponding_flag, get_module
-
 
 UNDERLINE = 50
 
@@ -23,6 +23,11 @@ class GenericMetrics(object):
             self.values = {flag.name.lower(): {} for flag in DEEP_LIST_DATASET}
         else:
             self.values[flag.name.lower()] = {}
+        # Call reset method for each loss and metric
+        for m in self.names:
+            with contextlib.suppress(AttributeError):
+                vars(self)[m].method.reset()
+                Notification(DEEP_NOTIF_INFO, "Reset %s : %s" % ("Loss" if self.__class__ is Losses else "Metric", m))
 
     def summary__(self, title="SUMMARY OF METRICS :"):
         Notification(DEEP_NOTIF_INFO, "=" * UNDERLINE)
@@ -49,9 +54,11 @@ class Metrics(GenericMetrics):
     def __init__(self, metrics=None):
         super(Metrics, self).__init__()
         self.names = []
-        if metrics is not None:
+        if metrics:
             for name, metric in metrics.items():
                 self.add(name, metric)
+        else:
+            Notification(DEEP_NOTIF_INFO, "No metrics to load")
         self.values = {flag.name.lower(): {} for flag in DEEP_LIST_DATASET}
 
     def add(self, name, metric):
@@ -176,8 +183,7 @@ class Metric(object):
         self.args = self.__check_args()
         self.kwargs = kwargs
         self.reduce_method = None
-        self._reduce = get_corresponding_flag(DEEP_LIST_REDUCE, reduce)
-        self.__set_reduce_method()
+        self.reduce = reduce
 
     def forward(self, outputs, labels, inputs, additional_data):
         data = {
@@ -224,7 +230,9 @@ class Metric(object):
         elif self._reduce.corresponds(DEEP_REDUCE_SUM):
             self.reduce_method = sum
         elif self._reduce.corresponds(DEEP_REDUCE_LAST):
-            return self.last
+            self.reduce_method = self.last
+        else:
+            Notification(DEEP_NOTIF_FATAL, "Metric : Unknown reduce Flag : %s" % self._reduce)
 
     def __check_args(self):
         if inspect.isfunction(self.method):
@@ -357,58 +365,3 @@ class Loss(object):
         x = str(x).rstrip("0")
         x = x + "0" if x.endswith(".") else x
         return x
-
-
-class OverWatch(object):
-    """
-    AUTHORS:
-    --------
-
-    :author: Alix Leroy
-
-    DESCRIPTION:
-    ------------
-
-    Metric to overwatch during the training
-    """
-
-    def __init__(
-            self,
-            metric: str = DEEP_LOG_TOTAL_LOSS,
-            condition: Union[Flag, None] = DEEP_SAVE_CONDITION_LESS,
-            dataset: Union[Flag, None] = DEEP_DATASET_VAL
-    ):
-        """
-        AUTHORS:
-        --------
-
-        :author: Alix Leroy
-
-        DESCRIPTION:
-        ------------
-
-        Initialize the OverWatchMetric instance
-
-        PARAMETERS:
-        -----------
-        :param name (str): The name of the metric to over watch
-        :param condition (Flag):
-        """
-        self.metric = metric
-        self.dataset = DEEP_DATASET_VAL if dataset is None else get_corresponding_flag(
-            [DEEP_DATASET_TRAIN, DEEP_DATASET_VAL], dataset
-        )
-        self.condition = condition if condition is None else condition
-        self.value = None
-
-    def set_value(self, value: float):
-        self.value = value
-
-    def get_name(self):
-        return self.name
-
-    def get_value(self):
-        return self.value
-
-    def get_condition(self):
-        return self.condition

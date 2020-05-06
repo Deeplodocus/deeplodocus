@@ -2,13 +2,6 @@ import torch
 import torch.nn as nn
 from torch.nn import BCEWithLogitsLoss
 
-import contextlib
-import numpy as np
-import cv2
-
-from deeplodocus.app.transforms.yolo.output import Activate, Visualize
-from deeplodocus.utils.namespace import Namespace
-
 
 class YOLOLoss(nn.Module):
 
@@ -17,7 +10,7 @@ class YOLOLoss(nn.Module):
         self.iou_threshold = iou_threshold
         self.obj_weight = torch.tensor(obj_weight)
         self.box_weight = box_weight
-        self.bce = BCEWithLogitsLoss(reduce=False)
+        self.bce = BCEWithLogitsLoss(reduction=False)
         self.class_weight = class_weight
         self._cls_freq = None
 
@@ -112,7 +105,7 @@ class YOLOLoss(nn.Module):
         box = [torch.empty_like(i[..., 0:4]).fill_(-1) for i in inference]
         obj = [torch.zeros_like(i[..., 4]) for i in inference]
         cls = [torch.zeros_like(i[..., 5:]).fill_(-1) for i in inference]
-        return box,obj, cls
+        return box, obj, cls
 
     @staticmethod
     def __extract_inference(inference):
@@ -195,4 +188,3 @@ def log(x, e=1e-3):
     """
     x[x < e] = e
     return torch.log(x)
-

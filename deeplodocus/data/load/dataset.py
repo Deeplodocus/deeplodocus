@@ -28,6 +28,7 @@ class Dataset(object):
     --------
 
     :author : Alix Leroy
+    :author : Samuel Westlake
 
     DESCRIPTION:
     ------------
@@ -117,15 +118,17 @@ class Dataset(object):
         # Load items
         items, are_transformed = self.__load_from_entries(index_raw_instance)
 
-        # Convert to numpy array
-        items = self.__convert_to_numpy(items)
-
         # Transform items
         if self.transform_manager is not None:
-            items = self.__transform(index=index,
-                                     items=items,
-                                     are_transformed=are_transformed,
-                                     augment=augment)
+            items = self.__transform(
+                index=index,
+                items=items,
+                are_transformed=are_transformed,
+                augment=augment
+            )
+
+        # Convert to numpy array
+        items = self.__convert_to_numpy(items)
 
         # Format
         items = self.__format(items)

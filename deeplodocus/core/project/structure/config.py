@@ -1,5 +1,4 @@
 from deeplodocus.flags.ext import DEEP_EXT_YAML
-from deeplodocus.utils.namespace import Namespace
 
 # The divider to use when expressing paths to configs
 DEEP_CONFIG_DIVIDER = "/"
@@ -97,6 +96,10 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DEFAULT: None,
             DEEP_CONFIG_INIT: "deeplodocus.app.models.lenet"
         },
+        "epoch": {
+            DEEP_CONFIG_DTYPE: int,
+            DEEP_CONFIG_DEFAULT: None
+        },
         "from_file": {
             DEEP_CONFIG_DTYPE: bool,
             DEEP_CONFIG_DEFAULT: False
@@ -155,10 +158,6 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DTYPE: int,
             DEEP_CONFIG_DEFAULT: 10
         },
-        "initial_epoch": {
-            DEEP_CONFIG_DTYPE: int,
-            DEEP_CONFIG_DEFAULT: None
-        },
         "shuffle": {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: "default"
@@ -194,10 +193,6 @@ DEEP_CONFIG = {
     },
     DEEP_CONFIG_DATA: {
         "dataloader": {
-            "batch_size": {
-                DEEP_CONFIG_DTYPE: int,
-                DEEP_CONFIG_DEFAULT: 1
-            },
             "num_workers": {
                 DEEP_CONFIG_DTYPE: int,
                 DEEP_CONFIG_DEFAULT: 1
@@ -237,9 +232,9 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_DTYPE: int,
                     DEEP_CONFIG_DEFAULT: None,
                 },
-                "use_raw_instances": {
-                    DEEP_CONFIG_DTYPE: bool,
-                    DEEP_CONFIG_DEFAULT: False,
+                "batch_size": {
+                    DEEP_CONFIG_DTYPE: int,
+                    DEEP_CONFIG_DEFAULT: 1
                 },
                 "entries": [
                     {

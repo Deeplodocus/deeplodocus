@@ -47,7 +47,14 @@ class OutputTransformer(Namespace):
                         except TypeError as e:
                             Notification(DEEP_NOTIF_FATAL, str(e))
                     transform_info.module = module_path
-                    self.__transform_loaded(transform_name, transform_info)
+                    Notification(
+                        DEEP_NOTIF_SUCCESS,
+                        "Loaded transform : %s : %s from %s" % (
+                            transform_name,
+                            transform_info.name,
+                            transform_info.module
+                        )
+                    )
 
     def transform(self, outputs, inputs=None, labels=None, additional_data=None):
         """
@@ -241,14 +248,3 @@ class OutputTransformer(Namespace):
         msg = "Loading transform : %s : %s" % (name, info.name) if info.module is None \
             else "Loading transform : %s : %s from %s" % (name, info.name, info.module)
         Notification(DEEP_NOTIF_INFO, msg)
-
-    @staticmethod
-    def __transform_loaded(name, info):
-        """
-        Notify the user that a transform has been loaded successfully
-        :param name: str: Name given to the transform by the user
-        :param info: Namespace: information about the transform
-        :return: None
-        """
-        msg = "Loaded transform : %s : %s from %s" % (name, info.name, info.module)
-        Notification(DEEP_NOTIF_SUCCESS)
