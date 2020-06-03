@@ -1,15 +1,15 @@
 dataloader:
-  batch_size: 32
   num_workers: 4
 enabled:
   train: True         # Enable the trainer
   validation: True    # Enable the validator
   test: False         # There is no tester
-  predict: False      # Do enable the predictor
+  prediction: False      # Do enable the predictor
 datasets:
   # Training set
   - name: "Train MNIST"
     type: "train"
+    batch_size: 32
     num_instances: Null
     entries:
       # Input
@@ -43,6 +43,7 @@ datasets:
   # Validation set
   - name: "Validation MNIST"
     type: "validation"
+    batch_size: 32
     num_instances: Null
     entries:
       - name: "MNIST Image"

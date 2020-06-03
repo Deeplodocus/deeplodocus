@@ -299,7 +299,7 @@ class FrontalLobe(object):
         )
         if self.config.model.from_file:
             # Load the model file
-            weights_msg = "with weights from %s" % self.config.model.file
+            weights_msg = " with weights from %s" % self.config.model.file
             checkpoint = self.__load_checkpoint()
 
             # Choose an epoch

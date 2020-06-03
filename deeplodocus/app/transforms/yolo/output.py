@@ -85,6 +85,8 @@ class NMS(object):
                 outputs.inference[b] = new_batch
         return outputs
 
+    def finish(self):
+        self._batch = 0
 
 class Visualize(object):
 

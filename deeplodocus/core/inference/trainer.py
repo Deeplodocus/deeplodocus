@@ -41,6 +41,7 @@ class Trainer(Inferer):
         self.num_epochs = num_epochs
         self.verbose = verbose
         self.validator = validator
+        self.initial_epoch = initial_epoch
         self.epoch = None
         self.batch_index = 1
         self.train_loss = None
@@ -67,11 +68,12 @@ class Trainer(Inferer):
         self.num_epochs = self.num_epochs if num_epochs is None else num_epochs
 
         # Infer initial epoch
-        initial_epoch = self.model.epoch if "epoch" in vars(self.model).keys() else 0
+        if self.initial_epoch is None:
+            self.initial_epoch = self.model.epoch if "epoch" in vars(self.model).keys() else 0
 
         # Go
         self.training_start()
-        for self.epoch in range(initial_epoch + 1, self.num_epochs + initial_epoch + 1):
+        for self.epoch in range(self.initial_epoch + 1, self.num_epochs + self.initial_epoch + 1):
             self.epoch_start()
             for self.batch_index, batch in enumerate(self.dataloader, 1):
                 self.forward(batch)
@@ -150,7 +152,9 @@ class Trainer(Inferer):
             metrics=metrics
         )
 
-    def forward2(self, batch, split=2):
+    def forward2(self, batch, split=4):
+        # Please leave in for now
+        # Example of custom forward method - in development
         inputs, labels, additional_data = self.clean_single_element_list(batch)  # Clean the given data
         b = inputs[0].shape[0]
 
