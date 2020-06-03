@@ -74,7 +74,7 @@ class Trainer(Inferer):
         for self.epoch in range(initial_epoch + 1, self.num_epochs + initial_epoch + 1):
             self.epoch_start()
             for self.batch_index, batch in enumerate(self.dataloader, 1):
-                self.forward2(batch)
+                self.forward(batch)  ############################################################
             self.epoch_end()
         self.training_end()
 
@@ -150,7 +150,7 @@ class Trainer(Inferer):
             metrics=metrics
         )
 
-    def forward2(self, batch, split=8):
+    def forward2(self, batch, split=4):
         inputs, labels, additional_data = self.clean_single_element_list(batch)  # Clean the given data
         b = inputs[0].shape[0]
 
