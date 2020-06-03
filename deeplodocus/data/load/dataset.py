@@ -284,10 +284,12 @@ class Dataset(object):
 
             # If not transformed => Call the TransformManager
             if are_transformed[i] is False:
-                items[i] = self.transform_manager.transform(data=item,
-                                                            entry=self.pipeline_entries[i],
-                                                            index=index,
-                                                            augment=augment)
+                items[i] = self.transform_manager.transform(
+                    data=item,
+                    entry=self.pipeline_entries[i],
+                    index=index,
+                    augment=augment
+                )
         return items
 
     def __format(self, items: List[Any]) -> List[Any]:

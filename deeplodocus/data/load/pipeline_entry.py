@@ -9,7 +9,6 @@ from deeplodocus.data.load.formatter import Formatter
 from deeplodocus.utils.flag import Flag
 
 
-
 class PipelineEntry(object):
     """
     AUTHORS:

@@ -71,12 +71,9 @@ class Entry(object):
 
         :return: None
         """
-
-
         self.index = index  # ID of the entry
         self.name = name
         self.etype = get_corresponding_flag(DEEP_LIST_ENTRY, etype)
-        self.load_as = load_as  # Data type
         self.dataset = dataset  # Weak reference to the dataset
 
         # Loader
@@ -94,7 +91,6 @@ class Entry(object):
             self.cache_memory = list()
         else:
             self.cache_memory = None
-
         self.num_instances = None
 
     def __getitem__(self, index: int):
@@ -514,8 +510,6 @@ class Entry(object):
         # The length of the Entry is the sum of all the Source instances length
         self.num_instances = sum(source_lengths)
 
-
-
     ############
     # CHECKERS #
     ############
@@ -551,8 +545,6 @@ class Entry(object):
         # Very custom Source instances were correctly checked
         for i in range(len(self.sources)):
             self.sources[i].verify_custom_source()
-
-
 
     def check_loader(self):
         """

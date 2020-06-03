@@ -83,7 +83,11 @@ DEEP_CONFIG = {
         },
         "on_wake": {
             DEEP_CONFIG_DTYPE: [str],
-            DEEP_CONFIG_DEFAULT: None
+            DEEP_CONFIG_DEFAULT: None,
+            DEEP_CONFIG_INIT: [
+                'config.data.datasets[0].entries[0].sources[0].kwargs.__dict__["transform"] = np.array',
+                'config.data.datasets[1].entries[0].sources[0].kwargs.__dict__["transform"] = np.array'
+            ]
         },
         "imports": {
             DEEP_CONFIG_DTYPE: [str],
