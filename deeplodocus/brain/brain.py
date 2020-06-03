@@ -9,6 +9,7 @@ try:
 except ImportError:
     pass
 
+import numpy as np
 from deeplodocus import __version__
 from deeplodocus.brain.frontal_lobe import FrontalLobe
 from deeplodocus.brain.thalamus import Thalamus
@@ -120,6 +121,7 @@ class Brain(FrontalLobe):
         -------
         :return: None
         """
+        self.do_imports()
         self.__on_wake()
         while True:
             try:
@@ -127,6 +129,15 @@ class Brain(FrontalLobe):
             except KeyboardInterrupt:
                 self.sleep()
             self.__execute_command(command)
+
+    def do_imports(self):
+        if self.config.project.imports is not None:
+            for item in self.config.project.imports:
+                module_name, n = item.split(" as ")
+                local = {"module": None}
+                exec("import %s as %s\nmodule = %s" % (module_name, n, n), {}, local)
+                globals()[n] = local[n]
+                Notification(DEEP_NOTIF_SUCCESS, "imported %s" % item)
 
     def sleep(self):
         """

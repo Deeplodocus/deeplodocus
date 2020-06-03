@@ -214,21 +214,17 @@ class Visualize(object):
             batch = batch[~ np.all(batch == -1, axis=1)]
             classes = np.argmax(batch[:, 5:], axis=1) if batch.shape[1] > 5 else batch[:, 4]
             for rect, cls in zip(xywh2rect(batch[:, 0:4]), classes.astype(int)):
-                cv2.rectangle(image, tuple(rect[0:2]), tuple(rect[2:4]), color, width)
-                cv2.putText(
-                    image,
-                    str(cls) if self.key is None else self.key[cls],
-                    tuple(rect[0:2]),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    self.font_scale,
-                    color,
-                    self.font_thickness
-                )
-                #except TypeError:
-                #    Notification(
-                #        DEEP_NOTIF_WARNING,
-                #        "Unable to draw rectangle : p1=%s : p2=%s" % (tuple(rect[0:2]), tuple(rect[2:4]))
-                #    )
+                with contextlib.suppress(TypeError):
+                    cv2.rectangle(image, tuple(rect[0:2]), tuple(rect[2:4]), color, width)
+                    cv2.putText(
+                        image,
+                        str(cls) if self.key is None else self.key[cls],
+                        tuple(rect[0:2]),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        self.font_scale,
+                        color,
+                        self.font_thickness
+                    )
         return images
 
     def __get_rows_cols(self, n):

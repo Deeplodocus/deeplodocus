@@ -74,7 +74,7 @@ class Trainer(Inferer):
         for self.epoch in range(initial_epoch + 1, self.num_epochs + initial_epoch + 1):
             self.epoch_start()
             for self.batch_index, batch in enumerate(self.dataloader, 1):
-                self.forward2(batch)
+                self.forward(batch)
             self.epoch_end()
         self.training_end()
 
@@ -83,7 +83,7 @@ class Trainer(Inferer):
             self.val_loss, self.val_losses, self.val_metrics = self.validator.evaluate(
                 silent=True,
                 progress_bar=self.progress_bar if DEEP_VERBOSE_TRAINING.corresponds(self.verbose) else True,
-                prefix="Epoch %s : Validation" % str(self.epoch).rjust(4)
+                prefix="Epoch %s : Validation :" % str(self.epoch).rjust(4)
             )  # Evaluate
             if not DEEP_VERBOSE_TRAINING.corresponds(self.verbose):
                 self.print_validation()  # Print validation results
@@ -150,7 +150,7 @@ class Trainer(Inferer):
             metrics=metrics
         )
 
-    def forward2(self, batch, split=8):
+    def forward2(self, batch, split=2):
         inputs, labels, additional_data = self.clean_single_element_list(batch)  # Clean the given data
         b = inputs[0].shape[0]
 

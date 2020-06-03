@@ -148,7 +148,7 @@ class Darknet53(nn.Module):
     Original article: https://pjreddie.com/media/files/papers/YOLOv3.pdf
     """
 
-    def __init__(self, num_channels=3, include_top=True, num_classes=1000):
+    def __init__(self, num_channels=3, include_top=True, num_classes=1000, weights=None):
         super(Darknet53, self).__init__()
 
         # Set the number of input channels
@@ -234,6 +234,9 @@ class Darknet53(nn.Module):
                 nn.Softmax(dim=1)
             )
 
+        if weights is not None:
+            self.load_weights(weights)
+
     def forward(self, x):
         assert not any(map(lambda i: i % 32, x.shape[2:])), \
             "Height and Width must be divisible by 32 : Received  %s" % str(x.shape[2:])
@@ -273,6 +276,18 @@ class Darknet53(nn.Module):
             x = x.view(x.size(0), -1)               # Flatten
             x = self.classifier(x)                  # Classify
         return x
+    
+    def load_weights(self, weights):
+        if weights is not None:
+            Notification(DEEP_NOTIF_INFO, "Initializing network weights from file")
+            try:
+                self.load_state_dict(torch.load(weights)['model_state_dict'], strict=True)
+                Notification(DEEP_NOTIF_SUCCESS, "Successfully loaded weights from %s" % weights)
+            except RuntimeError as e:
+                Notification(DEEP_NOTIF_WARNING, " :" .join(str(e).split(":")[1:]).strip())
+                Notification(DEEP_NOTIF_WARNING, "Ignoring unexpected key(s)")
+                self.load_state_dict(torch.load(weights)['model_state_dict'], strict=False)
+                Notification(DEEP_NOTIF_SUCCESS, "Successfully loaded weights from %s" % weights)
 
 
 class ResBlock(nn.Module):

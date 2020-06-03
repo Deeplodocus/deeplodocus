@@ -5,13 +5,14 @@ from torch.nn import BCEWithLogitsLoss
 
 class YOLOLoss(nn.Module):
 
-    def __init__(self, iou_threshold=0.5, obj_weight=[0.5, 2], box_weight=5, class_weight=None):
+    def __init__(self, iou_threshold=0.5, obj_weight=(0.5, 2), box_weight=5, class_weight=None, min_class_weight=None):
         super(YOLOLoss, self).__init__()
         self.iou_threshold = iou_threshold
-        self.obj_weight = torch.tensor(obj_weight)
+        self.obj_weight = torch.tensor(list(obj_weight))
         self.box_weight = box_weight
-        self.bce = BCEWithLogitsLoss(reduction=False)
+        self.bce = BCEWithLogitsLoss(reduce=False)
         self.class_weight = class_weight
+        self.min_class_weight = min_class_weight
         self._cls_freq = None
 
     def forward(self, outputs, targets):
@@ -30,7 +31,7 @@ class YOLOLoss(nn.Module):
         target_box = targets[:, 0:4].clone().view(-1, 1, 4).repeat(1, s, 1)
         target_box[mask] /= outputs.strides.view(1, s, 1)  # (b * n x s x 4)
         c = target_box[..., 0:2].long()  # (b * n x s x 2)
-        target_box[mask, :, 0:2] -= c[mask]
+        target_box[mask, :, 0:2] -= c[mask].float()
         iou = jaccard_index(
             xywh2rect(target_box).view(-1, s, 1, 4),
             xywh2rect(anchors).view(1, s, a, 4)
@@ -45,7 +46,7 @@ class YOLOLoss(nn.Module):
         target_box = target_box.view(-1, s, 1, 4).repeat(1, 1, a, 1)
         target_box[mask, :, :, 2:4] = log(target_box[mask, :, :, 2:4] / anchors[..., 2:4].view(1, s, a, 2))
         target_obj = best_prior.float() - overlap_prior.float()
-        target_cls = torch.eye(num_classes, device=targets.device)[targets[:, 4].long()]
+        target_cls = torch.eye(num_classes, device=targets.device)[targets[:, 4].long()].long()
         gt_box, gt_obj, gt_cls = self.__initialise_gt(outputs.inference)
         for i in range(s):
             # Box gt
@@ -67,9 +68,8 @@ class YOLOLoss(nn.Module):
             gt_cls[i].index_put_(
                 indices=tuple(index_obj.T),
                 values=(
-                        target_cls[:, None, :] * m[:, :, None]
-                        - torch.ones_like(target_cls[:, None, :]) * (1 - m[:, :, None])
-                )[mask]
+                    target_cls[:, None, :] * m[:, :, None] - torch.ones_like(target_cls[:, None, :]) * (1 - m[:, :, None])
+                ).float()[mask]
             )
             gt_cls[i] = gt_cls[i].permute(0, 3, 1, 2, 4)
 
@@ -84,7 +84,10 @@ class YOLOLoss(nn.Module):
         gt = torch.cat([i.view(-1, 4) for i in gt])
         inf = inf[~torch.all(gt == -1, dim=1)]
         gt = gt[~torch.all(gt == -1, dim=1)]
-        return self.box_weight * torch.mean(torch.sum((gt - inf) ** 2, dim=1))
+        if gt.shape[0]:
+            return self.box_weight * torch.mean(torch.sum((gt - inf) ** 2, dim=1))
+        else:
+            return torch.tensor(0.0, device=gt.device, requires_grad=True)
 
     def __calculate_obj_loss(self, gt, inf):
         gt = torch.cat([i.view(-1) for i in gt])
@@ -97,15 +100,18 @@ class YOLOLoss(nn.Module):
         gt = torch.cat([i.view(-1, i.shape[-1]) for i in gt])
         inf = inf[~torch.any(gt == -1, dim=1)]
         gt = gt[~torch.any(gt == -1, dim=1)]
-        weight = class_weight[torch.argmax(gt, dim=1)].to(gt.device)
-        return torch.mean(self.bce(inf, gt) * weight.view(-1, 1))
+        if gt.shape[0]:
+            weight = class_weight[torch.argmax(gt, dim=1)].to(gt.device)
+            return torch.mean(self.bce(inf, gt) * weight.view(-1, 1))
+        else:
+            return torch.tensor(0.0, device=gt.device, requires_grad=True)
 
     @staticmethod
     def __initialise_gt(inference):
         box = [torch.empty_like(i[..., 0:4]).fill_(-1) for i in inference]
         obj = [torch.zeros_like(i[..., 4]) for i in inference]
         cls = [torch.zeros_like(i[..., 5:]).fill_(-1) for i in inference]
-        return box, obj, cls
+        return box,obj, cls
 
     @staticmethod
     def __extract_inference(inference):
@@ -126,7 +132,8 @@ class YOLOLoss(nn.Module):
                 accumulate=True
             )
             weight = torch.sum(self._cls_freq) / (num_classes * self._cls_freq)
-            weight[weight < 1] = 1
+            if self.min_class_weight is not None:
+                weight[weight < self.min_class_weight] = self.min_class_weight
             return weight
         else:
             return torch.tensor(self.class_weight)

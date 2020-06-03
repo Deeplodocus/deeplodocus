@@ -63,9 +63,7 @@ class Saver(object):
                 self.save_model()
 
     def on_validation_end(self, loss, losses, metrics=None):
-        if self.save_signal.corresponds(DEEP_SAVE_SIGNAL_END_EPOCH):
-            self.save_model()
-        elif self.save_signal.corresponds(DEEP_SAVE_SIGNAL_AUTO):
+        if self.save_signal.corresponds(DEEP_SAVE_SIGNAL_AUTO):
             if self.overwatch.watch(DEEP_DATASET_VAL, loss, losses, metrics):
                 self.save_model()
 
