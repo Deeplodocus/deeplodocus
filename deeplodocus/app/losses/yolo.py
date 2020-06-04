@@ -19,6 +19,7 @@ class YOLOLoss(nn.Module):
         self.cls_pos_weight = cls_pos_weight
         self.giou = giou
 
+
     def forward(self, outputs, targets):
         ns, na, _ = outputs.anchors.shape
         targets = self.compress_targets(targets)
@@ -158,6 +159,7 @@ class YOLOLoss(nn.Module):
     @property
     def cls_pos_weight(self):
         return self._cls_pos_weight
+
 
     @cls_pos_weight.setter
     def cls_pos_weight(self, value):
