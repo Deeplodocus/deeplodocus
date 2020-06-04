@@ -141,8 +141,8 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DEFAULT: {}
         },
         "param_groups": {
-            DEEP_CONFIG_DTYPE: dict,
-            DEEP_CONFIG_DEFAULT: {}
+            DEEP_CONFIG_DTYPE: None,
+            DEEP_CONFIG_DEFAULT: None
         }
     },
     DEEP_CONFIG_HISTORY: {

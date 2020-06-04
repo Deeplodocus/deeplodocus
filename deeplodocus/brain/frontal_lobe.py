@@ -388,7 +388,7 @@ class FrontalLobe(object):
         if self.model is not None:
             # Load the optimizer
             optimizer = load_optimizer(
-                model_parameters=self.model.parameters(),
+                model=self.model,
                 **self.config.optimizer.get()
             )
 

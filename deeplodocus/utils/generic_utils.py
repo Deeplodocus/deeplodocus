@@ -1,4 +1,4 @@
-"""
+F"""
 This script contains useful generic functions
 """
 
