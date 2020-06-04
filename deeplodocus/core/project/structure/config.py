@@ -176,12 +176,14 @@ DEEP_CONFIG = {
         },
         "scheduler": {
             "name": {
-                DEEP_CONFIG_DEFAULT: "ExponentialLR",
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_INIT: "ExponentialLR"
             },
             "module": {
-                DEEP_CONFIG_DEFAULT: "torch.optim.lr_scheduler",
-                DEEP_CONFIG_DTYPE: str
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_INIT: "torch.optim.lr_scheduler"
             },
             "kwargs": {
                 DEEP_CONFIG_DEFAULT: {},
