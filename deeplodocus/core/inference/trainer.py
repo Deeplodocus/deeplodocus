@@ -20,6 +20,7 @@ class Trainer(Inferer):
             transform_manager,
             losses: Losses,
             metrics: Metrics = Union[Metrics, None],
+            scheduler=None,
             num_epochs: int = 1,
             initial_epoch: Union[int, None] = None,
             batch_size: int = 32,
@@ -38,6 +39,7 @@ class Trainer(Inferer):
             name=name
         )
         self.optimizer = optimizer
+        self.scheduler = scheduler
         self.num_epochs = num_epochs
         self.verbose = verbose
         self.validator = validator
@@ -221,6 +223,8 @@ class Trainer(Inferer):
         self.send_epoch_end_signal()
         self.transform_manager.finish()  # Call finish method on output transforms
         self.evaluate()  # Validate
+        if self.scheduler is not None:
+            self.scheduler.step()
         if not DEEP_VERBOSE_TRAINING.corresponds(self.verbose):  # Print epoch end
             Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_EPOCH_END % self.epoch)
 

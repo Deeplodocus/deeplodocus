@@ -160,7 +160,7 @@ DEEP_CONFIG = {
     DEEP_CONFIG_TRAINING: {
         "verbose": {
             DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "default"
+            DEEP_CONFIG_DEFAULT: "epoch"
         },
         "num_epochs": {
             DEEP_CONFIG_DTYPE: int,
@@ -169,6 +169,21 @@ DEEP_CONFIG = {
         "shuffle": {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: "default"
+        },
+        "scheduler": {
+            "name": {
+                DEEP_CONFIG_DEFAULT: "ExponentialLR",
+                DEEP_CONFIG_DTYPE: str
+            },
+            "module": {
+                DEEP_CONFIG_DEFAULT: "torch.optim.lr_scheduler",
+                DEEP_CONFIG_DTYPE: str
+            },
+            "kwargs": {
+                DEEP_CONFIG_DEFAULT: {},
+                DEEP_CONFIG_DTYPE: dict,
+                DEEP_CONFIG_INIT: {"gamma": 0.95}
+            }
         },
         "saver": {
             "method": {

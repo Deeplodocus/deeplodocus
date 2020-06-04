@@ -21,7 +21,7 @@ from deeplodocus.data.load.dataset import Dataset
 from deeplodocus.data.transform.output import OutputTransformer
 from deeplodocus.data.transform.transform_manager import TransformManager
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.generic_utils import get_corresponding_flag
+from deeplodocus.utils.generic_utils import get_module
 
 # Deeplodocus flags
 from deeplodocus.flags import *
@@ -110,6 +110,7 @@ class FrontalLobe(object):
         self.metrics = None
         self.losses = None
         self.optimizer = None
+        self.scheduler = None
         self.memory = None
         self.device = None
         self.device_ids = None
@@ -414,11 +415,16 @@ class FrontalLobe(object):
                     DEEP_MSG_LOADED % ("optimizer", self.optimizer.name, self.optimizer.module) + state_msg
                 )
 
-                # Update trainer and evaluators with new model
+                # Update trainer and evaluators with new optimizer
                 for item in (self.trainer, self.memory):
                     if item is not None:
                         item.optimizer = self.optimizer
                         Notification(DEEP_NOTIF_INFO, "%s : Optimizer updated " % item.name)
+
+                # Update scheduler with new optimizer
+                if self.trainer is not None:
+                    self.load_scheduler()
+                    self.trainer.scheduler = self.scheduler
 
         # Notify the user that a model must be loaded
         else:
@@ -528,6 +534,10 @@ class FrontalLobe(object):
                 transform_manager=transform_manager
             )
 
+            # Initialise scheduler
+            if self.optimizer is not None:
+                self.load_scheduler()
+
             # Initialise trainer
             self.trainer = Trainer(
                 dataset,
@@ -537,12 +547,17 @@ class FrontalLobe(object):
                 metrics=self.metrics,
                 losses=self.losses,
                 optimizer=self.optimizer,
-                **self.config.training.get(ignore=["overwatch", "saver"]),
+                scheduler=self.scheduler,
+                **self.config.training.get(ignore=["overwatch", "saver", "scheduler"]),
                 validator=self.validator,
                 transform_manager=output_transform_manager
             )
         else:
             Notification(DEEP_NOTIF_INFO, "Trainer disabled")
+
+    def load_scheduler(self):
+        scheduler, scheduler_module = get_module(**self.config.training.scheduler.get(ignore=["kwargs"]))
+        self.scheduler = scheduler(self.optimizer, **vars(self.config.training.scheduler.kwargs))
 
     def load_validator(self):
         """

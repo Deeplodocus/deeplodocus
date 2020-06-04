@@ -209,7 +209,7 @@ class Namespace(object):
                         if "#" in value:
                             value = '%s#%s' % (value.split("#")[0], value.split("#")[1])
                         else:
-                            value = '"%s"' % value
+                            value = '%s' % value
                     line += "%s%s: %s\n" % (" " * tab_size * tabs, key, value)
         return line
 
