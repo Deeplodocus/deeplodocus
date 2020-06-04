@@ -198,17 +198,18 @@ class Namespace(object):
                             item = item.__get_summary(tabs=tabs + 2, tab_size=tab_size).lstrip()
                             line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
                         else:
-                            if isinstance(item, str) and "#" not in item:
-                                item = '"%s"' % item
-                            else:
-                                item = "%s" % item
+                            #if isinstance(item, str) and "#" not in item:
+                            #    item = '"%s"' % item
+                            #else:
+                            #    item = "%s" % item
+                            item = "%s" % item
                             line += "%s- %s\n" % (" " * tab_size * (tabs + 1), item)
                 else:
                     if isinstance(value, str):
                         if "#" in value:
                             value = '%s#%s' % (value.split("#")[0], value.split("#")[1])
                         else:
-                            value = '"%s"' % value
+                            value = '%s' % value
                     line += "%s%s: %s\n" % (" " * tab_size * tabs, key, value)
         return line
 
@@ -236,7 +237,7 @@ class Namespace(object):
         :return: Namespace containing all data from the yaml file.
         """
         with open(file_name, "r") as file:
-            dictionary = yaml.load(file)
+            dictionary = yaml.load(file, Loader=yaml.FullLoader)
         return self.__dict2namespace(dictionary)
 
     def __add(self, dictionary, sub_space=None):

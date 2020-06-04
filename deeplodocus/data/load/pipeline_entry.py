@@ -9,7 +9,6 @@ from deeplodocus.data.load.formatter import Formatter
 from deeplodocus.utils.flag import Flag
 
 
-
 class PipelineEntry(object):
     """
     AUTHORS:
@@ -46,9 +45,11 @@ class PipelineEntry(object):
         self.dataset = dataset
 
         # Data formatter
-        self.formatter = Formatter(pipeline_entry=weakref.ref(self),
-                                   convert_to=convert_to,
-                                   move_axis=move_axis)
+        self.formatter = Formatter(
+            pipeline_entry=weakref.ref(self),
+            convert_to=convert_to,
+            move_axis=move_axis
+        )
 
     def format(self, data: Any) -> Any:
         """

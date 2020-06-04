@@ -40,8 +40,10 @@ class SourceWrapper(Source):
                          instance_id=instance_id)
 
         # Module wrapped and its origin
-        module, self.origin = get_module(module=module,
-                                         name=name)
+        module, self.origin = get_module(
+            module=module,
+            name=name
+        )
         # Load module
         self.module = module(**kwargs)
 

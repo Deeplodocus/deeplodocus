@@ -1,4 +1,5 @@
 # DEEP MESSAGES / TEXT / STATEMENTS
+# DEEP MESSAGES / TEXT / STATEMENTS
 
 
 # Deep Error
@@ -102,8 +103,11 @@ DEEP_MSG_DATA_GREATER = "Dataset number (%i) is greater than the number of insta
 DEEP_MSG_DATA_INDEX_ERROR_SOLUTION_1 = "Make sure inputs are given for your %s dataset in config/data/dataset"
 DEEP_MSG_DATA_INDEX_ERROR_SOLUTION_2 = "Disable your %s dataset in config/data/enabled"
 
-# DEEP_SUCCESS
-DEEP_MSG_DATA_LOADED = "Dataset loaded : %s"
+
+# Loading
+DEEP_MSG_LOADING = "Loading %s : %s from %s"
+DEEP_MSG_LOADED = "Loaded %s : %s from %s"
+DEEP_MSG_MODULE_NOT_FOUND = "Could not load %s : %s from %s"
 
 ######################
 # DEEP_MSG_TRANSFORM #
@@ -117,7 +121,11 @@ DEEP_MSG_TRANSFORM_VALUE_ERROR = "Transforms must return two items"
 #####################
 
 DEEP_MSG_TRAINING_STARTED = "Started training"
-DEEP_MSG_TRAINING_FINISHED = "Finished training !"
+DEEP_MSG_TRAINING_FINISHED = "Finished training"
+DEEP_MSG_EPOCH_START = "Start of epoch %s"
+DEEP_MSG_EPOCH_END = "End of epoch %s"
+DEEP_MSG_EVALUATION_STARTED = "Started evaluation"
+DEEP_MSG_EVALUATION_FINISHED = "Finished evaluation"
 
 #######################
 # DEEP_MSG_CV_LIBRARY #
@@ -147,7 +155,7 @@ DEEP_MSG_MODEL_LOADED = "Model loaded : %s"
 
 # DEEP_INFO
 DEEP_MSG_MODEL_LOADING = "Loading model : %s"
-DEEP_MSG_MODEL_SAVED = "Model and weights saved to : %s"
+DEEP_MSG_MODEL_SAVED = "Model weights saved to : %s"
 
 ##################
 # DEEP_MSG_OPTIM #
@@ -172,6 +180,7 @@ DEEP_MSG_OPTIM_MODEL_NOT_LOADED = "Could not load optimizer : Model not loaded"
 # DEEP_FATAL
 DEEP_MSG_LOSS_NOT_FOUND = "Loss not found : %s"
 DEEP_MSG_LOSS_NOT_TORCH = "Loss is not a torch.nn.Module instance : %s : %s from %s"
+DEEP_MSG_LOSS_UNEXPECTED_ARG = "Loss requires unexpected argument : %s"
 
 # DEEP_SUCCESS
 DEEP_MSG_LOSS_LOADED = "Loss loaded : %s : %s from %s"
@@ -181,12 +190,16 @@ DEEP_MSG_LOSS_LOADING = "Loading loss : %s"
 DEEP_MSG_LOSS_NONE = "No losses to load"
 DEEP_MSG_LOSS_NOT_LOADED = "Losses not loaded"
 
+DEEP_MSG_LOSS_ARG_MISSING = "Loss does not seem to require the expected argument : %s"
+
+
 ###################
 # DEEP_MSG_METRIC #
 ###################
 
-# DEEP_FATAL
+# DEEP_FATAL/ERROR
 DEEP_MSG_METRIC_NOT_FOUND = "Metric not found : %s"
+DEEP_MSG_METRIC_UNEXPECTED_ARG = "Metric requires unexpected argument : %s"
 
 # DEEP_SUCCESS
 DEEP_MSG_METRIC_LOADED = "Metric loaded : %s : %s from %s"
@@ -194,7 +207,10 @@ DEEP_MSG_METRIC_LOADED = "Metric loaded : %s : %s from %s"
 # DEEP_INFO
 DEEP_MSG_METRIC_LOADING = "Loading metric : %s"
 DEEP_MSG_METRIC_NONE = "No metrics to load"
-DEEP_MSG_METRIC_NOT_LOADED = "Metrics not loaded"
+DEEP_MSG_METRICS_NOT_LOADED = "Metrics not loaded"
+
+# DEEP_WARNING
+DEEP_MSG_METRIC_ARG_MISSING = "Metric does not seem to require the expected argument : %s"
 
 ####################
 # DEEP_MSG_SHUFFLE #

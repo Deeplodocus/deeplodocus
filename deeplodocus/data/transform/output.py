@@ -11,7 +11,8 @@ from deeplodocus.flags.notif import *
 class OutputTransformer(Namespace):
 
     def __init__(self, transform_files=None):
-        super(OutputTransformer, self).__init__({"output_transformer": []})
+        super(OutputTransformer, self).__init__()
+        self.output_transformer = []
         if transform_files is not None:
             for file in transform_files:
                 self.output_transformer.append(Namespace(file))
@@ -30,7 +31,7 @@ class OutputTransformer(Namespace):
             if sequence.transforms is not None:
                 for transform_name, transform_info in sequence.transforms.get().items():
                     self.__transform_loading(transform_name, transform_info)
-                    method, module = get_module(
+                    method, module_path = get_module(
                         **transform_info.get(ignore="kwargs"),
                         browse=DEEP_MODULE_TRANSFORMS
                     )
@@ -41,12 +42,19 @@ class OutputTransformer(Namespace):
                     else:
                         try:
                             transform_info.add(
-                                        {"method": method(**transform_info.kwargs.get())}
-                                    )
+                                {"method": method(**transform_info.kwargs.get())}
+                            )
                         except TypeError as e:
                             Notification(DEEP_NOTIF_FATAL, str(e))
-                    transform_info.module = module
-                    self.__transform_loaded(transform_name, transform_info)
+                    transform_info.module = module_path
+                    Notification(
+                        DEEP_NOTIF_SUCCESS,
+                        "Loaded transform : %s : %s from %s" % (
+                            transform_name,
+                            transform_info.name,
+                            transform_info.module
+                        )
+                    )
 
     def transform(self, outputs, inputs=None, labels=None, additional_data=None):
         """
@@ -240,14 +248,3 @@ class OutputTransformer(Namespace):
         msg = "Loading transform : %s : %s" % (name, info.name) if info.module is None \
             else "Loading transform : %s : %s from %s" % (name, info.name, info.module)
         Notification(DEEP_NOTIF_INFO, msg)
-
-    @staticmethod
-    def __transform_loaded(name, info):
-        """
-        Notify the user that a transform has been loaded successfully
-        :param name: str: Name given to the transform by the user
-        :param info: Namespace: information about the transform
-        :return: None
-        """
-        msg = "Loaded transform : %s : %s from %s" % (name, info.name, info.module)
-        Notification(DEEP_NOTIF_SUCCESS, msg)

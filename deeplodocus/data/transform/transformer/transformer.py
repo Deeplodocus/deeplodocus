@@ -10,9 +10,8 @@ from typing import Any
 # Deeplodocus imports
 from deeplodocus.utils.generic_utils import get_module, list_namespace2list_dict
 from deeplodocus.utils.notification import Notification
-from deeplodocus.utils.flag import Flag
+from deeplodocus.flags import *
 from deeplodocus.utils.namespace import Namespace
-from deeplodocus.flags import DEEP_MSG_TRANSFORM_VALUE_ERROR
 from deeplodocus.data.transform.transform_data import TransformData
 
 # Deeplodocus flags
@@ -109,7 +108,6 @@ class Transformer(object):
             for t in self.list_transforms:
                 Notification(DEEP_NOTIF_INFO, "--> Name : " + str(t.name) + " , Args : " + str(t.kwargs) + ", Module path: " + str(t.module_path))
 
-
         # MANDATORY TRANSFORMS END
         if len(self.list_mandatory_transforms_end) > 0:
             Notification(DEEP_NOTIF_INFO, " Mandatory transforms at end:")
@@ -202,17 +200,27 @@ class Transformer(object):
                 if "module" not in transform:
                     transform["module"] = None
 
-                module, module_path = get_module(
+                m = "default modules" if transform["module"] is None else transform["module"]
+                Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOADING % ("transform", transform["name"], m))
+
+                method, module_path = get_module(
                     name=transform["name"],
                     module=transform["module"],
                     browse=DEEP_MODULE_TRANSFORMS
                 )
+                if method is not None:
+                    Notification(
+                        DEEP_NOTIF_SUCCESS, DEEP_MSG_LOADED % ("transform", transform["name"], module_path)
+                    )
+                else:
+                    Notification(DEEP_NOTIF_FATAL, DEEP_MSG_MODULE_NOT_FOUND % ("transform", transform["name"], m))
 
-                t = TransformData(name=transform["name"],
-                                  method=module,
-                                  module_path=module_path,
-                                  kwargs=transform["kwargs"]
-                                  )
+                t = TransformData(
+                    name=transform["name"],
+                    method=method,
+                    module_path=module_path,
+                    kwargs=transform["kwargs"]
+                )
                 loaded_transforms.append(t)
 
         return loaded_transforms

@@ -1,7 +1,7 @@
 import torch
 
 
-def accuracy(output, labels):
+def accuracy(outputs, labels):
     """
     AUTHORS:
     --------
@@ -17,7 +17,7 @@ def accuracy(output, labels):
      - For images : Compute the pixel-wise label prediction accuracy
      - For single class : Compute the class accuracy
 
-    :param output (tensor): Output of the model. Must be of shape (Batch size x num_classes x A) (A being any size of any dimension, e.g. A = h x w for an image)
+    :param outputs (tensor): Output of the model. Must be of shape (Batch size x num_classes x A) (A being any size of any dimension, e.g. A = h x w for an image)
     :param labels (tensor): Expected output of the model. Must be of shape (Batch size x A) or (Batch_size x 1 x A) (See above for A dim and size)
 
     RETURN:
@@ -25,5 +25,5 @@ def accuracy(output, labels):
 
     :return (tensor): The accuracy of the whole batch
     """
-    _, output = output.max(1)
-    return torch.mean((output == labels).float())
+    _, outputs = outputs.max(1)
+    return torch.mean((outputs == labels).float())

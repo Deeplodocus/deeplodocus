@@ -20,7 +20,7 @@ class Flag(object):
     Create a flag with a full description, an auto-generated index and a list of accepted names.
     """
 
-    def __init__(self, name: str, description: str, names: List[str]):
+    def __init__(self, name: str, description: str, names: List[str], var_name: str = None):
         """
         AUTHORS:
         --------
@@ -48,6 +48,7 @@ class Flag(object):
         """
         self.name = name
         self.names = names
+        self.var_name = name.lower().replace(" ", "_") if var_name is None else var_name
         self.description = description
         self.index = FlagIndexer().generate_unique_index()
 

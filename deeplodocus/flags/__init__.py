@@ -1,6 +1,7 @@
 from deeplodocus.flags.admin import *
 from deeplodocus.flags.backend import *
 from deeplodocus.flags.cmd import *
+from deeplodocus.flags.dataset import *
 from deeplodocus.flags.load_as import *
 from deeplodocus.flags.entry import *
 from deeplodocus.flags.event import *
@@ -24,6 +25,8 @@ from deeplodocus.flags.transformer import *
 from deeplodocus.flags.ui import *
 from deeplodocus.flags.verbose import *
 from deeplodocus.flags.load_as import *
+from deeplodocus.flags.reduce import *
+from deeplodocus.flags.response import *
 #from deeplodocus.utils.generic_utils import get_corresponding_flag
 
 #
@@ -31,21 +34,4 @@ from deeplodocus.flags.load_as import *
 #
 DEEP_ENCODE_ASCII = "ascii"
 DEEP_ENCODE_UTF8 = "utf-8"
-
-FINISHED_TRAINING = "Finished training"
-SUMMARY = "Summary"
-TOTAL_LOSS = "Total Loss"
-WALL_TIME = "Wall Time"
-RELATIVE_TIME = "Relative Time"
-EPOCH = "Epoch"
-BATCH = "Batch"
-TRAINING = "Training"
-VALIDATION = "Validation"
-TIME_FORMAT = "%Y:%m:%d:%H:%M:%S"
-EPOCH_END = "End of Epoch [%i/%i]"
-EPOCH_START = "Start of Epoch [%i/%i]"
-HISTORY_SAVED = "History saved to %s"
-
-
-
 

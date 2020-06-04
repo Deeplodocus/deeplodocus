@@ -113,8 +113,10 @@ class Loader(object):
                 # Automatically check the data type
                 load_as = self.__estimate_load_as(instance_example)
         else:
-            load_as = get_corresponding_flag(flag_list=DEEP_LIST_LOAD_AS,
-                                               info=load_as)
+            load_as = get_corresponding_flag(
+                flag_list=DEEP_LIST_LOAD_AS,
+                info=load_as
+            )
         return load_as
 
     def __estimate_load_as(self, data: str) -> Flag:

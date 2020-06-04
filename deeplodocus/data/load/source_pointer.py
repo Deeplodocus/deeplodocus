@@ -101,10 +101,12 @@ class SourcePointer(Source):
         :return (int): the length of the source
         """
         # Get the desired source
-        source = self.weakref_entry().get_source(index=self.source_id)
 
+        source = self.weakref_entry().get_source(index=self.source_id)
         # Calculate the length of the pointed source
-        return source.__len__()
+        n = source.__len__()
+        n = source.compute_length() if n is None else n
+        return n
 
     def set_entry_weakref(self, weakref_entry: weakref):
         self.weakref_entry = weakref_entry

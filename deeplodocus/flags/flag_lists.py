@@ -1,7 +1,8 @@
 from deeplodocus.flags.load_as import *
-from deeplodocus.flags.dtype import *
+from deeplodocus.flags.dataset import *
 from deeplodocus.flags.source import *
 from deeplodocus.flags.load import *
+from deeplodocus.flags.log import *
 from deeplodocus.flags.entry import *
 from deeplodocus.flags.lib import *
 from deeplodocus.flags.transformer import *
@@ -11,6 +12,24 @@ from deeplodocus.flags.verbose import *
 from deeplodocus.flags.event import *
 from deeplodocus.flags.admin import *
 from deeplodocus.flags.dtype import *
+from deeplodocus.flags.reduce import *
+from deeplodocus.flags.response import *
+from deeplodocus.flags.module import *
+
+
+# ADMIN COMMANDS
+DEEP_LIST_ADMIN = [
+    DEEP_ADMIN_HELP,
+    DEEP_ADMIN_VERSION,
+    DEEP_ADMIN_NEW_PROJECT,
+    DEEP_ADMIN_RUN,
+    DEEP_ADMIN_TRANSFORMER,
+    DEEP_ADMIN_OUTPUT_TRANSFORMER,
+    DEEP_ADMIN_ONEOF_TRANSFORMER,
+    DEEP_ADMIN_SEQUENTIAL_TRANSFORMER,
+    DEEP_ADMIN_SOMEOF_TRANSFORMER,
+    DEEP_ADMIN_IMPORT
+]
 
 # LOAS_AS
 DEEP_LIST_LOAD_AS = [
@@ -27,6 +46,14 @@ DEEP_LIST_LOAD_AS = [
     DEEP_LOAD_AS_GIVEN
 ]
 
+# DATASET
+DEEP_LIST_DATASET = [
+    DEEP_DATASET_TRAIN,
+    DEEP_DATASET_VAL,
+    DEEP_DATASET_TEST,
+    DEEP_DATASET_PREDICTION
+]
+
 # SOURCES
 DEEP_LIST_SOURCE = [
     DEEP_SOURCE_FILE,
@@ -40,6 +67,23 @@ DEEP_LIST_LOAD_METHOD = [
     DEEP_LOAD_METHOD_HARDDRIVE,
     DEEP_LOAD_METHOD_SERVER
 ]
+
+# LOG HISTORY
+DEEP_LIST_LOG_HISTORY = [
+    DEEP_LOG_TRAIN_BATCHES,
+    DEEP_LOG_TRAIN_EPOCHS,
+    DEEP_LOG_VALIDATION
+]
+
+# HISTORY HEADER
+DEEP_LIST_HISTORY_HEADER = [
+    DEEP_LOG_WALL_TIME,
+    DEEP_LOG_RELATIVE_TIME,
+    DEEP_LOG_EPOCH,
+    DEEP_LOG_BATCH,
+    DEEP_LOG_TOTAL_LOSS
+]
+
 # ENTRIES
 DEEP_LIST_ENTRY = [
     DEEP_ENTRY_INPUT,
@@ -101,19 +145,6 @@ DEEP_LIST_SAVE_SIGNAL = [
     DEEP_SAVE_SIGNAL_AUTO
 ]
 
-# ADMIN COMMANDS
-DEEP_LIST_ADMIN = [
-    DEEP_ADMIN_HELP,
-    DEEP_ADMIN_VERSION,
-    DEEP_ADMIN_NEW_PROJECT,
-    DEEP_ADMIN_RUN,
-    DEEP_ADMIN_TRANSFORMER,
-    DEEP_ADMIN_OUTPUT_TRANSFORMER,
-    DEEP_ADMIN_ONEOF_TRANSFORMER,
-    DEEP_ADMIN_SEQUENTIAL_TRANSFORMER,
-    DEEP_ADMIN_SOMEOF_TRANSFORMER
-]
-
 # DTYPE
 DEEP_LIST_DTYPE = [
     DEEP_DTYPE_FLOAT8,
@@ -129,4 +160,29 @@ DEEP_LIST_DTYPE = [
     DEEP_DTYPE_INT32,
     DEEP_DTYPE_INT64,
     DEEP_DTYPE_STR
+]
+
+# REDUCE
+DEEP_LIST_REDUCE = [
+    DEEP_REDUCE_MEAN,
+    DEEP_REDUCE_MEAN,
+    DEEP_REDUCE_SUM,
+    DEEP_REDUCE_LAST
+]
+
+# RESPONSE
+DEEP_LIST_RESPONSE = [
+    DEEP_RESPONSE_YES,
+    DEEP_RESPONSE_NO,
+]
+
+# MODULES
+DEEP_LIST_MODULE = [
+    DEEP_MODULE_MODELS,
+    DEEP_MODULE_LOSSES,
+    DEEP_MODULE_METRICS,
+    DEEP_MODULE_SOURCES,
+    DEEP_MODULE_OPTIMIZERS,
+    DEEP_MODULE_TRANSFORMS,
+    DEEP_MODULE_DATASETS
 ]

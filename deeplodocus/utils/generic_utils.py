@@ -1,4 +1,4 @@
-"""
+F"""
 This script contains useful generic functions
 """
 
@@ -9,6 +9,8 @@ import re
 import pkgutil
 import random
 import string
+import time
+import datetime
 from typing import List
 from typing import Union
 from typing import Optional
@@ -21,6 +23,31 @@ from deeplodocus.flags.notif import *
 # Import deeplodocus utils
 from deeplodocus.utils.namespace import Namespace
 from deeplodocus.utils.notification import Notification
+
+
+class ProgressBar(object):
+
+    def __init__(self, total: int, prefix: str = "", suffix: str = "", length: int = 50, fill: str = '█', decimals: int = 0):
+        self.total = total
+        self.prefix = prefix
+        self.suffix = suffix
+        self.length = length
+        self.fill = fill
+        self.decimals = decimals
+        self.iteration = 0
+        self.t0 = time.time()
+
+    def step(self):
+        self.iteration += 1
+        p = self.iteration / self.total
+        t = time.time() - self.t0
+        percent = ("{0:." + str(self.decimals) + "f}").format(100 * p)
+        eta = str(datetime.timedelta(seconds=int(t / p - t)))
+        filled_length = int(self.length * self.iteration // self.total)
+        bar = self.fill * filled_length + '-' * (self.length - filled_length)
+        print('\r%s |%s| %s%% : %s %s' % (self.prefix, bar, percent, eta, self.suffix), end="\r")
+        if self.iteration == self.total:
+            print()
 
 
 def convert(value, d_type=None):
@@ -249,12 +276,12 @@ def is_np_array(data):
         return False
 
 
-def get_specific_module(name, module, silence=False, fatal=False):
+def get_specific_module(name, module, silent=False, fatal=False):
     """
     Author: Samuel Westlake
     :param module: str: path to the module (separated by '.')
     :param name: str: name of the item to be imported
-    :param silence: bool
+    :param silent: bool
     :param fatal:
     :return:
     """
@@ -262,7 +289,7 @@ def get_specific_module(name, module, silence=False, fatal=False):
     try:
         exec("from %s import %s\nmodule = %s" % (module, name, name), {}, local)
     except ImportError as e:
-        if not silence:
+        if not silent:
             notif = DEEP_NOTIF_FATAL if fatal else DEEP_NOTIF_WARNING
             # Capitalize first letter only (e.capitalize() seems to make subsequent letters lowercase)
             e = str(e)[0].capitalize() + str(e)[1:]
@@ -270,7 +297,7 @@ def get_specific_module(name, module, silence=False, fatal=False):
     return local["module"]
 
 
-def get_module(name: str, module=None, browse=None, silence=True, fatal=False) -> Union[callable, None]:
+def get_module(name: str, module=None, browse=None, silent: bool =False, fatal=False) -> Union[callable, None]:
     """
     AUTHORS:
     --------
@@ -289,7 +316,6 @@ def get_module(name: str, module=None, browse=None, silence=True, fatal=False) -
     :param name: str: the name of the object to load
     :param module: str: the name of the specific module
     :param browse: dict: a DEEP_MODULE dictionary to browse through
-    :param silence: bool: whether or not to print import errors
     :param fatal: bool: whether or not to raise DeepFatal on failure to find the module
 
     RETURN:
@@ -298,14 +324,14 @@ def get_module(name: str, module=None, browse=None, silence=True, fatal=False) -
     :return module(Union[callable, None]): The loaded module
     """
     if module is not None:
-        return get_specific_module(name, module, silence=silence, fatal=fatal), module
+        return get_specific_module(name, module, silent=silent, fatal=fatal), module
     elif browse is not None:
-        return browse_module(name, browse, silence=silence, fatal=fatal)
+        return browse_module(name, browse, fatal=fatal)
     else:
         return None, None
 
 
-def browse_module(name, modules, silence=False, fatal=False) -> callable:
+def browse_module(name, modules, fatal=False) -> callable:
     """
     AUTHORS:
     --------
@@ -353,7 +379,7 @@ def browse_module(name, modules, silence=False, fatal=False) -> callable:
                 continue
 
             # Try to get the module
-            module = get_specific_module(name, module_path, silence=silence, fatal=fatal)
+            module = get_specific_module(name, module_path, silent=True, fatal=fatal)
 
             # If the module exists add it to the list
             if module is not None:

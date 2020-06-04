@@ -1,5 +1,4 @@
 from deeplodocus.flags.ext import DEEP_EXT_YAML
-from deeplodocus.utils.namespace import Namespace
 
 # The divider to use when expressing paths to configs
 DEEP_CONFIG_DIVIDER = "/"
@@ -66,6 +65,10 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: "version01"
         },
+        "enable_log": {
+            DEEP_CONFIG_DTYPE: bool,
+            DEEP_CONFIG_DEFAULT: True
+        },
         "cv_library": {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: "opencv"
@@ -78,25 +81,15 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DTYPE: [int],
             DEEP_CONFIG_DEFAULT: "auto"
         },
-        "logs": {
-            "history_train_batches": {
-                DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
-            },
-            "history_train_epochs": {
-                DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
-            },
-            "history_validation": {
-                DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
-            },
-            "notification": {
-                DEEP_CONFIG_DTYPE: bool,
-                DEEP_CONFIG_DEFAULT: True
-            }
-        },
         "on_wake": {
+            DEEP_CONFIG_DTYPE: [str],
+            DEEP_CONFIG_DEFAULT: None,
+            DEEP_CONFIG_INIT: [
+                'config.data.datasets[0].entries[0].sources[0].kwargs.__dict__["transform"] = np.array',
+                'config.data.datasets[1].entries[0].sources[0].kwargs.__dict__["transform"] = np.array'
+            ]
+        },
+        "imports": {
             DEEP_CONFIG_DTYPE: [str],
             DEEP_CONFIG_DEFAULT: None
         }
@@ -110,6 +103,10 @@ DEEP_CONFIG = {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: None,
             DEEP_CONFIG_INIT: "deeplodocus.app.models.lenet"
+        },
+        "epoch": {
+            DEEP_CONFIG_DTYPE: int,
+            DEEP_CONFIG_DEFAULT: None
         },
         "from_file": {
             DEEP_CONFIG_DTYPE: bool,
@@ -142,30 +139,57 @@ DEEP_CONFIG = {
         "kwargs": {
             DEEP_CONFIG_DTYPE: dict,
             DEEP_CONFIG_DEFAULT: {}
+        },
+        "param_groups": {
+            DEEP_CONFIG_DTYPE: None,
+            DEEP_CONFIG_DEFAULT: None
         }
     },
     DEEP_CONFIG_HISTORY: {
-        "verbose": {
-            DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "default"
+        "enabled": {
+            "train_batches": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            },
+            "train_epochs": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            },
+            "validation": {
+                DEEP_CONFIG_DTYPE: bool,
+                DEEP_CONFIG_DEFAULT: True
+            }
         },
-        "memorize": {
-            DEEP_CONFIG_DTYPE: str,
-            DEEP_CONFIG_DEFAULT: "batch"
-        }
     },
     DEEP_CONFIG_TRAINING: {
+        "verbose": {
+            DEEP_CONFIG_DTYPE: str,
+            DEEP_CONFIG_DEFAULT: "epoch"
+        },
         "num_epochs": {
             DEEP_CONFIG_DTYPE: int,
             DEEP_CONFIG_DEFAULT: 10
         },
-        "initial_epoch": {
-            DEEP_CONFIG_DTYPE: int,
-            DEEP_CONFIG_DEFAULT: 0
-        },
         "shuffle": {
             DEEP_CONFIG_DTYPE: str,
             DEEP_CONFIG_DEFAULT: "default"
+        },
+        "scheduler": {
+            "name": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_INIT: "ExponentialLR"
+            },
+            "module": {
+                DEEP_CONFIG_DEFAULT: None,
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_INIT: "torch.optim.lr_scheduler"
+            },
+            "kwargs": {
+                DEEP_CONFIG_DEFAULT: {},
+                DEEP_CONFIG_DTYPE: dict,
+                DEEP_CONFIG_INIT: {"gamma": 0.95}
+            }
         },
         "saver": {
             "method": {
@@ -182,22 +206,22 @@ DEEP_CONFIG = {
             }
         },
         "overwatch": {
-            "name": {
+            "metric": {
                 DEEP_CONFIG_DEFAULT: "Total Loss",
                 DEEP_CONFIG_DTYPE: str
             },
             "condition": {
                 DEEP_CONFIG_DEFAULT: "less",
                 DEEP_CONFIG_DTYPE: str
+            },
+            "dataset": {
+                DEEP_CONFIG_DEFAULT: "validation",
+                DEEP_CONFIG_DTYPE: str
             }
         },
     },
     DEEP_CONFIG_DATA: {
         "dataloader": {
-            "batch_size": {
-                DEEP_CONFIG_DTYPE: int,
-                DEEP_CONFIG_DEFAULT: 1
-            },
             "num_workers": {
                 DEEP_CONFIG_DTYPE: int,
                 DEEP_CONFIG_DEFAULT: 1
@@ -217,7 +241,7 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DTYPE: bool,
                 DEEP_CONFIG_DEFAULT: False
             },
-            "predict": {
+            "prediction": {
                 DEEP_CONFIG_DTYPE: bool,
                 DEEP_CONFIG_DEFAULT: False
             }
@@ -237,9 +261,9 @@ DEEP_CONFIG = {
                     DEEP_CONFIG_DTYPE: int,
                     DEEP_CONFIG_DEFAULT: None,
                 },
-                "use_raw_instances": {
-                    DEEP_CONFIG_DTYPE: bool,
-                    DEEP_CONFIG_DEFAULT: False,
+                "batch_size": {
+                    DEEP_CONFIG_DTYPE: int,
+                    DEEP_CONFIG_DEFAULT: 1
                 },
                 "entries": [
                     {
@@ -386,7 +410,7 @@ DEEP_CONFIG = {
                 DEEP_CONFIG_DTYPE: [str]
             }
         },
-        "predict": {
+        "prediction": {
             "name": {
                 DEEP_CONFIG_DTYPE: str,
                 DEEP_CONFIG_DEFAULT: "Predict Transform Manager",
@@ -414,6 +438,10 @@ DEEP_CONFIG = {
             "module": {
                 DEEP_CONFIG_DTYPE: str,
                 DEEP_CONFIG_DEFAULT: None
+            },
+            "reduce": {
+                DEEP_CONFIG_DTYPE: str,
+                DEEP_CONFIG_DEFAULT: "mean"
             },
             "kwargs": {
                 DEEP_CONFIG_DTYPE: dict,

@@ -1,11 +1,9 @@
 import os
+
+from deeplodocus.flags import *
 from deeplodocus.utils.colors import *
 from deeplodocus.utils.deep_error import DeepError
-from deeplodocus.flags.ext import DEEP_EXT_LOGS
-from deeplodocus.flags.log import DEEP_LOG_NOTIFICATION
-from deeplodocus.flags.msg import DEEP_MSG_NOTIF_UNKNOWN
 from deeplodocus.utils.logs import Logs
-from deeplodocus.flags.notif import *
 
 
 class Notification(object):
@@ -52,44 +50,36 @@ class Notification(object):
         """
         self.log = log                          # Whether or not notifications should be written to logs
         self.response = ""                      # Allocated by self.__input(), returned by self.get()
+        self.prefix_len = 13
 
         if isinstance(notif_flag, Flag):
             # INFO
             if DEEP_NOTIF_INFO.corresponds(notif_flag):
                 self.__info(message)
-
             # DEBUG
             elif DEEP_NOTIF_DEBUG.corresponds(notif_flag):
                 self.__debug(message)
-
             # SUCCESS
             elif DEEP_NOTIF_SUCCESS.corresponds(notif_flag):
                 self.__success(message)
-
             # WARNING
             elif DEEP_NOTIF_WARNING.corresponds(notif_flag):
                 self.__warning(message)
-
             # ERROR
             elif DEEP_NOTIF_ERROR.corresponds(notif_flag):
                 self.__error(message)
-
             # FATAL
             elif DEEP_NOTIF_FATAL.corresponds(notif_flag):
                 self.__fatal_error(message, solutions=solutions)
-
             # INPUT
             elif DEEP_NOTIF_INPUT.corresponds(notif_flag):
                 self.__input(message)
-
             # RESULT
             elif DEEP_NOTIF_RESULT.corresponds(notif_flag):
                 self.__result(message)
-
             # LOVE
             elif DEEP_NOTIF_LOVE.corresponds(notif_flag):
                 self.__love(message)
-
             # WRONG FLAG
             else:
                 Notification(DEEP_NOTIF_FATAL, DEEP_MSG_NOTIF_UNKNOWN % notif_flag)
@@ -158,13 +148,13 @@ class Notification(object):
 
         # If possible solutions are given, print them too
         if solutions is not None:
-            message = "DEEP INFO : %s" % "Possible solutions : "
+            message = "DEEP INFO    : %s" % "Possible solutions : "
             print("%s%s%s" % (CBLUE, message, CEND))
             if self.log is True:
                 self.__add_log(message)
             solutions = solutions if isinstance(solutions, list) else [solutions]
             for i, solution in enumerate(solutions):
-                message = "DEEP INFO : %i : %s" % (i + 1, solution)
+                message = "DEEP INFO    : %i : %s" % (i + 1, solution)
                 print("%s%s%s" % (CBLUE, message, CEND))
                 if self.log is True:
                     self.__add_log(message)
@@ -195,7 +185,7 @@ class Notification(object):
         :return: None
 
         """
-        message = "DEEP ERROR : %s" % message
+        message = "%s : %s" % ("DEEP ERROR".ljust(self.prefix_len), message)
         print("%s%s%s" % (CRED, message, CEND))
         if self.log is True:
             self.__add_log(message)
@@ -225,7 +215,7 @@ class Notification(object):
         :return: None
 
         """
-        message = "DEEP WARNING : %s" % message
+        message = "%s : %s" % ("DEEP WARNING".ljust(self.prefix_len), message)
         print("%s%s%s" % (CYELLOW2, message, CEND))
         if self.log is True:
             self.__add_log(message)
@@ -255,7 +245,7 @@ class Notification(object):
         :return: None
 
         """
-        message = "DEEP DEBUG : %s" % message
+        message = "%s : %s" % ("DEEP DEBUG".ljust(self.prefix_len), message)
         print("%s%s%s" % (CBEIGE, message, CEND))
         if self.log is True:
             self.__add_log(message)
@@ -285,7 +275,7 @@ class Notification(object):
         :return: None
 
         """
-        message = "DEEP SUCCESS : %s" % message
+        message = "%s : %s" % ("DEEP SUCCESS".ljust(self.prefix_len), message)
         print("%s%s%s" % (CGREEN, message, CEND))
         if self.log is True:
             self.__add_log(message)
@@ -315,7 +305,7 @@ class Notification(object):
         :return: None
 
         """
-        message = "DEEP INFO : %s" % message
+        message = "%s : %s" % ("DEEP INFO".ljust(self.prefix_len), message)
         print("%s%s%s" % (CBLUE, message, CEND))
         if self.log is True:
             self.__add_log(message)
@@ -345,7 +335,7 @@ class Notification(object):
         :return: None
 
         """
-        message = "DEEP RESULT : %s" % message
+        message = "%s : %s" % ("DEEP RESULT".ljust(self.prefix_len), message)
         print(message)
         if self.log is True:
             self.__add_log(message)
@@ -374,7 +364,7 @@ class Notification(object):
         :return: None
 
         """
-        message = "DEEP LOVE : %s" % message
+        message = "%s : %s" % ("DEEP LOVE".ljust(self.prefix_len), message)
         print("%s%s%s" % (CVIOLET2, message, CEND))
         if self.log is True:
             self.__add_log(message)
@@ -402,7 +392,7 @@ class Notification(object):
 
         :return: None
         """
-        message = "DEEP INPUT : " + str(message)
+        message = "%s : %s" % ("DEEP INPUT".ljust(self.prefix_len), message)
         print(CBLINK + CBOLD + str(message) + CEND)
         # Wait for an input from the user
         self.response = input("> ")
@@ -437,7 +427,7 @@ class Notification(object):
 
         """
         Logs(
-            log_type=DEEP_LOG_NOTIFICATION,
+            log_type=DEEP_LOG_NOTIFICATION.var_name,
             directory=os.getcwd(),
-            extension=DEEP_EXT_LOGS
+            extension=DEEP_EXT_LOG
         ).add(message)

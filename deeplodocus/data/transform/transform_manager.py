@@ -70,7 +70,6 @@ class TransformManager(object):
         self.list_input_transformers = self.__load_transformers(inputs)
         self.list_label_transformers = self.__load_transformers(labels)
         self.list_additional_data_transformers = self.__load_transformers(additional_data)
-        self.summary()
 
     def transform(self, data: Any, index: int, entry: PipelineEntry, augment: bool) -> Any:
         """
@@ -127,7 +126,6 @@ class TransformManager(object):
         else:
             Notification(DEEP_NOTIF_FATAL, "The following type of entry does not exist : "
                          + str(entry.get_entry_type().get_description()))
-
 
         # If it is a NoTransformer instance
         if list_transformers[entry.get_entry_type_index()].has_transforms() is False:
@@ -310,7 +308,10 @@ class TransformManager(object):
 
             # Check if a method is given by the user
             if config.check("method", None) is False:
-                Notification(DEEP_NOTIF_FATAL, "The following transformer does not have any method specified : " + str(config_entry))
+                Notification(
+                    DEEP_NOTIF_FATAL,
+                    "The following transformer does not have any method specified : " + str(config_entry)
+                )
 
             # Get the corresponding flag
             flag = get_corresponding_flag(flag_list=DEEP_LIST_TRANSFORMERS, info=config.method, fatal = False)

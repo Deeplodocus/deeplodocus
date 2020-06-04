@@ -10,7 +10,7 @@ from deeplodocus.utils.notification import Notification
 from deeplodocus.data.load.source import Source
 from deeplodocus.data.load.source_wrapper import SourceWrapper
 from deeplodocus.data.load.source_pointer import SourcePointer
-from deeplodocus.utils.generic_utils import get_module
+from deeplodocus.utils.generic_utils import get_module, get_corresponding_flag
 from deeplodocus.data.load.loader import Loader
 
 # Import flags
@@ -43,6 +43,7 @@ class Entry(object):
     def __init__(self,
                  index: int,
                  name: str,
+                 etype: Flag,
                  dataset: weakref,
                  load_as: str,
                  enable_cache: bool = False,
@@ -70,36 +71,26 @@ class Entry(object):
 
         :return: None
         """
-
-        # ID of the entry
-        self.index = index
-
-        # Optional name of the Entry
+        self.index = index  # ID of the entry
         self.name = name
-
-        # Data type
-        self.load_as = load_as
-
-        # Weak reference to the dataset
-        self.dataset = dataset
+        self.etype = get_corresponding_flag(DEEP_LIST_ENTRY, etype)
+        self.dataset = dataset  # Weak reference to the dataset
 
         # Loader
-        self.loader = Loader(data_entry=weakref.ref(self),
-                             load_as=load_as,
-                             cv_library=cv_library)
+        self.loader = Loader(
+            data_entry=weakref.ref(self),
+            load_as=load_as,
+            cv_library=cv_library
+        )
 
-        # List of sources into the entry
-        self.sources = list()
-
-        # Enable cache memory for pointer
-        self.enable_cache = enable_cache
+        self.sources = list()  # List of sources into the entry
+        self.enable_cache = enable_cache  # Enable cache memory for pointer
 
         # Cache Memory for pointers
         if self.enable_cache is True:
             self.cache_memory = list()
         else:
             self.cache_memory = None
-
         self.num_instances = None
 
     def __getitem__(self, index: int):
@@ -115,7 +106,6 @@ class Entry(object):
         # If cache memory enabled, reset the cache
         if self.enable_cache is True:
             self.cache_memory = list()
-
 
         # Compute the Source  ID and the Instance ID in the Source
         source_index, instance_index = self.__compute_source_indices(index=index)
@@ -342,26 +332,33 @@ class Entry(object):
         :return: None
         """
         list_sources = []
-
         # Create sources
         for i, source in enumerate(sources):
 
             # Get the Source module and add it to the list
-            module, origin = get_module(name=source["name"], module=source["module"], browse=DEEP_MODULE_SOURCES)
+            m = "default modules" if source["module"] is None else source["module"]
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_LOADING % ("source [%i]" % i, source["name"], m))
+            method, module_path = get_module(name=source["name"], module=source["module"], browse=DEEP_MODULE_SOURCES)
+            if method is None:
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_MODULE_NOT_FOUND % (source["name"], module_path))
+            else:
+                Notification(DEEP_NOTIF_SUCCESS, DEEP_MSG_LOADED % ("source [%i]" % i, source["name"], module_path))
 
             # If the source is not a real source
-            if issubclass(module, Source) is False:
+            if not issubclass(method, Source):
                 # Remove the id from the initial kwargs
                 index = source["kwargs"].pop('index', None)
 
                 # Create a source wrapper with the new ID
-                s = SourceWrapper(index=index,
-                                  name=source["name"],
-                                  module=source["module"],
-                                  kwargs=source["kwargs"])
+                s = SourceWrapper(
+                    index=index,
+                    name=source["name"],
+                    module=source["module"],
+                    kwargs=source["kwargs"]
+                )
             else:
                 # If the subclass is a real Source
-                s = module(**source["kwargs"])
+                s = method(**source["kwargs"])
 
             # Check the module inherits the generic Source class
             self.check_type_sources(s, i)
@@ -513,8 +510,6 @@ class Entry(object):
         # The length of the Entry is the sum of all the Source instances length
         self.num_instances = sum(source_lengths)
 
-
-
     ############
     # CHECKERS #
     ############
@@ -550,8 +545,6 @@ class Entry(object):
         # Very custom Source instances were correctly checked
         for i in range(len(self.sources)):
             self.sources[i].verify_custom_source()
-
-
 
     def check_loader(self):
         """
@@ -855,9 +848,6 @@ class Entry(object):
         :return self.index(int): The Entry index
         """
         return self.index
-
-    def get_type(self):
-        return self.type
 
     def set_source_pointer_weakref(self, source_id: int, entry_weakref: weakref):
         self.sources[source_id].set_entry_weakref(entry_weakref)

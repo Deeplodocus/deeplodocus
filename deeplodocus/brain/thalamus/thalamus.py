@@ -246,5 +246,5 @@ class Thalamus(metaclass=Singleton):
             Notification(DEEP_NOTIF_DEBUG, "Expected arguments:")
             Notification(DEEP_NOTIF_DEBUG, str(expected_arguments))
             Notification(DEEP_NOTIF_DEBUG, "Available arguments:")
-            Notification(DEEP_NOTIF_DEBUG, str(arguments))
+            Notification(DEEP_NOTIF_DEBUG, str(list(arguments.keys())))
             Notification(DEEP_NOTIF_FATAL, "KeyError/TypeError: %s" % str(e))
