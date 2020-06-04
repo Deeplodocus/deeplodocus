@@ -391,6 +391,7 @@ class FrontalLobe(object):
                 model_parameters=self.model.parameters(),
                 **self.config.optimizer.get()
             )
+
             state_msg = ""
             if self.config.model.from_file:
                 checkpoint = self.__load_checkpoint()
