@@ -1,229 +1,199 @@
 import torch
 import torch.nn as nn
-from torch.nn.modules import CrossEntropyLoss, MSELoss, BCEWithLogitsLoss
+from torch.nn import BCEWithLogitsLoss
+
+import contextlib
+import numpy as np
+import cv2
+
+from deeplodocus.app.transforms.yolo.output import Activate, Visualize
+from deeplodocus.utils.namespace import Namespace
 
 
-class ObjectLoss(nn.Module):
+class YOLOLoss(nn.Module):
 
-    def __init__(self, iou_threshold=0.5, obj_weight=2):
-        super(ObjectLoss, self).__init__()
+    def __init__(self, iou_threshold=0.5, obj_weight=[0.5, 2], box_weight=5, class_weight=None, min_class_weight=0):
+        super(YOLOLoss, self).__init__()
         self.iou_threshold = iou_threshold
-        self.bce = BCEWithLogitsLoss(pos_weight=torch.tensor(obj_weight))
+        self.obj_weight = torch.tensor(obj_weight)
+        self.box_weight = box_weight
+        self.bce = BCEWithLogitsLoss(reduce=False)
+        self.class_weight = class_weight
+        self.min_class_weight = min_class_weight
+        self._cls_freq = None
 
     def forward(self, outputs, targets):
-        # Unpack YOLO outputs
-        predictions, anchors = outputs["detections"], outputs["scaled_anchors"]
-        # Unpack some shapes (batch size, n targets, n scales, n anchors
-        b, t = targets.shape[0:2]
-        s, a = anchors.shape[0:2]
-        # Make a mask for labels to ignore
-        mask = torch.all(targets[..., 0:4] != -1, dim=2).view(-1)
-        # Make tensor of prediction shapes
-        shapes = torch.tensor([p.shape[2:4] for p in predictions], device=anchors.device)
-        # Get cell indices of each target for each scale (b x t x s x 2)
-        target_cells = self.get_target_cells(targets, shapes)
-        # Zero the targets for comparison with prior bounding boxes
-        zeroed_targets = self.get_zeroed_targets(targets[..., 0:4], shapes)
-        # Calculate Jaccard Index between each zeroed target and each prior bounding box
-        overlap = self.calc_overlap(anchors, zeroed_targets)
-        # Suppress or ignore some target-anchors
-        gt_values = self.suppress_anchors(overlap)
-        # Initialise list of ground truth tensors
-        ground_truth = [torch.zeros((b, a, h, w), device=anchors.device) for h, w in shapes]
-        # Make array of anchor indices
-        anchor_index = torch.arange(a).view(1, -1).repeat(torch.sum(mask).item(), 1)
-        for scale, values in enumerate(gt_values.view(b * t, s, a).permute(1, 0, 2)):
-            cells = target_cells[:, :, scale, :].view(-1, a)[mask].permute(1, 0).view(a, -1, 1)
-            values = values[mask]
-            # Put ground truth values into ground truth array
-            ground_truth[scale].index_put_((cells[0], anchor_index, cells[1], cells[2]), values)
-        # Concatenate all ground truths and predictions
-        ground_truth = torch.cat([gt.view(-1) for gt in ground_truth], dim=0)
-        predictions = torch.cat([p[..., 4].view(-1) for p in predictions], dim=0)
-        return self.bce(predictions[ground_truth != -1], ground_truth[ground_truth != -1])
-
-    def suppress_anchors(self, overlap):
-        b, t, s, a = overlap.shape
-        overlap = overlap.view(b * t, s * a)
-        overlap[overlap == torch.max(overlap, dim=1)[0].view(-1, 1)] = 1
-        overlap[overlap < self.iou_threshold] = 0
-        overlap[(overlap != 0) & (overlap != 1)] = -1
-        return overlap.view(b, t, s, a)
-
-    @staticmethod
-    def get_target_cells(targets, shapes):
-        (b, t), s = targets.shape[0:2], shapes.shape[0]
-        return torch.cat(
+        s, a, _ = outputs.anchors.shape
+        b, n, _ = targets.shape
+        num_classes = outputs.inference[0].shape[4] - 5
+        targets = targets.view(-1, 5)
+        mask = ~torch.all(targets == -1, dim=1)  # (b * n) mask of targets to ignore
+        batch_index = torch.arange(b, device=targets.device).repeat_interleave(n)  # (b * n)
+        anchors = torch.cat(
             (
-                torch.arange(b, dtype=torch.long, device=targets.device).view(b, 1, 1, 1).repeat(1, t, s, 1),
-                (targets[..., [1, 0]].view(b, t, 1, 2) * shapes.view(1, 1, s, 2).float()).long()
-            ), dim=3
-        )
-
-    @staticmethod
-    def get_zeroed_targets(targets, shapes):
-        (b, t), s = targets.shape[0:2], shapes.shape[0]
-        zeroed_targets = targets.view(b, t, 1, 4) * shapes[:, [1, 0, 1, 0]].view(1, 1, s, 4).float()
-        zeroed_targets[..., 0:2] -= (torch.floor(zeroed_targets[..., 0:2]) + 0.5)
-        return zeroed_targets
-
-    @staticmethod
-    def calc_overlap(anchors, targets):
-        (s, a), (b, t) = anchors.shape[0:2], targets.shape[0:2]
-        anchors = anchors.view(1, 1, s, a, 2)
-        targets = targets.view(b, t, s, 1, 4)
-        lower_bound = torch.max(-anchors / 2, targets[..., 0:2] - targets[..., 2:4] / 2)
-        upper_bound = torch.min(anchors / 2, targets[..., 0:2] + targets[..., 2:4] / 2)
-        mask = torch.prod((lower_bound < upper_bound).float(), dim=4)
-        intersection = torch.prod((upper_bound - lower_bound), dim=4) * mask
-        anchor_area = torch.prod(anchors, dim=4)
-        target_area = (targets[..., 2] - targets[..., 0]) * (targets[..., 3] - targets[..., 1])
-        return intersection / (anchor_area + target_area - intersection)
-
-
-class BoxLoss(nn.Module):
-
-    def __init__(self, iou_threshold=0.5):
-        super(BoxLoss, self).__init__()
-        self.iou_threshold = iou_threshold
-        self.mse = MSELoss()
-
-    def forward(self, outputs, targets):
-        # Unpack YOLO outputs
-        predictions, anchors = outputs["detections"], outputs["scaled_anchors"]
-        # Unpack some shapes (batch size, n targets, n scales, n anchors
-        b, t = targets.shape[0:2]
-        s, a = anchors.shape[0:2]
-        b = targets.shape[0]
-        # Make a mask for labels to ignore
-        mask = torch.all(targets[..., 0:4] != -1, dim=2).view(-1)                                       # (b * t)
-        # Make tensor of prediction shapes
-        shapes = torch.tensor([p.shape[2:4] for p in predictions], device=anchors.device)               # (s, 2)
-        # Get cell indices of each target for each scale (b x t x s x 3)
-        target_cells = self.get_target_cells(targets, shapes).view(-1, s, 3)[mask].permute(1, 0, 2)     # (s, ?, 3)
-        # Get scaled targets
-        scaled_targets = self.get_scaled_targets(targets[..., 0:4], shapes)                             # (b, t, s, 4)
-        # Zero the targets for comparison with prior bounding boxes
-        zeroed_targets = self.get_zeroed_targets(scaled_targets.clone())
-        # Calculate Jaccard Index between each zeroed target and each prior bounding box
-        overlap = self.calc_overlap(anchors, zeroed_targets)
-        # Suppress or ignore some target-anchors
-        anchor_indices = self.suppress_anchors(overlap)[mask].permute(1, 0, 2)                          # (s, ?, 3)
-        # Initialise list of ground truth tensors
-        ground_truth = [torch.zeros((b, a, h, w, 4), device=anchors.device) for h, w in shapes]
-        # Reshape the scaled targets into something more convenient
-        scaled_targets = scaled_targets.view(-1, s, 4)[mask].permute(1, 0, 2)                           # (s, ?, 4)
-        for scale, anchor_index, cells, coords in zip(range(s), anchor_indices, target_cells, scaled_targets):
-            # Remove cells, coords and anchor_index where no anchor is responsible
-            cells = cells[~torch.all(anchor_index == 0, dim=1)].t()
-            coords = coords[~torch.all(anchor_index == 0, dim=1)]
-            anchor_index = anchor_index[~torch.all(anchor_index == 0, dim=1)]
-            if anchor_index.shape[0]:
-                # Get the anchor index (as a number)
-                _, anchor_index = torch.max(anchor_index, dim=1)
-                # Put ground truth values into ground truth array
-                ground_truth[scale].index_put_((cells[0], anchor_index, cells[1], cells[2]), coords)
-        ground_truth = torch.cat([gt.view(-1, 4) for gt in ground_truth], dim=0)
-        predictions = torch.cat([pred[..., 0:4].view(-1, 4) for pred in predictions], dim=0)
-        predictions = predictions[~ torch.all(ground_truth == 0, dim=1)]
-        ground_truth = ground_truth[~ torch.all(ground_truth == 0, dim=1)]
-        return self.mse(
-            ground_truth[:, 0:2].contiguous().view(-1),
-            predictions[:, 0:2].contiguous().view(-1)
-        ) \
-            + self.mse(
-                torch.sqrt(ground_truth[:, 2:4].contiguous().view(-1)),
-                torch.sqrt(predictions[:, 2:4].contiguous().view(-1))
-        )
-
-    @staticmethod
-    def get_target_cells(targets, shapes):
-        (b, t), s = targets.shape[0:2], shapes.shape[0]
-        return torch.cat(
-            (
-                torch.arange(b, dtype=torch.long, device=targets.device).view(b, 1, 1, 1).repeat(1, t, s, 1),
-                (targets[..., [1, 0]].view(b, t, 1, 2) * shapes.view(1, 1, s, 2).float()).long()
-            ), dim=3
-        )
-
-    @staticmethod
-    def get_scaled_targets(targets, shapes):
-        (b, t), s = targets.shape[0:2], shapes.shape[0]
-        return targets.view(b, t, 1, 4) * shapes[:, [1, 0, 1, 0]].view(1, 1, s, 4).float()
-
-    @staticmethod
-    def get_zeroed_targets(targets):
-        targets[..., 0:2] -= (torch.floor(targets[..., 0:2]) + 0.5)
-        return targets
-
-    @staticmethod
-    def calc_overlap(anchors, targets):
-        (s, a), (b, t) = anchors.shape[0:2], targets.shape[0:2]
-        anchors = anchors.view(1, 1, s, a, 2)
-        targets = targets.view(b, t, s, 1, 4)
-        lower_bound = torch.max(-anchors / 2, targets[..., 0:2] - targets[..., 2:4] / 2)
-        upper_bound = torch.min(anchors / 2, targets[..., 0:2] + targets[..., 2:4] / 2)
-        mask = torch.prod((lower_bound < upper_bound).float(), dim=4)
-        intersection = torch.prod((upper_bound - lower_bound), dim=4) * mask
-        anchor_area = torch.prod(anchors, dim=4)
-        target_area = (targets[..., 2] - targets[..., 0]) * (targets[..., 3] - targets[..., 1])
-        return intersection / (anchor_area + target_area - intersection)
-
-    @staticmethod
-    def suppress_anchors(overlap):
-        b, t, s, a = overlap.shape
-        overlap = overlap.view(b * t, s * a)
-        overlap[overlap != torch.max(overlap, dim=1)[0].view(-1, 1)] = 0
-        overlap[overlap > 0] = 1
-        return overlap.view(-1, s, a)
-
-
-class ClassLoss(nn.Module):
-
-    def __init__(self, weights=None):
-        super(ClassLoss, self).__init__()
-        None if weights is None else torch.tensor(weights)
-        self.cross_entropy = CrossEntropyLoss(ignore_index=-1, weight=weights)
-
-    def forward(self, outputs, targets):
-        # Unpack YOLO outputs
-        predictions, anchors = outputs["detections"], outputs["scaled_anchors"]
-        # Unpack some shapes (batch size, n targets, n scales, n anchors
-        b, t = targets.shape[0:2]
-        s, a = anchors.shape[0:2]
-        n_cls = predictions[0].shape[-1] - 5
-        # Make a mask for labels to ignore
-        mask = torch.all(targets[..., 0:4] != -1, dim=2).view(-1)
-        # Make tensor of prediction shapes
-        shapes = torch.tensor([p.shape[2:4] for p in predictions], device=anchors.device)
-        # Get cell indices of each target for each scale (b x t x s x 2)
-        target_cells = self.get_target_cells(targets, shapes)
-        # Initialise list of ground truth tensors
-        ground_truth = [torch.zeros((b, a, h, w), device=anchors.device).fill_(-1) for h, w in shapes]
-        # Make array of anchor indices
-        anchor_index = torch.arange(a).view(1, -1).repeat(torch.sum(mask).item(), 1)
-        for scale in range(s):
-            # Shape the target_cells into something more convenient
-            cells = target_cells[:, :, scale, :].view(-1, a, 1)[mask].permute(1, 0, 2)
-            # Put target class values into ground truth array
-            ground_truth[scale].index_put_(
-                (cells[0], anchor_index, cells[1], cells[2]),
-                targets[..., 4].view(-1, 1)[mask].repeat(1, a)
+                torch.empty_like(outputs.anchors).fill_(0.5),
+                outputs.anchors / outputs.strides.view(s, 1, 1)
+            ), dim=2
+        )  # (s x a x 4)
+        target_box = targets[:, 0:4].clone().view(-1, 1, 4).repeat(1, s, 1)
+        target_box[mask] /= outputs.strides.view(1, s, 1)  # (b * n x s x 4)
+        c = target_box[..., 0:2].long()  # (b * n x s x 2)
+        target_box[mask, :, 0:2] -= c[mask]
+        iou = jaccard_index(
+            xywh2rect(target_box).view(-1, s, 1, 4),
+            xywh2rect(anchors).view(1, s, a, 4)
+        )  # (b * n x s x a)
+        best_prior = torch.eye(
+            s * a, dtype=torch.bool, device=targets.device  # (b * n x s x a)
+        )[torch.argmax(iou.view(-1, s * a), dim=1)].view(-1, s, a)  # (b * n x s x a)
+        overlap_prior = torch.mul(iou > self.iou_threshold, ~ best_prior)  # (b * n x s x a)
+        scale_mask = torch.any(best_prior, dim=2)  # (n * b x s)
+        anchor_index = torch.argmax(torch.any(best_prior, dim=1).float(), dim=1)  # (b * n)
+        target_box[mask, :, 0:2] = logit(target_box[mask, :, 0:2])
+        target_box = target_box.view(-1, s, 1, 4).repeat(1, 1, a, 1)
+        target_box[mask, :, :, 2:4] = log(target_box[mask, :, :, 2:4] / anchors[..., 2:4].view(1, s, a, 2))
+        target_obj = best_prior.float() - overlap_prior.float()
+        target_cls = torch.eye(num_classes, device=targets.device)[targets[:, 4].long()]
+        gt_box, gt_obj, gt_cls = self.__initialise_gt(outputs.inference)
+        for i in range(s):
+            # Box gt
+            m = torch.mul(mask, scale_mask[:, i])
+            gt_box[i].index_put_(
+                indices=tuple(
+                    torch.cat((batch_index[m, None], anchor_index[m, None], c[m, i][:, [1, 0]]), dim=1).T
+                ),
+                values=target_box[best_prior][m]
             )
-        # Concatenate all ground truths and predictions
-        ground_truth = torch.cat([gt.view(-1) for gt in ground_truth], dim=0)
-        predictions = torch.cat([p[..., 5:].view(-1, n_cls) for p in predictions], dim=0)
-        if ground_truth.shape[0]:
-            return self.cross_entropy(predictions, ground_truth.long())
-        else:
-            return torch.tensor(0, dtype=torch.float32, device=anchors.device, requires_grad=True)
+            # Obj gt
+            index_obj = torch.cat((batch_index[mask, None], c[mask, i][:, [1, 0]]), dim=1)
+            gt_obj[i] = gt_obj[i].permute(0, 2, 3, 1)
+            gt_obj[i].index_put_(indices=tuple(index_obj.T), values=target_obj[mask, i])
+            gt_obj[i] = gt_obj[i].permute(0, 3, 1, 2)
+            # Cls gt
+            m = torch.add(overlap_prior[:, i], best_prior[:, i]).long()
+            gt_cls[i] = gt_cls[i].permute(0, 2, 3, 1, 4)
+            gt_cls[i].index_put_(
+                indices=tuple(index_obj.T),
+                values=(
+                        target_cls[:, None, :] * m[:, :, None]
+                        - torch.ones_like(target_cls[:, None, :]) * (1 - m[:, :, None])
+                )[mask]
+            )
+            gt_cls[i] = gt_cls[i].permute(0, 3, 1, 2, 4)
+
+        class_weight = self.__update_class_weights(targets[mask, 4], num_classes)
+        inf_box, inf_obj, inf_cls = self.__extract_inference(outputs.inference)
+        box_loss = self.__caclculate_box_loss(gt_box, inf_box)
+        obj_loss = self.__calculate_obj_loss(gt_obj, inf_obj)
+        cls_loss = self.__calculate_cls_loss(gt_cls, inf_cls, class_weight)
+        return box_loss + obj_loss + cls_loss
+
+    def __caclculate_box_loss(self, gt, inf):
+        gt = torch.cat([i.view(-1, 4) for i in gt])
+        inf = inf[~torch.all(gt == -1, dim=1)]
+        gt = gt[~torch.all(gt == -1, dim=1)]
+        return self.box_weight * torch.mean(torch.sum((gt - inf) ** 2, dim=1))
+
+    def __calculate_obj_loss(self, gt, inf):
+        gt = torch.cat([i.view(-1) for i in gt])
+        inf = inf[gt != -1]
+        gt = gt[gt != -1]
+        weight = self.obj_weight[gt.long()].to(gt.device)
+        return torch.mean(self.bce(inf, gt) * weight)
+
+    def __calculate_cls_loss(self, gt, inf, class_weight):
+        gt = torch.cat([i.view(-1, i.shape[-1]) for i in gt])
+        inf = inf[~torch.any(gt == -1, dim=1)]
+        gt = gt[~torch.any(gt == -1, dim=1)]
+        weight = class_weight[torch.argmax(gt, dim=1)].to(gt.device)
+        return torch.mean(self.bce(inf, gt) * weight.view(-1, 1))
 
     @staticmethod
-    def get_target_cells(targets, shapes):
-        (b, t), s = targets.shape[0:2], shapes.shape[0]
-        return torch.cat(
-            (
-                torch.arange(b, dtype=torch.long, device=targets.device).view(b, 1, 1, 1).repeat(1, t, s, 1),
-                (targets[..., [1, 0]].view(b, t, 1, 2) * shapes.view(1, 1, s, 2).float()).long()
-            ), dim=3
-        )
+    def __initialise_gt(inference):
+        box = [torch.empty_like(i[..., 0:4]).fill_(-1) for i in inference]
+        obj = [torch.zeros_like(i[..., 4]) for i in inference]
+        cls = [torch.zeros_like(i[..., 5:]).fill_(-1) for i in inference]
+        return box,obj, cls
+
+    @staticmethod
+    def __extract_inference(inference):
+        box = torch.cat([i[..., 0:4].view(-1, 4) for i in inference])
+        obj = torch.cat([i[..., 4].view(-1) for i in inference])
+        cls = torch.cat([i[..., 5:].view(-1, i.shape[-1] - 5) for i in inference])
+        return box, obj, cls
+
+    def __update_class_weights(self, targets, num_classes):
+        if self.class_weight is None:
+            return torch.ones(num_classes)
+        elif self.class_weight.lower() == "auto":
+            if self._cls_freq is None:
+                self._cls_freq = torch.zeros(num_classes)
+            self._cls_freq.index_put_(
+                indices=tuple(targets.view(1, -1).long().cpu()),
+                values=torch.tensor(1.0),
+                accumulate=True
+            )
+            weight = torch.sum(self._cls_freq) / (num_classes * self._cls_freq)
+            weight[weight < self.min_class_weight] = self.min_class_weight
+            return weight
+        else:
+            return torch.tensor(self.class_weight)
+
+
+def xywh2rect(xywh, indices=(0, 1, 2, 3)):
+    """
+    :param xywh:
+    :param indices:
+    :return:
+    """
+    x, y, w, h = indices
+    rect = xywh.clone()
+    rect[..., x] = xywh[..., x] - xywh[..., w] / 2
+    rect[..., y] = xywh[..., y] - xywh[..., h] / 2
+    rect[..., w] = xywh[..., x] + xywh[..., w] / 2
+    rect[..., h] = xywh[..., y] + xywh[..., h] / 2
+    return rect
+
+
+def jaccard_index(a1, a2):
+    """
+    :param a1:
+    :param a2:
+    :return:
+    """
+    x0 = torch.max(a1[..., 0], a2[..., 0])
+    y0 = torch.max(a1[..., 1], a2[..., 1])
+    x1 = torch.min(a1[..., 2], a2[..., 2])
+    y1 = torch.min(a1[..., 3], a2[..., 3])
+    mask = (x0 < x1) * (y0 < y1)
+    intersection = (x1 - x0) * (y1 - y0) * mask.type(torch.float32)
+    return intersection / (area(a1) + area(a2) - intersection)
+
+
+def area(a, indices=(0, 1, 2, 3)):
+    """
+    :param a:
+    :param indices:
+    :return:
+    """
+    x0, y0, x1, y1 = indices
+    return (a[..., x1] - a[..., x0]) * (a[..., y1] - a[..., y0])
+
+
+def logit(x, e=1e-3):
+    """
+    logit function
+    :param x: torch.tensor
+    :return: logit(x)
+    """
+    x[x == 0] = e
+    x[x == 1] = 1 - e
+    return torch.log(x / (1 - x))
+
+
+def log(x, e=1e-3):
+    """
+    """
+    x[x < e] = e
+    return torch.log(x)
+

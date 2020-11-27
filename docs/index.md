@@ -1,6 +1,8 @@
-![Logo](figures/logo.png  "Logo")
 
 # What is Deeplodocus?
+
+![Logo](figures/logo.png  "Logo")
+
 
 Deeplodocus is a modular, flexible and accessible environment for the structured and rapid development of deep learning projects. 
 
@@ -10,25 +12,18 @@ Not just another abstract API, Deeplodocus is a new approach to structuring deep
 
 Built on PyTorch, Deeplodocus offers comprehensive control of high-level configurations and parameters, whilst maintaining maximum flexibility through modularity to accelerate the rapid-prototyping of deep learning techniques. 
 
-## Installation
+
+# Installation
 
 Deeplodocus is compatible with versions of Python 3.6 and onward, and can be installed with PIP. However, before installing Deeplodocus, we recommend that you install PyTorch. 
 
-### Install PyTorch
+## Install PyTorch
 
 Deeplodocus is built around PyTorch, however Pytorch does not come packaged with Deeplodocus as its installation depends on your version of [CUDA](https://developer.nvidia.com/cuda-downloads). To install PyTorch, we recommend that you follow instructions from the official [PyTorch website](https://pytorch.org/). 
 
-### Install Deeplodocus from PyPI
+## Install Deeplodocus from GitHub
 
-For the latest stable release of Deeplodocus, we recommend installing from PyPI. Simply enter the command below into your terminal:
-
-```bash
-$ pip3 install deeplodocus
-```
-
-### Install Deeplodocus from GitHub
-
-To install the most recent version of Deeplodocus, download the Deeplodocus repository and install from this local source. Note, this version may be less stable than the current PyPI release. 
+We currently recommend users clone the Deeplodocus repository and install from this local source, as this will be updated and patched more regularly than the PyPi repository. 
 
 1. Download the Deeplodocus repository, by either:
 
@@ -49,15 +44,23 @@ To install the most recent version of Deeplodocus, download the Deeplodocus repo
 	With pip:
 
 	```
-	$ pip install <path-to-deeplodocus>
+	$ pip3 install <path-to-deeplodocus>
 	```
 	
 	Or, with pip in development mode (so Deeplodocus appears to be installed but is still editable from the local source package), with:
 
 	```
-	$ pip install -e <path-to-deeplodocus>
+	$ pip3 install -e <path-to-deeplodocus>
 	```
-	
+
+## Install Deeplodocus from PyPI
+
+Use the command below to install a stable release of Deeplodocus from PyPI.
+
+```bash
+$ pip3 install deeplodocus
+```
+
 ## Support 
 
 Users are welcome to post bug reports and feature requests in [GitHub issues](https://github.com/Deeplodocus/deeplodocus/issues).

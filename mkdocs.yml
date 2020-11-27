@@ -6,6 +6,9 @@ site_url: http://deeplodocus.org
 repo_url: http://github.com/Deeplodocus/deeplodocus
 edit_uri: http://github.com/Deeplodocus/deeplodocus
 
+markdown_extensions:
+  - admonition
+
 theme:
   name: readthedocs
   highlightjs: true
@@ -34,4 +37,5 @@ nav:
   - TUTORIALS:
     - MNIST: tutorials/mnist.md
     - Cityscapes: tutorials/cityscapes.md
+    - COCO Object Detection: tutorials/coco.md
   - ABOUT: about.md

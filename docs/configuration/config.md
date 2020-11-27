@@ -213,7 +213,7 @@ Path to the module that contains the chosen loss. If no module is given, Deeplod
 - **Data type:** str
 - **Default value:** None
 
-Note: More information about existing PyTorch loss functions can be found [here](https://pytorch.org/docs/stable/nn.html#loss-functions), and some additional deeplodocus losses can be found [here](existing_modules/losses.md).
+Note: More information about existing PyTorch loss functions can be found [here](https://pytorch.org/docs/stable/nn.html#loss-functions), and some additional deeplodocus losses can be found [here](../existing_modules/losses.md).
 
 #### weight
 
@@ -231,7 +231,8 @@ Any keyword arguments to be parsed to the loss.
 
 ## Metrics
 
-Any number of metrics can be specified in metrics.yaml. Give each metric a unique name, followed by a series of defining entries, as seen below. The unique name given will be used when displaying metric values and saving to training and validation history.
+Any number of metrics can be specified in metrics.yaml. Give each metric a unique name, followed by a series of defining entries, as seen below. 
+The unique name given will be used when displaying metric values and saving to training and validation history.
 
 ```yaml
 # Example metrics.yaml file
