@@ -205,14 +205,25 @@ class Transformer(object):
                 module, module_path = get_module(
                     name=transform["name"],
                     module=transform["module"],
-                    browse=DEEP_MODULE_TRANSFORMS
+                    browse=DEEP_MODULE_TRANSFORMS,
+                    silence=False
                 )
 
-                t = TransformData(name=transform["name"],
-                                  method=module,
-                                  module_path=module_path,
-                                  kwargs=transform["kwargs"]
-                                  )
+                if module is None:
+                    Notification(
+                        DEEP_NOTIF_FATAL,
+                        "Unable to load transform : '%s' from '%s'" % (
+                            transform["name"],
+                            "default modules" if module_path is None else module_path
+                        )
+                    )
+
+                t = TransformData(
+                    name=transform["name"],
+                    method=module,
+                    module_path=module_path,
+                    kwargs=transform["kwargs"]
+                )
                 loaded_transforms.append(t)
 
         return loaded_transforms
@@ -252,14 +263,14 @@ class Transformer(object):
         """
         # Apply the transforms
         for transform in transforms:
-            try:
+            #try:
                 # Transform the data and get the transformation settings if a random transform is applied (None else)
-                transformed_data, last_method_used = transform.method(transformed_data, **transform.kwargs)
-            except ValueError as e:
-                Notification(
-                    DEEP_NOTIF_FATAL,
-                    "ValueError : %s : %s" % (str(e), DEEP_MSG_TRANSFORM_VALUE_ERROR)
-                )
+            transformed_data, last_method_used = transform.method(transformed_data, **transform.kwargs)
+            #except ValueError as e:
+            #    Notification(
+            #        DEEP_NOTIF_FATAL,
+            #        "ValueError : %s : %s" % (str(e), DEEP_MSG_TRANSFORM_VALUE_ERROR)
+            #    )
 
             # Update the last transforms used and the last index
             if last_method_used is None:

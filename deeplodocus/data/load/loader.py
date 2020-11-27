@@ -242,6 +242,10 @@ class Loader(object):
             elif DEEP_LOAD_AS_NP_ARRAY.corresponds(self.load_as):
                 loaded_data = np.load(data)
 
+            # LOAD AS GIVEN (unchanged)
+            elif DEEP_LOAD_AS_GIVEN.corresponds(self.load_as):
+                loaded_data = data
+
             # Data type not recognized
             else:
 

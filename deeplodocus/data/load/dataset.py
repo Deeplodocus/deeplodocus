@@ -189,21 +189,17 @@ class Dataset(object):
         """
         # ALL DATASET
         if DEEP_SHUFFLE_ALL.corresponds(info=method):
-            self.item_order = np.random.randint(0, high=self.length, size=(self.length,))
+            self.item_order = random.sample(range(0, self.number_raw_instances), self.length)
             Notification(DEEP_NOTIF_INFO, DEEP_MSG_SHUFFLE_COMPLETE % method.name)
 
         # NONE
         elif DEEP_SHUFFLE_NONE.corresponds(info=method):
-            pass
+            self.item_order = np.arange(self.length)
+            Notification(DEEP_NOTIF_INFO, DEEP_MSG_NO_SHUFFLE)
 
         # BATCHES
         elif DEEP_SHUFFLE_BATCHES.corresponds(info=method):
             Notification(DEEP_NOTIF_ERROR, "Batch shuffling not implemented yet.")
-
-        # RANDOM PICK
-        elif DEEP_SHUFFLE_RANDOM_PICK.corresponds(info=method):
-            self.item_order = random.sample(range(0, self.number_raw_instances), self.length)
-            Notification(DEEP_NOTIF_INFO, DEEP_MSG_SHUFFLE_COMPLETE % method.name)
 
         # WRONG FLAG
         else:

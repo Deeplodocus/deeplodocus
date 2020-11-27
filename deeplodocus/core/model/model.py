@@ -199,7 +199,7 @@ def load_model(
 
     if model_state_dict is not None:
         model_state_dict = dict((k[7:], v) if k.startswith("module.") else (k, v) for k, v in model_state_dict.items())
-        model.load_state_dict(model_state_dict)
+        model.load_state_dict(model_state_dict, strict=False)
 
     n_devices = torch.cuda.device_count() if device_ids is None else len(device_ids)
     if n_devices > 1:

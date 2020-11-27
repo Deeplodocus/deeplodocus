@@ -488,6 +488,11 @@ class Brain(FrontalLobe):
     def plot_graph(self, format="svg"):
         Graph(self.model, self.model.named_parameters())
 
+    def edit_optimizer(self, **kwargs):
+        for key, value in kwargs.items():
+            for param_group in self.optimizer.param_groups:
+                param_group[key] = value
+
     """
     "
     " Private Methods
@@ -669,8 +674,8 @@ class Brain(FrontalLobe):
                 #    time.sleep(0.1)
                 except KeyboardInterrupt:
                     self.sleep()
-                except AttributeError as e:
-                    Notification(DEEP_NOTIF_ERROR, str(e))
+                #except AttributeError as e:
+                #    Notification(DEEP_NOTIF_ERROR, str(e))
 
     def __preprocess_command(self, command):
         """

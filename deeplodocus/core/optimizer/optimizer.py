@@ -6,6 +6,7 @@ from deeplodocus.utils.notification import Notification
 # Deeplodocus flags
 from deeplodocus.flags import *
 
+
 def load_optimizer(name, module, model_parameters, kwargs):
     optimizer, module = get_module(
         name=name,

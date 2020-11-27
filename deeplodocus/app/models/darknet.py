@@ -1,6 +1,10 @@
 # Backend imports
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from deeplodocus.utils.notification import Notification
+from deeplodocus.flags.notif import *
 
 
 class Darknet19(nn.Module):
@@ -9,7 +13,7 @@ class Darknet19(nn.Module):
     Original article: https://pjreddie.com/media/files/papers/YOLOv3.pdf
     """
 
-    def __init__(self, num_channels=3, include_top=True, num_classes=1000):
+    def __init__(self, num_channels=3, include_top=True, num_classes=1000, weights=None):
         super(Darknet19, self).__init__()
 
         # Set the number of input channels
@@ -101,6 +105,21 @@ class Darknet19(nn.Module):
             nn.BatchNorm2d(1024),
             nn.LeakyReLU(negative_slope=0.1),
         )
+
+        if weights is not None:
+            self.load_weights(weights)
+
+    def load_weights(self, weights):
+        if weights is not None:
+            Notification(DEEP_NOTIF_INFO, "Initializing network weights from file")
+            try:
+                self.load_state_dict(torch.load(weights)['model_state_dict'], strict=True)
+                Notification(DEEP_NOTIF_SUCCESS, "Successfully loaded weights from %s" % weights)
+            except RuntimeError as e:
+                Notification(DEEP_NOTIF_WARNING, " :" .join(str(e).split(":")[1:]).strip())
+                Notification(DEEP_NOTIF_WARNING, "Ignoring unexpected key(s)")
+                self.load_state_dict(torch.load(weights)['model_state_dict'], strict=False)
+                Notification(DEEP_NOTIF_SUCCESS, "Successfully loaded weights from %s" % weights)
 
     def forward(self, x):
         x = self.conv32(x)
@@ -207,7 +226,7 @@ class Darknet53(nn.Module):
 
         if include_top:
             self.num_classes = int(num_classes)
-            # CLASSIFYING LAYER
+            # Identification layer
             self.classifier = nn.Sequential(
                 nn.Linear(in_features=1024, out_features=1000),
                 nn.ReLU(),

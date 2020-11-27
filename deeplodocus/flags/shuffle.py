@@ -18,10 +18,3 @@ DEEP_SHUFFLE_ALL = Flag(
     description="Shuffling all the dataset",
     names=["all", "default", "shuffle all", "shuffle_all", "shuffle-all"]
 )
-
-DEEP_SHUFFLE_RANDOM_PICK = Flag(
-    name="Pick random indices",
-    description="Pick randomly indices in the list available",
-    names=["pick", "random_pick", "random pick", "random-pick"]
-)
-
